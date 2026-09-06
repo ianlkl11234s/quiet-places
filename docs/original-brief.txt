@@ -1,0 +1,1101 @@
+可以。我會把它定義成一個「**即時生成的靜謐空間**」，而不是 3D 魚缸，也不是一般的互動網站。
+
+核心畫面始終很簡單：
+
+> 空無一物的暗色房間。
+> 天花板中央只有一片水。
+> 陽光穿過水面落下，波光在牆面與地板緩慢流動。
+> 幾尾魚在光與陰影之間游動。
+> 空氣裡有極淡的霧與浮塵。
+> 隨著一天時間改變，光的角度、色溫與氣氛慢慢變化。
+
+我會建議整個專案先不要追求「物理模擬」，而是追求 **Perceptual Realism：看起來是真的**。這會讓專案可控非常多。
+
+---
+
+# 1. 先定義這個作品的 Visual Contract
+
+這一點很重要，之後所有技術選擇都要服務它。
+
+空間不應該像：
+
+* 水族館
+* 博物館裝置
+* 遊戲場景
+* 豪宅室內
+* 奇幻海底
+* 科技展示
+
+而應該接近：
+
+**Japanese quiet architecture + Wabi-sabi + light + water + emptiness**
+
+整體構圖可以固定成：
+
+```text
+┌──────────────────────────────┐
+│                              │
+│          水面天窗             │
+│         ~~~~~~~~~             │
+│            ↓                 │
+│          ↓ ↓ ↓               │
+│        光 / 水氣              │
+│                              │
+│       🐟          🐟          │
+│             🐟               │
+│                              │
+│                              │
+│       波光                    │
+│                              │
+│______________________________│
+```
+
+最重要的一條規則：
+
+> **天花板的水面是唯一明確光源。**
+
+房間不是「暗色材質但其實被照亮」，而是真的大部分掉進陰影裡。
+
+光只應該讓你隱約看見空間，而不是把空間展示給你看。
+
+---
+
+# 2. 技術架構
+
+我會用這樣的組合：
+
+| Layer      | 技術                                         |
+| ---------- | ------------------------------------------ |
+| 3D Engine  | Three.js                                   |
+| Build      | Vite + TypeScript                          |
+| Room       | Three.js Geometry / Blender GLTF           |
+| Materials  | MeshStandardMaterial + Custom Shader       |
+| Water      | GLSL Vertex + Fragment Shader              |
+| Caustics   | Animated procedural / texture shader       |
+| Sunlight   | Directional Light + custom volumetric beam |
+| Atmosphere | Fog + volumetric particles                 |
+| Fish       | GLTF + procedural animation                |
+| Schooling  | Boids / Steering Behaviors                 |
+| Many Fish  | InstancedMesh                              |
+| Post FX    | EffectComposer                             |
+| Tone       | ACES Filmic Tone Mapping                   |
+| Audio      | Web Audio API                              |
+| UI         | HTML/CSS overlay                           |
+| Future     | WebGPU optional                            |
+
+第一版我甚至會選：
+
+**Three.js + TypeScript，不急著用 React。**
+
+因為這個作品本身 UI 很少。
+
+Three.js scene 就是產品本體。
+
+---
+
+# 3. 整個 Scene Graph
+
+程式架構可以直接按照世界中的物件拆：
+
+```text
+Scene
+│
+├── Environment
+│   ├── Room
+│   ├── Ceiling
+│   └── Floor
+│
+├── WaterOpening
+│   ├── WaterSurface
+│   └── WaterShader
+│
+├── Lighting
+│   ├── SunLight
+│   ├── VolumetricBeam
+│   └── CausticsProjector
+│
+├── Atmosphere
+│   ├── Fog
+│   └── DustParticles
+│
+├── FishSystem
+│   ├── FishModel
+│   ├── FishAnimation
+│   └── SchoolSimulation
+│
+├── TimeSystem
+│   ├── SunAngle
+│   ├── LightTemperature
+│   ├── LightIntensity
+│   └── WaterState
+│
+└── PostProcessing
+    ├── Bloom
+    ├── ToneMapping
+    ├── Vignette
+    └── FilmGrain
+```
+
+這樣未來很好維護。
+
+---
+
+# 4. 空間本身反而要極度簡單
+
+我甚至不建議第一版用 Blender 做複雜模型。
+
+直接 Three.js 建：
+
+* Floor
+* 3～4 面 Wall
+* Ceiling
+* 中央一個方形 Opening
+
+就夠了。
+
+房間比例可以故意偏高：
+
+```text
+width  = 8
+depth  = 10
+height = 7
+```
+
+讓人感覺：
+
+**魚與光很小，空間很大。**
+
+這是日系空間很重要的一個視覺心理。
+
+不是把畫面塞滿，而是：
+
+> 讓「什麼都沒有」本身成為畫面的一部分。
+
+材質可以是：
+
+```text
+roughness ≈ 0.8–1.0
+metalness = 0
+```
+
+表面只有非常細微的水泥或灰泥 roughness variation。
+
+不要明顯紋理。
+
+---
+
+# 5. 水面是整個作品第一核心
+
+這塊是第一個真正值得花時間的 Shader。
+
+天花板中央有一個 Plane：
+
+```text
+PlaneGeometry
++
+ShaderMaterial
+```
+
+Vertex shader 負責非常微弱的波動。
+
+概念上是：
+
+```glsl
+height =
+    sin(position.x * frequency + time) *
+    sin(position.y * frequency2 + time * speed)
+```
+
+但不要只用 sin，否則會像遊戲。
+
+最後應該變成：
+
+```text
+Large slow waves
++
+Small ripples
++
+Noise
+```
+
+大概：
+
+```text
+wave1  60%
+wave2  25%
+noise  15%
+```
+
+而且速度一定要慢。
+
+你要的是：
+
+```text
+～～～～～～～～
+```
+
+不是：
+
+```text
+∿∿∿∿∿∿∿∿
+```
+
+---
+
+# 6. 真正的主角：Caustics
+
+我會把這個視為整個專案最重要的技術。
+
+你喜歡的其實不是「水」。
+
+是：
+
+> **水改變了光。**
+
+可以先不要做真正 photon tracing。
+
+第一版用一個 procedural caustics shader。
+
+概念：
+
+```text
+Water normals
+        ↓
+UV distortion
+        ↓
+multiple moving wave layers
+        ↓
+bright intersection
+        ↓
+Caustic texture
+```
+
+最後得到不停變化的：
+
+```text
+      ╱╲
+ ╲╱╲╱  ╲
+╱   ╲╱╲ ╲
+  ╲╱    ╲
+```
+
+然後把它投射到：
+
+* 地板
+* 後方牆面
+* 側牆少量
+* 魚的表面
+
+但必須有一個 **Light Mask**。
+
+也就是：
+
+```text
+Caustics × SunlightMask
+```
+
+這樣才能確保：
+
+> 波光只存在於陽光真正照得到的位置。
+
+否則整間房間到處都有水波，就會立刻失去你想要的感覺。
+
+---
+
+# 7. 陽光柱
+
+第二個核心 Shader。
+
+我不會一開始做非常昂貴的 volumetric ray marching。
+
+第一版可以用：
+
+**Volume Mesh + Shader**
+
+做一個從天花板延伸下來的透明體積。
+
+```text
+        ┌───┐
+        │水 │
+        └───┘
+         \   /
+          \ /
+          │
+          │
+```
+
+Shader 控制：
+
+```text
+中心 opacity 高一點
+邊緣 opacity → 0
+
+頂部亮
+底部逐漸弱
+
+noise 隨時間緩慢流動
+```
+
+而且 opacity 要很低。
+
+大概視覺上：
+
+> 你不是看到一根白色光柱。
+
+而是：
+
+> 空氣突然在那個區域變得可見。
+
+這兩者差很多。
+
+---
+
+# 8. 空氣感
+
+你說的「陽光灑下的微微空氣感」會是另外一個很重要的 Layer。
+
+可以做非常少量的 Dust Particle。
+
+大概：
+
+```text
+100–500 particles
+```
+
+但不是下雪。
+
+而是：
+
+```text
+·
+
+       ·
+
+              ·
+
+   ·
+```
+
+非常少。
+
+只在光柱裡容易看見。
+
+運動速度也要非常慢：
+
+```text
+0.001
+0.003
+```
+
+而不是 Particle Effect 那種速度。
+
+這會讓陽光產生非常漂亮的尺度感。
+
+---
+
+# 9. 魚群
+
+第一版不用很多魚。
+
+我反而會從：
+
+> **5～12 尾**
+
+開始。
+
+如果 50 尾，立刻就會變水族館。
+
+你這個畫面的魚應該比較像：
+
+```text
+一尾
+
+       兩尾
+
+              一尾
+
+   三尾
+```
+
+留大量空間。
+
+---
+
+# 10. 魚的游動不要做成 Animation Loop
+
+這是非常重要的一點。
+
+如果每隻魚都是：
+
+```text
+游 →
+轉彎 →
+游 →
+轉彎 →
+loop
+```
+
+一分鐘後人就會看出來是假動畫。
+
+我會用 Steering / Boids。
+
+每尾魚都有：
+
+```text
+position
+velocity
+direction
+speed
+```
+
+然後受到幾個力影響：
+
+```text
+Separation
+Cohesion
+Alignment
+
++
+
+wander
+boundary
+light attraction
+```
+
+其中最後一個很有意思：
+
+### Light Attraction
+
+魚不是被強制鎖在光柱裡。
+
+而是：
+
+> 稍微傾向待在有光的位置。
+
+所以你會看到：
+
+```text
+🐟 → 暗處
+
+慢慢游出去
+
+停留一下
+
+再回到光裡
+```
+
+這種行為會讓世界突然有生命。
+
+---
+
+# 11. 魚本身的動畫
+
+不用每一尾做 Skeleton Animation。
+
+可以直接 Vertex Shader。
+
+魚的身體座標：
+
+```text
+head ---------------- tail
+0                       1
+```
+
+尾巴越後面：
+
+```text
+sin(time + x)
+```
+
+幅度越大。
+
+結果就是：
+
+```text
+head
+ |
+ ↓
+
+────────╱╲
+```
+
+魚身自然左右擺。
+
+每尾魚再給不同：
+
+```text
+speed
+phase
+amplitude
+size
+```
+
+它們就不會同步擺尾。
+
+這一點非常重要。
+
+---
+
+# 12. 魚不要全部一樣
+
+但是差異也不要太大。
+
+例如：
+
+```text
+70%  小型淡色魚
+20%  稍微偏黃 / 橘
+10%  比較大的魚
+```
+
+色彩也不要熱帶魚那麼艷。
+
+比較適合：
+
+* ivory
+* pale orange
+* faded gold
+* muted blue
+* gray-green
+
+也就是稍微：
+
+**desaturated。**
+
+這樣才符合 wabi-sabi。
+
+---
+
+# 13. Wabi-sabi 不是「套日系濾鏡」
+
+這點我覺得值得把它直接寫成 Design Principle。
+
+你的 Wabi-sabi 應該來自：
+
+### 不完美
+
+水波不是 perfect loop。
+
+魚群不是完美同步。
+
+光影偶爾不均勻。
+
+### 無常
+
+```text
+光一直在變
+水一直在變
+魚一直在移動
+```
+
+沒有一秒鐘完全相同。
+
+### 留白
+
+畫面可能：
+
+```text
+80% 空間
+15% 光
+5% 魚
+```
+
+### 節制
+
+不要：
+
+* HUD
+* 按鈕
+* 卡片
+* 粒子特效
+* 彩虹色
+* 大量音樂
+* UI animation
+
+甚至第一次進去最好只有畫面。
+
+---
+
+# 14. 時間系統會讓這個作品真正有靈魂
+
+我非常建議做。
+
+可以讓它跟使用者所在地的真實時間同步。
+
+例如：
+
+### 06:00–08:00
+
+```text
+微藍
+很淡
+光柱柔
+魚比較慢
+```
+
+### 08:00–11:00
+
+```text
+偏暖白
+比較乾淨
+```
+
+### 11:00–14:00
+
+```text
+最明亮
+光接近垂直
+Caustics 最清楚
+```
+
+但房間還是黑的。
+
+### 14:00–17:00
+
+```text
+光逐漸傾斜
+稍暖
+```
+
+### 17:00–19:00
+
+這可能會是非常漂亮的狀態：
+
+```text
+淡金
+稍微橙
+長陰影
+魚偶爾穿越光柱
+```
+
+### Night
+
+我不會讓它完全關燈。
+
+可以變成：
+
+```text
+極淡的藍灰月光
+```
+
+甚至只有：
+
+> 水面稍微看得到。
+
+這會非常靜。
+
+---
+
+# 15. 不要直接用 RGB 插值做日夜
+
+光最好控制：
+
+```text
+Sun angle
+Intensity
+Color temperature
+Caustics intensity
+Fog density
+Water wave amplitude
+Fish activity
+```
+
+例如：
+
+```text
+             Dawn   Noon   Sunset  Night
+
+Sun Angle      25     90      20      -
+Intensity     .25    1.0     .35     .05
+Caustics      .15     .8     .25     .03
+Fish Speed     .5     .8      .6      .3
+Fog            .6     .3      .5      .8
+```
+
+這樣時間不是「背景換顏色」。
+
+而是：
+
+> 整個世界都跟著時間呼吸。
+
+---
+
+# 16. Camera 不要讓使用者自由亂飛
+
+這個我會很強烈建議。
+
+不要 OrbitControls。
+
+一旦可以：
+
+```text
+滑鼠左鍵拖
+縮放
+旋轉
+```
+
+它馬上會變成：
+
+> 3D Demo。
+
+而不是空間。
+
+Camera 應該幾乎固定。
+
+最多：
+
+```text
+滑鼠移動
+
+↓
+
+camera position ± 1–2%
+```
+
+非常微小的 parallax。
+
+讓人覺得：
+
+> 自己真的站在空間裡。
+
+而不是在操縱 3D 模型。
+
+---
+
+# 17. Sound 非常值得做
+
+但是音樂反而可以沒有。
+
+我會用：
+
+```text
+很低的 room tone
++
+極輕微水聲
++
+偶爾非常遠的水滴
+```
+
+音量非常小。
+
+甚至：
+
+```text
+-30 dB
+```
+
+這類作品，安靜本身就是音效。
+
+---
+
+# 18. Post Processing
+
+我會控制得非常節制。
+
+使用：
+
+```text
+EffectComposer
+```
+
+主要只做：
+
+### Bloom
+
+只有：
+
+* 水面
+* 強 caustics
+* 光中心
+
+有非常淡的 bloom。
+
+### Tone Mapping
+
+```text
+ACESFilmicToneMapping
+```
+
+很重要。
+
+因為你需要：
+
+```text
+非常亮的光
++
+非常黑的陰影
+```
+
+同時存在。
+
+### Vignette
+
+極淡。
+
+### Film Grain
+
+幾乎不可察覺。
+
+可以避免整個畫面太 CGI。
+
+---
+
+# 19. 第一版完整 Render Pipeline
+
+最後每一幀大概會是：
+
+```text
+TimeSystem.update()
+
+        ↓
+
+Water.update()
+
+        ↓
+
+Sun.update()
+
+        ↓
+
+Caustics.update()
+
+        ↓
+
+FishSimulation.update()
+
+        ↓
+
+FishAnimation.update()
+
+        ↓
+
+Particles.update()
+
+        ↓
+
+Three.js render
+
+        ↓
+
+Bloom
+
+        ↓
+
+Tone Mapping
+
+        ↓
+
+Final frame
+```
+
+---
+
+# 20. 我會怎麼拆開發
+
+我不會一開始就做魚。
+
+第一階段只做：
+
+```text
+房間
++
+水面
++
+陽光
+```
+
+Acceptance Criteria 是：
+
+> 即使一條魚都沒有，這個畫面也已經讓你願意盯著看 30 秒。
+
+這件事情非常重要。
+
+因為真正的核心其實是：
+
+**Light × Water × Space**
+
+不是魚。
+
+---
+
+第二階段再做：
+
+```text
+Caustics
++
+Volumetric Light
++
+Dust
+```
+
+這個階段完成後，理論上就已經非常接近你剛才生成的圖片。
+
+---
+
+第三階段才加入：
+
+```text
+1 尾魚
+```
+
+先讓一尾魚：
+
+* 轉彎自然
+* 擺尾自然
+* 穿過光自然
+* 進暗處自然
+
+如果一尾成立，再變 5 尾。
+
+最後才 10 尾。
+
+---
+
+第四階段加入：
+
+**Time of Day**
+
+這時產品才真正從：
+
+> 3D Scene
+
+變成：
+
+> 一個一直存在的地方。
+
+---
+
+# 21. 我會定義四個 Milestone
+
+| Milestone | 完成標準                                |
+| --------- | ----------------------------------- |
+| M1 Space  | 黑暗房間＋天花板水面＋單一光源已經漂亮                 |
+| M2 Light  | Caustics、光柱、浮塵產生你參考圖的空氣感            |
+| M3 Life   | 5–12 尾魚自然、不重複地游動                    |
+| M4 Time   | Dawn / Noon / Sunset / Night 自然連續變化 |
+
+做到 **M2** 的時候，我就會先停下來做一次藝術方向評估。
+
+如果 M2 不療癒：
+
+> 不要繼續加功能。
+
+應該繼續調光。
+
+---
+
+# 22. 專案目錄可以直接這樣規劃
+
+```text
+src/
+├── main.ts
+│
+├── core/
+│   ├── Renderer.ts
+│   ├── Scene.ts
+│   ├── Camera.ts
+│   └── Loop.ts
+│
+├── world/
+│   ├── Room.ts
+│   ├── Water.ts
+│   ├── Lighting.ts
+│   ├── Caustics.ts
+│   ├── Atmosphere.ts
+│   └── FishSchool.ts
+│
+├── systems/
+│   ├── TimeOfDay.ts
+│   ├── FishSimulation.ts
+│   └── AudioSystem.ts
+│
+├── shaders/
+│   ├── water.vert
+│   ├── water.frag
+│   ├── caustics.frag
+│   ├── volumetric.frag
+│   └── fish.vert
+│
+├── models/
+│   └── fish.glb
+│
+├── textures/
+│   └── ...
+│
+└── postprocessing/
+    └── PostProcessing.ts
+```
+
+---
+
+# 23. 最容易踩到的坑
+
+這個作品最大的危險其實不是「做不出來」。
+
+而是：
+
+> **做太多。**
+
+例如開始加：
+
+```text
+植物
+石頭
+水池
+家具
+燈籠
+窗戶
+竹子
+音樂
+UI
+互動
+```
+
+很快就會失去原本最漂亮的東西。
+
+你現在構想真正強的地方反而是：
+
+> **一個幾乎什麼都沒有的空間裡，只有水、光、魚和時間。**
+
+所以我會真的把它變成專案的 Art Direction Rule：
+
+> **When in doubt, remove it.**
+
+---
+
+# 24. 整個作品的核心優先級
+
+如果把所有技術的重要程度排下來，我會是：
+
+```text
+光             ██████████
+Caustics       ██████████
+空間比例        █████████
+水面            ████████
+Tone / Color   ████████
+魚的運動        ███████
+空氣粒子        █████
+魚模型細節      ████
+物理正確性      ██
+UI              █
+```
+
+這個排序其實很重要。
+
+**不要先花三天做一條超高精度的魚。**
+
+可能花三天把 caustics 做對，帶來的效果會大十倍。
+
+---
+
+## 最後，我會把這個專案濃縮成一句設計 Brief
+
+> **An empty room where water, light, fish, and time quietly coexist.**
+
+或者中文：
+
+> **一個空無一物的房間，只留下水、光、魚，以及時間流過的痕跡。**
+
+這句其實可以一直放在 README 最上面。
+
+而如果你準備開始用 Claude Code / Codex 實際做，我會建議下一步不要直接把上面整份丟給 Agent 開發。我可以再幫你把這份計畫整理成一份真正適合 Coding Agent 執行的 **`PROJECT_SPEC.md`**：包含技術選型、M1～M4 任務、檔案結構、shader requirements、視覺驗收標準，以及明確的「不要做什麼」。這樣會非常適合直接開 repo 開始做。
