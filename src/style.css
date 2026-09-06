@@ -3,3 +3,5 @@
 #space canvas{touch-action:none;cursor:grab}#space canvas:active{cursor:grabbing}
 
 #settings{max-height:calc(100dvh - 110px);overflow-y:auto}label[for=beam-strength]{margin-top:18px}
+
+#settings select{display:block;width:100%;font:inherit;color:inherit;background:#172226;border:1px solid #abb6b130;border-radius:3px;padding:10px;margin:8px 0 18px}#settings select:focus-visible{outline:1px solid #d9d9cb;outline-offset:3px}#settings label[for=weather],#settings label[for=quality],#settings label[for=rain-intensity]{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.1em}#rain-controls[hidden]{display:none}.music-player{border-top:1px solid #abb6b130;margin-top:18px;padding-top:8px}#settings .music-player__title{opacity:.8;margin:8px 0 12px}.music-player__play{border:1px solid #abb6b130;width:100%;margin-bottom:12px}.music-player__volume-label{display:block;font-size:10px}.music-player__loop-label{display:flex;align-items:center;gap:8px;font-size:10px}#settings .music-player__status{opacity:.75;line-height:1.6}#settings #water-mode,#settings #water-hint{opacity:.65;line-height:1.7}

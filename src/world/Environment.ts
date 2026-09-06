@@ -7,6 +7,8 @@ export interface EnvironmentState {
   angle: number;
   activity: number;
   beamStrength?: number;
+  rain?: number;
+  lowQuality?: boolean;
 }
 
 export interface StillwaterEnvironment {
@@ -25,54 +27,6 @@ const causticVertex = /* glsl */ `
   void main() {
     vWorld = (modelMatrix * vec4(position, 1.0)).xyz;
     gl_Position = projectionMatrix * viewMatrix * vec4(vWorld, 1.0);
-  }
-`;
-
-// Smooth domain-warped contours avoid polygonal cell boundaries in the light pattern.
-const causticFragment = /* glsl */ `
-  uniform float uTime;
-  uniform float uStrength;
-  uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
-  uniform float uAngle;
-  uniform float uWarmth;
-  varying vec3 vWorld;
-  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-  float noise2(vec2 p){
-    vec2 i=floor(p),f=fract(p);f=f*f*f*(f*(f*6.-15.)+10.);
-    return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
-  }
-  float focus(vec2 p){
-    vec2 drift=vec2(uTime*.045,-uTime*.031);
-    vec2 warp=vec2(noise2(p*.8+drift),noise2(p*.8+vec2(4.8,9.1)-drift));
-    float n=noise2(p+warp*1.7+drift)+noise2(p*1.83-warp+drift*.6)*.32;
-    float width=max(fwidth(n)*1.4,.016);
-    return exp(-pow((n-.62)/(width+.027),2.));
-  }
-  void main() {
-    // Back-project the fragment to the ceiling. This is the same angled opening
-    // used by every receiver, so caustics never leak into impossible regions.
-    vec3 sun = normalize(vec3(-.45 + sin(uAngle)*.14, -1.0, -.30 + sin(uAngle*.7)*.10));
-    float rise = 7.0 - vWorld.y;
-    vec2 roof = vec2(vWorld.x, vWorld.z) - sun.xz / sun.y * (vWorld.y - 7.0);
-    float aperture = 1.0 - smoothstep(1.70, 2.03, max(abs(roof.x), abs(roof.y + .2)));
-    // The aperture is projected from the roof, while the fine pattern is in
-    // world space.  This keeps the illumination physically clipped by the
-    // skylight without stretching a roof texture into long wall worms.
-    vec3 receiver=abs(normalize(cross(dFdx(vWorld),dFdy(vWorld))));
-    vec2 p=(receiver.y>.7?vWorld.xz:(receiver.x>.7?vWorld.zy:vWorld.xy))*1.86;
-    p += vec2(sin(p.y*1.9 + uTime*.18), cos(p.x*1.6-uTime*.14)) * .22;
-    if(uUseSimulation>.5){
-      vec2 uv=vec2(roof.x/3.6+.5,.5-(roof.y+.2)/3.6);
-      vec2 e=uWaveTexel;
-      vec2 tilt=vec2(texture2D(uWaves,clamp(uv+vec2(e.x,0),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(e.x,0),0.,1.)).r,texture2D(uWaves,clamp(uv+vec2(0,e.y),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(0,e.y),0.,1.)).r)/(2.*3.6*e);
-      p+=tilt*min(rise,5.)*.35;
-    }
-    float web = focus(p) * .72 + focus(p*1.47+vec2(8.1,3.2))*.24;
-    float fade = (1.0 - smoothstep(0., 16., rise) * .45) * aperture;
-    vec3 cool = vec3(.34, .79, .77);
-    vec3 cream = vec3(1.0, .78, .45);
-    vec3 tint = mix(cool, cream, clamp(uWarmth, 0.0, 1.0));
-    gl_FragColor = vec4(tint * web * fade * uStrength * .62, 1.0);
   }
 `;
 
@@ -106,6 +60,51 @@ const waterField = /* glsl */ `
   }
 
 `;
+// Smooth domain-warped contours avoid polygonal cell boundaries in the light pattern.
+const causticFragment = /* glsl */ `
+  uniform float uTime;
+  uniform float uStrength;
+  uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
+  uniform float uAngle;
+  uniform float uWarmth;
+  varying vec3 vWorld;
+  ${waterField}
+  float focus(vec2 p){
+    vec2 drift=vec2(uTime*.045,-uTime*.031);
+    vec2 warp=vec2(noise2(p*.8+drift),noise2(p*.8+vec2(4.8,9.1)-drift));
+    float n=noise2(p+warp*1.7+drift)+noise2(p*1.83-warp+drift*.6)*.32;
+    float width=max(fwidth(n)*1.4,.016);
+    return exp(-pow((n-.62)/(width+.027),2.));
+  }
+  void main() {
+    // Back-project the fragment to the ceiling. This is the same angled opening
+    // used by every receiver, so caustics never leak into impossible regions.
+    vec3 sun = normalize(vec3(-.45 + sin(uAngle)*.14, -1.0, -.30 + sin(uAngle*.7)*.10));
+    float rise = 7.0 - vWorld.y;
+    vec2 roof = vec2(vWorld.x, vWorld.z) - sun.xz / sun.y * (vWorld.y - 7.0);
+    float aperture = 1.0 - smoothstep(1.70, 2.03, max(abs(roof.x), abs(roof.y + .2)));
+    // The aperture is projected from the roof, while the fine pattern is in
+    // world space.  This keeps the illumination physically clipped by the
+    // skylight without stretching a roof texture into long wall worms.
+    vec3 receiver=abs(normalize(cross(dFdx(vWorld),dFdy(vWorld))));
+    vec2 p=(receiver.y>.7?vWorld.xz:(receiver.x>.7?vWorld.zy:vWorld.xy))*1.86;
+    p += vec2(sin(p.y*1.9 + uTime*.18), cos(p.x*1.6-uTime*.14)) * .22;
+    if(uUseSimulation>.5){
+      vec2 uv=vec2(roof.x/3.6+.5,.5-(roof.y+.2)/3.6);
+      vec2 e=uWaveTexel;
+      vec2 tilt=vec2(texture2D(uWaves,clamp(uv+vec2(e.x,0),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(e.x,0),0.,1.)).r,texture2D(uWaves,clamp(uv+vec2(0,e.y),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(0,e.y),0.,1.)).r)/(2.*3.6*e);
+      p+=tilt*3.*min(rise,5.)*.35;
+    }
+    p+=vec2(waterHeight(roof*3.89,uTime))*.18;
+    float web = focus(p) * .72 + focus(p*1.47+vec2(8.1,3.2))*.24;
+    float fade = (1.0 - smoothstep(0., 16., rise) * .45) * aperture;
+    vec3 cool = vec3(.34, .79, .77);
+    vec3 cream = vec3(1.0, .78, .45);
+    vec3 tint = mix(cool, cream, clamp(uWarmth, 0.0, 1.0));
+    gl_FragColor = vec4(tint * web * fade * uStrength * .62, 1.0);
+  }
+`;
+
 const waterVertex = /* glsl */ `
   uniform float uTime; uniform float uActivity;
   uniform sampler2D uWaves; uniform float uUseSimulation;
@@ -127,7 +126,7 @@ const waterVertex = /* glsl */ `
 // Rays sample the same procedural sky as the separate upper layer. This is
 // single-interface refraction, not an opacity overlay of undistorted clouds.
 const waterFragment = /* glsl */ `
-  uniform float uTime; uniform float uWarmth; uniform float uIntensity;
+  uniform float uTime; uniform float uWarmth; uniform float uIntensity; uniform float uRain;
   uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
   varying vec2 vUv; varying vec3 vWorld;
   ${waterField}
@@ -142,7 +141,16 @@ const waterFragment = /* glsl */ `
     clouds=smoothstep(.72,1.12,clouds);
     vec3 blue=mix(vec3(.065,.22,.40),vec3(.13,.26,.40),uWarmth);
     vec3 white=mix(vec3(.87,.94,1.),vec3(1.,.88,.68),uWarmth*.6);
-    return (mix(blue,white,clouds*.65)+white*exp(-length(world-vec2(1.,-.6))*.42)*.055)*(.035+uIntensity*.9);
+    vec3 sky=mix(blue,white,clouds*.65);
+    sky=mix(sky,vec3(.22,.30,.34)+clouds*.13,uRain*.8);
+    // Distant falling streaks above the surface, seen through the same refraction.
+    vec2 rainUV=world*vec2(11.,2.5)+vec2(0.,uTime*2.4);
+    vec2 cell=floor(rainUV);vec2 f=fract(rainUV);
+    float seed=hash(cell);
+    float streak=(1.-smoothstep(.018,.075,abs(f.x-.5)))
+      *smoothstep(.05,.18,f.y)*(1.-smoothstep(.45,.85,f.y))*step(.76,seed);
+    sky+=vec3(.26,.32,.35)*streak*uRain;
+    return (sky+white*exp(-length(world-vec2(1.,-.6))*.42)*.055)*(.035+uIntensity*.9);
   }
   void main(){
     vec2 e=uWaveTexel;
@@ -183,6 +191,7 @@ const volumeVertex = /* glsl */ `
 `;
 const volumeFragment = /* glsl */ `
   uniform float uTime; uniform float uStrength; uniform float uWarmth; uniform float uAngle;
+  uniform sampler2D uWaves; uniform float uUseSimulation; uniform float uLowQuality;
   varying vec3 vWorld;
   float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
@@ -200,8 +209,10 @@ const volumeFragment = /* glsl */ `
     vec3 sun=normalize(vec3(-.45+sin(uAngle)*.14,-1.,-.30+sin(uAngle*.7)*.10));
     float sum=0.;
     const int STEPS=48;
-    float stepSize=(finish-begin)/float(STEPS);
+    float count=uLowQuality>.5?24.:48.;
+    float stepSize=(finish-begin)/count;
     for(int i=0;i<STEPS;i++){
+      if(float(i)>=count)break;
       float jitter=hash(gl_FragCoord.xy);
       vec3 p=ro+rd*(begin+(float(i)+jitter)*stepSize);
       vec2 roof=p.xz-sun.xz/sun.y*(p.y-7.);
@@ -209,7 +220,9 @@ const volumeFragment = /* glsl */ `
       // Fine, moving striations are evaluated at the roof interception,
       // preserving the incoming-light direction without making a solid cone.
       float wav=noise2(roof*1.8+vec2(uTime*.035,-uTime*.023));
-      float bands=.5+.5*sin(roof.x*11.+wav*3.+uTime*.16);
+      vec2 waveUV=clamp(vec2(roof.x/3.6+.5,.5-(roof.y+.2)/3.6),0.,1.);
+      float surface=uUseSimulation>.5?texture2D(uWaves,waveUV).r:0.;
+      float bands=.5+.5*sin(roof.x*11.+wav*3.+uTime*.16+surface*90.);
       float shaft=smoothstep(.56,.88,bands)*(.42+.58*noise2(roof*4.-uTime*.03));
       float falloff=exp(-length(roof-vec2(0.,-.2))*.34)*(1.-smoothstep(6.55,7.,p.y));
       sum+=aperture*(.10+shaft)*falloff;
@@ -278,14 +291,21 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
     const geometry = new THREE.PlaneGeometry(w, h); disposable.push(geometry);
     const mesh = new THREE.Mesh(geometry, roomMaterial); mesh.position.copy(pos); mesh.rotation.copy(rotation); mesh.receiveShadow = true; add(mesh); return mesh;
   };
-  makePlane(ROOM.width, ROOM.depth, new THREE.Vector3(0, 0, 0), new THREE.Euler(-Math.PI / 2, 0, 0));
+  makePlane(20, 21, new THREE.Vector3(0, 0, 5.5), new THREE.Euler(-Math.PI / 2, 0, 0));
   makePlane(ROOM.width, ROOM.height, new THREE.Vector3(0, 3.5, -5), new THREE.Euler(0, 0, 0));
-  makePlane(ROOM.depth, ROOM.height, new THREE.Vector3(-4, 3.5, 0), new THREE.Euler(0, Math.PI / 2, 0));
-  makePlane(ROOM.depth, ROOM.height, new THREE.Vector3(4, 3.5, 0), new THREE.Euler(0, -Math.PI / 2, 0));
+  makePlane(5, ROOM.height, new THREE.Vector3(-4, 3.5, -2.5), new THREE.Euler(0, Math.PI / 2, 0));
+  makePlane(5, ROOM.height, new THREE.Vector3(4, 3.5, -2.5), new THREE.Euler(0, -Math.PI / 2, 0));
+  // The viewing bay widens behind the original lit chamber to contain the
+  // complete orbit. Keep its back walls and caustics at the accepted positions.
+  makePlane(Math.hypot(6,3),7,new THREE.Vector3(-7,3.5,1.5),new THREE.Euler(0,Math.atan2(3,6),0));
+  makePlane(Math.hypot(6,3),7,new THREE.Vector3(7,3.5,1.5),new THREE.Euler(0,Math.atan2(-3,6),0));
+  makePlane(13,7,new THREE.Vector3(-10,3.5,9.5),new THREE.Euler(0,Math.PI/2,0));
+  makePlane(13,7,new THREE.Vector3(10,3.5,9.5),new THREE.Euler(0,-Math.PI/2,0));
+  makePlane(20,7,new THREE.Vector3(0,3.5,16),new THREE.Euler(0,Math.PI,0));
   // Four ceiling slabs leave the exact 3.6m square of water open.
-  makePlane(2.2, ROOM.depth, new THREE.Vector3(-2.9, 7, 0), new THREE.Euler(Math.PI / 2, 0, 0));
-  makePlane(2.2, ROOM.depth, new THREE.Vector3(2.9, 7, 0), new THREE.Euler(Math.PI / 2, 0, 0));
-  makePlane(3.6, 3.4, new THREE.Vector3(0, 7, 3.3), new THREE.Euler(Math.PI / 2, 0, 0));
+  makePlane(8.2, 21, new THREE.Vector3(-5.9, 7, 5.5), new THREE.Euler(Math.PI / 2, 0, 0));
+  makePlane(8.2, 21, new THREE.Vector3(5.9, 7, 5.5), new THREE.Euler(Math.PI / 2, 0, 0));
+  makePlane(3.6, 14.4, new THREE.Vector3(0, 7, 8.8), new THREE.Euler(Math.PI / 2, 0, 0));
   makePlane(3.6, 3.0, new THREE.Vector3(0, 7, -3.5), new THREE.Euler(Math.PI / 2, 0, 0));
 
   // The sky is a separate surface above the water: a visible second layer,
@@ -313,7 +333,7 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const sky=new THREE.Mesh(skyGeometry,skyMaterial);sky.rotation.x=Math.PI/2;sky.position.set(0,8.3,-.2);add(sky);
 
   const waterGeometry = new THREE.PlaneGeometry(3.6, 3.6, 90, 90); disposable.push(waterGeometry);
-  const waterUniforms = { ...waveUniforms, uTime: { value: 0 }, uActivity: { value: .5 }, uWarmth: { value: .5 }, uIntensity: { value: 1 } };
+  const waterUniforms = { ...waveUniforms, uTime: { value: 0 }, uActivity: { value: .5 }, uWarmth: { value: .5 }, uIntensity: { value: 1 }, uRain:{value:0} };
   const waterMaterial = new THREE.ShaderMaterial({ uniforms: waterUniforms, vertexShader: waterVertex, fragmentShader: waterFragment, side: THREE.DoubleSide }); disposable.push(waterMaterial);
   const water = new THREE.Mesh(waterGeometry, waterMaterial); water.rotation.x = -Math.PI / 2; water.position.set(0, 6.985, -.2); add(water);
 
@@ -322,9 +342,9 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const overlay = (w: number, h: number, pos: THREE.Vector3, rot: THREE.Euler) => { const g = new THREE.PlaneGeometry(w,h); disposable.push(g); const m = new THREE.Mesh(g, causticMaterial); m.position.copy(pos); m.rotation.copy(rot); add(m); };
   overlay(ROOM.width, ROOM.depth, new THREE.Vector3(0,.014,0), new THREE.Euler(-Math.PI/2,0,0));
   overlay(ROOM.width, ROOM.height, new THREE.Vector3(0,3.5,-4.988), new THREE.Euler(0,0,0));
-  overlay(ROOM.depth, ROOM.height, new THREE.Vector3(-3.988,3.5,0), new THREE.Euler(0,Math.PI/2,0));
+  overlay(5, ROOM.height, new THREE.Vector3(-3.988,3.5,-2.5), new THREE.Euler(0,Math.PI/2,0));
 
-  const volumeUniforms = { uTime: { value: 0 }, uStrength: { value: 1 }, uWarmth: { value: .5 }, uAngle: { value: 0 } };
+  const volumeUniforms = { ...waveUniforms, uLowQuality:{value:0}, uTime: { value: 0 }, uStrength: { value: 1 }, uWarmth: { value: .5 }, uAngle: { value: 0 } };
   const volumeGeometry = new THREE.BoxGeometry(7.98, 6.98, 9.98); disposable.push(volumeGeometry);
   const volumeMaterial = new THREE.ShaderMaterial({
     uniforms: volumeUniforms, vertexShader: volumeVertex, fragmentShader: volumeFragment,
@@ -346,13 +366,26 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const rim = new THREE.PointLight(0x386766, .22, 9, 2); rim.position.set(-3.6,5.6,-3.8); add(rim);
   const temp = new THREE.Color();
 
+  let rainClock=0;
+  let rainSeed=7123;
+  const rainRandom=()=>{rainSeed=(Math.imul(rainSeed,1664525)+1013904223)>>>0;return rainSeed/4294967296;};
   return {
     get waterMode(){return waterMode;},
     get hasSimulation(){return Boolean(simulation);},
     disturb(u,v){simulation?.disturb(u,v);},
-    resetWater(){simulation?.reset();},
+    resetWater(){simulation?.reset();rainClock=0;rainSeed=7123;},
     update(elapsed, state, dt=0) {
+      const rain=THREE.MathUtils.clamp(state.rain??0,0,1);
+      if(rain>0 && dt>0){
+        rainClock-=dt;
+        if(rainClock<=0){
+          simulation?.disturb(.10+rainRandom()*.80,.10+rainRandom()*.80);
+          rainClock=(.6+rainRandom()*.8)/(2.+rain*6.);
+        }
+      }else if(rain===0)rainClock=0;
       simulation?.update(dt);
+      waterUniforms.uRain.value=rain;
+      volumeUniforms.uLowQuality.value=state.lowQuality?1:0;
       waveUniforms.uWaves.value=simulation?.texture??emptyWave;
       const intensity = THREE.MathUtils.clamp(state.intensity, 0, 2);
       const warmth = THREE.MathUtils.clamp(state.warmth, 0, 1);

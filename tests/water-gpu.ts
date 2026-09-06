@@ -18,6 +18,13 @@ try{
  if(after.steps<=initial.steps||after.stateNorm===initial.stateNorm)throw Error('solver did not advance');
  sim.reset();const reset=sim.inspect();if(JSON.stringify(reset)!==JSON.stringify(initial))throw Error('reset mismatch');
  sim.update(1/60);const combined=sim.inspect();sim.reset();sim.update(1/120);sim.update(1/120);const split=sim.inspect();if(JSON.stringify(combined)!==JSON.stringify(split))throw Error('frame-rate dependence');
+ sim.reset();
+ for(let i=0;i<1800;i++){
+  if(i%15===0)sim.disturb(.1+((i*37)%101)/126,.1+((i*53)%101)/126);
+  sim.update(1/120);
+  if(i%120===0)await new Promise(requestAnimationFrame);
+ }
+ const rain=sim.inspect();if(!rain.finite||rain.maxHeight>.15||rain.maxVelocity>2)throw Error('rain field unstable');
  const a=sim.texture;sim.dispose();renderer.dispose();
- result.textContent=JSON.stringify({status:'PASS',initial,frozen,pulse,after,reset,rendererStateRestored:true,fixedStepEquivalent:true,textureType:a.type},null,2);
+ result.textContent=JSON.stringify({status:'PASS',rain,initial,frozen,pulse,after,reset,rendererStateRestored:true,fixedStepEquivalent:true,textureType:a.type},null,2);
 }catch(error){result.textContent='FAIL '+String(error);console.error(error);}
