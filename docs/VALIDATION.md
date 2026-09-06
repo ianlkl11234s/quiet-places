@@ -84,3 +84,14 @@
 - 主頁暫停可操作鏡頭、恢復；背景取消RAF。標準30fps/PR1.5（手機1.25），節能24fps/PR1/24次體積光；未宣稱實際手機耗電/FPS達標。
 - CPU抽樣dev server PID13912約0.5%；無法把共用Codex renderer全部CPU歸因本場景。此不是整機CPU上限證明。
 - 本次預覽與GPU測試分頁全部關閉；沒有留下壓測。08:00前由heartbeat低頻抽樣。
+
+## 2026-09-07 窗景擴充
+
+- `npm run build` 通過；既有主 bundle 超過 500 kB 警告仍存在，新窗景與 ZIP 模組 lazy load。
+- `node --experimental-strip-types --test tests/window-places.test.ts`：3 passed，0 failed。
+- Preferences 經 NodeNext 編譯後執行通過，加入場景保存。
+- 實際瀏覽器：海光→水光→樹影可切換；水光顯示 GPU 水面波動模擬；暫停後仍可操作；八圖生成成功並能返回原空間。
+- `exports/window-series/manifest.json` 記錄八張 1024×1536 PNG 的 SHA-256；ZIP 內每張與磁碟一致、八圖雜湊不同，主 agent 逐張視覺檢查。
+- 臨時 localhost 接收服務僅用於把 runtime Blob 保存到 repo，已停止並移除前端臨時呼叫；正式 UI 匯出再次驗證通過、不依賴接收服務。
+- 目前美術比參考圖更程序化，樹葉形狀與焦散仍需使用者主觀驗收。沒有完整物理光照、實機手機或 production 驗證。
+- 本任務預覽 tabs=[]，dev server 最後唯讀抽樣 0.6% CPU；這不是整機 CPU 或即時上限保證。

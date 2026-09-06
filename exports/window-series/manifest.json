@@ -1,0 +1,50 @@
+[
+  {
+    "file": "leaflight-moonlight.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "f52ddf28f13c50045e9d2297e2cc6c2fb8b32fac486a35297f224b9cdc18ee6f"
+  },
+  {
+    "file": "leaflight-noon.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "4753ddfaecc58850adf964107542314567f37dd80a9ac895600392c5d1940648"
+  },
+  {
+    "file": "leaflight-sunset.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "29698a74ca1e99c7c3804035b33f5f169ecca23ff6ae006cc920fa9108a9659f"
+  },
+  {
+    "file": "leaflight-twilight.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "7bf35f23e26af35b50d4907e890851a36b8711de6d6fd3efaff514f7043d1479"
+  },
+  {
+    "file": "oceanlight-moonlight.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "c2e9dbeb8b22339834fb5c121a6ffd1c1eb7f9d1f6af82a992abea7873b729f1"
+  },
+  {
+    "file": "oceanlight-noon.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "a53af40048431fd3fa5e6c954dee6713cd64b4e683ab6cc652a9404c3f18eee5"
+  },
+  {
+    "file": "oceanlight-sunset.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "923af297e315ef21730d4ece697a3ebf551941d97994898cb6d616a7071c573a"
+  },
+  {
+    "file": "oceanlight-twilight.png",
+    "width": 1024,
+    "height": 1536,
+    "sha256": "38677be270034f0b9fc5174012eec8cf9ed6a0b85bfe210c6afd28bd460069d7"
+  }
+]
