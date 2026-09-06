@@ -55,3 +55,17 @@
 ## 光束強度控制
 
 依使用者要求新增 0–250%「光束強度」滑桿，100% 為目前預設；只乘算體積光，不更動天空、時間與牆地焦散。瀏覽器確認 0% 無光束、250% 明顯加強，數值即時更新。Build 通過。
+
+## Quiet Places 集合設計 — 2026-09-06
+
+本次為文件交付：PROJECT_SPEC 改為集合產品規格，原水光規格搬至 docs/scenes/waterlight.md；新增 ARCHITECTURE 與 SCENES，README 成為統一入口。檢查五份文件的本機連結與 code fences、git diff whitespace 通過；src／index.html／package 與 lockfile 無變更，因此沒有重跑 shader 或宣稱集合 runtime 已驗證。
+
+集合首頁、路由、場景 adapter、切換生命週期與雨窗／樹影均尚未實作。水光的已接受版本仍為 `b0e28cd`，早期 tag 保留；本次文件尚未提交或公開發布。
+
+## GPU 水面第一階段
+
+新增 HalfFloat ping-pong 線性波動 solver，GPU 7,201 次更新／脈衝／暫停／reset／固定步長／renderer state 檢查通過，詳細數值與非完整流體的邊界見 [WATER_PHYSICS.md](WATER_PHYSICS.md)。既有耶穌光與環繞保留；集合設計文件的未提交改動保留。此實驗未提交。
+
+## 水膜感修正
+
+擾動改為局部下凹與補償波環；降低背景波幅，加入弱四階色散及鏡射 ghost 邊界。新版 GPU 7,201 更新、reset／暫停／固定步長／renderer state 檢查通過。更細微的波動已整合，主觀自然度與可辨識度待使用者回饋；詳见 WATER_PHYSICS.md。

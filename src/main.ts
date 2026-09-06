@@ -38,13 +38,26 @@ function start(){
   camera.position.set(controls.target.x+Math.sin(angle)*radius,camera.position.y,controls.target.z+Math.cos(angle)*radius);controls.update();
  });
 
- const env=createEnvironment(scene);const fish=createFishSchool(scene);const audio=createAudioSystem();
+ const env=createEnvironment(scene,renderer);const fish=createFishSchool(scene);const audio=createAudioSystem();
+ const raycaster=new THREE.Raycaster(),waterPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-6.985),hit=new THREE.Vector3();
+ let waterDown: {x:number;y:number;id:number}|undefined;
+ renderer.domElement.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)waterDown={x:e.clientX,y:e.clientY,id:e.pointerId};});
+ renderer.domElement.addEventListener('pointercancel',()=>{waterDown=undefined;});
+ renderer.domElement.addEventListener('pointerup',e=>{
+  const start=waterDown;waterDown=undefined;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
+  const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);
+  if(raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)env.disturb(u,v);}
+ });
  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,elapsed=0,last=performance.now(),raf=0,lost=false;
  let beamStrength=1;
  let hour=14,live=false;let state=sampleTime(hour);
  const panel=el('settings'),toggle=el<HTMLButtonElement>('settings-toggle'),pause=el<HTMLButtonElement>('pause');
+ el('water-mode').textContent=env.waterMode;
+ el<HTMLButtonElement>('water-reset').disabled=!env.hasSimulation;
+ if(!env.hasSimulation)el('water-hint').textContent='拖曳畫面，環繞天窗。左右各 45°。';
+ el('water-reset').addEventListener('click',()=>env.resetWater());
  const range=el<HTMLInputElement>('hour'),liveInput=el<HTMLInputElement>('live');
  function updateLabels(){el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);pause.textContent=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-pressed',String(paused));}
  function setPanel(open:boolean){panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));document.body.classList.remove('resting');if(open)el('close-settings').focus();else toggle.focus();}
@@ -67,7 +80,7 @@ function start(){
  window.addEventListener('resize',resize);resize();
  function frame(now:number){if(document.hidden||lost)return;const dt=Math.min((now-last)/1000,.05);last=now;if(live){hour=localHour();updateLabels()}
  const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
- fish.update(paused?0:dt,elapsed,state);if(!paused){elapsed+=dt;}env.update(elapsed,{...state,beamStrength});
+ fish.update(paused?0:dt,elapsed,state);if(!paused){elapsed+=dt;}env.update(elapsed,{...state,beamStrength},paused?0:dt);
  controls.enableDamping=!reduce.matches;controls.update();
  composer.render();raf=requestAnimationFrame(frame);
  }

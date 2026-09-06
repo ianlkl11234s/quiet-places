@@ -25,6 +25,8 @@ const COUNT = 9;
 const MIN = new THREE.Vector3(-2.8, 2.4, -3);
 const MAX = new THREE.Vector3(2.8, 5.7, 1.5);
 const FORWARD = new THREE.Vector3(1, 0, 0);
+const NEIGHBOUR_RADIUS_SQ = 2.4;
+const SEPARATION_RADIUS_SQ = 1.3;
 
 function seededRandom(seed: number): () => number {
   let value = seed >>> 0;
@@ -52,11 +54,16 @@ function createFish(index: number, random: () => number): Fish {
     color: gold ? 0xa88e58 : (index % 3 === 0 ? 0xd8d2c4 : 0xbfc3c1),
     roughness: 0.62,
     metalness: gold ? 0.16 : 0.28,
+    // A restrained self-fill keeps the small fish readable when they turn away from a room light.
+    emissive: gold ? 0x2d2417 : 0x18201e,
+    emissiveIntensity: 0.16,
   });
   const finMaterial = new THREE.MeshStandardMaterial({
     color: gold ? 0xb89a61 : 0xd8ded8,
     roughness: 0.48,
     metalness: 0.12,
+    emissive: gold ? 0x211a10 : 0x131b18,
+    emissiveIntensity: 0.1,
     transparent: true,
     opacity: 0.46,
     side: THREE.DoubleSide,
@@ -138,7 +145,7 @@ export function createFishSchool(scene: THREE.Scene): FishSchool {
       const activity = THREE.MathUtils.clamp(state.activity || 0, 0, 1);
       const intensity = THREE.MathUtils.clamp(state.intensity || 0, 0, 1);
       const angle = Number.isFinite(state.angle) ? state.angle : 0;
-      // The fish drift slightly toward the illuminated part of the room, while room lights remain their only illumination.
+      // The fish drift slightly toward the illuminated part of the room.
       const warmth = THREE.MathUtils.clamp(state.warmth || 0, 0, 1);
       lightTarget.set((-.45 + Math.sin(angle)*.14) * 2.6, 4.4 + (warmth - 0.5) * 0.2, -.2 + (-.30 + Math.sin(angle*.7)*.10) * 2.6);
 
@@ -151,19 +158,21 @@ export function createFishSchool(scene: THREE.Scene): FishSchool {
           if (i === j) continue;
           const other = fish[j];
           const distanceSq = current.position.distanceToSquared(other.position);
-          if (distanceSq < 2.4) {
+          if (distanceSq < NEIGHBOUR_RADIUS_SQ) {
             center.add(other.position);
             neighbours += 1;
-            if (distanceSq < 0.65 && distanceSq > 0.0001) {
+            if (distanceSq < SEPARATION_RADIUS_SQ && distanceSq > 0.0001) {
               separationVector.copy(current.position).sub(other.position);
-              separation.addScaledVector(separationVector, 1 / distanceSq);
+              // A bounded falloff avoids abrupt turns while giving nearby fish room to pass.
+              const proximity = 1 - distanceSq / SEPARATION_RADIUS_SQ;
+              separation.addScaledVector(separationVector, proximity * proximity);
             }
           }
         }
         desired.copy(current.velocity).multiplyScalar(0.45);
         if (neighbours) {
           center.multiplyScalar(1 / neighbours).sub(current.position).multiplyScalar(0.10);
-          desired.add(center).addScaledVector(separation, 0.15);
+          desired.add(center).addScaledVector(separation, 0.3);
         }
         wander.set(
           Math.sin(elapsed * 0.47 + current.phase),

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {createWaterSimulation} from '../systems/WaterSimulation';
 
 export interface EnvironmentState {
   intensity: number;
@@ -9,7 +10,11 @@ export interface EnvironmentState {
 }
 
 export interface StillwaterEnvironment {
-  update(elapsed: number, state: EnvironmentState): void;
+  update(elapsed: number, state: EnvironmentState, dt?: number): void;
+  disturb(u: number, v: number): void;
+  resetWater(): void;
+  readonly waterMode: string;
+  readonly hasSimulation: boolean;
   dispose(): void;
 }
 
@@ -27,6 +32,7 @@ const causticVertex = /* glsl */ `
 const causticFragment = /* glsl */ `
   uniform float uTime;
   uniform float uStrength;
+  uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
   uniform float uAngle;
   uniform float uWarmth;
   varying vec3 vWorld;
@@ -55,6 +61,12 @@ const causticFragment = /* glsl */ `
     vec3 receiver=abs(normalize(cross(dFdx(vWorld),dFdy(vWorld))));
     vec2 p=(receiver.y>.7?vWorld.xz:(receiver.x>.7?vWorld.zy:vWorld.xy))*1.86;
     p += vec2(sin(p.y*1.9 + uTime*.18), cos(p.x*1.6-uTime*.14)) * .22;
+    if(uUseSimulation>.5){
+      vec2 uv=vec2(roof.x/3.6+.5,.5-(roof.y+.2)/3.6);
+      vec2 e=uWaveTexel;
+      vec2 tilt=vec2(texture2D(uWaves,clamp(uv+vec2(e.x,0),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(e.x,0),0.,1.)).r,texture2D(uWaves,clamp(uv+vec2(0,e.y),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(0,e.y),0.,1.)).r)/(2.*3.6*e);
+      p+=tilt*min(rise,5.)*.35;
+    }
     float web = focus(p) * .72 + focus(p*1.47+vec2(8.1,3.2))*.24;
     float fade = (1.0 - smoothstep(0., 16., rise) * .45) * aperture;
     vec3 cool = vec3(.34, .79, .77);
@@ -96,6 +108,7 @@ const waterField = /* glsl */ `
 `;
 const waterVertex = /* glsl */ `
   uniform float uTime; uniform float uActivity;
+  uniform sampler2D uWaves; uniform float uUseSimulation;
   varying vec2 vUv; varying vec3 vWorld;
   ${waterField}
   void main() {
@@ -103,40 +116,61 @@ const waterVertex = /* glsl */ `
     vec3 p=position;
     // Pin the water to the aperture so no moving black seams open along the rim.
     float rim=smoothstep(0.,.09,min(min(uv.x,uv.y),min(1.-uv.x,1.-uv.y)));
-    p.z+=waterHeight(uv*7.,uTime)*.095*rim*mix(.6,1.,uActivity);
+    // Keep the accepted wind spectrum; GPU waves are an additive interaction layer.
+    float height=waterHeight(uv*14.,uTime)*.065;
+    if(uUseSimulation>.5) height+=texture2D(uWaves,uv).r*3.;
+    p.z+=height*rim;
     vWorld=(modelMatrix*vec4(p,1.)).xyz;
     gl_Position=projectionMatrix*viewMatrix*vec4(vWorld,1.);
   }
 `;
+// Rays sample the same procedural sky as the separate upper layer. This is
+// single-interface refraction, not an opacity overlay of undistorted clouds.
 const waterFragment = /* glsl */ `
   uniform float uTime; uniform float uWarmth; uniform float uIntensity;
+  uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
   varying vec2 vUv; varying vec3 vWorld;
   ${waterField}
-  void main() {
-    vec2 p=vUv*7.;
-    float e=.025;
-    vec2 slope=vec2(waterHeight(p+vec2(e,0),uTime)-waterHeight(p-vec2(e,0),uTime),
-                    waterHeight(p+vec2(0,e),uTime)-waterHeight(p-vec2(0,e),uTime))/(2.*e);
-    vec3 normal=normalize(vec3(-slope.x*.32,-1.,slope.y*.32));
+  float heightAt(vec2 uv){
+    float height=waterHeight(uv*14.,uTime)*.065;
+    if(uUseSimulation>.5) height+=texture2D(uWaves,clamp(uv,0.,1.)).r*3.;
+    return height;
+  }
+  vec3 skyAt(vec2 world){
+    vec2 p=world*.24+vec2(uTime*.004,0.);
+    float clouds=noise2(p)+noise2(p*2.13+vec2(3.2,8.1))*.4+noise2(p*4.3)*.12;
+    clouds=smoothstep(.72,1.12,clouds);
+    vec3 blue=mix(vec3(.065,.22,.40),vec3(.13,.26,.40),uWarmth);
+    vec3 white=mix(vec3(.87,.94,1.),vec3(1.,.88,.68),uWarmth*.6);
+    return (mix(blue,white,clouds*.65)+white*exp(-length(world-vec2(1.,-.6))*.42)*.055)*(.035+uIntensity*.9);
+  }
+  void main(){
+    vec2 e=uWaveTexel;
+    vec2 slope=vec2(heightAt(vUv+vec2(e.x,0))-heightAt(vUv-vec2(e.x,0)),heightAt(vUv+vec2(0,e.y))-heightAt(vUv-vec2(0,e.y)))/(2.*3.6*e);
+    float rim=smoothstep(0.,.09,min(min(vUv.x,vUv.y),min(1.-vUv.x,1.-vUv.y)));
+    vec3 normal=normalize(vec3(slope.x*rim,-1.,-slope.y*rim));
     vec3 view=normalize(cameraPosition-vWorld);
-    float fresnel=.02+.98*pow(1.-abs(dot(normal,view)),5.);
-    // A softly varying sky transmitted through the surface, distorted by its slope.
-    vec2 refracted=vUv+slope*.085;
-    float sky=noise2(refracted*3.+vec2(.02*uTime,4.2));
-    vec3 deep=vec3(.055,.18,.22), skyColor=vec3(.39,.66,.78);
-    vec3 col=mix(deep,skyColor,.36+sky*.42);
+    vec3 ray=refract(-view,normal,1./1.333);
+    vec2 skyPoint=vWorld.xz+ray.xz*((8.3-vWorld.y)/max(ray.y,.05));
+    float fresnel=.0204+.9796*pow(1.-clamp(dot(normal,view),0.,1.),5.);
+    vec3 transmitted=skyAt(skyPoint)*vec3(.92,.98,1.);
+    vec3 reflected=vec3(.018,.033,.04)*(.1+uIntensity);
+    vec3 col=mix(transmitted,reflected,fresnel*.65);
+    // An extended bright sky patch, broken up by the simulated normals.
+    vec3 sunRay=normalize(vec3(-.12,.88,-.45));
+    float alignment=max(dot(ray,sunRay),0.);
+    float highlight=pow(alignment,90.);
+    vec3 sunColor=mix(vec3(.82,.94,1.),vec3(1.,.87,.63),uWarmth);
+    col+=sunColor*highlight*uIntensity*.8;
+    // Restore the accepted broad sky glints using the combined surface slope.
+    // A shared height field lets the expanding GPU rings bend these highlights.
+    vec2 opticalSlope=slope/(.065*14./3.6);
     vec2 sunOffset=(vUv-vec2(.66,.68))*.45;
-    vec2 bent=slope+sunOffset;
-    // Broader low-energy reflection with a small soft glint; no opaque white blobs.
-    float spread=110./(1.+length(fwidth(slope))*18.);
-    float glint=exp(-dot(bent,bent)*spread);
-    float haze=exp(-dot(sunOffset,sunOffset)*8.);
-    vec3 sunlight=mix(vec3(.80,.94,1.),vec3(1.,.87,.59),uWarmth);
-    col=mix(col,vec3(.09,.19,.23),fresnel*.5);
-    col+=sunlight*(glint*1.05+haze*.045);
-    col*=.035+uIntensity*.96;
-    float opacity=.30+fresnel*.26+glint*.06;
-    gl_FragColor=vec4(col,opacity);
+    vec2 bent=opticalSlope+sunOffset;
+    float spread=110./(1.+length(fwidth(opticalSlope))*18.);
+    float glint=exp(-dot(bent,bent)*spread)*rim;
+    col+=sunColor*glint*uIntensity*.85;
+    gl_FragColor=vec4(col,1.);
   }
 `;
 
@@ -208,7 +242,12 @@ const dustFragment = /* glsl */ `
   void main() { float d=length(gl_PointCoord-.5); gl_FragColor=vec4(vec3(.92,.83,.63), vAlpha*(1.0-smoothstep(0.,.5,d))*.24); }
 `;
 
-export function createEnvironment(scene: THREE.Scene): StillwaterEnvironment {
+export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRenderer): StillwaterEnvironment {
+  let simulation: ReturnType<typeof createWaterSimulation> | undefined;
+  let waterMode='程序式水波';
+  if(renderer){try{simulation=createWaterSimulation(renderer);waterMode='GPU 水面波動模擬';}catch(error){console.warn('GPU water unavailable, using procedural waves',error);waterMode='GPU 模擬不可用，使用程序式水波';}}
+  const emptyWave=new THREE.DataTexture(new Float32Array(4),1,1,THREE.RGBAFormat,THREE.FloatType);emptyWave.needsUpdate=true;
+  const waveUniforms={uWaves:{value:simulation?.texture??emptyWave},uWaveTexel:{value:simulation?.texelSize??new THREE.Vector2(1/128,1/128)},uUseSimulation:{value:simulation?1:0}};
   const root = new THREE.Group();
   root.name = 'stillwater-environment';
   scene.add(root);
@@ -274,11 +313,11 @@ export function createEnvironment(scene: THREE.Scene): StillwaterEnvironment {
   const sky=new THREE.Mesh(skyGeometry,skyMaterial);sky.rotation.x=Math.PI/2;sky.position.set(0,8.3,-.2);add(sky);
 
   const waterGeometry = new THREE.PlaneGeometry(3.6, 3.6, 90, 90); disposable.push(waterGeometry);
-  const waterUniforms = { uTime: { value: 0 }, uActivity: { value: .5 }, uWarmth: { value: .5 }, uIntensity: { value: 1 } };
-  const waterMaterial = new THREE.ShaderMaterial({ uniforms: waterUniforms, vertexShader: waterVertex, fragmentShader: waterFragment, transparent: true, depthWrite: false, side: THREE.DoubleSide }); disposable.push(waterMaterial);
+  const waterUniforms = { ...waveUniforms, uTime: { value: 0 }, uActivity: { value: .5 }, uWarmth: { value: .5 }, uIntensity: { value: 1 } };
+  const waterMaterial = new THREE.ShaderMaterial({ uniforms: waterUniforms, vertexShader: waterVertex, fragmentShader: waterFragment, side: THREE.DoubleSide }); disposable.push(waterMaterial);
   const water = new THREE.Mesh(waterGeometry, waterMaterial); water.rotation.x = -Math.PI / 2; water.position.set(0, 6.985, -.2); add(water);
 
-  const causticUniforms = { uTime: { value: 0 }, uStrength: { value: 1 }, uAngle: { value: 0 }, uWarmth: { value: .5 } };
+  const causticUniforms = { ...waveUniforms, uTime: { value: 0 }, uStrength: { value: 1 }, uAngle: { value: 0 }, uWarmth: { value: .5 } };
   const causticMaterial = new THREE.ShaderMaterial({ uniforms: causticUniforms, vertexShader: causticVertex, fragmentShader: causticFragment, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }); disposable.push(causticMaterial);
   const overlay = (w: number, h: number, pos: THREE.Vector3, rot: THREE.Euler) => { const g = new THREE.PlaneGeometry(w,h); disposable.push(g); const m = new THREE.Mesh(g, causticMaterial); m.position.copy(pos); m.rotation.copy(rot); add(m); };
   overlay(ROOM.width, ROOM.depth, new THREE.Vector3(0,.014,0), new THREE.Euler(-Math.PI/2,0,0));
@@ -308,7 +347,13 @@ export function createEnvironment(scene: THREE.Scene): StillwaterEnvironment {
   const temp = new THREE.Color();
 
   return {
-    update(elapsed, state) {
+    get waterMode(){return waterMode;},
+    get hasSimulation(){return Boolean(simulation);},
+    disturb(u,v){simulation?.disturb(u,v);},
+    resetWater(){simulation?.reset();},
+    update(elapsed, state, dt=0) {
+      simulation?.update(dt);
+      waveUniforms.uWaves.value=simulation?.texture??emptyWave;
       const intensity = THREE.MathUtils.clamp(state.intensity, 0, 2);
       const warmth = THREE.MathUtils.clamp(state.warmth, 0, 1);
       const angle = THREE.MathUtils.clamp(state.angle, -1.1, 1.1);
@@ -327,6 +372,6 @@ export function createEnvironment(scene: THREE.Scene): StillwaterEnvironment {
       sun.color.copy(temp.setRGB(THREE.MathUtils.lerp(.48,1, warmth), THREE.MathUtils.lerp(.78,.68,warmth), THREE.MathUtils.lerp(.76,.42,warmth)));
       rim.intensity = .12 + intensity*.10;
     },
-    dispose() { scene.remove(root); disposable.forEach((item) => item.dispose()); },
+    dispose() { simulation?.dispose();emptyWave.dispose();scene.remove(root); disposable.forEach((item) => item.dispose()); },
   };
 }
