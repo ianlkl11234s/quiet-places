@@ -5,6 +5,7 @@ export interface EnvironmentState {
   warmth: number;
   angle: number;
   activity: number;
+  beamStrength?: number;
 }
 
 export interface StillwaterEnvironment {
@@ -48,14 +49,18 @@ const causticFragment = /* glsl */ `
     float rise = 7.0 - vWorld.y;
     vec2 roof = vec2(vWorld.x, vWorld.z) - sun.xz / sun.y * (vWorld.y - 7.0);
     float aperture = 1.0 - smoothstep(1.70, 2.03, max(abs(roof.x), abs(roof.y + .2)));
-    vec2 p = roof * 1.55;
-    p += vec2(sin(p.y*1.7 + uTime*.18), cos(p.x*1.3-uTime*.14)) * .36;
-    float web = focus(p) + focus(p*1.63+vec2(8.1,3.2))*.35;
+    // The aperture is projected from the roof, while the fine pattern is in
+    // world space.  This keeps the illumination physically clipped by the
+    // skylight without stretching a roof texture into long wall worms.
+    vec3 receiver=abs(normalize(cross(dFdx(vWorld),dFdy(vWorld))));
+    vec2 p=(receiver.y>.7?vWorld.xz:(receiver.x>.7?vWorld.zy:vWorld.xy))*1.86;
+    p += vec2(sin(p.y*1.9 + uTime*.18), cos(p.x*1.6-uTime*.14)) * .22;
+    float web = focus(p) * .72 + focus(p*1.47+vec2(8.1,3.2))*.24;
     float fade = (1.0 - smoothstep(0., 16., rise) * .45) * aperture;
     vec3 cool = vec3(.34, .79, .77);
     vec3 cream = vec3(1.0, .78, .45);
     vec3 tint = mix(cool, cream, clamp(uWarmth, 0.0, 1.0));
-    gl_FragColor = vec4(tint * web * fade * uStrength * .9, 1.0);
+    gl_FragColor = vec4(tint * web * fade * uStrength * .62, 1.0);
   }
 `;
 
@@ -135,20 +140,51 @@ const waterFragment = /* glsl */ `
   }
 `;
 
-const beamVertex = /* glsl */ `
-  varying vec2 vUv; varying vec3 vWorld;
-  void main() { vUv=uv; vWorld = (modelMatrix * vec4(position,1.)).xyz; gl_Position = projectionMatrix * viewMatrix * vec4(vWorld,1.); }
+// A back-face room proxy gives each camera ray a bounded exit point.  The
+// fragment shader integrates the segment inside the room, so orbiting the
+// camera never reveals intersecting transparent sheets.
+const volumeVertex = /* glsl */ `
+  varying vec3 vWorld;
+  void main() { vWorld=(modelMatrix*vec4(position,1.)).xyz; gl_Position=projectionMatrix*viewMatrix*vec4(vWorld,1.); }
 `;
-const beamFragment = /* glsl */ `
-  uniform float uTime; uniform float uStrength; uniform float uWarmth;
-  varying vec2 vUv; varying vec3 vWorld;
-  float noise(vec3 p) { return fract(sin(dot(p,vec3(12.9898,78.233,37.719))) * 43758.5453); }
-  void main() {
-    float edge = smoothstep(0., .27, vUv.x) * (1.0-smoothstep(.73,1.,vUv.x));
-    float height = smoothstep(0., .13, vUv.y) * (1.0-smoothstep(.63,1.,vUv.y));
-    float grain = .60 + .20*sin(vUv.x*38.+sin(vUv.x*73.+uTime*.13)*1.8) + .12*sin(vUv.x*91.-uTime*.09);
-    vec3 col = mix(vec3(.16,.52,.52), vec3(1.,.70,.42), uWarmth);
-    gl_FragColor = vec4(col * .65, uStrength * .13 * edge * height * grain);
+const volumeFragment = /* glsl */ `
+  uniform float uTime; uniform float uStrength; uniform float uWarmth; uniform float uAngle;
+  varying vec3 vWorld;
+  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+  vec2 boxHit(vec3 ro,vec3 rd){
+    vec3 lo=vec3(-4.,0.,-5.),hi=vec3(4.,7.,5.);
+    vec3 a=(lo-ro)/rd,b=(hi-ro)/rd;
+    vec3 near=min(a,b),far=max(a,b);
+    return vec2(max(max(near.x,near.y),near.z),min(min(far.x,far.y),far.z));
+  }
+  void main(){
+    vec3 ro=cameraPosition, rd=normalize(vWorld-ro);
+    vec2 hit=boxHit(ro,rd);
+    float begin=max(hit.x,0.), finish=hit.y;
+    if(finish<=begin) discard;
+    vec3 sun=normalize(vec3(-.45+sin(uAngle)*.14,-1.,-.30+sin(uAngle*.7)*.10));
+    float sum=0.;
+    const int STEPS=48;
+    float stepSize=(finish-begin)/float(STEPS);
+    for(int i=0;i<STEPS;i++){
+      float jitter=hash(gl_FragCoord.xy);
+      vec3 p=ro+rd*(begin+(float(i)+jitter)*stepSize);
+      vec2 roof=p.xz-sun.xz/sun.y*(p.y-7.);
+      float aperture=1.-smoothstep(1.58,1.82,max(abs(roof.x),abs(roof.y+.2)));
+      // Fine, moving striations are evaluated at the roof interception,
+      // preserving the incoming-light direction without making a solid cone.
+      float wav=noise2(roof*1.8+vec2(uTime*.035,-uTime*.023));
+      float bands=.5+.5*sin(roof.x*11.+wav*3.+uTime*.16);
+      float shaft=smoothstep(.56,.88,bands)*(.42+.58*noise2(roof*4.-uTime*.03));
+      float falloff=exp(-length(roof-vec2(0.,-.2))*.34)*(1.-smoothstep(6.55,7.,p.y));
+      sum+=aperture*(.10+shaft)*falloff;
+    }
+    float opticalDepth=sum*stepSize*.22*uStrength;
+    vec3 tint=mix(vec3(.51,.72,.79),vec3(1.,.84,.61),uWarmth);
+    // AdditiveBlending uses source alpha. Keep colour energy independent from
+    // the accumulated alpha so the intentionally thin shafts remain visible.
+    gl_FragColor=vec4(tint*.78, min(1.-exp(-opticalDepth),.52));
   }
 `;
 
@@ -249,20 +285,16 @@ export function createEnvironment(scene: THREE.Scene): StillwaterEnvironment {
   overlay(ROOM.width, ROOM.height, new THREE.Vector3(0,3.5,-4.988), new THREE.Euler(0,0,0));
   overlay(ROOM.depth, ROOM.height, new THREE.Vector3(-3.988,3.5,0), new THREE.Euler(0,Math.PI/2,0));
 
-  const beamUniforms = { uTime: { value: 0 }, uStrength: { value: 1 }, uWarmth: { value: .5 } };
-  const beamMaterial = new THREE.ShaderMaterial({ uniforms: beamUniforms, vertexShader: beamVertex, fragmentShader: beamFragment, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }); disposable.push(beamMaterial);
-  // Layered translucent sheets read as suspended air from the viewing angle; unlike
-  // a box, every visible surface receives the UV falloff instead of vanishing at an edge.
-  const beam = new THREE.Group(); beam.position.set(0, 7, -.2); add(beam);
-  const beamMaterials: THREE.ShaderMaterial[] = [];
-  const addBeamSheet = (rotationY: number, z: number, opacity: number) => {
-    const geometry = new THREE.PlaneGeometry(3.6, 7.0); disposable.push(geometry);
-    const material = beamMaterial.clone(); material.uniforms = THREE.UniformsUtils.clone(beamUniforms); material.userData.opacity = opacity; beamMaterials.push(material); disposable.push(material);
-    const sheet = new THREE.Mesh(geometry, material); sheet.position.set(0, -3.5, z); sheet.rotation.y = rotationY; beam.add(sheet);
-  };
-  addBeamSheet(0, 0, .62);
-  addBeamSheet(.48, -.34, .28);
-  addBeamSheet(-.34, .22, .18);
+  const volumeUniforms = { uTime: { value: 0 }, uStrength: { value: 1 }, uWarmth: { value: .5 }, uAngle: { value: 0 } };
+  const volumeGeometry = new THREE.BoxGeometry(7.98, 6.98, 9.98); disposable.push(volumeGeometry);
+  const volumeMaterial = new THREE.ShaderMaterial({
+    uniforms: volumeUniforms, vertexShader: volumeVertex, fragmentShader: volumeFragment,
+    transparent: true, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+  }); disposable.push(volumeMaterial);
+  // Kept just inside the architecture so its back-face proxy survives the
+  // coplanar room depth test while the shader itself remains clipped to walls.
+  const volume = new THREE.Mesh(volumeGeometry, volumeMaterial); volume.position.set(0, 3.5, 0); volume.renderOrder = 1; add(volume);
 
   const dustCount = 230, dustPositions = new Float32Array(dustCount*3), dustSeeds = new Float32Array(dustCount);
   for (let i=0; i<dustCount; i++) { const n=i*3; dustPositions[n]=(Math.random()-.5)*3.5; dustPositions[n+1]=Math.random()*7; dustPositions[n+2]=-.2+(Math.random()-.5)*3.5; dustSeeds[i]=Math.random(); }
@@ -284,11 +316,8 @@ export function createEnvironment(scene: THREE.Scene): StillwaterEnvironment {
       skyUniforms.uTime.value=elapsed;skyUniforms.uIntensity.value=intensity;skyUniforms.uWarmth.value=warmth;
       waterUniforms.uTime.value = elapsed; waterUniforms.uActivity.value = activity; waterUniforms.uWarmth.value = warmth; waterUniforms.uIntensity.value = intensity;
       causticUniforms.uTime.value = elapsed; causticUniforms.uStrength.value = intensity; causticUniforms.uAngle.value = angle; causticUniforms.uWarmth.value = warmth;
-      beamUniforms.uTime.value = elapsed; beamUniforms.uStrength.value = intensity; beamUniforms.uWarmth.value = warmth;
-      beamMaterials.forEach((material) => { material.uniforms.uTime.value = elapsed; material.uniforms.uStrength.value = intensity * material.userData.opacity; material.uniforms.uWarmth.value = warmth; });
+      volumeUniforms.uTime.value = elapsed; volumeUniforms.uStrength.value = intensity * THREE.MathUtils.clamp(state.beamStrength ?? 1, 0, 2.5); volumeUniforms.uWarmth.value = warmth; volumeUniforms.uAngle.value = angle;
       dustMaterial.uniforms.uTime.value = elapsed; dustMaterial.uniforms.uAngle.value = angle; dustMaterial.uniforms.uIntensity.value = intensity;
-      beam.rotation.z = -.42 + angle * .10;
-      beam.rotation.x = .29 + angle * .06;
       const slopeX = -.45 + Math.sin(angle) * .14;
       const slopeZ = -.30 + Math.sin(angle * .7) * .10;
       sun.target.position.set(slopeX * 6.8, 0, -.2 + slopeZ * 6.8);

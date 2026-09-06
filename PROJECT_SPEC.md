@@ -7,7 +7,7 @@ Stillwater 是一個即時生成的靜謐 WebGL 空間：空無一物的暗色�
 ## Visual Contract
 
 - 第一眼應為白天；使用者可選擇使用即時本地時鐘，或固定白天初始狀態。
-- 固定第一人稱視角與構圖：暗色、高挑、空曠房間；鏡頭只允許極細微 parallax。
+- 暗色、高挑、空曠房間；依使用者新增需求，鏡頭沿天窗垂直軸左右各 45° 環繞，鎖定距離與俯仰，不開放自由平移。
 - 天花板水面是唯一明確光源；大部分空間保持陰影，光只揭示空間而不展示裝潢。
 - 不加入家具、人、文字裝飾、額外燈具或奇幻／水族館／科技展示元素。
 - 水面、caustics、低透明度體積光柱與少量浮塵共同表現「水改變了光」。
@@ -24,7 +24,7 @@ Stillwater 是一個即時生成的靜謐 WebGL 空間：空無一物的暗色�
 
 ### M1 — 空間骨架
 
-建立 Floor、三至四面牆、Ceiling 與中央方形 ceiling opening。材質保持深色、霧面、低紋理；固定鏡頭在空間內，支援 resize 與 desktop/mobile aspect ratio。
+建立 Floor、三至四面牆、Ceiling 與中央方形 ceiling opening。材質保持深色、霧面、低紋理；受限環繞鏡頭，支援 resize 與 desktop/mobile aspect ratio。
 
 ### M2 — 水、光與空氣
 
@@ -46,7 +46,7 @@ Stillwater 是一個即時生成的靜謐 WebGL 空間：空無一物的暗色�
 
 ## 驗收（本次證據見 docs/VALIDATION.md）
 
-- [x] M1 桌面與手機 viewport 均呈現固定空房間鏡頭，無家具、人或額外裝飾。
+- [x] M1 桌面與手機 viewport 均呈現受限環繞空房間鏡頭，無家具、人或額外裝飾。
 - [x] 首次進入為白天感；使用者可選固定狀態或 live local clock。
 - [ ] M2 水面波動慢且不呈規律遊戲波；光源仍只有天花板水面方向。
 - [x] Caustics 只在 sunlight mask 區域可見，且主要落在地面／牆面。

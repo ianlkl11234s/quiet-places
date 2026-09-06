@@ -3,6 +3,7 @@ import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createEnvironment} from './world/Environment';
 import {createFishSchool} from './world/FishSchool';
 import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay';
@@ -18,18 +19,40 @@ function start(){
  el('space').append(renderer.domElement);
  const scene=new THREE.Scene();scene.background=new THREE.Color('#080e11');
  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,60);
- const base=new THREE.Vector3(2.6,2.3,9.5);camera.position.copy(base);camera.lookAt(-.25,3.4,-.8);
+ const base=new THREE.Vector3(2.6,2.3,9.5);camera.position.copy(base);
+ const controls=new OrbitControls(camera,renderer.domElement);
+ // Rotate around the skylight's vertical axis, keeping the room in the composition.
+ controls.target.set(0,3.4,-.2);controls.update();
+ const homeAzimuth=controls.getAzimuthalAngle(),homePolar=controls.getPolarAngle();
+ controls.minAzimuthAngle=homeAzimuth-Math.PI/4;controls.maxAzimuthAngle=homeAzimuth+Math.PI/4;
+ controls.minPolarAngle=homePolar;controls.maxPolarAngle=homePolar;
+ controls.enableZoom=false;controls.enablePan=false;controls.enableDamping=true;controls.dampingFactor=.08;controls.rotateSpeed=.32;
+ controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:null,RIGHT:null};
+ controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:null};controls.saveState();
+ renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','拖曳環繞天窗，範圍 90 度；左右方向鍵旋轉，Home 回到初始視角');
+ renderer.domElement.addEventListener('keydown',e=>{
+  if(!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
+  if(e.key==='Home'){resetView();return;}
+  const angle=THREE.MathUtils.clamp(controls.getAzimuthalAngle()+(e.key==='ArrowLeft'?-.08:.08),controls.minAzimuthAngle,controls.maxAzimuthAngle);
+  const offset=camera.position.clone().sub(controls.target),radius=Math.hypot(offset.x,offset.z);
+  camera.position.set(controls.target.x+Math.sin(angle)*radius,camera.position.y,controls.target.z+Math.cos(angle)*radius);controls.update();
+ });
+
  const env=createEnvironment(scene);const fish=createFishSchool(scene);const audio=createAudioSystem();
  const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,elapsed=0,last=performance.now(),raf=0,lost=false;
- let hour=14,live=false;let state=sampleTime(hour);const pointer=new THREE.Vector2();
+ let beamStrength=1;
+ let hour=14,live=false;let state=sampleTime(hour);
  const panel=el('settings'),toggle=el<HTMLButtonElement>('settings-toggle'),pause=el<HTMLButtonElement>('pause');
  const range=el<HTMLInputElement>('hour'),liveInput=el<HTMLInputElement>('live');
  function updateLabels(){el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);pause.textContent=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-pressed',String(paused));}
  function setPanel(open:boolean){panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));document.body.classList.remove('resting');if(open)el('close-settings').focus();else toggle.focus();}
+ function resetView(){controls.enableDamping=false;controls.update();controls.reset();controls.enableDamping=!reduce.matches;}
+ el('reset-view').addEventListener('click',resetView);
  toggle.addEventListener('click',()=>setPanel(panel.hidden));el('close-settings').addEventListener('click',()=>setPanel(false));
  document.addEventListener('keydown',e=>{wake();if(e.key==='Escape'&&!panel.hidden)setPanel(false)});
+ el<HTMLInputElement>('beam-strength').addEventListener('input',e=>{const value=Number((e.target as HTMLInputElement).value);beamStrength=value/100;el('beam-value').textContent=`${value}%`;});
  range.addEventListener('input',()=>{hour=+range.value;live=false;liveInput.checked=false;updateLabels();});
  document.querySelectorAll<HTMLButtonElement>('[data-hour]').forEach(button=>button.addEventListener('click',()=>{hour=+button.dataset.hour!;live=false;liveInput.checked=false;updateLabels();}));
  liveInput.addEventListener('change',()=>{live=liveInput.checked;if(live)hour=localHour();updateLabels();});
@@ -39,18 +62,18 @@ function start(){
  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
  document.addEventListener('fullscreenchange',()=>{el('fullscreen').textContent=document.fullscreenElement?'離開全螢幕':'全螢幕'});
  let idle=0;function wake(){document.body.classList.remove('resting');clearTimeout(idle);idle=window.setTimeout(()=>{if(panel.hidden&&!document.querySelector(':focus-visible'))document.body.classList.add('resting')},6500)}
- document.addEventListener('pointermove',e=>{pointer.set((e.clientX/innerWidth-.5)*2,(e.clientY/innerHeight-.5)*2);wake()});document.addEventListener('pointerdown',wake);document.addEventListener('focusin',wake);
+ document.addEventListener('pointermove',wake);document.addEventListener('pointerdown',wake);document.addEventListener('focusin',wake);
  function resize(){camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?64:53;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.4:1.75));renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight)}
  window.addEventListener('resize',resize);resize();
  function frame(now:number){if(document.hidden||lost)return;const dt=Math.min((now-last)/1000,.05);last=now;if(live){hour=localHour();updateLabels()}
  const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
- fish.update(paused?0:dt,elapsed,state);if(!paused){elapsed+=dt;}env.update(elapsed,state);
- const px=paused?0:pointer.x*.075,py=paused?0:pointer.y*.045;if(!paused)camera.position.lerp(new THREE.Vector3(base.x+px,base.y-py,base.z),.03);camera.lookAt(-.25,3.4,-.8);
+ fish.update(paused?0:dt,elapsed,state);if(!paused){elapsed+=dt;}env.update(elapsed,{...state,beamStrength});
+ controls.enableDamping=!reduce.matches;controls.update();
  composer.render();raf=requestAnimationFrame(frame);
  }
  document.addEventListener('visibilitychange',()=>{cancelAnimationFrame(raf);audio.visibility(document.hidden);if(!document.hidden&&!lost){last=performance.now();raf=requestAnimationFrame(frame)}});
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent='繪圖連線暫時中斷，請重新整理此頁。'});
- window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);void audio.dispose();fish.dispose();env.dispose();composer.dispose();renderer.dispose()},{once:true});
+ window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);void audio.dispose();fish.dispose();env.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
  updateLabels();wake();status.hidden=true;raf=requestAnimationFrame(frame);
 }
 try{start()}catch(error){console.error(error);status.hidden=false;status.textContent='這個空間需要 WebGL 2。請開啟瀏覽器硬體加速後重新整理，或換用支援的瀏覽器。';}
