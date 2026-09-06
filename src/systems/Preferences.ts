@@ -1,8 +1,10 @@
+import {isPlaceId,type PlaceId} from '../places/metadata.js';
 export type RenderQuality = 'standard' | 'low';
 export type Weather = 'clear' | 'rain';
 
 export interface Preferences {
   version: 1;
+  place: PlaceId;
   hour: number;
   live: boolean;
   beamStrength: number;
@@ -21,6 +23,7 @@ export const PREFERENCES_STORAGE_KEY = 'stillwater.preferences';
 
 const defaults = (): Preferences => ({
   version: 1,
+  place: 'waterlight',
   hour: 14,
   live: false,
   beamStrength: 1,
@@ -51,6 +54,7 @@ function normalize(value: unknown): Preferences {
   const candidate = value as Partial<Preferences>;
   return {
     version: 1,
+    place: isPlaceId(candidate.place)?candidate.place:fallback.place,
     hour: clamp(candidate.hour, fallback.hour, 0, 23.99),
     live: candidate.live === true,
     beamStrength: clamp(candidate.beamStrength, fallback.beamStrength, 0, 2.5),
