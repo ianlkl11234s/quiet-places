@@ -3,6 +3,8 @@
 日期：2026-09-07。狀態：**規劃完成，待使用者確認後實作**。
 規劃分支：`plan/blender-scene-pipeline`，起點 `3416f7c`。
 
+後續環境更新：使用者追加授權官方 MCP 安裝並同意 Blender Online Access。安裝、stdio 工具列舉與 Blender 唯讀摘要已通過，當前 Codex 任務仍需重載工具。詳見 [BLENDER_MCP_SETUP.md](BLENDER_MCP_SETUP.md)。以下原探測狀態保留為規劃時點；正式場景實作仍待確認。
+
 本輪只建立規劃分支、做能力／連線探測與撰寫文件；不製作正式模型、不修改應用、不開始動畫或高品質渲染。使用者已停止過夜排程，不重新啟用。測試結果見 [BLENDER_PREFLIGHT.md](BLENDER_PREFLIGHT.md)。
 
 ## 1. 目標與交付判準

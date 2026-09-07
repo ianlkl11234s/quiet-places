@@ -2,6 +2,8 @@
 
 2026-09-07；只讀和獨立背景測試，無正式建模／渲染／保存。
 
+後續更新：使用者已另外授權官方 MCP 安裝，server 與 Blender 讀回成功。下文保留安裝前探測歷史；目前狀態見 [BLENDER_MCP_SETUP.md](BLENDER_MCP_SETUP.md)。
+
 | 檢查 | 結果 | 可以與不可以推論的事項 |
 |---|---|---|
 | Git | 開始時 main 工作樹乾淨；從 3416f7c 切至 plan/blender-scene-pipeline | 既有版本可回退，規劃另分支 |
