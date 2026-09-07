@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {WATER_ROOM} from './WaterRoom';
 import {createWaterSimulation} from '../systems/WaterSimulation';
 
 export interface EnvironmentState {
@@ -20,7 +21,8 @@ export interface StillwaterEnvironment {
   dispose(): void;
 }
 
-const ROOM = { width: 8, depth: 10, height: 7, opening: 3.6 };
+// Local light field beneath the skylight; physical walls use WATER_ROOM.
+const LIGHT_CHAMBER = { width: 8, depth: 10, height: 7, opening: 3.6 };
 
 const causticVertex = /* glsl */ `
   varying vec3 vWorld;
@@ -291,22 +293,18 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
     const geometry = new THREE.PlaneGeometry(w, h); disposable.push(geometry);
     const mesh = new THREE.Mesh(geometry, roomMaterial); mesh.position.copy(pos); mesh.rotation.copy(rotation); mesh.receiveShadow = true; add(mesh); return mesh;
   };
-  makePlane(20, 21, new THREE.Vector3(0, 0, 5.5), new THREE.Euler(-Math.PI / 2, 0, 0));
-  makePlane(ROOM.width, ROOM.height, new THREE.Vector3(0, 3.5, -5), new THREE.Euler(0, 0, 0));
-  makePlane(5, ROOM.height, new THREE.Vector3(-4, 3.5, -2.5), new THREE.Euler(0, Math.PI / 2, 0));
-  makePlane(5, ROOM.height, new THREE.Vector3(4, 3.5, -2.5), new THREE.Euler(0, -Math.PI / 2, 0));
-  // The viewing bay widens behind the original lit chamber to contain the
-  // complete orbit. Keep its back walls and caustics at the accepted positions.
-  makePlane(Math.hypot(6,3),7,new THREE.Vector3(-7,3.5,1.5),new THREE.Euler(0,Math.atan2(3,6),0));
-  makePlane(Math.hypot(6,3),7,new THREE.Vector3(7,3.5,1.5),new THREE.Euler(0,Math.atan2(-3,6),0));
-  makePlane(13,7,new THREE.Vector3(-10,3.5,9.5),new THREE.Euler(0,Math.PI/2,0));
-  makePlane(13,7,new THREE.Vector3(10,3.5,9.5),new THREE.Euler(0,-Math.PI/2,0));
-  makePlane(20,7,new THREE.Vector3(0,3.5,16),new THREE.Euler(0,Math.PI,0));
-  // Four ceiling slabs leave the exact 3.6m square of water open.
-  makePlane(8.2, 21, new THREE.Vector3(-5.9, 7, 5.5), new THREE.Euler(Math.PI / 2, 0, 0));
-  makePlane(8.2, 21, new THREE.Vector3(5.9, 7, 5.5), new THREE.Euler(Math.PI / 2, 0, 0));
-  makePlane(3.6, 14.4, new THREE.Vector3(0, 7, 8.8), new THREE.Euler(Math.PI / 2, 0, 0));
-  makePlane(3.6, 3.0, new THREE.Vector3(0, 7, -3.5), new THREE.Euler(Math.PI / 2, 0, 0));
+  const {minX,maxX,minZ,maxZ,height}=WATER_ROOM;
+  const width=maxX-minX,depth=maxZ-minZ,centerZ=(minZ+maxZ)/2;
+  makePlane(width,depth,new THREE.Vector3(0,0,centerZ),new THREE.Euler(-Math.PI/2,0,0));
+  makePlane(width,height,new THREE.Vector3(0,height/2,minZ),new THREE.Euler(0,0,0));
+  makePlane(depth,height,new THREE.Vector3(minX,height/2,centerZ),new THREE.Euler(0,Math.PI/2,0));
+  makePlane(depth,height,new THREE.Vector3(maxX,height/2,centerZ),new THREE.Euler(0,-Math.PI/2,0));
+  makePlane(width,height,new THREE.Vector3(0,height/2,maxZ),new THREE.Euler(0,Math.PI,0));
+  // A straight rectangular room; four ceiling slabs leave the water open.
+  makePlane(2.2,depth,new THREE.Vector3(-2.9,height,centerZ),new THREE.Euler(Math.PI/2,0,0));
+  makePlane(2.2,depth,new THREE.Vector3(2.9,height,centerZ),new THREE.Euler(Math.PI/2,0,0));
+  makePlane(3.6,maxZ-1.6,new THREE.Vector3(0,height,(maxZ+1.6)/2),new THREE.Euler(Math.PI/2,0,0));
+  makePlane(3.6,-2-minZ,new THREE.Vector3(0,height,(minZ-2)/2),new THREE.Euler(Math.PI/2,0,0));
 
   // The sky is a separate surface above the water: a visible second layer,
   // seen through the translucent interface and occluded by the ceiling slabs.
@@ -340,11 +338,12 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const causticUniforms = { ...waveUniforms, uTime: { value: 0 }, uStrength: { value: 1 }, uAngle: { value: 0 }, uWarmth: { value: .5 } };
   const causticMaterial = new THREE.ShaderMaterial({ uniforms: causticUniforms, vertexShader: causticVertex, fragmentShader: causticFragment, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }); disposable.push(causticMaterial);
   const overlay = (w: number, h: number, pos: THREE.Vector3, rot: THREE.Euler) => { const g = new THREE.PlaneGeometry(w,h); disposable.push(g); const m = new THREE.Mesh(g, causticMaterial); m.position.copy(pos); m.rotation.copy(rot); add(m); };
-  overlay(ROOM.width, ROOM.depth, new THREE.Vector3(0,.014,0), new THREE.Euler(-Math.PI/2,0,0));
-  overlay(ROOM.width, ROOM.height, new THREE.Vector3(0,3.5,-4.988), new THREE.Euler(0,0,0));
-  overlay(5, ROOM.height, new THREE.Vector3(-3.988,3.5,-2.5), new THREE.Euler(0,Math.PI/2,0));
+  overlay(LIGHT_CHAMBER.width, LIGHT_CHAMBER.depth, new THREE.Vector3(0,.014,0), new THREE.Euler(-Math.PI/2,0,0));
+  overlay(LIGHT_CHAMBER.width, LIGHT_CHAMBER.height, new THREE.Vector3(0,3.5,-4.988), new THREE.Euler(0,0,0));
+  overlay(5, LIGHT_CHAMBER.height, new THREE.Vector3(-3.988,3.5,-2.5), new THREE.Euler(0,Math.PI/2,0));
 
   const volumeUniforms = { ...waveUniforms, uLowQuality:{value:0}, uTime: { value: 0 }, uStrength: { value: 1 }, uWarmth: { value: .5 }, uAngle: { value: 0 } };
+  // The sun projects toward negative z; this proxy only encloses that lit area.
   const volumeGeometry = new THREE.BoxGeometry(7.98, 6.98, 9.98); disposable.push(volumeGeometry);
   const volumeMaterial = new THREE.ShaderMaterial({
     uniforms: volumeUniforms, vertexShader: volumeVertex, fragmentShader: volumeFragment,

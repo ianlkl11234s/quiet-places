@@ -5,6 +5,7 @@ import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {createEnvironment} from './world/Environment';
+import {waterOrbitLimits,waterCameraClearance} from './world/WaterRoom';
 import {createFishSchool} from './world/FishSchool';
 import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay';
 import {createAudioSystem} from './systems/AudioSystem';
@@ -27,13 +28,17 @@ function start(){
  const controls=new OrbitControls(camera,renderer.domElement);
  // Rotate around the skylight's vertical axis, keeping the room in the composition.
  controls.target.set(0,3.4,-.2);controls.update();
- const homeAzimuth=controls.getAzimuthalAngle(),homePolar=controls.getPolarAngle();
- controls.minAzimuthAngle=homeAzimuth-Math.PI/4;controls.maxAzimuthAngle=homeAzimuth+Math.PI/4;
+ const homePolar=controls.getPolarAngle();
+ function updateWallLimits(){
+  const limits=waterOrbitLimits(base,controls.target,waterCameraClearance(camera.near,camera.fov,camera.aspect));
+  controls.minAzimuthAngle=limits.min;controls.maxAzimuthAngle=limits.max;
+ }
+ updateWallLimits();
  controls.minPolarAngle=homePolar;controls.maxPolarAngle=homePolar;
  controls.enableZoom=false;controls.enablePan=false;controls.enableDamping=true;controls.dampingFactor=.08;controls.rotateSpeed=.32;
  controls.mouseButtons={LEFT:THREE.MOUSE.ROTATE,MIDDLE:null,RIGHT:null};
  controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:null};controls.saveState();
- renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','拖曳環繞天窗，範圍 90 度；左右方向鍵旋轉，Home 回到初始視角');
+ renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','拖曳環繞天窗，靠近牆面時停止；左右方向鍵旋轉，Home 回到初始視角');
  renderer.domElement.addEventListener('keydown',e=>{
   if(!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
   if(e.key==='Home'){resetView();return;}
@@ -61,7 +66,7 @@ function start(){
  const panel=el('settings'),toggle=el<HTMLButtonElement>('settings-toggle'),pause=el<HTMLButtonElement>('pause');
  el('water-mode').textContent=env.waterMode;
  el<HTMLButtonElement>('water-reset').disabled=!env.hasSimulation;
- if(!env.hasSimulation)el('water-hint').textContent='拖曳畫面，環繞天窗。左右各 45°。';
+ if(!env.hasSimulation)el('water-hint').textContent='拖曳畫面，環繞天窗。靠近牆面時會停下。';
  el('water-reset').addEventListener('click',()=>env.resetWater());
  const range=el<HTMLInputElement>('hour'),liveInput=el<HTMLInputElement>('live');
  liveInput.checked=live;
@@ -100,7 +105,7 @@ function start(){
  document.addEventListener('input',requestRender);
  document.addEventListener('click',requestRender);
  function resize(){
-  camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?64:53;camera.updateProjectionMatrix();
+  camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?64:53;camera.updateProjectionMatrix();updateWallLimits();controls.update();
   renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();
  }
