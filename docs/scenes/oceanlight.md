@@ -98,3 +98,100 @@
 ### 修正版確認
 
 使用者確認上述室內光強、石材受光與柔邊修正版，授權獨立 commit。此次提交包含前述未提交的光強比較稿及光斑修正；原基準 `33ae0cc` 保留於歷史。本地 build、8項測試與 browser 驗收結果如上，尚未發布。
+
+## 2026-09-07：兩隻近地魟魚（本地完成，待使用者比較）
+
+- 使用者要求在既有空間近地板加入兩隻魟魚，先用 Blender 建模；舒緩橫向8字，偶有短暫加速、抬升與滑降，游姿盡量接近真實。
+- 房間仍沿用乾燥內部／窗外海水的光照基準。魟魚在室內游動是使用者指定的夢境設定，不表示已建立室內水體、浮力或流體模擬。
+- 形態參考 Florida Museum [Southern Stingray](https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/southern-stingray/)：菱形胸鰭盤、背面眼與噴水孔、腹面鰓裂、淺腹深背與細長尾。原創底棲魟魚造型，不宣稱某一物種的精確解剖重建；參考照片不嵌入資產。
+- 游姿依據 [Rosenberger & Westneat 1999](https://pubmed.ncbi.nlm.nih.gov/10574730/) 的胸鰭波動與速度關聯，以及 [SICB 三維胸鰭游姿研究摘要](https://sicb.org/abstracts/stingray-swimming-in-3d-pectoral-fin-locomotion/) 的前至後推進波。8字路徑、短衝頻率、速度及高度是美術編排，並非實測習性或自主生態行為。
+
+### Blender 資產與網站接入
+
+- 可重建腳本 `assets/blender/scripts/stingray.py`，可編輯母檔 `assets/blender/stingray.blend`，網站模型 `public/models/stingray.glb`；以獨立背景 Blender 製作，不改使用者 GUI 場景。原創幾何與頂點色，未使用下載模型或照片貼圖。
+- 最終 GLB 303,780 bytes／7,660 triangles；翼展1.568m、盤長1.25m、含尾總長2.545m。第一隻scale1、第二隻.9。灰褐背部 roughness .74、COLOR_0 微斑駁，浅色腹部、較小的背側眼與眼瞼、噴水孔、腹側口及10條鰓裂；形態仍是美術重建。
+- Blender→glTF `export_yup=True`，根節點Y軸180°旋轉補正，最終局部+Z鼻向／+Y上方。Disc與Whip_Tail匯出同序 morph `WaveSin`／`WaveCos`；signed weights `sin(phase)*amplitude`／`cos(phase)*amplitude` 將 `-sin(kZ)`／`cos(kZ)` 組成往-Z尾端行進的波，中心頭部保持穩定。
+- 魟魚沿用室內直射窗框可見度、光子volume的弱折射亮度提示，另依朝窗方向與距離近似天空反射。接近地面的淡橢圓陰影為高度衰減的AO美術提示，未建立魟魚對室內光子的完整遮擋與多次反彈GI。
+- 模型預覽 `exports/blender-review/stingray-studio.png`；母檔背景重開與GLB morph/朝向檢查通過。GLB SHA-256 `eb03947f65e3398688e002d5a6d7e3b32f42892feb35b8bace2d4f6e61cf5812`。
+
+### 動態與驗收
+
+- 兩條错位橫向8字路線採弧長查表，中心z=0／2，x約±3.1m、z[-2.75,4.75]m；中心高度約.835..1.265m。速度0.32–0.80m/s、平滑短衝伴隨最高.28m抬升與回落，皆為療癒感美術參數。
+- 轉向由路徑切線決定yaw，完整高度導數決定pitch，另加克制bank；未截斷時間／距離驅動鰭相位，跨圈不跳拍。兩隻節奏錯開，不靠每幀亂數或時間積分，暫停及同elapsed完全重現。
+- 路線15分鐘取樣：中心最小距離約1.68m，位置／姿態／鰭波跨圈連續、腹部朝下；此為預編路線驗證，不是自主覓食、捕食或全身碰撞避障模擬。
+
+- 胸鰭相位 `time*1.1+distance*4+個體相位`，頻率約.38–.68Hz、幅度乘數.6–1.2；是參考前後傳波機制的美術標定，非研究的物種實測值。
+
+- 最後一輪模型驗收修正：鰭緣約2cm、中央較厚；口／鰓裂依實際腹面曲線貼合，噴水孔為暗色淺凹。只有disc使用頂點色材質，其餘皮膚使用獨立實色PBR，消除缺少COLOR_0造成的過白細節。腹面圖 `exports/blender-review/stingray-underside.png`。
+- 本地半窗暮色browser實際載入兩隻魟魚、觀看不同游姿、操作暫停、切換樹影再返回海景成功，console無error；10項光學／場景／魟魚路徑及資源釋放測試通過，build通過。沒有實機FPS或生物力學定量驗證。
+- 光影基準commit `3aade78` 保留，本次魟魚尚未commit／發布。
+
+## 2026-09-07：魟魚造型／游姿研究，暫停實作
+
+使用者回饋：想稍微縮小、造型偏卡通、尾巴不自然、泳姿與速度不匹配；要求先研究類似案例再確認優化。本輪不更動模型／runtime，只記錄研究與提案。
+
+### 可參考案例（作者／原始來源）
+
+- [MotionCow Stingray](https://www.turbosquid.com/3d-models/stingray-708429)：作者提供rig、wave-like swim loop與Blender/FBX等格式；適合評估胸鰭輪廓和循環動畫的完成度。商用授權資產，未購買／下載，不把作者的photorealistic描述當作已驗收。
+- [PollyMax Stingray Animated](https://www.turbosquid.com/3d-models/3d-stingray-animated-model-2354956)：Maya/FBX，頁面列動畫／rig預覽；可作外觀與綁定參考，未驗FBX→Blender→glTF完整保真。
+- [g.lerf Low Poly Stingray](https://glerf.itch.io/low-poly-stingray)：作者明示Blender製作、rigged、FBX+textures+swim，CC BY4.0。適合技術流程對照，但low-poly定位不直接解決寫實外觀。
+- [FishSim](https://github.com/nerk987/FishSim)：target motion→effort/mass/drag→游動動作的工作流值得參考；現成rig主要Shark/Goldfish，不當成直接可套魟魚的解法。
+- [Hey stingray!](https://blenderartists.org/t/the-hey-stingray-project-modelling-rigging-and-animating-underwater-world/543206) 有雕刻、重拓樸、Spline IK等製作紀錄，但留言指出影片失效，本輪未能確認可播放，不列為主要實作依據。
+- 以上商用／免費動畫尚未下載或逐幀驗證；沒有將案例模型或貼圖加入本專案。
+
+### 生物／模擬研究
+
+- [Sumikawa et al. 2022, Scientific Reports](https://www.nature.com/articles/s41598-022-05317-5)：實際使用Blender建立研究模型，以左右胸鰭相位差進行CFD；頁面附海遊館魟魚觀察影片。可支持左右鰭相位與操控的研究方向，但其簡化薄體不是製作寫實模型的解剖標準。
+- [Blevins & Lauder 2012, Rajiform locomotion](https://dash.harvard.edu/bitstreams/7312037d-ffa9-6bd4-e053-0100007fdf3b/download)：研究個體的平均U/c約0.7，頻率／波速隨游速變化；數據有物種、體型與實驗條件，不可將其Hz直接套到本模型。
+
+### 目前程式的可定位問題與提案
+
+- 造型由橢圓極座標盤＋隆起函式形成，頭、胸鰭前後緣的區分不足；眼周仍是獨立小幾何。建議先選同一底棲魟形態，以俯視／側視照片重整鼻端、眼窩、胸鰭輪廓和尾根，最後再補皮膚細節。
+- 暫提兩隻等比縮小15%，翼展約1.33／1.20m；縮放後同步校準速度和世界尺度波長，不只縮物件。
+- 当前角波數7 rad/m、角頻率ω=1.1+4U，第一隻在U=.32/.80m/s時波速c=ω/7約.34/.61m/s，U/c約.94/1.30。第二隻scale.9且同速，比例更高。這是目前wave模型的解析診斷，非完整水動力測量；解釋了加速時視覺上的滑移不匹配。
+- 擬讓目標速度／簡化推進與阻力統一決定胸鰭波速、頻率及振幅；加速先增加鰭動作，身體速度平滑跟上，放鬆後保留滑行，不讓速度／高度和鰭振幅同時機械地套同一pulse。
+- 尾巴目前8.2 rad/m正弦與胸鰭共用相位，長尾約1.8個波，且尾根仍有非零位移。擬將尾根固定、尾巴獨立成6–10節骨鏈／Spline IK，轉彎與加速驅動延遲、阻尼及逐段收斂；停止持續的蛇形驅動。此為被動拖曳的動畫近似，不宣稱已量測魟魚尾部剛性。
+- 驗收順序：中性光下單隻靜態三視圖→直游／加速／轉彎／滑降短片→確認動作再回暗室放兩隻。先證明造型與游姿，避免以暗光或複雜路線掩蓋問題。
+
+## 使用者提供的 Southern Stingray 任務書評讀
+
+- 來源：`/Users/migu/Downloads/Codex 任務書｜Southern Stingray Blender Procedural Rig & Animation System.md`。使用者本輪要求參考，尚未要求立即執行文件全部81項完成條件；本輪維持研究／設計，不改資產。
+- 採用方向：明確Southern Stingray形態；前後截面寬度取代橢圓極座標盤；Armature+Actions+可重建Python；分散胸鰭控制與中心剛性；被動尾骨鏈；中性光輪廓、跨圈與離地驗收。
+- 實作前修正文件§23/58：變動頻率不能直接用f(t)*t作相位，應用2π∫f(t)dt，否則瞬時頻率變成f+t*f'並隨時間漂移。
+- §21的u/v是無單位座標；不能直接將dz/du或dz/dv送入atan視為幾何角度，應利用實際三維參數曲面切線／局部米制距離得到斜率與旋轉。
+- §48循環與§22–24非整數週期微變化需協調：先產生精確loop hero Action，再做跨clip相位連續的非循環organic層；尾巴需預熱並烘焙一致初始狀態。
+- §32/62/78需補網頁規格：Blender+Y前/+Z上，匯出Three+Z前/+Y上；drivers/constraints/NLA結果烘焙成可匯出骨動畫。In-place與root-motion分開，網站8字路線不可再疊加clip平移。
+- 預設尺寸、.72Hz、wave_count1.25等是美術起點；仍需依縮放後盤長校準U/(fL/k)，不能把所有預設直接稱為生物學正確。
+- 後續建議先做縮小約10–15%的單隻造型＋SLOW_CRUISE＋TURN＋RISE/SETTLE，通過中性光短片後才擴展多Actions與網站雙魟魚。此為實作順序建議，不表示放棄文件的其他可延伸功能。
+
+## 2026-09-07 Southern Stingray 網站整合完成（本地待使用者驗收）
+
+使用者已要求直接完成並在網站驗收；本節取代上節「僅研究」的執行狀態。保留 `3aade78` 房間光影基準，本輪尚未 commit／發布。
+
+- 自製程序模型：`assets/blender/scripts/stingray.py`、`assets/blender/stingray.blend`、`public/models/stingray.glb`，沒有使用案例的商用資產。以任務書 Southern Stingray 輪廓為方向，非掃描或經生物學量測模型。
+- 盤寬1.34m／盤長1.117m，尾長1.65m；第二隻scale .9。截面式菱形盤、上下表面厚度、眼／噴水孔／腹側鰓與尾側摺膜。中性光預覽為 `exports/blender-review/stingray-top.png` 與 `stingray-side.png`；studio／underside舊圖屬前版。
+- 56胸鰭控制骨（每側7×4），中心剛性，雙線性蒙皮；10尾骨，鄰骨插值。原生+Y前/+Z上，以根物件Z旋轉π配合glTF軸轉換成網站+Z前/+Y上。
+- 八個烘焙Actions，30fps。網站使用SLOW_CRUISE與左右TURN三個精確2秒單週期；以相位同步混合。其餘hover/cruise/rise/settle/rise-and-settle保留在Blender；RISE／SETTLE是非循環動作。參數由Python settings表調整，未提供完整任務書延伸的互動driver面板。
+- 波由前往後，wave_count1.25，米制曲面斜率轉成局部骨旋轉；中心振幅趨零。網站以累積路程積分相位，依縮放後身長與U/c=.65美術校準，非直接f(t)*t。
+- `StingrayMotion.ts`：弧長校準的橫8字路線，速度約.20–.48m/s，平滑短加速與低幅升降；整體靠近地板。15分鐘採樣最小中心距1.898m。尾巴以身體歷史方向／仰角逐節延遲，尾根固定，沒有持續主動蛇形正弦。
+- `Stingrays.ts`：SkeletonUtils獨立複製骨架、AnimationMixer相位控制、凍結時不累積骨旋轉；表面沿用房間光路與體積光資料，地面軟影為美術接觸陰影近似。未做CFD／完整流固耦合，也不聲稱已證明所有姿態的精確碰撞。
+- 驗收：production build；運動與資源釋放fixture；直接讀實際GLB驗證模型、蒙皮權重、非靜止鰭骨軌道與循環接縫；本地5174半窗瀏覽器確認兩隻完整顯示。網站驗收入口 `http://127.0.0.1:5174/?place=oceanlight&sea=half`。本地可見不等於正式發布。
+
+### 2026-09-07 魟魚受光對齊樹影午後鯉魚
+
+- 使用者確認游姿OK；本輪不改路線、骨動畫及速度。
+- 對照 `BlenderKoi.ts/installDiffuseFill`：採相同朝窗天空漫射、朝下腹部地板反射、微量暗部反射方式。海光場景使用自身窗洞位置與日照強度；地板照度從現有 `photons.textures.floor` 加上有限窗洞日照計算取得，取代鯉魚的shadow-map查詢。不是複製樹林的窗戶座標。
+- 移除魟魚額外均勻補光，以及缺少窗框／水位遮蔽的RectAreaLight鏡面與漫射回應；由已傳輸日光／水下光體積提供直接漫射，天空與地板提供方向性間接漫射。不加emissive；表面反射為漫射近似，未新增完整鏡面光路或魟魚形狀投影。
+- 白邊另有資產原因：POINT頂點色讓白腹顏色插值到深色側緣。改CORNER逐面顏色，保留白腹，側緣維持背部色；重建blend與GLB及兩張預覽。新GLB SHA256 `e5909d095f4c09971b35e917e7c8b16e3a3468405b798373da8837d24bc89061`。
+- 驗證：build通過；GLB蒙皮與骨动画loop／獨立實例／暫停／釋放檢查通過；5174半窗本地瀏覽器檢查。待使用者網站視覺驗收，未commit或發布。
+
+### 2026-09-07 水位切換的漲退潮過渡
+
+- 窗下 .30m、半窗1.75m、全淹3.35m保留；切換採7秒quintic smootherstep水位插值，起訖速度／加速度為零。中途重選從目前高度開始新過渡，位置不跳動（不保證反向重選的速度連續）。
+- 首次從URL／場景初始化直接顯示指定水位。沿用elapsed動畫時鐘，暫停流動也暫停潮汐。此為美術時間壓縮的水位動畫，不是潮汐流體或天文模型。
+- 海面、窗下水色、直射透光、灰塵、魟魚受光共用當前水位；窗戶補光依高度連續插值。昂貴光子計算維持15Hz，日照方向／品質設定改變可立即更新。
+- 本地build通過；5174半窗→全淹瀏覽器起訖檢查。未commit／發布。
+
+### 使用者驗收與保存
+
+2026-09-07：使用者確認目前效果「很好」，授權將魟魚造型／游姿、鯉魚式受光與水位漲退潮過渡一起commit，作為後續可回復基準。本次僅本地提交，未推送或部署。

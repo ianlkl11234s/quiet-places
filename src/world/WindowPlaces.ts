@@ -4,6 +4,7 @@ import {createOceanPhotonMap} from './OceanPhotonMap.ts';
 import {oceanSunDirection,oceanAbsorption} from './OceanOptics.ts';
 import {createOceanDust} from './OceanDust.ts';
 import {oceanLightMaterial} from './OceanLightMaterial.ts';
+import type {StingrayFactory} from './Stingrays.ts';
 import type {OceanLevel} from '../places/metadata.ts';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
@@ -189,13 +190,14 @@ function createRoom(kind: WindowPlaceKind) {
   return {group, owned, opening,receivers:[floorSurface,leftSurface,rightSurface]};
 }
 
-export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): WindowPlace {
+export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind, createRays?:StingrayFactory): WindowPlace {
   const {group, owned, opening,receivers} = createRoom(kind);
   scene.add(group);
   const sunlight={value:new THREE.Vector3()};
   const photons=kind==='ocean'?createOceanPhotonMap():undefined;
   const dust=photons?createOceanDust(group,photons.volume):undefined;
   const lightTime={value:0},lightLevel={value:.3},lightStrength={value:0},lightTint={value:new THREE.Color()};
+  const rays=photons&&createRays?createRays(group,{sun:sunlight,time:lightTime,level:lightLevel,strength:lightStrength,tint:lightTint,volume:photons.volume,floor:photons.textures.floor}):undefined;
   const windowBounds={value:new THREE.Vector4(opening.left,opening.right,opening.bottom,opening.top)};
   const projectionUniforms = {uSun:sunlight,uWindow:windowBounds,uTime: {value: 0}, uStrength: {value: .5}, uAngle: {value: 0}, uWall: {value: 0}, uTint: {value: new THREE.Color()}};
   const wallProjectionUniforms = {uSun:sunlight,uWindow:windowBounds,uTime: {value: 0}, uStrength: {value: .5}, uAngle: {value: 0}, uWall: {value: 1}, uTint: {value: new THREE.Color()}};
@@ -230,6 +232,15 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
 
   let oceanLevel:OceanLevel='below';
   const waterLevels={below:.30,half:1.75,submerged:3.35};
+  let currentWaterLevel=waterLevels.below, tideFrom=currentWaterLevel;
+  let tideStarted=0, lastElapsed:number|undefined, lastPhotonTick=-Infinity;
+  const lastPhotonSun=new THREE.Vector3();let lastPhotonQuality:boolean|undefined;
+  const tideDuration=7; // seconds of the shared animation clock; pause freezes the tide too.
+  function waterLevelAt(time:number){
+    const t=THREE.MathUtils.clamp((time-tideStarted)/tideDuration,0,1);
+    const ease=t*t*t*(t*(t*6-15)+10);
+    return THREE.MathUtils.lerp(tideFrom,waterLevels[oceanLevel],ease);
+  }
   let ocean:ReturnType<typeof createOceanSurface>|undefined;
   let animated: (elapsed: number, state: WindowPlaceState) => void;
   if (kind === 'leaf') {
@@ -279,7 +290,7 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
     underwater.position.set(0,3.5,-5.13);
     group.add(underwater);
     animated=(elapsed,state)=>{
-      const level=waterLevels[oceanLevel];
+      const level=currentWaterLevel;
       ocean!.update(elapsed,state,level);
       underwaterUniforms.uTime.value=elapsed;underwaterUniforms.uLevel.value=level;
       underwaterUniforms.uIntensity.value=state.intensity;
@@ -287,24 +298,36 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
   }
 
   return {
-    setOceanLevel(level){oceanLevel=level;},
+    setOceanLevel(level){
+      if(level===oceanLevel)return;
+      // A URL/scene's initial preset opens directly at the requested level.
+      // Repeated clicks during a tide start from the visible height, without a jump.
+      tideFrom=currentWaterLevel;tideStarted=lastElapsed??0;oceanLevel=level;
+      if(lastElapsed===undefined)currentWaterLevel=tideFrom=waterLevels[level];
+    },
     update(elapsed, state) {
+      lastElapsed=elapsed;currentWaterLevel=waterLevelAt(elapsed);
       const strength = Math.max(.08, state.intensity);
       const tint = projectionUniforms.uTint.value.copy(cool).lerp(warm, state.warmth);
       projectionUniforms.uTime.value = elapsed; projectionUniforms.uStrength.value = strength*(kind==='ocean'?(oceanLevel==='below'?.025:.22):1); projectionUniforms.uAngle.value = state.angle;
       wallProjectionUniforms.uTime.value = elapsed; wallProjectionUniforms.uStrength.value = projectionUniforms.uStrength.value; wallProjectionUniforms.uAngle.value = state.angle; wallProjectionUniforms.uTint.value.copy(tint);
       if(photons){
         const sun=oceanSunDirection(state.angle);sunlight.value.copy(sun).negate();
-        lightTime.value=Math.floor(elapsed*15+1e-7)/15;lightLevel.value=waterLevels[oceanLevel];lightStrength.value=state.intensity*12;lightTint.value.copy(tint);
-        photons.update(lightTime.value,lightLevel.value,sun,state.lowQuality);
+        lightTime.value=Math.floor(elapsed*15+1e-7)/15;lightLevel.value=currentWaterLevel;lightStrength.value=state.intensity*12;lightTint.value.copy(tint);
+        // Keep expensive transport at 15 Hz even though the tide renders each frame.
+        if(lastPhotonTick!==lightTime.value||!lastPhotonSun.equals(sun)||lastPhotonQuality!==state.lowQuality){
+          lastPhotonTick=lightTime.value;lastPhotonSun.copy(sun);lastPhotonQuality=state.lowQuality;
+          photons.update(lightTime.value,waterLevelAt(lightTime.value),sun,state.lowQuality);
+        }
         dust!.update(lightTime.value,lightLevel.value,sunlight.value,state.intensity*1.5,state.beamStrength??1,state.lowQuality??false);
       }else sunlight.value.set(-.65-state.angle*.18,-.85+state.angle*.12,1).normalize();
       target.position.copy(windowLight.position).addScaledVector(sunlight.value,7);
       skyBounce.color.copy(tint);skyBounce.intensity=.04+strength*(photons?.20:.40);
-      windowLight.intensity = photons?(.04+strength*2.4)*(oceanLevel==='submerged'?.35:oceanLevel==='half'?.65:1):.08+strength*4; windowLight.color.copy(tint);
+      windowLight.intensity = photons?(.04+strength*2.4)*(currentWaterLevel<=waterLevels.half?THREE.MathUtils.lerp(1,.65,(currentWaterLevel-waterLevels.below)/(waterLevels.half-waterLevels.below)):THREE.MathUtils.lerp(.65,.35,(currentWaterLevel-waterLevels.half)/(waterLevels.submerged-waterLevels.half))):.08+strength*4; windowLight.color.copy(tint);
       volumeUniforms.uTime.value = elapsed; volumeUniforms.uWarmth.value = state.warmth; volumeUniforms.uActivity.value = state.activity; volumeUniforms.uStrength.value = strength * (kind==='ocean'?.18:1) * (state.beamStrength ?? 1) * (state.lowQuality ? .56 : 1);
       animated(photons?lightTime.value:elapsed, state);
+      rays?.update(elapsed);
     },
-    dispose() { dust?.dispose();photons?.dispose();ocean?.dispose(); scene.remove(group); disposeObject(group); },
+    dispose() { rays?.dispose();dust?.dispose();photons?.dispose();ocean?.dispose(); scene.remove(group); disposeObject(group); },
   };
 }

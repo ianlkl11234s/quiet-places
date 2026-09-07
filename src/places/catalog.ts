@@ -28,12 +28,13 @@ export async function preparePlace(id:PlaceId):Promise<Factory>{
         disturb:env.disturb,resetWater:env.resetWater,dispose(){fish.dispose();env.dispose();}};
     };
   }
-  const {createWindowPlace}=await import('../world/WindowPlaces');
-  return scene=>{
-    const env=createWindowPlace(scene,'ocean');
-    return {position:[3,1.8,8],target:[0,1.65,-1],yawRange:Math.PI/12,hasSimulation:false,waterMode:'',
+  const [{createWindowPlace},{prepareStingrays}]=await Promise.all([import('../world/WindowPlaces'),import('../world/Stingrays')]);
+  const createRays=await prepareStingrays();
+  return Object.assign((scene:THREE.Scene)=>{
+    const env=createWindowPlace(scene,'ocean',createRays);
+    return {position:[3,1.8,8] as [number,number,number],target:[0,1.65,-1] as [number,number,number],yawRange:Math.PI/12,hasSimulation:false,waterMode:'',
       setOceanLevel:env.setOceanLevel,
-      update(_dt,elapsed,state){env.update(elapsed,state);},
+      update(_dt:number,elapsed:number,state:EnvironmentState){env.update(elapsed,state);},
       disturb(){},resetWater(){},dispose(){env.dispose();}};
-  };
+  },{dispose:createRays.dispose});
 }
