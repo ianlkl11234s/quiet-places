@@ -9,11 +9,13 @@ import {preparePlace,places,moments,isPlaceId,type PlaceId} from './places/catal
 import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay.ts';
 import {createAudioSystem} from './systems/AudioSystem.ts';
 import {createMusicPlayer} from './systems/MusicPlayer.ts';
+import {initAnalytics,trackEvent} from './systems/Analytics.ts';
 import {loadPreferences,savePreferences} from './systems/Preferences.ts';
 import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
 import './style.css';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
+initAnalytics();
 async function start(){
  const preferences=loadPreferences();
  const persist=()=>{savePreferences(preferences);};
@@ -61,7 +63,7 @@ async function start(){
  });
 
  const audio=createAudioSystem();
- const music=createMusicPlayer(el('music'),{volume:preferences.volume,onVolumeChange:value=>{preferences.volume=value;persist();}});
+ const music=createMusicPlayer(el('music'),{volume:preferences.volume,onVolumeChange:value=>{preferences.volume=value;persist();},onPlay:track=>trackEvent('music_play',{scene_id:currentPlace,track})});
  const raycaster=new THREE.Raycaster(),waterPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-6.985),hit=new THREE.Vector3();
  let waterDown: {x:number;y:number;id:number}|undefined;
  renderer.domElement.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)waterDown={x:e.clientX,y:e.clientY,id:e.pointerId};});
@@ -117,6 +119,7 @@ async function start(){
    homeCamera();elapsed=0;state=sampleTime(hour);
    placeSelect.value=id;if(save){preferences.place=id;persist();}
    describePlace();
+   if(save&&!exporting)trackEvent('scene_view',{scene_id:currentPlace,entry:'switch'});
   }catch(error){
    console.error(error);status.hidden=false;status.textContent='場景暫時無法載入，請重新整理後重試。';
    throw error;
@@ -135,6 +138,7 @@ async function start(){
  weather.value=preferences.weather;quality.value=preferences.quality;rainInput.value=String(preferences.rainIntensity*100);
  function weatherLabels(){el('rain-controls').hidden=preferences.weather!=='rain';el('rain-value').textContent=`${Math.round(preferences.rainIntensity*100)}%`;el('place-title').textContent=currentPlace==='waterlight'?(preferences.weather==='rain'?'雨落水面':'水光之間'):places.find(p=>p.id===currentPlace)!.name;}
  describePlace();
+ trackEvent('scene_view',{scene_id:currentPlace,entry:'initial'});
  weather.addEventListener('change',()=>{preferences.weather=weather.value==='rain'?'rain':'clear';place.resetWater();weatherLabels();persist();requestRender();});
  quality.addEventListener('change',()=>{preferences.quality=quality.value==='low'?'low':'standard';resize();persist();});
  rainInput.addEventListener('input',()=>{preferences.rainIntensity=Number(rainInput.value)/100;weatherLabels();persist();requestRender();});
@@ -150,7 +154,7 @@ async function start(){
  liveInput.addEventListener('change',()=>{live=liveInput.checked;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
  pause.addEventListener('click',()=>{paused=!paused;updateLabels();requestRender();});
  reduce.addEventListener('change',e=>{paused=e.matches;updateLabels();requestRender();});
- el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
+ el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));trackEvent('ambient_audio_toggle',{scene_id:currentPlace,state:on?'on':'off'});}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
  document.addEventListener('fullscreenchange',()=>{el('fullscreen').textContent=document.fullscreenElement?'離開全螢幕':'全螢幕'});
  let idle=0;function wake(){document.body.classList.remove('resting');clearTimeout(idle);idle=window.setTimeout(()=>{if(panel.hidden&&!document.querySelector(':focus-visible'))document.body.classList.add('resting')},6500)}

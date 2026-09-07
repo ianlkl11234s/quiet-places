@@ -2,6 +2,7 @@ export interface MusicPlayerOptions {
   /** 0 到 1；呼叫端可將它保存為使用者偏好。 */
   volume?: number;
   onVolumeChange?: (value: number) => void;
+  onPlay?: (track: string) => void;
 }
 
 export interface MusicPlayer {
@@ -119,6 +120,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
       }
       if (id !== requestId) return;
       render();
+      options.onPlay?.(tracks[trackIndex].source);
     } catch {
       if (!disposed && id === requestId) {
         wantedPlaying = false;
