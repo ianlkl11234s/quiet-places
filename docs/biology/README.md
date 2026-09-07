@@ -6,7 +6,8 @@
 | --- | --- | --- | --- |
 | Southern stingray（`Hypanus americanus`）造型近似 | 海光之室；骨架、Actions、GLB 與網站 adapter 已接入正式場景路徑，實際 GLB 與本機場景整合檢查通過 | 製作與限制完整；生物學與實機驗收不完整 | [製作頁](southern-stingray.md) |
 | 錦鯉造型近似 | 樹影午後；重做曲面魚鰭、20 骨／9 Actions、花紋與 normal map，三尾路徑已接入 | 實際蒙皮、GLB、browser 與 build 已本機驗證；生物學精確度、實機效能與发布未驗證 | [製作頁](koi.md) |
-| 程序魚群 | 水光之間；即時生成的九尾 fish school 已接入 | 程式、材質與 steering 近似完整；無物種、資產或生物學宣稱，實機效能未驗證 | [製作頁](procedural-fish.md) |
+| 長鰭錦鯉造型近似 | 水光之間；Blender MCP master／七尾變體／八動作及網站鬆散群游已接入 | 真資產、蒙皮、26項測試與browser本機驗證；待使用者視覺確認 | [製作頁](long-fin-koi.md) |
+| 舊版程序魚群 | 水光之間九尾簡化幾何魚的歷史基準 | 保留舊參數與驗收，不作新版證據 | [歷史頁](procedural-fish.md) |
 
 ## 新增生物的最小文件格式
 

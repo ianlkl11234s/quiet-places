@@ -1,204 +1,102 @@
 import type {LightingState} from '../../player/contracts.ts';
-import {seededRandom} from '../../shared/math/seededRandom.ts';
 import * as THREE from 'three';
+import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {collectModelResources, disposeModelResources} from '../../shared/resources/ModelResources.ts';
+import {createLongFinKoiSchool, type LongFinKoiBehavior, type LongFinKoiSchool} from './LongFinKoiMotion.ts';
 
 export type FishSchoolState = LightingState;
+export type FishSchool = {update: (dt: number, elapsed: number, state: FishSchoolState) => void; dispose: () => void; inspect: () => ReturnType<LongFinKoiSchool['inspect']>};
+export type FishSchoolFactory = ((scene: THREE.Scene) => FishSchool) & {dispose: () => void};
+const ACTION: Record<LongFinKoiBehavior, string> = {hover: 'IDLE_HOVER', slow: 'SLOW_CRUISE', glide: 'GLIDE', left: 'TURN_LEFT', right: 'TURN_RIGHT', rise: 'SLIGHT_RISE', descend: 'SLIGHT_DESCEND', pause: 'PAUSE'};
 
-export type FishSchool = {
-  update: (dt: number, elapsed: number, state: FishSchoolState) => void;
-  dispose: () => void;
-};
-
-type Fish = {
-  root: THREE.Group;
-  tail: THREE.Group;
-  position: THREE.Vector3;
-  velocity: THREE.Vector3;
-  phase: number;
-  speed: number;
-};
-
-const COUNT = 9;
-const MIN = new THREE.Vector3(-2.8, 2.4, -3);
-const MAX = new THREE.Vector3(2.8, 5.7, 1.5);
-const FORWARD = new THREE.Vector3(1, 0, 0);
-const NEIGHBOUR_RADIUS_SQ = 2.4;
-const SEPARATION_RADIUS_SQ = 1.3;
-
-
-
-function triangle(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): THREE.BufferGeometry {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
-    a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z,
-  ], 3));
-  geometry.computeVertexNormals();
-  return geometry;
+function configureLongFinMaterials(root: THREE.Object3D) {
+  root.traverse(object => {
+    if (!(object instanceof THREE.Mesh)) return;
+    // The Blender ray strips remain in the authored source but alias into
+    // bright dotted lines at web-review scale, so the web presentation uses
+    // the broader fin membrane only.
+    if (object.name.includes('LFK_RAY')) { object.visible = false; return; }
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    if (!object.name.includes('LFK_FIN')) return;
+    materials.forEach(material => {
+      material.transparent = true; material.depthWrite = false;
+      if (material instanceof THREE.MeshPhysicalMaterial) material.transmission = 0;
+      material.needsUpdate = true;
+    });
+  });
 }
 
-function createFish(index: number, random: () => number): Fish {
-  const root = new THREE.Group();
-  const length = 0.25 + random() * 0.25;
-  const height = length * (0.22 + random() * 0.05);
-  const gold = index >= COUNT - 2;
-  const bodyMaterial = new THREE.MeshStandardMaterial({
-    color: gold ? 0xa88e58 : (index % 3 === 0 ? 0xd8d2c4 : 0xbfc3c1),
-    roughness: 0.62,
-    metalness: gold ? 0.16 : 0.28,
-    // A restrained self-fill keeps the small fish readable when they turn away from a room light.
-    emissive: gold ? 0x2d2417 : 0x18201e,
-    emissiveIntensity: 0.16,
-  });
-  const finMaterial = new THREE.MeshStandardMaterial({
-    color: gold ? 0xb89a61 : 0xd8ded8,
-    roughness: 0.48,
-    metalness: 0.12,
-    emissive: gold ? 0x211a10 : 0x131b18,
-    emissiveIntensity: 0.1,
-    transparent: true,
-    opacity: 0.46,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  });
+function clipForRoot(clip: THREE.AnimationClip, root: THREE.Object3D) {
+  // GLTFLoader de-duplicates Blender's repeated bone names as root, root_1,
+  // etc. Membership is therefore based on the actual loaded subtree, rather
+  // than a guessed KOI_01/ track prefix.
+  const members = new Set<string>(); root.traverse(object => members.add(object.name));
+  const tracks = clip.tracks.filter(track => members.has(track.name.slice(0, track.name.lastIndexOf('.')))).map(track => track.clone());
+  return new THREE.AnimationClip(`${clip.name}:${root}`, clip.duration, tracks);
+}
 
-  // A gently elongated ellipsoid gives a soft tapered head and tail without assets.
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 10), bodyMaterial);
-  body.scale.set(length, height, height * 0.72);
-  root.add(body);
-
-  const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0x262826, roughness: 0.72 });
-  const eyeGeometry = new THREE.SphereGeometry(length * 0.045, 8, 6);
-  for (const side of [-1, 1]) {
-    const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-    eye.position.set(length * 0.35, height * 0.16, side * height * 0.62);
-    root.add(eye);
+/** Loads one authored seven-rig GLB before Waterlight replaces its current place. */
+export async function prepareLongFinKoiSchool(): Promise<FishSchoolFactory> {
+  let gltf: Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  try { gltf = await new GLTFLoader().loadAsync('/models/long-fin-koi-school.glb'); }
+  catch { throw new Error('長鰭錦鯉資產無法載入。'); }
+  // Keep seven authored variants as templates; instances share their GPU
+  // geometry/materials but own cloned bones and skeleton resources.
+  const resources = collectModelResources(gltf.scene);
+  const names = Array.from({length: 7}, (_, index) => `KOI_${String(index + 1).padStart(2, '0')}`);
+  const roots = names.map(name => gltf.scene.getObjectByName(name));
+  if (roots.some(root => !root)) { disposeModelResources(resources, ['textures', 'materials', 'geometries', 'skeletons']); throw new Error('長鰭錦鯉資產缺少 KOI_01 至 KOI_07。'); }
+  const clips = new Map<string, THREE.AnimationClip>();
+  for (const name of Object.values(ACTION)) {
+    const clip = gltf.animations.find(item => item.name === `KOI_ACT_${name}`);
+    if (!clip) { disposeModelResources(resources, ['textures', 'materials', 'geometries', 'skeletons']); throw new Error(`長鰭錦鯉資產缺少 KOI_ACT_${name}。`); }
+    clips.set(name, clip);
   }
-
-  const dorsal = new THREE.Mesh(
-    triangle(new THREE.Vector3(-length * 0.12, height * 0.42, 0), new THREE.Vector3(-length * 0.34, height * 0.98, 0), new THREE.Vector3(length * 0.2, height * 0.4, 0)),
-    finMaterial,
-  );
-  root.add(dorsal);
-
-  const pectoral = new THREE.Mesh(
-    triangle(new THREE.Vector3(length * 0.1, -height * 0.04, height * 0.55), new THREE.Vector3(-length * 0.06, -height * 0.72, height * 1.05), new THREE.Vector3(-length * 0.17, -height * 0.08, height * 0.35)),
-    finMaterial,
-  );
-  root.add(pectoral);
-
-  const tail = new THREE.Group();
-  tail.position.x = -length * 0.52;
-  const tailTop = new THREE.Mesh(
-    triangle(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-length * 0.48, height * 1.15, 0), new THREE.Vector3(-length * 0.28, height * 0.08, 0)),
-    finMaterial,
-  );
-  const tailBottom = new THREE.Mesh(
-    triangle(new THREE.Vector3(0, 0, 0), new THREE.Vector3(-length * 0.48, -height * 1.15, 0), new THREE.Vector3(-length * 0.28, -height * 0.08, 0)),
-    finMaterial,
-  );
-  tail.add(tailTop, tailBottom);
-  root.add(tail);
-
-  const position = new THREE.Vector3(
-    THREE.MathUtils.lerp(MIN.x, MAX.x, random()),
-    THREE.MathUtils.lerp(MIN.y, MAX.y, random()),
-    THREE.MathUtils.lerp(MIN.z, MAX.z, random()),
-  );
-  const velocity = new THREE.Vector3(random() - 0.5, (random() - 0.5) * 0.28, random() - 0.5).normalize();
-  root.position.copy(position);
-  root.quaternion.setFromUnitVectors(FORWARD, velocity);
-  return { root, tail, position, velocity, phase: random() * Math.PI * 2, speed: 0.22 + random() * 0.12 };
-}
-
-export function createFishSchool(scene: THREE.Scene): FishSchool {
-  const group = new THREE.Group();
-  group.name = 'FishSchool';
-  scene.add(group);
-  const random = seededRandom(0x51f15);
-  const fish = Array.from({ length: COUNT }, (_, index) => createFish(index, random));
-  fish.forEach(({ root }) => group.add(root));
-
-  const desired = new THREE.Vector3();
-  const center = new THREE.Vector3();
-  const separation = new THREE.Vector3();
-  const wander = new THREE.Vector3();
-  const lightTarget = new THREE.Vector3();
-  const nextVelocity = new THREE.Vector3();
-  const direction = new THREE.Vector3();
-  const separationVector = new THREE.Vector3();
-  const lightDirection = new THREE.Vector3();
-  const targetQuaternion = new THREE.Quaternion();
-
-  return {
-    update(dt, elapsed, state) {
-      const step = THREE.MathUtils.clamp(Number.isFinite(dt) ? dt : 0, 0, 0.05);
-      if (step === 0) return;
-      const activity = THREE.MathUtils.clamp(state.activity || 0, 0, 1);
-      const intensity = THREE.MathUtils.clamp(state.intensity || 0, 0, 1);
-      const angle = Number.isFinite(state.angle) ? state.angle : 0;
-      // The fish drift slightly toward the illuminated part of the room.
-      const warmth = THREE.MathUtils.clamp(state.warmth || 0, 0, 1);
-      lightTarget.set((-.45 + Math.sin(angle)*.14) * 2.6, 4.4 + (warmth - 0.5) * 0.2, -.2 + (-.30 + Math.sin(angle*.7)*.10) * 2.6);
-
-      for (let i = 0; i < fish.length; i += 1) {
-        const current = fish[i];
-        center.set(0, 0, 0);
-        separation.set(0, 0, 0);
-        let neighbours = 0;
-        for (let j = 0; j < fish.length; j += 1) {
-          if (i === j) continue;
-          const other = fish[j];
-          const distanceSq = current.position.distanceToSquared(other.position);
-          if (distanceSq < NEIGHBOUR_RADIUS_SQ) {
-            center.add(other.position);
-            neighbours += 1;
-            if (distanceSq < SEPARATION_RADIUS_SQ && distanceSq > 0.0001) {
-              separationVector.copy(current.position).sub(other.position);
-              // A bounded falloff avoids abrupt turns while giving nearby fish room to pass.
-              const proximity = 1 - distanceSq / SEPARATION_RADIUS_SQ;
-              separation.addScaledVector(separationVector, proximity * proximity);
-            }
-          }
-        }
-        desired.copy(current.velocity).multiplyScalar(0.45);
-        if (neighbours) {
-          center.multiplyScalar(1 / neighbours).sub(current.position).multiplyScalar(0.10);
-          desired.add(center).addScaledVector(separation, 0.3);
-        }
-        wander.set(
-          Math.sin(elapsed * 0.47 + current.phase),
-          Math.sin(elapsed * 0.31 + current.phase * 1.7) * 0.32,
-          Math.cos(elapsed * 0.39 + current.phase * 0.7),
-        ).multiplyScalar(0.13 + activity * 0.09);
-        lightDirection.copy(lightTarget).sub(current.position);
-        desired.add(wander).addScaledVector(lightDirection, 0.035 + intensity * 0.035);
-        for (const axis of ['x', 'y', 'z'] as const) {
-          const margin = 0.42;
-          if (current.position[axis] < MIN[axis] + margin) desired[axis] += (MIN[axis] + margin - current.position[axis]) * 0.65;
-          if (current.position[axis] > MAX[axis] - margin) desired[axis] -= (current.position[axis] - (MAX[axis] - margin)) * 0.65;
-        }
-        if (desired.lengthSq() < 0.0001) desired.copy(current.velocity);
-        desired.normalize();
-        nextVelocity.copy(current.velocity).lerp(desired, 1 - Math.exp(-step * (1.8 + activity * 2.2))).normalize();
-        current.velocity.copy(nextVelocity);
-        current.position.addScaledVector(current.velocity, current.speed * (0.65 + activity * 0.85) * step);
-        current.position.clamp(MIN, MAX);
-        current.root.position.copy(current.position);
-        direction.copy(current.velocity);
-        targetQuaternion.setFromUnitVectors(FORWARD, direction);
-        current.root.quaternion.slerp(targetQuaternion, 1 - Math.exp(-step * 5));
-        current.tail.rotation.y = Math.sin(elapsed * (4.2 + activity * 3.8) + current.phase) * (0.22 + activity * 0.18);
+  let consumed = false, released = false;
+  const release = () => { if (released) return; released = true; disposeModelResources(resources, ['textures', 'materials', 'geometries', 'skeletons']); gltf.scene.removeFromParent(); };
+  const factory = (scene: THREE.Scene): FishSchool => {
+    if (consumed) throw new Error('長鰭錦鯉工廠只能建立一個場景實例。'); consumed = true;
+    const group = new THREE.Group(); group.name = 'LongFinKoiSchool'; scene.add(group);
+    const motion = createLongFinKoiSchool();
+    const fish: {carrier: THREE.Group; model: THREE.Object3D; mixer: THREE.AnimationMixer; actions: Map<string, THREE.AnimationAction>; weights: Map<string, number>}[] = [];
+    try { motion.poses().forEach((pose, index) => {
+      const template = roots[index % roots.length]!;
+      const root = cloneSkeleton(template);
+      root.name = `KOI_INSTANCE_${String(index + 1).padStart(2, '0')}`;
+      root.userData.variantSource = template.name;
+      collectModelResources(root).skeletons.forEach(skeleton => resources.skeletons.add(skeleton));
+      const carrier = new THREE.Group(); carrier.name = `long-fin-koi-${index + 1}`;
+      root!.removeFromParent(); carrier.add(root!); group.add(carrier); root!.traverse(object => { if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; } }); configureLongFinMaterials(root!);
+      root!.updateMatrixWorld(true); const bounds = new THREE.Box3().setFromObject(root!); const size = bounds.getSize(new THREE.Vector3()); const sourceLength = Math.max(size.x, size.y, size.z);
+      if (!Number.isFinite(sourceLength) || sourceLength < 1e-4) throw new Error(`${root!.name} 缺少可用的身長。`);
+      root!.scale.multiplyScalar(pose.length / sourceLength);
+      const mixer = new THREE.AnimationMixer(root!);
+      const actions = new Map<string, THREE.AnimationAction>();
+      for (const [name, clip] of clips) {
+        const scoped = clipForRoot(clip, root!);
+        if (!scoped.tracks.length) throw new Error(`長鰭錦鯉動畫 ${name} 沒有 ${root!.name} tracks。`);
+        const action = mixer.clipAction(scoped); action.play(); action.paused = true; action.enabled = true; action.setEffectiveWeight(name === 'SLOW_CRUISE' ? 1 : 0); actions.set(name, action);
       }
-    },
-    dispose() {
-      group.traverse((object) => {
-        const mesh = object as THREE.Mesh;
-        if (mesh.geometry) mesh.geometry.dispose();
-        const material = mesh.material;
-        if (Array.isArray(material)) material.forEach((item) => item.dispose());
-        else if (material) material.dispose();
-      });
-      scene.remove(group);
-    },
+      fish.push({carrier, model: root!, mixer, actions, weights: new Map(Array.from(actions, ([name]) => [name, name === 'SLOW_CRUISE' ? 1 : 0]))});
+    }); } catch (error) { scene.remove(group); group.clear(); release(); throw error; }
+    let disposed = false;
+    return {
+      update(dt, _elapsed, state) {
+        if (disposed) return; motion.update(dt, {angle: state.angle, activity: state.activity});
+        motion.poses().forEach((pose, index) => {
+          const item = fish[index], name = ACTION[pose.behavior]; item.carrier.position.copy(pose.position); item.carrier.quaternion.copy(pose.quaternion);
+          const blend = 1 - Math.exp(-(Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, .25) : 0) / 1.5);
+          item.actions.forEach((action, key) => {
+            const weight = THREE.MathUtils.lerp(item.weights.get(key) ?? 0, key === name ? 1 : 0, blend); item.weights.set(key, weight); action.setEffectiveWeight(weight);
+            action.time = pose.actionClock % action.getClip().duration;
+          });
+          item.mixer.update(0);
+        });
+      },
+      inspect: motion.inspect,
+      dispose() { if (disposed) return; disposed = true; scene.remove(group); fish.forEach(item => { item.mixer.stopAllAction(); item.mixer.uncacheRoot(item.model); }); group.clear(); release(); },
+    };
   };
+  return Object.assign(factory, {dispose() { if (!consumed) { consumed = true; release(); } }});
 }

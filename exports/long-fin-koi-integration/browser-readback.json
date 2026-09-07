@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-07",
+  "assetDecodedBytes": 9631188,
+  "desktop": [
+    1280,
+    800
+  ],
+  "mobile": [
+    390,
+    844
+  ],
+  "pausedScreenshotsIdentical": true,
+  "sceneSwitch": [
+    "waterlight",
+    "leaflight",
+    "waterlight"
+  ],
+  "returnedSceneStatusHidden": true,
+  "restoredRunning": true,
+  "gpu": {
+    "views": [
+      "side",
+      "top",
+      "three-quarter"
+    ],
+    "allEightClipsSampledAtSeconds": 2.4,
+    "slowCruisePlayedSeconds": 143.6918,
+    "tailQuaternionChangesBetween0AndPoint4Seconds": true,
+    "sevenVariantsVisible": true,
+    "textures": 15,
+    "programs": 4
+  },
+  "consoleDuringAcceptance": [],
+  "limits": [
+    "Browser viewport emulation, not physical phone",
+    "No mobile thermal/FPS measurement",
+    "No deployment or user visual approval"
+  ],
+  "finalExportNote": "Final export updates authoring-control extras and preserves the same geometry, materials and eight clips; final page reload performed."
+}

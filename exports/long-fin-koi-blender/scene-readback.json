@@ -1,0 +1,70 @@
+{
+  "scene": "LONG_FIN_KOI_SCHOOL",
+  "allScenes": [
+    "Leaflight_Study",
+    "Leaflight_Study_previous",
+    "Leaflight_Study_previous.001",
+    "Leaflight_Study_v01",
+    "LONG_FIN_KOI_SCHOOL",
+    "Scene"
+  ],
+  "activeCamera": "CAM_MAIN",
+  "rendering": false,
+  "master": {
+    "name": "KOI_MASTER_RIG",
+    "bones": 24
+  },
+  "rigs": [
+    {
+      "name": "KOI_01",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 13
+    },
+    {
+      "name": "KOI_02",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 13
+    },
+    {
+      "name": "KOI_03",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 14
+    },
+    {
+      "name": "KOI_04",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 15
+    },
+    {
+      "name": "KOI_05",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 13
+    },
+    {
+      "name": "KOI_06",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 13
+    },
+    {
+      "name": "KOI_07",
+      "bones": 24,
+      "reusableTracks": 8,
+      "performanceTracks": 15
+    }
+  ],
+  "cameras": [
+    "CAM_MAIN",
+    "CAM_SIDE",
+    "CAM_TOP_3Q",
+    "CAM_STUDIO_SIDE",
+    "CAM_STUDIO_TOP",
+    "CAM_STUDIO_3Q"
+  ],
+  "pathSeconds": 120
+}
