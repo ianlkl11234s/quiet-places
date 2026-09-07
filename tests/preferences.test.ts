@@ -144,6 +144,18 @@ function newKeyTakesPriorityOverLegacy(): void {
   equal(loaded.hour, 6.5, 'new key values are preserved');
 }
 
+function afterlightPreferencesAreRecognized(): void {
+  const storage = new MemoryStorage();
+  storage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({
+    version: 1, place: 'afterlight', rooms: { afterlight: { hour: 17.5, weather: 'rain', rainIntensity: .65 } },
+  }));
+  const loaded = loadPreferences(storage);
+  equal(loaded.place, 'afterlight', 'afterlight is a valid saved place');
+  const afterlight = getRoomPreferences(loaded, 'afterlight');
+  equal(afterlight.weather, 'rain', 'afterlight keeps sunshower state');
+  equal(afterlight.rainIntensity, .65, 'afterlight rain intensity round-trips');
+}
+
 function failedMigrationStillReturnsLegacyPreferences(): void {
   const storage = new MigrationWriteFailingStorage();
   storage.setItem(LEGACY_PREFERENCES_STORAGE_KEY, JSON.stringify({ version: 1, place: 'leaflight', hour: 12, live: true }));
@@ -160,6 +172,7 @@ storageFailuresAreSafe();
 roundTrip();
 legacyPreferencesMigrateToTheNewKey();
 newKeyTakesPriorityOverLegacy();
+afterlightPreferencesAreRecognized();
 failedMigrationStillReturnsLegacyPreferences();
 roomPreferencesAreIndependentAndRoundTrip();
 roomPreferencesSanitizeAndFallBack();

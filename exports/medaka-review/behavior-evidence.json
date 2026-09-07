@@ -1,0 +1,132 @@
+{
+  "occupancyBySunRotation": {
+    "-0.16": {
+      "min": 4,
+      "max": 10
+    },
+    "0.0": {
+      "min": 3,
+      "max": 8
+    },
+    "0.16": {
+      "min": 2,
+      "max": 6
+    }
+  },
+  "triangleVisits": [
+    [
+      4,
+      4,
+      4
+    ],
+    [
+      3,
+      3,
+      3
+    ],
+    [
+      2,
+      2,
+      2
+    ],
+    [
+      4,
+      4,
+      4
+    ],
+    [
+      3,
+      3,
+      3
+    ],
+    [
+      2,
+      2,
+      2
+    ],
+    [
+      4,
+      4,
+      4
+    ],
+    [
+      3,
+      3,
+      3
+    ],
+    [
+      2,
+      2,
+      2
+    ],
+    [
+      4,
+      4,
+      4
+    ],
+    [
+      3,
+      3,
+      3
+    ],
+    [
+      2,
+      2,
+      2
+    ]
+  ],
+  "events": [
+    {
+      "time": 16.0,
+      "members": 18,
+      "lightSamples": 1228,
+      "shadowLightShadowFish": []
+    },
+    {
+      "time": 43.0,
+      "members": 11,
+      "lightSamples": 966,
+      "shadowLightShadowFish": [
+        5
+      ]
+    },
+    {
+      "time": 70.0,
+      "members": 13,
+      "lightSamples": 1351,
+      "shadowLightShadowFish": [
+        6
+      ]
+    },
+    {
+      "time": 96.0,
+      "members": 10,
+      "lightSamples": 751,
+      "shadowLightShadowFish": []
+    }
+  ],
+  "light": {
+    "fishCount": 14,
+    "samples": 18105
+  },
+  "plant": {
+    "penetrationSamples": 0,
+    "gatheredFishRange": [
+      5,
+      13
+    ],
+    "entryExitTransitions": 0
+  },
+  "actual": {
+    "tailHz": [
+      1.996,
+      6.637
+    ],
+    "accelerationMax": 0.35,
+    "pathTangentTurnMaxDegPerSec": 1139.13,
+    "bodyTurnMaxDegPerSec": 360.84,
+    "speedMax": 0.221,
+    "minCenterSeparation": 0.0373,
+    "bodyCapsuleClearance": 0.02219
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "artifactPhase": "baked-room-pbr",
+  "camera": {
+    "name": "Camera_Hero",
+    "positionThree": [
+      0.425,
+      0.8175,
+      2.25
+    ],
+    "targetThree": [
+      1.25,
+      0.72,
+      -0.6
+    ],
+    "lensMm": 24.0
+  },
+  "sun": {
+    "directionToSceneThree": [
+      0.28,
+      -1.0,
+      0.25
+    ],
+    "colorLinear": [
+      1.0,
+      0.8,
+      0.55
+    ]
+  },
+  "roomSurface": {
+    "mesh": "RoomSurface",
+    "uv": "UV0",
+    "albedo": "/textures/afterlight/room-albedo.png",
+    "normal": "/textures/afterlight/room-normal.png",
+    "roughness": "/textures/afterlight/room-roughness.png",
+    "indirect": "/textures/afterlight/room-indirect.exr",
+    "lightmapIntensity": 0.65,
+    "containsDirect": false
+  },
+  "foliage": {
+    "objectPrefixes": [
+      "Foliage_",
+      "Leaf_",
+      "Stem_"
+    ],
+    "windExtras": [
+      "windRootY",
+      "windHeight",
+      "windScale"
+    ],
+    "vertexColor": "LeafColor",
+    "groupedMeshCount": 5,
+    "sourceMeshCount": 155,
+    "trianglesBefore": 6906,
+    "trianglesAfter": 6906,
+    "grouping": "material + windRootY + windHeight + windScale; evaluated world transforms joined for export only"
+  },
+  "rootCracks": {
+    "coordinateSystem": "Blender X/Y, ground Z=0; Three maps as (x,-y,0)",
+    "mainCrack": {
+      "x": [
+        1.37,
+        1.39
+      ],
+      "y": [
+        0.0,
+        0.7
+      ],
+      "soilZ": -0.015
+    },
+    "branches": [
+      {
+        "x": [
+          1.24,
+          1.38
+        ],
+        "y": [
+          0.056,
+          0.074
+        ]
+      },
+      {
+        "x": [
+          1.37,
+          1.49
+        ],
+        "y": [
+          0.611,
+          0.629
+        ]
+      }
+    ],
+    "rootCenters": [
+      [
+        1.28,
+        0.06
+      ],
+      [
+        1.38,
+        0.38
+      ],
+      [
+        1.48,
+        0.62
+      ]
+    ]
+  },
+  "rootBounds": {
+    "placement": "wall-floor junction",
+    "wallInnerX": 1.71,
+    "gapMetres": [
+      0.018,
+      0.025
+    ],
+    "soilTopMetres": -0.024,
+    "roots": [
+      [
+        1.698,
+        0.38
+      ]
+    ]
+  },
+  "plantGeometry": {
+    "morphology": "Solanum americanum / Pilea microphylla source-informed approximation, not botanical validation",
+    "seed": 38074,
+    "heroShoots": 1,
+    "heroHeightsMetres": [
+      1.35
+    ],
+    "overhang": false
+  },
+  "aperture": {
+    "x": [
+      0.62,
+      1.28
+    ],
+    "z": [
+      -1.25,
+      -0.35
+    ],
+    "roofY": 3.0,
+    "blenderY": [
+      0.35,
+      1.25
+    ]
+  }
+}

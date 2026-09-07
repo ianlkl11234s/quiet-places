@@ -1,0 +1,33 @@
+{
+  "shoalRigs": 22,
+  "sceneFrames": [
+    0,
+    3600
+  ],
+  "currentFrame": 0,
+  "actionCount": 22,
+  "fcurvesPerAction": [
+    54
+  ],
+  "keyPointsPerCurve": [
+    3601
+  ],
+  "actionRanges": [
+    [
+      0.0,
+      3600.0
+    ]
+  ],
+  "motionCacheFrames": 3601,
+  "motionCacheFish": 22,
+  "motionLengthRangeMetres": [
+    0.0388,
+    0.0528
+  ],
+  "scaleMaxErrorMetres": 1.7585692832500222e-09,
+  "root0Error": 0.0,
+  "root3600Error": 0.0,
+  "sourceHiddenViewport": true,
+  "sourceHiddenRender": true,
+  "overviewCamera": "Camera_Shoal_Overview"
+}

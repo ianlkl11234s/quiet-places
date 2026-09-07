@@ -1,0 +1,15 @@
+{
+  "positionThree": [
+    0.425,
+    0.8175,
+    2.25
+  ],
+  "targetThree": [
+    1.25,
+    0.72,
+    -0.6
+  ],
+  "dollyFraction": 0.25,
+  "binaryChunkUnchanged": true,
+  "geometryMaterialChunkSha256": "ef4c7672913b01f67a222827245ba8961f8a7bd4f6ed6e56d5fec25b2868c571"
+}

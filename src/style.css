@@ -84,4 +84,5 @@ footer.chrome{justify-content:flex-start}
 
 #settings-toggle.dock-button{padding:0;border-radius:50%}#settings-toggle .dock-icon{margin:0}
 #status{z-index:21;pointer-events:none}
+.room-card--afterlight .room-preview{background:linear-gradient(145deg,#d6c78b 0 22%,#5f6255 24% 40%,#2f3934 42% 65%,#131817 67%)}.room-card--afterlight .room-preview::before{left:8px;bottom:5px;width:33px;height:31px;background:radial-gradient(ellipse at 23% 68%,#a8bb6d 0 15%,transparent 17%),radial-gradient(ellipse at 54% 42%,#738c58 0 18%,transparent 20%),radial-gradient(ellipse at 78% 76%,#93a568 0 14%,transparent 16%);opacity:.9}.room-card--afterlight .room-preview::after{left:7px;right:8px;bottom:7px;height:4px;background:#d2d6c880;box-shadow:0 -11px 0 #d3c88928;transform:skewX(-22deg)}
 @media(max-width:360px){footer .moment #moment-label{display:none}}

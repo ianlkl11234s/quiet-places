@@ -1,0 +1,18 @@
+{
+  "public/models/medaka.glb": {
+    "bytes": 55612,
+    "sha256": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300"
+  },
+  "public/models/medaka-motion.bin": {
+    "bytes": 3802656,
+    "sha256": "b2bda8795b99393e6d5bb782b979cd43ccd6cbcdfcb65b1e093c58aae24ea0b5"
+  },
+  "public/models/medaka-motion.json": {
+    "bytes": 5186,
+    "sha256": "f3cbdc7399a0dbb8cc16c7a3b8ffd6f4896a07ce6842006a859f446cda0d539e"
+  },
+  "assets/blender/medaka_quiet_rain_shoal.blend": {
+    "bytes": 11292739,
+    "sha256": "70f819d7ca9eb91174ebcf8ca04deedf8241dde00dbe486fd75ec8514be5583a"
+  }
+}
