@@ -39,10 +39,10 @@
 - 本機Codex瀏覽器1280×720確認兩隻魟魚載入、半窗至全淹潮汐、暫停／恢復與切換場景返回；error／warn為空。完整記錄見[整合驗收](../VALIDATION.md)，圖片見[海光全淹](../../exports/shared-scene-review/oceanlight-stingrays-submerged.jpg)。
 - 使用者表示海光製作完成；本輪保留其完成版的造型、游姿、受光與速度，沒有再次改動美術參數。頂／側圖來自同次來源快照；studio／underside為較早版本，不作目前完整造型證據。
 - 未驗證：本輪沒有重做中性光完整動作影片、所有姿態精確碰撞、實體裝置FPS／GPU記憶體／耗電，亦未逐項驗收任務書的81項條款。生物學精確比例、游速與頻率校準仍需物種條件資料。
-- 本輪尚未commit、PR或發布；本機可見不代表正式站更新。
+- 已由 [PR #2](https://github.com/ianlkl11234s/quiet-places/pull/2) 合併至 `main`（`27e597f`）；正式部署未驗證。
 
 ## 後續變更紀錄規則
 
 改動樹種、材質、光線或本生物的模型／行為時，保留本頁的已確認基準，新增日期段落並記錄：修改原因、受影響資產與程式、參考來源、座標或單位換算、物理與美術近似的分界、驗收命令／視覺條件、以及 commit（如有）。共同光路原則才更新[材質與光照製作筆記](../MATERIALS_AND_LIGHTING.md)。
 
-來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理分支仍是本地未提交整合。
+來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理已由 PR #2 合併至 `main`（`27e597f`）。
