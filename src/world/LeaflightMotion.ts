@@ -63,7 +63,7 @@ function injectWind(material: THREE.Material, uniforms: ShaderUniforms, atmosphe
       `).replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
         reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.36, .44, .50) * .32 * uLeaflightDaylight;
       `).replace('#include <opaque_fragment>', `
-        float aerial = (1.0 - exp(-length(vViewPosition) * .008)) * uLeaflightDaylight;
+        float aerial = min(.025, (1.0 - exp(-length(vViewPosition) * .002))) * uLeaflightDaylight;
         outgoingLight = mix(outgoingLight, vec3(.32, .39, .43), aerial);
         #include <opaque_fragment>
       `);

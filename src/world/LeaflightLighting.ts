@@ -49,8 +49,8 @@ const skyFragment = /* glsl */ `
     float sunset = smoothstep(.6, 1.0, uWarmth);
     // A cool, low-contrast sky keeps the window view natural without turning it
     // into a flat white panel at the room’s exposure.
-    vec3 low = mix(vec3(.61, .67, .70), vec3(.67, .62, .55), sunset);
-    vec3 high = mix(vec3(.16, .32, .50), vec3(.38, .34, .35), sunset);
+    vec3 low = mix(vec3(.40, .49, .56), vec3(.67, .62, .55), sunset);
+    vec3 high = mix(vec3(.13, .29, .47), vec3(.38, .34, .35), sunset);
     vec3 daySky = mix(low, high, zenith);
     vec3 color = mix(mix(nightLow, nightHigh, horizon), daySky, uDaylight);
 
@@ -58,7 +58,7 @@ const skyFragment = /* glsl */ `
     // atmospheric haze rather than a hard graphic gradient.
     float haze = pow(1.0 - smoothstep(-.10, .58, d.y), 1.45);
     vec3 hazeColor = mix(vec3(.72, .75, .74), vec3(.76, .69, .59), sunset);
-    color = mix(color, hazeColor, haze * .18 * uDaylight);
+    color = mix(color, hazeColor, haze * .035 * uDaylight);
 
     // Three inexpensive value-noise octaves make only a barely visible, slowly
     // drifting cloud veil; keeping the contrast low preserves the room mood.
@@ -66,7 +66,7 @@ const skyFragment = /* glsl */ `
     float cloudBand = smoothstep(-.10, .62, d.y) * (1.0 - smoothstep(.62, .96, d.y) * .55);
     float clouds = smoothstep(.38, .74, cloudField(cloudP)) * cloudBand;
     vec3 cloudColor = mix(vec3(.70, .73, .73), vec3(.74, .69, .60), sunset);
-    color = mix(color, cloudColor, clouds * .38 * uDaylight);
+    color = mix(color, cloudColor, clouds * .20 * uDaylight);
     vec3 toSun = normalize(-uSun);
     float softSun = pow(max(dot(d, toSun), 0.0), 32.0);
     color += mix(vec3(.62, .72, .78), vec3(.90, .72, .48), uWarmth) * softSun * (.012 + .045 * uDaylight);
@@ -136,6 +136,11 @@ const volumeFragment = /* glsl */ `
     vec2 hit = hitBox(ro, rd);
     float start = max(hit.x, 0.0), end = hit.y;
     if (end <= start) discard;
+    // Keep the empty opening optically clear. The approximate room volume has
+    // no exterior depth; do not composite it as a veil over sky and branches.
+    vec3 exitPoint = ro + rd * end;
+    if (exitPoint.x > 3.99 && exitPoint.y > 4.6 && exitPoint.y < 7.5
+        && abs(exitPoint.z) < 3.2) discard;
     const int STEPS = 12;
     float stepSize = (end - start) / float(STEPS);
     float sum = 0.0;
