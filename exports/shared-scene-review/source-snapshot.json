@@ -1,0 +1,15 @@
+{
+  "src/world/OceanLightMaterial.ts": "9e6c130b58dfd16df088d0516397e8b8f13f54f9f30287b1c82af6e507943b46",
+  "src/world/WindowPlaces.ts": "ae83755b97508ea3465155bb433dc8613c530e7a807e1eb75f05616131d5d342",
+  "src/places/catalog.ts": "c44db4e99c172f99418a71c8683ba1f28ad8b7683a8427383fa0abf16e634764",
+  "docs/scenes/oceanlight.md": "61ae2ce3af1436d9ac0b3c63cd9364ad047d9f8707515e2efbe2d1953ec6470f",
+  "src/world/Stingrays.ts": "153b62d285939aed808ceee884c256842cc52964b20e5b47092d51587a4b70b7",
+  "src/world/StingrayMotion.ts": "74602208d7c35652ed282fb8896fce2e60a0ad123a852cfacaecadb8a94e7ba9",
+  "tests/stingrays.test.ts": "14d59f445fef58208a6abdc44e0fad4050e9128f987fe191903a0d40b7915aea",
+  "tests/stingray-motion.test.ts": "6efa14120a4e8db28d520bdb567f28e39ed7675d743eac962cfc32e3a679038e",
+  "public/models/stingray.glb": "6575ac4c70f87280553abb224d0657a95459687cd80f577d6c7818f9a0dbc7ad",
+  "assets/blender/stingray.blend": "62e656f88620d579264d56a9657b4e28015adf828325efc291f82e736427bcb3",
+  "assets/blender/scripts/stingray.py": "c91fc1660c5440e30bc70b80739fc54b96cabf7d9099eeb54a1930fcc309d48c",
+  "exports/blender-review/stingray-studio.png": "29cdb4dc79df8675706b0db54a1e93d8fad05615f225134b3e49bb89aec6a239",
+  "exports/blender-review/stingray-underside.png": "be9e72514bbe639c65baf0afbc50fbbf380db158d9255f9ae5a849f27655385e"
+}

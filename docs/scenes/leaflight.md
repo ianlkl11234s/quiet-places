@@ -1,5 +1,7 @@
 # 樹影午後：材質與光照基準
 
+> 現行程式入口：`src/places/leaflight/index.ts`；場景細節：`src/places/leaflight/index.ts`。跨場景共用元素見 [架構文件](../ARCHITECTURE.md)。下方歷史紀錄的舊路徑對應本次整理前版本。
+
 2026-09-07。使用者確認「目前蠻好的」的應用基準：`b6241fbbd96443625101bec10e11be80198427b0`，分支 `feat/blender-leaflight`。這是目前本地整體效果的確認，不是全部裝置／時段或完整 GI 的驗收。
 
 共同製作規則見 [材質與光照筆記](../MATERIALS_AND_LIGHTING.md)；詳細歷史見 [Blender 接手紀錄](../../.claude/memory/blender-production.md)。
@@ -64,3 +66,9 @@
 - 共用玻璃選單改為中性深灰、灰白文字與滑桿；backdrop 去飽和避免樹葉／天空染色，保留既有圓角和模糊。
 - 快捷與圖片匯出時段統一為晨曦 06:30、正午 12:00、暮色 17:30、月夜 23:00；取代原先正午／黃昏／暮光／月光組合。沿用 TimeOfDay 美術 keyframe，不重烘焙或變更光照參數；晨曦仍共用午後間接光基底。
 - 本地 build 通過，browser 四按鈕時間讀回正確、深灰面板視覺確認、console 無 error。
+
+## 2026-09-07：場景目錄與共用元素整理
+
+- 在 `codex/shared-scene-elements` 將場景程式集中到 `src/places/leaflight/`；保留本場景材質、光路、鏡頭與動態的既有參數。
+- 共用狀態由 `player/contracts.ts` 定義，水體數學／亂數／模型資源按實際需求引用 `shared/`；不把場景曝光、天空或光學近似共用化。
+- 整理分支尚未提交或發布；視覺驗收範圍見 [驗收記錄](../VALIDATION.md)。

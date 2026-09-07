@@ -1,18 +1,13 @@
+import type {SceneState} from '../../player/contracts.ts';
 import * as THREE from 'three';
 
 // Visual reference: achrefelouafi/OceanThreejs (MIT), da18e925.
 // Independent analytic approximation; source and boundaries: docs/scenes/oceanlight.md.
 
-export interface OceanSurfaceState {
-  intensity: number;
-  warmth: number;
-  angle: number;
-  activity: number;
-  lowQuality?: boolean;
-}
+export type OceanSurfaceState = SceneState;
 
-import {oceanWaveGLSL,oceanSunDirection} from './OceanOptics.ts';
-export {oceanWaveGLSL} from './OceanOptics.ts';
+import {oceanSunDirection} from './Sun.ts';
+import {oceanWaveGLSL} from '../../shared/water/Optics.ts';
 
 const oceanSkyGLSL = /* glsl */`
   vec3 skyColor(vec3 d) {

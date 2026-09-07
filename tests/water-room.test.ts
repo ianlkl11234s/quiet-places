@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {WATER_ROOM,waterOrbitLimits,waterCameraClearance} from '../src/world/WaterRoom.js';
+import {WATER_ROOM,waterOrbitLimits,waterCameraClearance} from '../src/places/waterlight/Room.ts';
 const home=new THREE.Vector3(2.6,2.3,9.5),target=new THREE.Vector3(0,3.4,-.2);
 const radius=Math.hypot(home.x-target.x,home.z-target.z);
 function assert(ok:boolean,message:string){if(!ok)throw new Error(message);}

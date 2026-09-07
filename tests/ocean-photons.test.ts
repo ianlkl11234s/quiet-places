@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import {createOceanPhotonMap,traceOceanPhoton} from '../src/world/OceanPhotonMap.ts';
-import {refractRay} from '../src/world/OceanOptics.ts';
+import {createOceanPhotonMap,traceOceanPhoton} from '../src/places/oceanlight/PhotonMap.ts';
+import {refractRay} from '../src/shared/water/Optics.ts';
 function assert(ok:boolean,message:string){if(!ok)throw new Error(message);}
 
 // Flat water makes the pane path reproducible: low-angle light can leave the vertical pane and reaches the floor.

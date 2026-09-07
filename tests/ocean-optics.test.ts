@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
-import {sampleOceanWave,refractRay,oceanSunDirection} from '../src/world/OceanOptics.ts';
+import {oceanSunDirection} from '../src/places/oceanlight/Sun.ts';
+import {sampleOceanWave, refractRay} from '../src/shared/water/Optics.ts';
 
 test('wave slope equals finite-difference derivative of the rendered height',()=>{
  for(const t of [0,2.5,18])for(const x of [-3,0,4]){

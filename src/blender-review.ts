@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {prepareLeaflight} from './world/LeaflightPlace';
-import type {PlaceInstance} from './places/catalog';
-import {sampleTime} from './systems/TimeOfDay';
+import {prepareLeaflight} from './places/leaflight/index.ts';
+import type {PlaceInstance} from './player/contracts.ts';
+import {sampleTime} from './systems/TimeOfDay.ts';
 
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const wrap=document.querySelector<HTMLElement>('.canvas-wrap')!;

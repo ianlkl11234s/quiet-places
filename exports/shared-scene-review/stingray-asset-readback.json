@@ -1,0 +1,37 @@
+{
+  "sha256": "e5909d095f4c09971b35e917e7c8b16e3a3468405b798373da8837d24bc89061",
+  "bytes": 1859344,
+  "animations": [
+    "SRAY_ACT_CRUISE",
+    "SRAY_ACT_IDLE_HOVER",
+    "SRAY_ACT_RISE",
+    "SRAY_ACT_RISE_AND_SETTLE",
+    "SRAY_ACT_SETTLE",
+    "SRAY_ACT_SLOW_CRUISE",
+    "SRAY_ACT_TURN_LEFT",
+    "SRAY_ACT_TURN_RIGHT"
+  ],
+  "skins": 1,
+  "joint_counts": [
+    72
+  ],
+  "meshes": 23,
+  "color_meshes": [
+    "SRAY_SectionQuadDisc"
+  ],
+  "triangles": 11126,
+  "root": [
+    {
+      "children": [
+        95
+      ],
+      "name": "SRAY_ROOT__Three_Z_Forward",
+      "rotation": [
+        0,
+        -1,
+        0,
+        4.371138828673793e-08
+      ]
+    }
+  ]
+}

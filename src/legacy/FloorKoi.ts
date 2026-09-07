@@ -1,11 +1,10 @@
+// Historical procedural study, retained for reference and regression tests.
+// Live Leaflight uses its Blender model in places/leaflight/Koi.ts.
+import type {LightingState} from '../player/contracts.ts';
+import {seededRandom} from '../shared/math/seededRandom.ts';
 import * as THREE from 'three';
 
-export type FloorKoiState = {
-  intensity: number;
-  warmth: number;
-  angle: number;
-  activity: number;
-};
+export type FloorKoiState = LightingState;
 
 export type FloorKoi = {
   update: (dt: number, elapsed: number, state: FloorKoiState) => void;
@@ -31,13 +30,7 @@ const MIN_Z = -3;
 const MAX_Z = 3;
 const FORWARD = new THREE.Vector3(1, 0, 0);
 
-function seededRandom(seed: number): () => number {
-  let value = seed >>> 0;
-  return () => {
-    value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
-    return value / 4294967296;
-  };
-}
+
 
 function triangle(points: readonly number[]): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();
