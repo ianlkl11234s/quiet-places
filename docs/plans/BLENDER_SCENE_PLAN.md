@@ -1,6 +1,7 @@
 # Blender 場景製作與網頁移植計畫
 
-日期：2026-09-07。狀態：**規劃完成，待使用者確認後實作**。
+日期：2026-09-07。狀態：**使用者已確認並開始實作；P1／早期 P2 草稿中，尚未美術驗收**。
+實作進度與下一步見 [Blender 製作接手點](../../.claude/memory/blender-production.md)。下文保留原始規劃範圍與階段門檻。
 規劃分支：`plan/blender-scene-pipeline`，起點 `3416f7c`。
 
 後續環境更新：使用者追加授權官方 MCP 安裝並同意 Blender Online Access。2026-09-07 重開 Codex 後，原生 MCP 工具已載入，直接讀回場景物件與 datablock 摘要皆通過。詳見 [BLENDER_MCP_SETUP.md](BLENDER_MCP_SETUP.md)。以下原探測狀態保留為規劃時點；GPU 渲染尚未驗證，正式場景實作仍待確認。

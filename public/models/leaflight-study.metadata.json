@@ -1,0 +1,32 @@
+{
+  "artifactPhase": "geometry-only",
+  "cameraTargetThree": [
+    1.0,
+    3.700000047683716,
+    -2.799999952316284
+  ],
+  "sun": {
+    "directionBlender": [
+      -1.0,
+      0.45,
+      -0.85
+    ],
+    "directionThree": [
+      -1.0,
+      -0.85,
+      -0.45
+    ],
+    "intensity": 20.0,
+    "colorLinear": [
+      1.0,
+      0.75,
+      0.45
+    ]
+  },
+  "exposureEV": 0.8,
+  "limitations": [
+    "Procedural stone is not converted.",
+    "Translucent leaf shading is not converted.",
+    "This artifact is for geometry and shadow comparison, not complete PBR acceptance."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "stage": "P1 structure and early P2 study; visual acceptance pending",
+  "source": "Self-authored Blender geometry and procedural materials; no reference image embedded",
+  "files": [
+    {
+      "path": "assets/blender/leaflight-study.blend",
+      "bytes": 790673,
+      "sha256": "65af09607857c22ddb9efb34ba593c813b4c6f31a774863083f2a3ee0b40bfbd"
+    },
+    {
+      "path": "public/models/leaflight-study.glb",
+      "bytes": 3886836,
+      "sha256": "d7263f433de89d00fb0b66634e69688b5c889586a42a4d68d867cad5ff04ba8f"
+    },
+    {
+      "path": "exports/blender-review/leaflight-afternoon.png",
+      "bytes": 507462,
+      "sha256": "bcb9ca6c25e8576ff4da3293c619aaf81b69d4c4c0dbfc1059b680da40ac182e"
+    }
+  ]
+}
