@@ -82,7 +82,7 @@ export async function prepareLeaflight(){
     const lighting=createLeaflightLighting(scene);
     lighting.fill.intensity=0; // Baked exterior bounce supplies the room's indirect light.
     const motion=installLeaflightMotion(root);
-    const fish=prepareFish(scene);
+    const fish=prepareFish(scene,lighting.sun);
     const originalShadow=renderer.shadowMap.enabled;
     const originalShadowType=renderer.shadowMap.type;
     renderer.shadowMap.enabled=true;

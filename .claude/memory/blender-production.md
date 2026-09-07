@@ -63,3 +63,7 @@ GUI 原場景有多個保留的 study iteration；不要刪除未確認的使用
 驗收：主 app 無 browser error/warning；目視暗處與日照中的魚亮度不同，日照魚有地面投影。Node 實際載入 GLB／runtime，每 4 秒採樣至 88 秒：mesh 頂點皆在房間內、最低離地 .083m、最高 .502m、魚中心距離 >1.2m；相同 elapsed 還原相同位置，dispose 重複呼叫不重複釋放，7 geometries 釋放。build/diff check 通過。
 
 限制：第一版低多邊形錦鯉，美術可再細化鱗片、透光魚鰭與游姿；未做水體流體／碰撞求解。原 room volume 仍為近似，沒有動態魚身 depth texture 截斷。不是完整物理離線渲染。未 push／發布。
+
+### 錦鯉暗部立體光照
+
+移除均勻藍灰補光，改為 world-space 法線對窗洞方向的 cosine、窗洞面積／距離平方衰減。腹部以附近地板的一點 shadow-map 日照取樣近似反射光，保留非常弱的基底。morph 後座標用於補光，主日光／投影不變。這是有限開口與單點地板反射近似，沒有宣稱完整 GI。browser 日照圖可見暗處魚身有明暗梯度、亮區投影保留；無 console errors。build/diff check 通過；測試前 23:00 已恢復，本次測試分頁已關閉。

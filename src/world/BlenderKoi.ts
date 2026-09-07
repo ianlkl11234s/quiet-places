@@ -8,7 +8,7 @@ export type BlenderKoi = {
   dispose: () => void;
 };
 
-export type BlenderKoiFactory = ((scene: THREE.Scene) => BlenderKoi) & {dispose: () => void};
+export type BlenderKoiFactory = ((scene: THREE.Scene, sun: THREE.DirectionalLight) => BlenderKoi) & {dispose: () => void};
 
 type Route = {
   centerX: number;
@@ -65,33 +65,55 @@ function isOpaque(material: THREE.Material) {
   return !material.transparent && material.opacity >= .999;
 }
 
-function installDiffuseFill(material: THREE.Material, daylight: {value: number}) {
+function installDiffuseFill(material: THREE.Material, daylight: {value: number}, sun: THREE.DirectionalLight) {
   if (!(material instanceof THREE.MeshStandardMaterial || material instanceof THREE.MeshPhysicalMaterial)) return;
   const previous = material.onBeforeCompile;
   const cacheKey = material.customProgramCacheKey;
   material.onBeforeCompile = (shader, renderer) => {
     previous(shader, renderer);
     shader.uniforms.uKoiDiffuseFill = daylight;
+    shader.uniforms.uKoiSunMatrix = {value: sun.shadow.matrix};
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vKoiWorld;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvKoiWorld=(modelMatrix*vec4(transformed,1.0)).xyz;');
     shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uKoiDiffuseFill;')
+      .replace('#include <common>', '#include <common>\nuniform float uKoiDiffuseFill;\nuniform mat4 uKoiSunMatrix;\nvarying vec3 vKoiWorld;')
       // This adds reflected diffuse radiance after Three has accumulated the
       // ordinary lights. It is intentionally not emissive, so koi still read
       // as shaded bodies and retain the room's direct-light contrast.
       .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.38, .48, .52) * uKoiDiffuseFill;`);
+// Finite opening: angular size falls with distance, and the body normal
+// determines which side sees the cool outdoor sky.
+vec3 koiNormal = inverseTransformDirection(normal, viewMatrix);
+vec3 toWindow = vec3(4.0, 6.05, 0.0) - vKoiWorld;
+float skySolidAngle = min(.8, 18.56 / max(dot(toWindow,toWindow), 1.0));
+float skyFacing = max(dot(koiNormal, normalize(toWindow)), 0.0);
+vec3 skyBounce = vec3(.42,.56,.72) * skySolidAngle * skyFacing * 1.5;
+// One nearby floor sample estimates reflected sunlight. It uses the same
+// live shadow map as the room, so a dark floor does not glow under the belly.
+float floorSun = 0.0;
+#if defined(USE_SHADOWMAP) && NUM_DIR_LIGHT_SHADOWS > 0
+  DirectionalLightShadow koiShadow = directionalLightShadows[0];
+  vec3 floorPoint = vec3(vKoiWorld.x+.35, .015, vKoiWorld.z);
+  vec4 floorCoord = uKoiSunMatrix * vec4(floorPoint, 1.0);
+  floorSun = getShadow(directionalShadowMap[0], koiShadow.shadowMapSize,
+    koiShadow.shadowIntensity, koiShadow.shadowBias, koiShadow.shadowRadius, floorCoord);
+#endif
+float floorFacing = max(-koiNormal.y, 0.0);
+vec3 floorBounce = vec3(.60,.48,.32) * (.035 + .36*floorSun) * floorFacing;
+reflectedLight.indirectDiffuse += diffuseColor.rgb * (skyBounce + floorBounce + vec3(.012)) * uKoiDiffuseFill;`);
   };
-  material.customProgramCacheKey = () => `${cacheKey.call(material)}|stillwater-koi-diffuse-fill-v1`;
+  material.customProgramCacheKey = () => `${cacheKey.call(material)}|stillwater-koi-directional-bounce-v2`;
   material.needsUpdate = true;
 }
 
-function cloneMaterialsAndConfigure(root: THREE.Object3D, daylight: {value: number}, ownedMaterials: Set<THREE.Material>) {
+function cloneMaterialsAndConfigure(root: THREE.Object3D, daylight: {value: number}, ownedMaterials: Set<THREE.Material>, sun: THREE.DirectionalLight) {
   root.traverse(object => {
     if (!(object instanceof THREE.Mesh)) return;
     const source = Array.isArray(object.material) ? object.material : [object.material];
     const materials = source.map(material => {
       const instance = material.clone();
       ownedMaterials.add(instance);
-      if (isOpaque(instance)) installDiffuseFill(instance, daylight);
+      if (isOpaque(instance)) installDiffuseFill(instance, daylight, sun);
       return instance;
     });
     object.material = Array.isArray(object.material) ? materials : materials[0];
@@ -125,7 +147,7 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
   const sourceCenter = sourceBounds.getCenter(new THREE.Vector3());
 
   let consumed = false;
-  const factory = (scene: THREE.Scene): BlenderKoi => {
+  const factory = (scene: THREE.Scene, sun: THREE.DirectionalLight): BlenderKoi => {
     if (consumed) throw new Error('錦鯉工廠只能建立一個場景實例。');
     consumed = true;
     const root = new THREE.Group();
@@ -145,7 +167,7 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
       // The GLB's origin is not assumed to be its body centre. This keeps the
       // actual body centre at the requested .24-.32 m swim height.
       koi.position.copy(sourceCenter).multiplyScalar(-scale);
-      cloneMaterialsAndConfigure(koi, daylight, ownedMaterials);
+      cloneMaterialsAndConfigure(koi, daylight, ownedMaterials, sun);
       carrier.add(koi);
       root.add(carrier);
       const mixer = new THREE.AnimationMixer(koi);
