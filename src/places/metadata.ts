@@ -6,8 +6,8 @@ export const places = [
 ] as const;
 export const isPlaceId=(value:unknown):value is PlaceId=>places.some(place=>place.id===value);
 export const moments=[
+  {id:'dawn',name:'晨曦',hour:6.5},
   {id:'noon',name:'正午',hour:12},
-  {id:'sunset',name:'黃昏',hour:17.5},
-  {id:'twilight',name:'暮光',hour:19},
-  {id:'moonlight',name:'月光',hour:23},
+  {id:'sunset',name:'暮色',hour:17.5},
+  {id:'moonlight',name:'月夜',hour:23},
 ] as const;
