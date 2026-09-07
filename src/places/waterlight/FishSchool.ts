@@ -85,7 +85,7 @@ export async function prepareLongFinKoiSchool(): Promise<FishSchoolFactory> {
       update(dt, _elapsed, state) {
         if (disposed) return; motion.update(dt, {angle: state.angle, activity: state.activity});
         motion.poses().forEach((pose, index) => {
-          const item = fish[index], name = ACTION[pose.behavior]; item.carrier.position.copy(pose.position); item.carrier.quaternion.copy(pose.quaternion);
+          const item = fish[index], name = pose.burst > .15 ? 'SLOW_CRUISE' : ACTION[pose.behavior]; item.carrier.position.copy(pose.position); item.carrier.quaternion.copy(pose.quaternion);
           const blend = 1 - Math.exp(-(Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, .25) : 0) / 1.5);
           item.actions.forEach((action, key) => {
             const weight = THREE.MathUtils.lerp(item.weights.get(key) ?? 0, key === name ? 1 : 0, blend); item.weights.set(key, weight); action.setEffectiveWeight(weight);

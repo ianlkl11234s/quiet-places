@@ -154,7 +154,9 @@ const volumeVertex = /* glsl */ `
 `;
 const volumeFragment = /* glsl */ `
   uniform float uTime; uniform float uStrength; uniform float uWarmth; uniform float uAngle;
-  uniform sampler2D uWaves; uniform float uUseSimulation; uniform float uLowQuality;
+  uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation; uniform float uLowQuality;
+  ${oceanWaveGLSL}
+  ${disturbedSurfaceSlopeGLSL}
   varying vec3 vWorld;
   float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
@@ -179,21 +181,31 @@ const volumeFragment = /* glsl */ `
       float jitter=hash(gl_FragCoord.xy);
       vec3 p=ro+rd*(begin+(float(i)+jitter)*stepSize);
       vec2 roof=p.xz-sun.xz/sun.y*(p.y-7.);
-      float aperture=1.-smoothstep(1.58,1.82,max(abs(roof.x),abs(roof.y+.2)));
-      // Fine, moving striations are evaluated at the roof interception,
-      // preserving the incoming-light direction without making a solid cone.
-      float wav=noise2(roof*1.8+vec2(uTime*.035,-uTime*.023));
-      vec2 waveUV=clamp(vec2(roof.x/3.6+.5,.5-(roof.y+.2)/3.6),0.,1.);
-      float surface=uUseSimulation>.5?texture2D(uWaves,waveUV).r:0.;
-      float bands=.5+.5*sin(roof.x*11.+wav*3.+uTime*.16+surface*90.);
-      float shaft=smoothstep(.56,.88,bands)*(.42+.58*noise2(roof*4.-uTime*.03));
-      float falloff=exp(-length(roof-vec2(0.,-.2))*.34)*(1.-smoothstep(6.55,7.,p.y));
-      sum+=aperture*(.08+shaft*.8)*falloff;
+      // One bounded inverse projection from the shared surface normal. This
+      // couples shafts to the visible waves without claiming a caustic solve.
+      float depth=7.-p.y;
+      vec2 slope=surfaceSlope(roof);
+      vec3 waterRay=refract(sun,normalize(vec3(-slope.x,1.,-slope.y)),1./1.333);
+      vec3 roomRay=refract(waterRay,vec3(0.,1.,0.),1.333);
+      if(length(waterRay)<.01 || length(roomRay)<.01)continue;
+      vec2 shift=(roomRay.xz/max(-roomRay.y,.15)-sun.xz/(-sun.y))*depth*.45;
+      shift*=min(1.,.48/max(length(shift),.001));
+      vec2 footprint=roof-shift;
+      float softness=mix(.20,.52,clamp(depth/7.,0.,1.));
+      float aperture=1.-smoothstep(1.80-softness,1.80+softness,max(abs(footprint.x),abs(footprint.y+.2)));
+      // Broad irregular patches replace periodic hard-edged light curtains.
+      // The wave-driven footprint moves both their density and soft boundary.
+      float broad=noise2(footprint*1.65+slope*.8);
+      float detail=noise2(footprint*3.1+vec2(4.7,1.3));
+      float field=broad*.78+detail*.22;
+      float shaft=smoothstep(.18,.86,field);
+      float falloff=exp(-length(footprint-vec2(0.,-.2))*.30)*(1.-smoothstep(6.55,7.,p.y));
+      sum+=aperture*(.14+shaft*.55)*falloff;
     }
     float opticalDepth=sum*stepSize*.18*uStrength;
     vec3 tint=mix(vec3(.51,.72,.79),vec3(1.,.84,.61),uWarmth);
     // AdditiveBlending uses source alpha. Keep colour energy independent from
-    // the accumulated alpha so the intentionally thin shafts remain visible.
+    // the accumulated alpha so the soft light field retains its colour.
     gl_FragColor=vec4(tint*.78, min(1.-exp(-opticalDepth),.52));
   }
 `;
