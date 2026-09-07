@@ -1,5 +1,7 @@
 # Window Scenes／窗景場景實作紀錄
 
+> 版本提醒：本文光源與七尾 FloorKoi 描述是早期程序窗景紀錄，仍可參考 Oceanlight；目前 Blender Leaflight 以 [場景材質筆記](scenes/leaflight.md) 為準。
+
 Leaflight（樹影午後）與 Oceanlight（海光之室）是目前可在場景選單切換的兩個窗景。它們以 `src/places/metadata.ts` 的四個固定輸出時刻為準：正午 12:00、黃昏 17:30、暮光 19:00、月光 23:00。
 
 ## 共享 runtime 與生命週期

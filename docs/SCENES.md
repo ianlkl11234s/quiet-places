@@ -14,7 +14,7 @@ Stillwater 將從單一作品發展為可選的安靜場景集合。每個場景
 | Snow／雪落無聲 | **後續候選** | 被雪聲與遠景包圍的低對比停留處。 |
 | Tide／潮汐之室 | **後續候選** | 潮水往返的房間，節奏比事件更重要。 |
 
-Waterlight 與其 Rainfall 天候變體可操作並具有本機驗收紀錄；其餘是設計方向，不代表畫面、資源、互動或效能已完成。共用 runtime 與場景切換原則見 [ARCHITECTURE.md](./ARCHITECTURE.md)，集合產品流程與交付階段見 [PROJECT_SPEC.md](../PROJECT_SPEC.md)。
+Waterlight 與其 Rainfall 天候變體可操作並具有本機驗收紀錄；樹影午後已有本地確認基準，海光已有程序版本；其餘候選仍是設計方向。共用 runtime 與場景切換原則見 [ARCHITECTURE.md](./ARCHITECTURE.md)，集合產品流程與交付階段見 [PROJECT_SPEC.md](../PROJECT_SPEC.md)。
 
 ## Waterlight／水光之間（目前已實作）
 
@@ -39,13 +39,9 @@ Waterlight 與其 Rainfall 天候變體可操作並具有本機驗收紀錄；�
 - **允許的最小控制：** 暫停／reduced-motion、可選音訊、全螢幕；時間或雨勢控制僅在能保持安靜且不造成內容爆炸時加入。
 - **視覺驗收：** 窗面、雨線與遠景有清楚層次；動態不呈規律 loop；關閉音訊後仍能感到雨將停未停的時間感。
 
-## Leaflight／樹影午後（目前已實作）
+## Leaflight／樹影午後（Blender 版本已接入）
 
-- **感官焦點與構圖：** 窗框外的枝葉與室內地面、左牆的葉影；其餘材質保留大面積留白。
-- **動態：** 固定 seed 的 420 片 instanced leaves 個別擺動，投影與空氣光依時刻更新。它是藝術性的程序式近似，並非實景樹木或物理光線追蹤。
-- **光與鏡頭：** 窗口 RectAreaLight 加 HemisphereLight 的間接填光，受限單一 pivot 左右各 15°。沒有室內燈具。
-- **控制與時刻：** 正午 12:00、黃昏 17:30、暮光 19:00、月光 23:00；暫停／reduced-motion 令移動 dt 為零，仍可重畫光與鏡頭。
-- **視覺驗收：** 葉影是否讀作受風與日照共同造成、是否可安靜停留 30 秒，仍是人工美術驗收，尚未宣稱參考圖完全一致、手機或正式環境完成驗收。
+目前版本為 Blender 房間與樹、烘焙間接光、即時日照與風影，以及三尾近地面錦鯉。材質、光路、基準 commit 與限制見 [leaflight.md](scenes/leaflight.md)。舊版程序樹與 RectAreaLight 說明不適用於此版本。
 
 ## Oceanlight／海光之室（目前已實作）
 
@@ -77,3 +73,5 @@ Waterlight 與其 Rainfall 天候變體可操作並具有本機驗收紀錄；�
 5. 資源採用前記錄來源、使用條件與授權；目前尚未取得的視覺或音訊資產不可預先宣稱可用。
 6. 保留鍵盤可達控制、可讀標籤、焦點順序、音訊預設關閉與可見 reduced-motion 狀態；以實際裝置檢查易讀性。
 7. 驗收分開記錄 build、runtime、瀏覽器／實機與主觀視覺評估，避免以其中一項代替全部證據。
+
+材質、光影與樹種變體的持續製作紀錄，依 [MATERIALS_AND_LIGHTING.md](MATERIALS_AND_LIGHTING.md) 更新各場景筆記。
