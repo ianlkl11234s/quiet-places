@@ -1,0 +1,49 @@
+{
+  "before": {
+    "viewport": [
+      766,
+      912
+    ],
+    "dpr": 1,
+    "fps": 26.999820001157076,
+    "frameMs": {
+      "p50": 33.4,
+      "p95": 50,
+      "max": 95.8
+    },
+    "composerCpuMs": {
+      "p50": 1.3,
+      "p95": 2.3
+    },
+    "textures": 135,
+    "drawCalls": 157,
+    "triangles": 309266
+  },
+  "after": {
+    "viewport": [
+      765,
+      912
+    ],
+    "dpr": 0.9,
+    "fps": 29.46745246535224,
+    "frameMs": {
+      "p50": 33.3,
+      "p95": 35.3,
+      "max": 146.9
+    },
+    "composerCpuMs": {
+      "p50": 1.2,
+      "p95": 3.5
+    },
+    "textures": 39,
+    "drawCalls": 157,
+    "triangles": 309266
+  },
+  "method": "Real app/composer in Codex browser, standard setting, 5s warmup +15s; viewport/DPR differed, not controlled A/B. CPU submission is not GPU timing.",
+  "productionPreview": {
+    "url": "http://127.0.0.1:5183/?place=waterlight",
+    "consoleErrors": [],
+    "visualLoaded": true,
+    "whiteFlashRootCause": "Unconfirmed. Inline dark canvas background addresses CSS loading gap; production preview excludes Vite HMR."
+  }
+}

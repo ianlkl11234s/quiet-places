@@ -166,3 +166,5 @@ build通過（exports/long-fin-koi-integration/build-soft-light.log）；CUA實�
 骨架實例檢查發現SkeletonUtils按mesh複製骨架，現在同魚且骨頭／inverse binds完全一致的部件共用一個palette，魚與魚仍獨立；測試assert16個skeleton。幀率節流保留排程相位，避免晚一點的RAF把每幀時程持續向後拖；動畫dt仍使用實際呈現時間。
 
 新增tests/waterlight-performance.html，載入真實main與composer，5秒暖機＋15秒量測；CPU值是composer提交時間，不是GPU計時。初次766×912 DPR1標準模式約27.00fps、幀時間p95=50ms／max95.8ms、texture135；修改後765×912 DPR0.9約29.47fps、p95=35.3ms／max146.9ms、texture39。視窗與DPR不同，並非嚴格同條件benchmark，最大延遲仍表示偶發卡頓，不能宣稱無效能問題或代表實機手機表現。測試26項、build通過；完整PR驗收將在整合main後補記。
+
+PR整合驗收：已合併origin/main的房間導覽與字體更新，保留其介面。整合後26項測試與build通過；5183為正式build的本機預覽（無Vite HMR），實際載入畫面正常、console error為空，尚未重現使用者描述的全頁閃白。量測摘要存於exports/long-fin-koi-integration/performance-pr.json；偶發長幀及實機GPU限制仍保留，不將本機預覽稱為正式部署。
