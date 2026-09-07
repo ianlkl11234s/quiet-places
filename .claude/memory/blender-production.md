@@ -31,3 +31,15 @@
 GUI 原場景有多個保留的 study iteration；不要刪除未確認的使用者場景。新的 `.blend` 只包含當前 study 的依賴與正常啟動所需資料。
 
 對照頁：`npm run dev -- --port 5189 --strictPort` → `/blender-review.html`。原5188程序本輪中已不在監聽；沒有重啟或殺掉其他服務。本輪專用5189與測試分頁驗證後關閉。沒有排程／整夜渲染。
+
+## 2026-09-07 動態滿版接入
+
+使用者接受目前建模方向，授權先處理動態光影與網站，並指定像水景一樣滿版。此節取代上方「尚未接入」狀態；美術仍待使用者確認。
+
+- 主應用 `/?place=leaflight` 已使用 Blender GLB，可在原場景選單往返水光之間。保留原浮動設定、音樂、時刻、光束、暫停與畫質控制。對照頁僅技術用途。
+- RoomSurface 烘焙 albedo／normal／roughness，以及 512²、128 samples 的 diffuse indirect，經獨立 compositor 降噪；Metal-only、threads=2。`leaflight-web.blend` 與原 study 分開保存。raw EXR 放忽略的 cache，不發到網站。
+- GPU 枝葉位移與 depth/distance shadow pass 同步；即時太陽陰影、室內窗洞限定光束、程序天空。瀏覽器使用 EXR 的垂直 UV 修正，間接光強度校準為 PI（資產 metadata 的 .65 是初始建議，runtime 為準）。
+- 實際 browser 驗證主 app 樹影→水景→樹影、光束設定、午後時刻、暫停控制。Canvas 實測 765×912 與 viewport 相同，位於 (0,0)，沒有技術側欄。
+- 限制：四時段共用午後間接光基底；葉片透光／軟陰影與參考圖仍有差距。尚未加入魚或新海景模型。不能宣稱已達參考圖寫實品質。
+- `npm run build` 通過，保留既有 bundle-size warning。烘焙程序完成退出；主 app 限制 30/24 fps，暫停與背景停止持續動畫。非長時間效能 benchmark。
+- 本地預覽使用 5188；本次未 push／部署。`docs/DEPLOYMENT.md` 屬另一工作來源，未纳入本次提交。

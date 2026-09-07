@@ -4,7 +4,7 @@ import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {preparePlace,places,moments,type PlaceId} from './places/catalog';
+import {preparePlace,places,moments,isPlaceId,type PlaceId} from './places/catalog';
 import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay';
 import {createAudioSystem} from './systems/AudioSystem';
 import {createMusicPlayer} from './systems/MusicPlayer';
@@ -22,8 +22,11 @@ async function start(){
  el('space').append(renderer.domElement);
  const scene=new THREE.Scene();scene.background=new THREE.Color('#080e11');
  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,700);
- let currentPlace:PlaceId=preferences.place;
+ const requestedPlace=new URLSearchParams(location.search).get('place');
+ let currentPlace:PlaceId=isPlaceId(requestedPlace)?requestedPlace:preferences.place;
  let place=(await preparePlace(currentPlace))(scene,renderer);
+ renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=place.exposure??1.1;
  camera.position.set(...place.position);
  const controls=new OrbitControls(camera,renderer.domElement);
  // Rotate around the skylight's vertical axis, keeping the room in the composition.
@@ -68,11 +71,14 @@ async function start(){
   el('water-reset').hidden=!isWater;
   el('water-mode').textContent=place.waterMode;
   el<HTMLButtonElement>('water-reset').disabled=!place.hasSimulation;
-  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，左右各 45°。':'拖曳環繞天窗，左右各 45°。'):'拖曳微調視角，左右各 15°。錦鯉貼近地面游動。';
+  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，左右各 45°。':'拖曳環繞天窗，左右各 45°。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':'拖曳微調視角，左右各 15°。錦鯉貼近地面游動。';
   renderer.domElement.setAttribute('aria-label',isWater?'拖曳環繞天窗，左右各45度；方向鍵旋轉，Home重設':'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設');
   weatherLabels();document.title=`${el('place-title').textContent} · Quiet Places`;el('space').setAttribute('aria-label',`${el('place-title').textContent}：即時生成的靜謐空間`);
  }
  function homeCamera(){
+  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=place.exposure??1.1;
+  camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();
   controls.enableDamping=false;controls.update();
   controls.minAzimuthAngle=-Infinity;controls.maxAzimuthAngle=Infinity;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
   camera.position.set(...place.position);controls.target.set(...place.target);controls.update();
@@ -84,7 +90,7 @@ async function start(){
   const token=++switchId;switching=true;
   if(!exporting){status.hidden=false;status.textContent='正在走進另一個空間。';}
   try{
-   const factory=await preparePlace(id);if(token!==switchId)return;
+   const factory=await preparePlace(id);if(token!==switchId){factory.dispose?.();return;}
    place.dispose();place=factory(scene,renderer);currentPlace=id;
    homeCamera();elapsed=0;state=sampleTime(hour);
    placeSelect.value=id;if(save){preferences.place=id;persist();}
@@ -141,7 +147,7 @@ async function start(){
  document.addEventListener('input',requestRender);
  document.addEventListener('click',requestRender);
  function resize(){
-  camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?64:53;camera.updateProjectionMatrix();
+  camera.aspect=innerWidth/innerHeight;camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();
   renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();
  }
@@ -178,7 +184,7 @@ async function start(){
    for(const id of ['leaflight','oceanlight'] as const){
     await switchPlace(id,false);
     renderer.setPixelRatio(1);renderer.setSize(1024,1536,false);composer.setPixelRatio(1);composer.setSize(1024,1536);
-    camera.aspect=1024/1536;camera.fov=58;camera.updateProjectionMatrix();
+    camera.aspect=1024/1536;camera.fov=place.fov??58;camera.updateProjectionMatrix();
     for(const moment of moments){
      if(document.hidden||lost)throw new Error('輸出已暫停，請保持頁面在前景後重試。');
      status.hidden=false;status.textContent=`輸出 ${++completed} / 8 · ${places.find(p=>p.id===id)!.name} · ${moment.name}`;
@@ -212,4 +218,4 @@ async function start(){
  window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
  updateLabels();wake();status.hidden=true;requestRender();
 }
-void start().catch(error=>{console.error(error);status.hidden=false;status.textContent='這個空間需要 WebGL 2。請開啟瀏覽器硬體加速後重新整理，或換用支援的瀏覽器。';});
+void start().catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';});

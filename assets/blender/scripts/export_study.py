@@ -1,9 +1,4 @@
-"""Export Leaflight_Study as a geometry-and-shadow GLB review artifact.
-
-This deliberately does not reproduce Blender's procedural stone or translucent
-leaf shading.  It copies evaluated geometry and a small Principled material
-subset only, so the web review can isolate composition, geometry and shadows.
-"""
+"""Export the baked Leaflight study without discarding RoomSurface PBR maps."""
 
 from __future__ import annotations
 
@@ -19,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SOURCE_SCENE = "Leaflight_Study"
 EXPORT_SCENE = "__STW_Leaflight_GLTF_Export__"
 EXCLUDED_NAMES = {"AirVolume", "originalScene"}
+ROOM_SURFACE = "RoomSurface"
 
 
 def canonical_name(name: str) -> str:
@@ -60,8 +56,20 @@ def simple_material(source: bpy.types.Material | None, created: list[bpy.types.M
     return material
 
 
+def baked_room_material(source: bpy.types.Material, created: list[bpy.types.Material]) -> bpy.types.Material:
+    """Copy the Principled image-node graph verbatim so glTF retains PBR maps."""
+    material = source.copy()
+    material.name = "RoomSurface_Baked_Export"
+    created.append(material)
+    return material
+
+
 def exportable(source: bpy.types.Object) -> bool:
-    return canonical_name(source.name) not in EXCLUDED_NAMES and source.type in {"MESH", "CURVE"}
+    if source.type not in {"MESH", "CURVE"} or canonical_name(source.name) in EXCLUDED_NAMES:
+        return False
+    if source.hide_render or source.hide_get():
+        return False
+    return True
 
 
 def copy_evaluated_object(
@@ -86,7 +94,11 @@ def copy_evaluated_object(
         if slot.material is None:
             continue
         if slot.material not in material_cache:
-            material_cache[slot.material] = simple_material(slot.material, created_materials)
+            material_cache[slot.material] = (
+                baked_room_material(slot.material, created_materials)
+                if canonical_name(source.name) == ROOM_SURFACE
+                else simple_material(slot.material, created_materials)
+            )
         material = material_cache[slot.material]
         if material is not None:
             mesh.materials.append(material)
@@ -162,8 +174,11 @@ def run() -> dict:
         export_scene.camera = copy_camera(source_camera, collection, created_cameras, created_objects)
         export_scene.render.resolution_x = source_scene.render.resolution_x
         export_scene.render.resolution_y = source_scene.render.resolution_y
-        export_scene["artifact_phase"] = "geometry-only"
-        export_scene["material_limitations"] = "Procedural stone and translucent shading are intentionally not converted."
+        export_scene["artifact_phase"] = "baked-room-pbr"
+        export_scene["lightmap_uri"] = "/textures/leaflight/room-indirect.exr"
+        export_scene["lightmap_uv"] = "UV0"
+        export_scene["lightmap_intensity"] = 0.65
+        export_scene["lightmap_contains_direct"] = False
 
         if bpy.context.window:
             bpy.context.window.scene = export_scene
@@ -191,7 +206,7 @@ def run() -> dict:
                            + struct.pack('<I4s', len(payload), b'JSON') + payload + binary)
         camera_target = tuple(source_scene.get("camera_target", (0.0, 0.0, 0.0)))
         metadata = {
-            "artifactPhase": "geometry-only",
+            "artifactPhase": "baked-room-pbr",
             "cameraTargetThree": three_vector(camera_target),
             "sun": {
                 "directionBlender": [-1.0, 0.45, -0.85],
@@ -200,11 +215,18 @@ def run() -> dict:
                 "colorLinear": [1.0, 0.75, 0.45],
             },
             "exposureEV": 0.8,
-            "limitations": [
-                "Procedural stone is not converted.",
-                "Translucent leaf shading is not converted.",
-                "This artifact is for geometry and shadow comparison, not complete PBR acceptance.",
-            ],
+            "roomSurface": {
+                "mesh": ROOM_SURFACE,
+                "uv": "UV0",
+                "albedo": "/textures/leaflight/room-albedo.png",
+                "normal": "/textures/leaflight/room-normal.png",
+                "roughness": "/textures/leaflight/room-roughness.png",
+                "indirect": "/textures/leaflight/room-indirect.exr",
+                "lightmapIntensity": 0.65,
+                "containsDirect": False,
+                "calibration": "Tune lightmapIntensity in the renderer; do not add a direct-light contribution.",
+            },
+            "limitations": ["Tree materials remain simplified for the review export."],
         }
         metadata_output.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
         return {"glb": str(output), "metadata": str(metadata_output), "objects": len(created_objects)}

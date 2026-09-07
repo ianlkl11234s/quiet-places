@@ -4,3 +4,4 @@ dist/
 __pycache__/
 *.blend1
 *.blend2
+assets/blender/cache/

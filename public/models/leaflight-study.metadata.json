@@ -1,5 +1,5 @@
 {
-  "artifactPhase": "geometry-only",
+  "artifactPhase": "baked-room-pbr",
   "cameraTargetThree": [
     1.0,
     3.700000047683716,
@@ -24,9 +24,18 @@
     ]
   },
   "exposureEV": 0.8,
+  "roomSurface": {
+    "mesh": "RoomSurface",
+    "uv": "UV0",
+    "albedo": "/textures/leaflight/room-albedo.png",
+    "normal": "/textures/leaflight/room-normal.png",
+    "roughness": "/textures/leaflight/room-roughness.png",
+    "indirect": "/textures/leaflight/room-indirect.exr",
+    "lightmapIntensity": 0.65,
+    "containsDirect": false,
+    "calibration": "Tune lightmapIntensity in the renderer; do not add a direct-light contribution."
+  },
   "limitations": [
-    "Procedural stone is not converted.",
-    "Translucent leaf shading is not converted.",
-    "This artifact is for geometry and shadow comparison, not complete PBR acceptance."
+    "Tree materials remain simplified for the review export."
   ]
 }
