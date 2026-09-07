@@ -1,10 +1,14 @@
 import type {PlaceFactory} from '../../player/contracts.ts';
 import {createEnvironment} from './Environment.ts';
-import {createFishSchool} from './FishSchool.ts';
+import {prepareLongFinKoiSchool} from './FishSchool.ts';
 
-export function prepareWaterlight():PlaceFactory {
-  return (scene,renderer)=>{
-    const env=createEnvironment(scene,renderer),fish=createFishSchool(scene);
+export async function prepareWaterlight():Promise<PlaceFactory> {
+  const prepareFish=await prepareLongFinKoiSchool();
+  const factory:PlaceFactory=(scene,renderer)=>{
+    const env=createEnvironment(scene,renderer);
+    let fish:ReturnType<typeof prepareFish>;
+    try{fish=prepareFish(scene);}
+    catch(error){env.dispose();prepareFish.dispose();throw error;}
     return {
       position:[2.6,2.3,9.5],target:[0,3.4,-.2],yawRange:Math.PI/4,
       get hasSimulation(){return env.hasSimulation;},
@@ -14,4 +18,6 @@ export function prepareWaterlight():PlaceFactory {
       dispose(){fish.dispose();env.dispose();},
     };
   };
+  factory.dispose=prepareFish.dispose;
+  return factory;
 }

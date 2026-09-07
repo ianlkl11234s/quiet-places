@@ -1,0 +1,13 @@
+(node:53545) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"longFinMotion":{"minimumSpacing":0.5631024035317505,"maximumSpeed":0.12218465664086607,"maximumBeamRadius":0.9430917442584358,"seconds":1200}}
+✔ sixteen long-fin koi use deterministic fixed-step loose-shoal steering for a long run (2014.7625ms)
+✔ fixed steps, pause and reduced-motion preserve the controller contract (81.303542ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2297.452875
