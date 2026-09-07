@@ -40,6 +40,7 @@ export async function prepareLeaflight(){
   const forward=hero.getWorldDirection(new THREE.Vector3());
   const target=position.clone().addScaledVector(forward,8.2);
   const fov=hero.fov;
+  const skyDaylight={value:1};
   const roomMaterials=new Set<THREE.MeshStandardMaterial>();
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh))return;
@@ -47,6 +48,21 @@ export async function prepareLeaflight(){
     if(object.name==='RoomSurface'){
       const materials=Array.isArray(object.material)?object.material:[object.material];
       for(const material of materials)if(material instanceof THREE.MeshStandardMaterial){
+        material.onBeforeCompile=shader=>{
+          shader.uniforms.uWindowDaylight=skyDaylight;
+          shader.vertexShader=shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWindowWorld;')
+            .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWindowWorld=(modelMatrix*vec4(transformed,1.0)).xyz;');
+          shader.fragmentShader=shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWindowWorld;\nuniform float uWindowDaylight;')
+            .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+              // Local aperture bounce approximation, restricted to nearby stone.
+              // No global ambient lift: remote walls/floor keep their baked darkness.
+              vec3 aperture=vec3(4.0,clamp(vWindowWorld.y,4.6,7.5),clamp(vWindowWorld.z,-3.2,3.2));
+              float distanceToOpening=length(aperture-vWindowWorld);
+              float windowFill=exp(-distanceToOpening*1.8)*.09*uWindowDaylight;
+              reflectedLight.indirectDiffuse+=diffuseColor.rgb*vec3(.48,.61,.73)*windowFill;
+            `);
+        };
+        material.customProgramCacheKey=()=> 'leaflight-window-skylight-v1';
         material.lightMap=indirect;
         // Cycles diffuse-indirect excludes albedo; Three applies Lambert / PI.
         material.lightMapIntensity=Math.PI;
@@ -71,7 +87,8 @@ export async function prepareLeaflight(){
       yawRange:Math.PI/12,fov,exposure:2**.8,toneMapping:THREE.AgXToneMapping,
       hasSimulation:false,waterMode:'',
       update(_dt,elapsed,state){
-        motion.update(elapsed,.85);
+        skyDaylight.value=THREE.MathUtils.clamp(state.intensity/.9,.03,1);
+        motion.update(elapsed,.85,skyDaylight.value);
         lighting.update(elapsed,state.beamStrength??1,state.intensity/.9,state.warmth,state.angle);
         // One afternoon indirect basis, gently scaled for other moments. Direct
         // leaf shadows remain live; per-moment rebakes are a later fidelity pass.

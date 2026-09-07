@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export interface LeaflightMotion {
   /** `time` is deliberately supplied by the caller: pausing its clock freezes the tree. */
-  update(time: number, strength?: number): void;
+  update(time: number, strength?: number, daylight?: number): void;
   dispose(): void;
 }
 
@@ -42,6 +42,7 @@ vec3 leaflightWind(vec3 worldPosition) {
 
 interface ShaderUniforms {
   uLeaflightTime: THREE.IUniform<number>;
+  uLeaflightDaylight: THREE.IUniform<number>;
   uLeaflightStrength: THREE.IUniform<number>;
   uLeaflightRootY: THREE.IUniform<number>;
   uLeaflightHeight: THREE.IUniform<number>;
@@ -49,11 +50,24 @@ interface ShaderUniforms {
   uLeaflightWorldToLocal: THREE.IUniform<THREE.Matrix4>;
 }
 
-function injectWind(material: THREE.Material, uniforms: ShaderUniforms): void {
+function injectWind(material: THREE.Material, uniforms: ShaderUniforms, atmosphere = false): void {
   const previous = material.onBeforeCompile;
   material.onBeforeCompile = (shader, renderer) => {
     previous?.(shader, renderer);
     Object.assign(shader.uniforms, uniforms);
+    if (atmosphere) {
+      // Only exterior tree materials receive skylight and short-distance aerial
+      // perspective. Opaque geometry and its shadow remain intact.
+      shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
+        uniform float uLeaflightDaylight;
+      `).replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.36, .44, .50) * .32 * uLeaflightDaylight;
+      `).replace('#include <opaque_fragment>', `
+        float aerial = (1.0 - exp(-length(vViewPosition) * .008)) * uLeaflightDaylight;
+        outgoingLight = mix(outgoingLight, vec3(.32, .39, .43), aerial);
+        #include <opaque_fragment>
+      `);
+    }
     shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>
       ${windVertex}
     `).replace('#include <begin_vertex>', `
@@ -97,13 +111,13 @@ export function installLeaflightMotion(root: THREE.Object3D): LeaflightMotion {
     const originals = Array.isArray(originalMaterial) ? originalMaterial : [originalMaterial];
     const leaf = /^STW_Camphor_Leaves_[0-2]$/.test(mesh.name) ? 1 : 0;
     const uniforms: ShaderUniforms = {
-      uLeaflightTime: {value: 0}, uLeaflightStrength: {value: 1},
+      uLeaflightDaylight: {value: 1}, uLeaflightTime: {value: 0}, uLeaflightStrength: {value: 1},
       uLeaflightRootY: {value: rootY}, uLeaflightHeight: {value: height},
       uLeaflightLeaf: {value: leaf}, uLeaflightWorldToLocal: {value: new THREE.Matrix4()},
     };
     const clones = originals.map((source) => {
       const clone = source.clone();
-      injectWind(clone, uniforms);
+      injectWind(clone, uniforms, clone instanceof THREE.MeshStandardMaterial);
       return clone;
     });
     const standard = clones.find((material): material is THREE.MeshStandardMaterial => material instanceof THREE.MeshStandardMaterial);
@@ -133,11 +147,12 @@ export function installLeaflightMotion(root: THREE.Object3D): LeaflightMotion {
   }
 
   return {
-    update(time: number, strength = 1): void {
+    update(time: number, strength = 1, daylight = 1): void {
       root.updateWorldMatrix(true, true);
       for (const {mesh, uniforms} of bindings) {
         inverse.copy(mesh.matrixWorld).invert();
         uniforms.uLeaflightTime.value = time;
+        uniforms.uLeaflightDaylight.value = THREE.MathUtils.clamp(daylight, .03, 1);
         uniforms.uLeaflightStrength.value = strength;
         uniforms.uLeaflightWorldToLocal.value.copy(inverse);
       }

@@ -24,7 +24,6 @@ const skyVertex = /* glsl */ `
 
 const skyFragment = /* glsl */ `
   uniform float uTime;
-  uniform float uBeam;
   uniform float uDaylight;
   uniform float uWarmth;
   uniform vec3 uSun;
@@ -43,20 +42,34 @@ const skyFragment = /* glsl */ `
   }
   void main() {
     vec3 d = normalize(vWorld - cameraPosition);
-    float horizon = smoothstep(-.18, .72, d.y);
-    vec3 nightLow = vec3(.012, .022, .052);
-    vec3 nightHigh = vec3(.018, .045, .105);
+    float horizon = smoothstep(-.16, .82, d.y);
+    float zenith = smoothstep(-.12, .48, d.y);
+    vec3 nightLow = vec3(.010, .016, .028);
+    vec3 nightHigh = vec3(.018, .036, .068);
     float sunset = smoothstep(.6, 1.0, uWarmth);
-    vec3 low = mix(vec3(.46, .62, .88), vec3(.72, .39, .19), sunset);
-    vec3 high = mix(vec3(.12, .31, .62), vec3(.30, .22, .28), sunset);
-    vec3 color = mix(low, high, horizon);
-    color = mix(mix(nightLow, nightHigh, horizon), color, uDaylight);
-    vec2 cloudP = d.xz / max(.18, d.y + .46) * .72 + vec2(uTime * .006, -uTime * .003);
-    float clouds = smoothstep(.61, .93, cloudField(cloudP));
-    color = mix(color, mix(vec3(.54, .64, .72), vec3(.76, .67, .53), uWarmth), clouds * .30 * uDaylight);
+    // A cool, low-contrast sky keeps the window view natural without turning it
+    // into a flat white panel at the room’s exposure.
+    vec3 low = mix(vec3(.61, .67, .70), vec3(.67, .62, .55), sunset);
+    vec3 high = mix(vec3(.16, .32, .50), vec3(.38, .34, .35), sunset);
+    vec3 daySky = mix(low, high, zenith);
+    vec3 color = mix(mix(nightLow, nightHigh, horizon), daySky, uDaylight);
+
+    // Broad near-horizon scattering makes the pale, grey-white band read as
+    // atmospheric haze rather than a hard graphic gradient.
+    float haze = pow(1.0 - smoothstep(-.10, .58, d.y), 1.45);
+    vec3 hazeColor = mix(vec3(.72, .75, .74), vec3(.76, .69, .59), sunset);
+    color = mix(color, hazeColor, haze * .18 * uDaylight);
+
+    // Three inexpensive value-noise octaves make only a barely visible, slowly
+    // drifting cloud veil; keeping the contrast low preserves the room mood.
+    vec2 cloudP = d.xz / max(.28, d.y + .42) * 3.8 + vec2(uTime * .003, -uTime * .0015);
+    float cloudBand = smoothstep(-.10, .62, d.y) * (1.0 - smoothstep(.62, .96, d.y) * .55);
+    float clouds = smoothstep(.38, .74, cloudField(cloudP)) * cloudBand;
+    vec3 cloudColor = mix(vec3(.70, .73, .73), vec3(.74, .69, .60), sunset);
+    color = mix(color, cloudColor, clouds * .38 * uDaylight);
     vec3 toSun = normalize(-uSun);
-    float softSun = pow(max(dot(d, toSun), 0.0), 34.0);
-    color += mix(vec3(.55, .72, 1.0), vec3(1.0, .75, .45), uWarmth) * softSun * (.02 + uDaylight * (.06 + uBeam * .18));
+    float softSun = pow(max(dot(d, toSun), 0.0), 32.0);
+    color += mix(vec3(.62, .72, .78), vec3(.90, .72, .48), uWarmth) * softSun * (.012 + .045 * uDaylight);
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
