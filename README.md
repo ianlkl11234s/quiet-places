@@ -8,6 +8,8 @@
 
 ## 設計文件
 
+- [Blender 場景製作與網頁移植計畫](docs/plans/BLENDER_SCENE_PLAN.md)：待確認的品質重製計畫；含連線探測、分階段驗收與資產規格。
+
 - [集合產品規格與交付順序](PROJECT_SPEC.md)：使用流程、設定語意、P0–P5 與驗收。
 - [技術架構與遷移設計](docs/ARCHITECTURE.md)：共用播放器、場景介面、切換與資源生命週期。
 - [場景目錄](docs/SCENES.md)：水光、雨窗、樹影，以及後續候選。
