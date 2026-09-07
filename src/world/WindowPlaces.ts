@@ -166,10 +166,10 @@ function createRoom(kind: WindowPlaceKind) {
   const texture=new THREE.DataTexture(noise,128,128);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(6,6);texture.needsUpdate=true;
   wall.map=texture;wall.bumpMap=texture;wall.bumpScale=.025;floor.map=texture;floor.bumpMap=texture;floor.bumpScale=.012;
   const frame = new THREE.MeshStandardMaterial({color:kind==='ocean'?'#101111':'#091013',roughness:kind==='ocean'?.82:.38,metalness:kind==='ocean'?.08:.62});
-  addBox(group, owned, [12, .18, 19], [0, 0, 4.5], floor);
+  const floorSurface=addBox(group, owned, [12, .18, 19], [0, 0, 4.5], floor);
   addBox(group, owned, [12, .18, 19], [0, 7, 4.5], wall);
-  addBox(group, owned, [.18, 7, 19], [-6, 3.5, 4.5], wall);
-  addBox(group, owned, [.18, 7, 19], [6, 3.5, 4.5], wall);
+  const leftSurface=addBox(group, owned, [.18, 7, 19], [-6, 3.5, 4.5], wall);
+  const rightSurface=addBox(group, owned, [.18, 7, 19], [6, 3.5, 4.5], wall);
 
   const opening = kind === 'leaf'
     ? {left: .7, right: 4.8, bottom: 3, top: 6.3}
@@ -186,11 +186,11 @@ function createRoom(kind: WindowPlaceKind) {
   addBox(group, owned, [width + .16, .11, .18], [centerX, opening.top, -4.84], frame);
   addBox(group, owned, [.11, height, .18], [opening.left, centerY, -4.84], frame);
   addBox(group, owned, [.11, height, .18], [opening.right, centerY, -4.84], frame);
-  return {group, owned, opening};
+  return {group, owned, opening,receivers:[floorSurface,leftSurface,rightSurface]};
 }
 
 export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): WindowPlace {
-  const {group, owned, opening} = createRoom(kind);
+  const {group, owned, opening,receivers} = createRoom(kind);
   scene.add(group);
   const sunlight={value:new THREE.Vector3()};
   const photons=kind==='ocean'?createOceanPhotonMap():undefined;
@@ -198,16 +198,23 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
   const lightTime={value:0},lightLevel={value:.3},lightStrength={value:0},lightTint={value:new THREE.Color()};
   const windowBounds={value:new THREE.Vector4(opening.left,opening.right,opening.bottom,opening.top)};
   const projectionUniforms = {uSun:sunlight,uWindow:windowBounds,uTime: {value: 0}, uStrength: {value: .5}, uAngle: {value: 0}, uWall: {value: 0}, uTint: {value: new THREE.Color()}};
-  const projectionMaterial = photons?oceanLightMaterial(photons.textures.floor,0,sunlight,lightTime,lightLevel,lightStrength,lightTint):new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader:leafProjectionFragment, uniforms: projectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending});
-  const projected = new THREE.Mesh(new THREE.PlaneGeometry(photons?11.82:11.6,photons?18.89:13.5), projectionMaterial);
-  projected.rotation.x = -Math.PI / 2; projected.position.set(0,.105,photons?4.555:-1.3); group.add(projected); owned.push(projected);
   const wallProjectionUniforms = {uSun:sunlight,uWindow:windowBounds,uTime: {value: 0}, uStrength: {value: .5}, uAngle: {value: 0}, uWall: {value: 1}, uTint: {value: new THREE.Color()}};
-  const wallProjection = new THREE.Mesh(new THREE.PlaneGeometry(photons?18.89:13.5,photons?6.815:6.7), photons?oceanLightMaterial(photons.textures.left,1,sunlight,lightTime,lightLevel,lightStrength,lightTint):new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader:leafProjectionFragment, uniforms: wallProjectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending}));
-  wallProjection.rotation.y = Math.PI / 2; wallProjection.position.set(photons?-5.895:-5.88,photons?3.5025:3.45,photons?4.555:1.1); group.add(wallProjection); owned.push(wallProjection);
-
   if(photons){
-    const right=new THREE.Mesh(new THREE.PlaneGeometry(18.89,6.815),oceanLightMaterial(photons.textures.right,2,sunlight,lightTime,lightLevel,lightStrength,lightTint));
-    right.rotation.y=-Math.PI/2;right.position.set(5.895,3.5025,4.555);group.add(right);
+    // Reuse the real stone surfaces, so direct and ambient light share texture and normals.
+    const maps=[photons.textures.floor,photons.textures.left,photons.textures.right];
+    receivers.forEach((mesh,index)=>{
+      const base=mesh.material as THREE.MeshStandardMaterial;
+      mesh.material=oceanLightMaterial(base,maps[index],index,sunlight,lightTime,lightLevel,lightStrength,lightTint);
+      if(index===0)base.dispose(); // The original floor material has no other owner.
+    });
+  }else{
+    const projectionMaterial = new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader:leafProjectionFragment, uniforms: projectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending});
+    const projected = new THREE.Mesh(new THREE.PlaneGeometry(11.6,13.5), projectionMaterial);
+    projected.rotation.x = -Math.PI / 2; projected.position.set(0,.105,-1.3); group.add(projected); owned.push(projected);
+
+    const wallProjection = new THREE.Mesh(new THREE.PlaneGeometry(13.5,6.7), new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader:leafProjectionFragment, uniforms: wallProjectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending}));
+    wallProjection.rotation.y = Math.PI / 2; wallProjection.position.set(-5.88,3.45,1.1); group.add(wallProjection); owned.push(wallProjection);
+
   }
 
   const target = new THREE.Object3D(); target.position.set(kind === 'leaf' ? 1.2 : 0, 1.25, 1.7); group.add(target);
@@ -288,13 +295,13 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
       wallProjectionUniforms.uTime.value = elapsed; wallProjectionUniforms.uStrength.value = projectionUniforms.uStrength.value; wallProjectionUniforms.uAngle.value = state.angle; wallProjectionUniforms.uTint.value.copy(tint);
       if(photons){
         const sun=oceanSunDirection(state.angle);sunlight.value.copy(sun).negate();
-        lightTime.value=Math.floor(elapsed*15+1e-7)/15;lightLevel.value=waterLevels[oceanLevel];lightStrength.value=state.intensity*8;lightTint.value.copy(tint);
+        lightTime.value=Math.floor(elapsed*15+1e-7)/15;lightLevel.value=waterLevels[oceanLevel];lightStrength.value=state.intensity*12;lightTint.value.copy(tint);
         photons.update(lightTime.value,lightLevel.value,sun,state.lowQuality);
-        dust!.update(lightTime.value,lightLevel.value,sunlight.value,state.intensity,state.beamStrength??1,state.lowQuality??false);
+        dust!.update(lightTime.value,lightLevel.value,sunlight.value,state.intensity*1.5,state.beamStrength??1,state.lowQuality??false);
       }else sunlight.value.set(-.65-state.angle*.18,-.85+state.angle*.12,1).normalize();
       target.position.copy(windowLight.position).addScaledVector(sunlight.value,7);
       skyBounce.color.copy(tint);skyBounce.intensity=.04+strength*(photons?.20:.40);
-      windowLight.intensity = photons?(.04+strength*1.8)*(oceanLevel==='submerged'?.35:oceanLevel==='half'?.65:1):.08+strength*4; windowLight.color.copy(tint);
+      windowLight.intensity = photons?(.04+strength*2.4)*(oceanLevel==='submerged'?.35:oceanLevel==='half'?.65:1):.08+strength*4; windowLight.color.copy(tint);
       volumeUniforms.uTime.value = elapsed; volumeUniforms.uWarmth.value = state.warmth; volumeUniforms.uActivity.value = state.activity; volumeUniforms.uStrength.value = strength * (kind==='ocean'?.18:1) * (state.beamStrength ?? 1) * (state.lowQuality ? .56 : 1);
       animated(photons?lightTime.value:elapsed, state);
     },
