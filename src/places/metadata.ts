@@ -11,3 +11,11 @@ export const moments=[
   {id:'sunset',name:'暮色',hour:17.5},
   {id:'moonlight',name:'月夜',hour:23},
 ] as const;
+
+export const oceanLevels = [
+  {id:'below',name:'窗下'},
+  {id:'half',name:'半窗'},
+  {id:'submerged',name:'全淹'},
+] as const;
+export type OceanLevel = typeof oceanLevels[number]['id'];
+export const isOceanLevel=(value:unknown):value is OceanLevel=>oceanLevels.some(level=>level.id===value);
