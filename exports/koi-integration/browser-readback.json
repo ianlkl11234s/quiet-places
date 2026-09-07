@@ -1,0 +1,30 @@
+{
+  "place": "leaflight",
+  "viewport": [
+    1280,
+    720
+  ],
+  "hour": "14",
+  "glbSha256": "929cf6dd15a03de3a06953cac9e39243c23abd9894e978bbbdd17d07323eeaf9",
+  "errors": [],
+  "consoleErrors": [],
+  "playing": "暫停流動",
+  "pauseScreenshotsIdentical": true,
+  "sceneSwitch": [
+    "leaflight",
+    "waterlight",
+    "leaflight"
+  ],
+  "gpuReview": {
+    "viewport": [
+      1440,
+      650
+    ],
+    "heroPlayedSeconds": 36,
+    "views": [
+      "top",
+      "side",
+      "oblique"
+    ]
+  }
+}

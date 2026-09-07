@@ -1,27 +1,143 @@
 {
-  "name": "Self-authored Koi Carp",
-  "dimensionsMeters": {
-    "length": 1.152,
-    "width": 0.7,
-    "height": 0.415
-  },
+  "name": "Self-authored procedural koi carp",
+  "units": "metres",
+  "sourceLengthMeters": 0.55,
   "nativeCoordinates": {
-    "head": "+X",
-    "up": "+Z",
-    "glTF": "head +X, up +Y"
+    "Blender": "head +Y, dorsal +Z",
+    "glTF": "head -Z, dorsal +Y"
   },
-  "trianglesApprox": 1680,
-  "materials": {
-    "vertexColor": "Koi_Color (white / irregular vermilion patches)",
-    "roughness": 0.4,
-    "emissive": false
+  "rig": "KOI_RIG",
+  "materials": [
+    "KOHAKU",
+    "SANKE",
+    "SHOWA",
+    "GOLD",
+    "WHITE"
+  ],
+  "actions": {
+    "KOI_ACT_IDLE_HOVER": {
+      "durationSeconds": 10,
+      "loop": true,
+      "rootMotion": false
+    },
+    "KOI_ACT_SLOW_CRUISE": {
+      "durationSeconds": 12,
+      "loop": true,
+      "rootMotion": false
+    },
+    "KOI_ACT_CRUISE": {
+      "durationSeconds": 8,
+      "loop": false,
+      "rootMotion": true
+    },
+    "KOI_ACT_TURN_LEFT": {
+      "durationSeconds": 8,
+      "loop": false,
+      "rootMotion": true
+    },
+    "KOI_ACT_TURN_RIGHT": {
+      "durationSeconds": 8,
+      "loop": false,
+      "rootMotion": true
+    },
+    "KOI_ACT_RISE": {
+      "durationSeconds": 6,
+      "loop": false,
+      "rootMotion": true
+    },
+    "KOI_ACT_DESCEND": {
+      "durationSeconds": 6,
+      "loop": false,
+      "rootMotion": true
+    },
+    "KOI_ACT_CIRCLE_SLOW": {
+      "durationSeconds": 16,
+      "loop": true,
+      "rootMotion": true
+    },
+    "KOI_ACT_GLIDE": {
+      "durationSeconds": 8,
+      "loop": false,
+      "rootMotion": true
+    }
   },
-  "animation": {
-    "clip": "Swim",
-    "durationSeconds": 2.5,
-    "loop": "seamless morph-target travelling wave; no root translation"
+  "slowCruise": {
+    "action": "KOI_ACT_SLOW_CRUISE",
+    "inPlace": true,
+    "durationSeconds": 12,
+    "tailBeats": 9,
+    "frequencyHz": 0.75,
+    "requestedFrequencyHz": 0.78
   },
-  "source": "assets/blender/scripts/koi.py",
-  "shadowNote": "Runtime body origin sits 0.25\u20130.31m above floor; directional shadow map handles projection.",
-  "glbSha256": "378a20d5512acceb20c9ea69c1d0a153f887e2d0da907f48a8b630ad029bcd1e"
+  "validation": {
+    "PASS": true,
+    "bones": 20,
+    "weightedVertices": 13966,
+    "maxWeightSumError": 4.470348358154297e-08,
+    "actions": {
+      "IDLE_HOVER": {
+        "status": "PASS",
+        "animatedChannels": 29,
+        "loop": true,
+        "rootMotion": false
+      },
+      "SLOW_CRUISE": {
+        "status": "PASS",
+        "animatedChannels": 33,
+        "loop": true,
+        "rootMotion": false
+      },
+      "CRUISE": {
+        "status": "PASS",
+        "animatedChannels": 34,
+        "loop": false,
+        "rootMotion": true
+      },
+      "TURN_LEFT": {
+        "status": "PASS",
+        "animatedChannels": 37,
+        "loop": false,
+        "rootMotion": true
+      },
+      "TURN_RIGHT": {
+        "status": "PASS",
+        "animatedChannels": 37,
+        "loop": false,
+        "rootMotion": true
+      },
+      "RISE": {
+        "status": "PASS",
+        "animatedChannels": 37,
+        "loop": false,
+        "rootMotion": true
+      },
+      "DESCEND": {
+        "status": "PASS",
+        "animatedChannels": 36,
+        "loop": false,
+        "rootMotion": true
+      },
+      "CIRCLE_SLOW": {
+        "status": "PASS",
+        "animatedChannels": 37,
+        "loop": true,
+        "rootMotion": true
+      },
+      "GLIDE": {
+        "status": "PASS",
+        "animatedChannels": 31,
+        "loop": false,
+        "rootMotion": true
+      },
+      "PASS": true
+    },
+    "scaleRelief": "Packed 512x256 normal texture, subtle artistic scale pattern",
+    "biology": "Morphology approximation, not measured anatomical reconstruction"
+  },
+  "glbSha256": "929cf6dd15a03de3a06953cac9e39243c23abd9894e978bbbdd17d07323eeaf9",
+  "source": [
+    "assets/blender/scripts/koi.py",
+    "assets/blender/scripts/koi_motion.py"
+  ],
+  "limitations": "Kinematic swimming and art-directed proportions; no fluid, muscle or autonomous behavior. Alternative coats selectable in Blender; website uses Kohaku."
 }

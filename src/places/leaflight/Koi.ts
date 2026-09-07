@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
+import {sampleKoiMotion, type KoiIndex} from './KoiMotion.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 
 export type BlenderKoi = {
@@ -11,33 +12,15 @@ export type BlenderKoi = {
 
 export type BlenderKoiFactory = ((scene: THREE.Scene, sun: THREE.DirectionalLight) => BlenderKoi) & {dispose: () => void};
 
-type Route = {
-  centerX: number;
-  centerZ: number;
-  radiusX: number;
-  radiusZ: number;
-  period: number;
-  phase: number;
-  height: number;
-  bobPhase: number;
-  scale: number;
-};
-
 type KoiInstance = {
   carrier: THREE.Group;
   animatedRoot: THREE.Object3D;
   mixer: THREE.AnimationMixer;
-  route: Route;
+  index: KoiIndex;
+  steering: {bone: THREE.Bone; axis: THREE.Vector3; gain: number; baked: THREE.Quaternion}[];
 };
 
-const FORWARD = new THREE.Vector3(1, 0, 0);
-const paths: readonly Route[] = [
-  // Stagger a shared broad circuit by one third of a lap. This keeps complete
-  // bodies separated while each fish crosses the same real sun/shadow boundary.
-  {centerX: -1.65, centerZ: -1.15, radiusX: 1.22, radiusZ: 1.35, period: 78, phase: 1.93, height: .28, bobPhase: .3, scale: .92},
-  {centerX: -1.65, centerZ: -1.15, radiusX: 1.22, radiusZ: 1.35, period: 78, phase: 1.93+Math.PI*2/3, height: .25, bobPhase: 2.1, scale: .86},
-  {centerX: -1.65, centerZ: -1.15, radiusX: 1.22, radiusZ: 1.35, period: 78, phase: 1.93+Math.PI*4/3, height: .31, bobPhase: 4.5, scale: 1},
-];
+const STEERING_BONES = ['spine_02', 'spine_03', 'spine_04', 'spine_05', 'peduncle'];
 
 function disposeTemplateResources(root: THREE.Object3D) {
   const resources = collectModelResources(root);
@@ -116,17 +99,23 @@ function cloneMaterialsAndConfigure(root: THREE.Object3D, daylight: {value: numb
 export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
   const gltf = await new GLTFLoader().loadAsync('/models/koi.glb');
   const template = gltf.scene;
-  const swim = gltf.animations.find(clip => clip.name === 'Swim');
-  if (!swim) {
+  const swim = gltf.animations.find(clip => clip.name === 'KOI_ACT_SLOW_CRUISE');
+  if (!swim || !template.getObjectByName('KOI_RIG')) {
     disposeTemplateResources(template);
-    throw new Error('錦鯉模型缺少 Swim 動畫。');
+    throw new Error('錦鯉模型缺少 KOI_ACT_SLOW_CRUISE 骨架動畫。');
+  }
+  for (const name of STEERING_BONES) {
+    if (!(template.getObjectByName(name) as THREE.Bone)?.isBone) {
+      disposeTemplateResources(template);
+      throw new Error(`錦鯉骨架缺少 ${name}。`);
+    }
   }
   template.updateMatrixWorld(true);
   const sourceBounds = new THREE.Box3().setFromObject(template);
-  const sourceLength = sourceBounds.max.x - sourceBounds.min.x;
+  const sourceLength = sourceBounds.max.z - sourceBounds.min.z;
   if (!Number.isFinite(sourceLength) || sourceLength <= 1e-4) {
     disposeTemplateResources(template);
-    throw new Error('錦鯉模型缺少可用的 +X 身長。');
+    throw new Error('錦鯉模型缺少可用的 -Z 身長。');
   }
   const sourceCenter = sourceBounds.getCenter(new THREE.Vector3());
 
@@ -141,13 +130,22 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
     const ownedMaterials = new Set<THREE.Material>();
     const ownedSkeletons = new Set<THREE.Skeleton>();
 
-    for (const route of paths) {
+    for (const index of [0, 1, 2] as const) {
       // SkeletonUtils preserves both skinned bones and morph-target animation
       // bindings, while sharing immutable GLB geometry and textures.
       const carrier = new THREE.Group();
       const koi = cloneSkinned(template);
       collectModelResources(koi).skeletons.forEach(skeleton => ownedSkeletons.add(skeleton));
-      const length = route.scale;
+      koi.updateMatrixWorld(true);
+      const steering = STEERING_BONES.map((name, i) => {
+        const bone = koi.getObjectByName(name) as THREE.Bone;
+        // Store the exported bone-local dorsal axis, rather than assuming
+        // Blender bone roll matches a Three Euler component.
+        const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(new THREE.Quaternion()).invert());
+        return {bone, axis, gain: .012 + .004 * i, baked: bone.quaternion.clone()};
+      });
+      carrier.name = `koi-${index + 1}`;
+      const length = sampleKoiMotion(0, index).length;
       const scale = length / sourceLength;
       koi.scale.setScalar(scale);
       // The GLB's origin is not assumed to be its body centre. This keeps the
@@ -158,38 +156,31 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
       root.add(carrier);
       const mixer = new THREE.AnimationMixer(koi);
       mixer.clipAction(swim).play();
-      koiInstances.push({carrier, animatedRoot: koi, mixer, route});
+      koiInstances.push({carrier, animatedRoot: koi, mixer, index, steering});
     }
     scene.add(root);
 
-    const tangent = new THREE.Vector3();
-    const target = new THREE.Vector3();
-    const rotation = new THREE.Quaternion();
     let disposed = false;
     return {
       update(_dt, elapsed, nextDaylight) {
         if (disposed) return;
         const time = Number.isFinite(elapsed) ? elapsed : 0;
         daylight.value = THREE.MathUtils.clamp(Number.isFinite(nextDaylight) ? nextDaylight * .06 : .04, .002, .06);
-        koiInstances.forEach(({carrier, mixer, route}) => {
-          const angle = route.phase + time * (Math.PI * 2 / route.period);
-          const wobble = .13 * Math.sin(angle * 2 + route.bobPhase);
-          const wobbleDerivative = .26 * Math.cos(angle * 2 + route.bobPhase);
-          target.set(
-            route.centerX + route.radiusX * Math.cos(angle) + wobble,
-            route.height + Math.sin(time * .72 + route.bobPhase) * .012,
-            route.centerZ + route.radiusZ * Math.sin(angle),
-          );
-          tangent.set(
-            -route.radiusX * Math.sin(angle) + wobbleDerivative,
-            0,
-            route.radiusZ * Math.cos(angle),
-          ).normalize();
-          carrier.position.copy(target);
-          rotation.setFromUnitVectors(FORWARD, tangent);
-          carrier.quaternion.copy(rotation);
-          // Set absolute animation time to make pause, export, and clock reset deterministic.
-          mixer.setTime(time + route.bobPhase);
+        koiInstances.forEach(({carrier, mixer, index, steering}) => {
+          const pose = sampleKoiMotion(time, index);
+          carrier.position.copy(pose.position);
+          carrier.quaternion.copy(pose.quaternion);
+          // In-place skeletal action: the route exclusively owns world travel.
+          // Distance-based absolute time couples propulsion and travel, and
+          // restores exactly the same skin/shadow pose when paused or seeking.
+          for (const control of steering) control.bone.quaternion.copy(control.baked);
+          mixer.setTime(pose.animationTime);
+          // A gentle posterior steering bias follows path curvature; the head
+          // remains stable, and every update starts from the baked pose.
+          for (const {bone, axis, gain, baked} of steering) {
+            baked.copy(bone.quaternion);
+            bone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(axis, pose.turn * gain));
+          }
         });
       },
       dispose() {
