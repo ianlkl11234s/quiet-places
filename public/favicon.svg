@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Quiet Places／靜隅</title>
+  <desc id="desc">一道天光穿過暗室，在水面留下波紋。</desc>
+  <rect width="64" height="64" rx="15" fill="#101e23"/>
+  <path d="M29 13h19L32 43H16Z" fill="#b9d5ce" opacity=".18"/>
+  <path d="M29 13h19l-4 8H25Z" fill="#eee7ce"/>
+  <path d="M14 43c6-5 12 5 18 0s12 5 18 0" fill="none" stroke="#a9d1c7" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M19 51c5-3 9 3 14 0s9 3 13 0" fill="none" stroke="#a9d1c7" stroke-width="2.5" stroke-linecap="round" opacity=".55"/>
+</svg>

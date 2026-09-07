@@ -63,3 +63,35 @@ test('FloorKoi keeps fish low, bounded, pausable, and safely disposable', () => 
   assert.equal(scene.getObjectByName('FloorKoi'), undefined, 'dispose removes fish group');
   assert.doesNotThrow(() => koi.dispose(), 'a second dispose is harmless');
 });
+
+test('ocean window keeps the exterior surface, submerged pane, and water level in lockstep', () => {
+  const scene = new THREE.Scene();
+  const place = createWindowPlace(scene, 'ocean');
+  assert.equal(scene.getObjectByName('FloorKoi'), undefined, 'the ocean room does not create interior fish');
+
+  const sea = scene.getObjectByName('ocean-surface') as THREE.Mesh | undefined;
+  const underwater = scene.getObjectByName('ocean-exterior-underwater') as THREE.Mesh | undefined;
+  assert.ok(sea, 'the exterior sea is present');
+  assert.ok(underwater, 'the exterior underwater pane is present');
+  const seaPositions = sea.geometry.getAttribute('position') as THREE.BufferAttribute;
+  let closestZ = -Infinity;
+  for (let index = 0; index < seaPositions.count; index += 1) closestZ = Math.max(closestZ, seaPositions.getZ(index));
+  assert.ok(closestZ <= -5.14 + 1e-5, `sea never crosses the dry window plane: ${closestZ}`);
+
+  const seaUniforms = (sea.material as THREE.ShaderMaterial).uniforms;
+  const paneUniforms = (underwater.material as THREE.ShaderMaterial).uniforms;
+  for (const [level, height] of [['below', .30], ['half', 1.75], ['submerged', 3.35]] as const) {
+    place.setOceanLevel(level);
+    place.update(12.5, state);
+    assert.equal(seaUniforms.uLevel.value, height, `${level} updates the sea height`);
+    assert.equal(paneUniforms.uLevel.value, height, `${level} updates the submerged pane height`);
+    assert.ok(Math.abs(seaUniforms.uTime.value-12.5)<1/15, `${level} stays within one lighting timestep`);
+    assert.equal(paneUniforms.uTime.value, seaUniforms.uTime.value, `${level} pane shares the frozen light timestep`);
+  }
+
+  const frozenTime=seaUniforms.uTime.value;
+  place.update(12.5, {...state, activity: .05});
+  assert.equal(seaUniforms.uTime.value, frozenTime, 'a repeated elapsed time does not advance the surface wave clock');
+  assert.equal(paneUniforms.uTime.value, frozenTime, 'a repeated elapsed time does not advance the pane wave clock');
+  place.dispose();
+});

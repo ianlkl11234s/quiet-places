@@ -103,3 +103,16 @@
 - 臨時 localhost 接收服務僅用於把 runtime Blob 保存到 repo，已停止並移除前端臨時呼叫；正式 UI 匯出再次驗證通過、不依賴接收服務。
 - 目前美術比參考圖更程序化，樹葉形狀與焦散仍需使用者主觀驗收。沒有完整物理光照、實機手機或 production 驗證。
 - 本任務預覽 tabs=[]，dev server 最後唯讀抽樣 0.6% CPU；這不是整機 CPU 或即時上限保證。
+
+
+## 品牌統一、SVG 與 README — 2026-09-07
+
+- 在 `codex/waterlight-shallow-sea` 更新品牌為 Quiet Places／靜隅；獨立 worktree 更名為 `/private/tmp/quiet-places-shallow-sea`。套件和 lockfile、網站文案／title、runtime 名稱與現行產品文件同步。
+- SVG XML 解析通過，網站 favicon URL 與實際 SVG 顯示確認。README 三張 JPEG 為本機正午、1280×720、標準畫質的真實畫面，海光採半窗水位；位於 `docs/images/`。
+- 樹影第一次載入遇到開發服務依賴快取問題；重啟 Vite 並重新建立快取後可正常呈現。沒有以錯誤畫面或合成圖取代截圖。
+- 偏好設定測試涵蓋舊 key 遷移、新 key 優先、遷移寫入失敗仍可讀舊設定，暫存編譯後執行通過。`npm run build`、README 本地連結和 `git diff --check` 通過。
+- 初次驗收為本地 worktree；使用者後續已授權開 PR 並合併。發布狀態依 GitHub 合併與部署結果確認。
+
+### PR 前驗收
+
+偏好遷移、水景相機邊界、Ocean 光學／光子與場景生命週期測試均通過；TypeScript／Vite 建置通過。`docs/DEPLOYMENT.md` 沿用本機接手用途，不納入公開提交。

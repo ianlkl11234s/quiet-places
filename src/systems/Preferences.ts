@@ -19,7 +19,8 @@ export interface PreferencesStorage {
   setItem(key: string, value: string): void;
 }
 
-export const PREFERENCES_STORAGE_KEY = 'stillwater.preferences';
+export const PREFERENCES_STORAGE_KEY = 'quiet-places.preferences';
+export const LEGACY_PREFERENCES_STORAGE_KEY = 'stillwater.preferences';
 
 const defaults = (): Preferences => ({
   version: 1,
@@ -66,12 +67,33 @@ function normalize(value: unknown): Preferences {
 }
 
 export function loadPreferences(storage?: PreferencesStorage): Preferences {
+  const target = resolveStorage(storage);
+  if (!target) return defaults();
+
   try {
-    const serialized = resolveStorage(storage)?.getItem(PREFERENCES_STORAGE_KEY);
-    return serialized === null || serialized === undefined ? defaults() : normalize(JSON.parse(serialized));
+    const serialized = target.getItem(PREFERENCES_STORAGE_KEY);
+    if (serialized !== null && serialized !== undefined) return normalize(JSON.parse(serialized));
   } catch {
     return defaults();
   }
+
+  let legacy: Preferences;
+  try {
+    const serialized = target.getItem(LEGACY_PREFERENCES_STORAGE_KEY);
+    if (serialized === null || serialized === undefined) return defaults();
+    const parsed: unknown = JSON.parse(serialized);
+    if (!parsed || typeof parsed !== 'object' || (parsed as {version?: unknown}).version !== 1) return defaults();
+    legacy = normalize(parsed);
+  } catch {
+    return defaults();
+  }
+
+  try {
+    target.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(legacy));
+  } catch {
+    // Migration is best effort: the legacy value remains usable for this visit.
+  }
+  return legacy;
 }
 
 export function savePreferences(preferences: Preferences, storage?: PreferencesStorage): boolean {

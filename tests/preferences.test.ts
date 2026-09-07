@@ -1,4 +1,4 @@
-import { loadPreferences, PREFERENCES_STORAGE_KEY, savePreferences, type PreferencesStorage } from '../src/systems/Preferences.js';
+import { LEGACY_PREFERENCES_STORAGE_KEY, loadPreferences, PREFERENCES_STORAGE_KEY, savePreferences, type PreferencesStorage } from '../src/systems/Preferences.js';
 
 class MemoryStorage implements PreferencesStorage {
   private readonly values = new Map<string, string>();
@@ -15,6 +15,13 @@ class MemoryStorage implements PreferencesStorage {
 class ThrowingStorage implements PreferencesStorage {
   getItem(): string | null { throw new Error('unavailable'); }
   setItem(): void { throw new Error('unavailable'); }
+}
+
+class MigrationWriteFailingStorage extends MemoryStorage {
+  setItem(key: string, value: string): void {
+    if (key === PREFERENCES_STORAGE_KEY) throw new Error('new key unavailable');
+    super.setItem(key, value);
+  }
 }
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -72,7 +79,42 @@ function roundTrip(): void {
   equal(loaded.weather, 'rain', 'weather round-trips');
 }
 
+function legacyPreferencesMigrateToTheNewKey(): void {
+  const storage = new MemoryStorage();
+  const legacy = { version: 1, place: 'oceanlight', hour: 17.5, live: true, beamStrength: 1.4, volume: 0.2, quality: 'low', weather: 'rain', rainIntensity: 0.7 };
+  storage.setItem(LEGACY_PREFERENCES_STORAGE_KEY, JSON.stringify(legacy));
+
+  const loaded = loadPreferences(storage);
+  equal(loaded.place, 'oceanlight', 'legacy place is loaded');
+  equal(loaded.hour, 17.5, 'legacy hour is loaded');
+  equal(storage.getItem(PREFERENCES_STORAGE_KEY), JSON.stringify(legacy), 'legacy preferences migrate to the new key');
+  equal(storage.getItem(LEGACY_PREFERENCES_STORAGE_KEY), JSON.stringify(legacy), 'legacy key is retained');
+}
+
+function newKeyTakesPriorityOverLegacy(): void {
+  const storage = new MemoryStorage();
+  storage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({ version: 1, place: 'leaflight', hour: 6.5 }));
+  storage.setItem(LEGACY_PREFERENCES_STORAGE_KEY, JSON.stringify({ version: 1, place: 'oceanlight', hour: 22 }));
+
+  const loaded = loadPreferences(storage);
+  equal(loaded.place, 'leaflight', 'new key takes priority');
+  equal(loaded.hour, 6.5, 'new key values are preserved');
+}
+
+function failedMigrationStillReturnsLegacyPreferences(): void {
+  const storage = new MigrationWriteFailingStorage();
+  storage.setItem(LEGACY_PREFERENCES_STORAGE_KEY, JSON.stringify({ version: 1, place: 'leaflight', hour: 12, live: true }));
+
+  const loaded = loadPreferences(storage);
+  equal(loaded.place, 'leaflight', 'legacy preferences survive a migration write failure');
+  equal(loaded.hour, 12, 'legacy hour survives a migration write failure');
+  equal(storage.getItem(PREFERENCES_STORAGE_KEY), null, 'failed migration does not create the new key');
+}
+
 defaultsAreReturnedForInvalidData();
 valuesAreSanitized();
 storageFailuresAreSafe();
 roundTrip();
+legacyPreferencesMigrateToTheNewKey();
+newKeyTakesPriorityOverLegacy();
+failedMigrationStillReturnsLegacyPreferences();

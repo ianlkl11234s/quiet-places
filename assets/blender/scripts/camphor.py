@@ -1,4 +1,4 @@
-"""A restrained, deterministic camphor tree for the Stillwater window study.
+"""A restrained, deterministic camphor tree for the Quiet Places window study.
 
 The asset intentionally stays as a few linked data blocks: three curve objects for
 the woody structure and three merged leaf meshes.  It does not depend on an active
@@ -14,7 +14,7 @@ import bpy
 from mathutils import Vector
 
 
-OWNER = "stillwater.camphor"
+OWNER = "quiet-places.camphor"
 _LEAF_PALETTES = (
     (0.075, 0.22, 0.055, 1.0),
     (0.12, 0.32, 0.075, 1.0),

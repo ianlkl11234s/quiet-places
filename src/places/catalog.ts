@@ -1,12 +1,13 @@
 import type * as THREE from 'three';
 import type {EnvironmentState} from '../world/Environment';
 
-import type {PlaceId} from './metadata';
+import type {PlaceId,OceanLevel} from './metadata';
 export {places,moments,isPlaceId,type PlaceId} from './metadata';
 export interface PlaceInstance {
   position:[number,number,number]; target:[number,number,number]; yawRange:number;
   fov?:number; exposure?:number; toneMapping?:THREE.ToneMapping;
   hasSimulation:boolean; waterMode:string;
+  setOceanLevel?(level:OceanLevel):void;
   update(dt:number,elapsed:number,state:EnvironmentState):void;
   disturb(u:number,v:number):void; resetWater():void; dispose():void;
 }
@@ -27,11 +28,12 @@ export async function preparePlace(id:PlaceId):Promise<Factory>{
         disturb:env.disturb,resetWater:env.resetWater,dispose(){fish.dispose();env.dispose();}};
     };
   }
-  const [{createWindowPlace},{createFloorKoi}]=await Promise.all([import('../world/WindowPlaces'),import('../world/FloorKoi')]);
+  const {createWindowPlace}=await import('../world/WindowPlaces');
   return scene=>{
-    const env=createWindowPlace(scene,'ocean');const fish=createFloorKoi(scene);
+    const env=createWindowPlace(scene,'ocean');
     return {position:[3,1.8,8],target:[0,1.65,-1],yawRange:Math.PI/12,hasSimulation:false,waterMode:'',
-      update(dt,elapsed,state){env.update(elapsed,state);fish.update(dt,elapsed,state);},
-      disturb(){},resetWater(){},dispose(){fish.dispose();env.dispose();}};
+      setOceanLevel:env.setOceanLevel,
+      update(_dt,elapsed,state){env.update(elapsed,state);},
+      disturb(){},resetWater(){},dispose(){env.dispose();}};
   };
 }
