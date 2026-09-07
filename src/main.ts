@@ -10,6 +10,7 @@ import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay';
 import {createAudioSystem} from './systems/AudioSystem';
 import {createMusicPlayer} from './systems/MusicPlayer';
 import {loadPreferences,savePreferences} from './systems/Preferences';
+import {isOceanLevel,type OceanLevel} from './places/metadata';
 import './style.css';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
@@ -25,7 +26,10 @@ async function start(){
  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,700);
  const requestedPlace=new URLSearchParams(location.search).get('place');
  let currentPlace:PlaceId=isPlaceId(requestedPlace)?requestedPlace:preferences.place;
+ const requestedSea=new URLSearchParams(location.search).get('sea');
+ let oceanLevel:OceanLevel=isOceanLevel(requestedSea)?requestedSea:'below';
  let place=(await preparePlace(currentPlace))(scene,renderer);
+ place.setOceanLevel?.(oceanLevel);
  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
  renderer.toneMappingExposure=place.exposure??1.1;
  camera.position.set(...place.position);
@@ -67,7 +71,12 @@ async function start(){
   const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);
   if(raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)place.disturb(u,v);}
  });
- const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+ const composer=new EffectComposer(renderer);
+ function updateAntialiasing(){
+  const samples=currentPlace==='oceanlight'?Math.min(preferences.quality==='low'?2:4,renderer.capabilities.maxSamples):0;
+  for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==samples){target.samples=samples;target.dispose();}
+ }
+ updateAntialiasing();composer.addPass(new RenderPass(scene,camera));
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,elapsed=0,last=performance.now(),raf=0,lost=false;
  let beamStrength=preferences.beamStrength;
@@ -78,14 +87,17 @@ async function start(){
  function describePlace(){
   const isWater=currentPlace==='waterlight';
   el('water-options').hidden=!isWater;
+  el('ocean-options').hidden=currentPlace!=='oceanlight';
+  document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.oceanLevel===oceanLevel)));
   el('water-reset').hidden=!isWater;
   el('water-mode').textContent=place.waterMode;
   el<HTMLButtonElement>('water-reset').disabled=!place.hasSimulation;
-  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，靠近牆面時停止。':'拖曳環繞天窗，靠近牆面時停止。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':'拖曳微調視角，左右各 15°。錦鯉貼近地面游動。';
+  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，靠近牆面時停止。':'拖曳環繞天窗，靠近牆面時停止。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':'窗外海面三種水位。拖曳微調視角，左右各 15°。';
   renderer.domElement.setAttribute('aria-label',isWater?'拖曳環繞天窗，靠近牆面時停止；方向鍵旋轉，Home重設':'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設');
-  weatherLabels();document.title=`${el('place-title').textContent} · Quiet Places`;el('space').setAttribute('aria-label',`${el('place-title').textContent}：即時生成的靜謐空間`);
+  weatherLabels();document.title=`${el('place-title').textContent} · Quiet Places／靜隅`;el('space').setAttribute('aria-label',`${el('place-title').textContent}：即時生成的靜謐空間`);
  }
  function homeCamera(){
+  updateAntialiasing();
   renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=place.exposure??1.1;
   camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();
@@ -101,7 +113,7 @@ async function start(){
   if(!exporting){status.hidden=false;status.textContent='正在走進另一個空間。';}
   try{
    const factory=await preparePlace(id);if(token!==switchId){factory.dispose?.();return;}
-   place.dispose();place=factory(scene,renderer);currentPlace=id;
+   place.dispose();place=factory(scene,renderer);currentPlace=id;place.setOceanLevel?.(oceanLevel);
    homeCamera();elapsed=0;state=sampleTime(hour);
    placeSelect.value=id;if(save){preferences.place=id;persist();}
    describePlace();
@@ -111,6 +123,10 @@ async function start(){
   }finally{if(token===switchId){switching=false;if(!exporting)status.hidden=true;requestRender();}}
  }
  placeSelect.addEventListener('change',()=>{if(!exporting)void switchPlace(placeSelect.value as PlaceId).catch(()=>{status.hidden=false;});});
+ document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.addEventListener('click',()=>{
+  const level=button.dataset.oceanLevel;if(exporting||currentPlace!=='oceanlight'||!isOceanLevel(level))return;
+  oceanLevel=level;place.setOceanLevel?.(level);describePlace();requestRender();
+ }));
  el('water-reset').addEventListener('click',()=>place.resetWater());
  const range=el<HTMLInputElement>('hour'),liveInput=el<HTMLInputElement>('live');
  liveInput.checked=live;
@@ -157,6 +173,7 @@ async function start(){
  document.addEventListener('input',requestRender);
  document.addEventListener('click',requestRender);
  function resize(){
+  updateAntialiasing();
   camera.aspect=innerWidth/innerHeight;camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
   renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();

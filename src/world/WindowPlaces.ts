@@ -1,4 +1,10 @@
 import * as THREE from 'three';
+import {createOceanSurface,oceanWaveGLSL} from './OceanSurface.ts';
+import {createOceanPhotonMap} from './OceanPhotonMap.ts';
+import {oceanSunDirection,oceanAbsorption} from './OceanOptics.ts';
+import {createOceanDust} from './OceanDust.ts';
+import {oceanLightMaterial} from './OceanLightMaterial.ts';
+import type {OceanLevel} from '../places/metadata.ts';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 
 export type WindowPlaceKind = 'leaf' | 'ocean';
@@ -13,6 +19,7 @@ export interface WindowPlaceState {
 }
 
 export interface WindowPlace {
+  setOceanLevel(level:OceanLevel):void;
   update(elapsed: number, state: WindowPlaceState): void;
   dispose(): void;
 }
@@ -78,55 +85,30 @@ const leafProjectionFragment = /* glsl */`
   }
 `;
 
-const causticFragment = /* glsl */`
-  uniform float uTime; uniform float uStrength; uniform float uWall; uniform vec3 uTint; uniform vec4 uWindow; uniform vec3 uSun;
+// A sealed viewing pane keeps the room dry while showing the submerged portion.
+// This is an exterior optical study, not a flood or pressure simulation.
+const underwaterFragment = /* glsl */`
+  uniform float uTime; uniform float uLevel; uniform float uIntensity; uniform vec3 uAbsorption;
   varying vec3 vWorld;
-  float hash(vec2 p){return fract(sin(dot(p,vec2(41.7,289.1)))*17321.17);}
-  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+1.),f.x),f.y);}
+  ${oceanWaveGLSL}
   void main(){
-    vec2 p=mix(vWorld.xz,vWorld.zy,uWall)*3.4+vec2(uTime*.10,-uTime*.06);
-    float a=sin(p.x*5.+sin(p.y*3.1))*sin(p.y*4.2+sin(p.x*2.));
-    float b=sin(p.x*8.-p.y*3.+uTime*.32);
-    vec2 warp=vec2(n(p*.65+uTime*.025),n(p*.65+vec2(4.,7.)-uTime*.018));
-    float field=n(p+warp*1.5)+n(p*1.8-warp)*.28;
-    float width=max(fwidth(field)*1.3,.016);
-    float lines=exp(-pow((field-.63)/(width+.023),2.));
-    vec2 origin=mix(vec2(0.,-2.7),vec2(-2.5,1.8),uWall);
-    vec3 source=vWorld-uSun*((vWorld.z+4.9)/uSun.z);
-    float aperture=smoothstep(uWindow.x-.2,uWindow.x+.2,source.x)*(1.-smoothstep(uWindow.y-.2,uWindow.y+.2,source.x))*smoothstep(uWindow.z-.25,uWindow.z+.25,source.y)*(1.-smoothstep(uWindow.w-.25,uWindow.w+.25,source.y));
-    gl_FragColor=vec4(uTint,lines*aperture*uStrength*.32);
-  }
-`;
-
-const oceanVertex = /* glsl */`
-  uniform float uTime; uniform float uActivity; varying vec3 vWorld; varying float vWave;
-  void main(){
-    vec3 p=position;
-    // The plane is rotated into world X/Z; local Z is its world-height normal.
-    float swell=sin(p.x*.55+uTime*.23)*.12+sin(p.y*.34-uTime*.17)*.10;
-    float ripples=sin(p.x*2.7+p.y*1.2-uTime*.55)*.018;
-    p.z+=(swell+ripples)*(.32+.68*uActivity);
-    vWave=p.z; vWorld=(modelMatrix*vec4(p,1.)).xyz;
-    gl_Position=projectionMatrix*viewMatrix*vec4(vWorld,1.);
-  }
-`;
-const oceanFragment = /* glsl */`
-  uniform float uWarmth; uniform float uIntensity; uniform float uTime; varying vec3 vWorld; varying float vWave;
-  float wave(vec2 p){return sin(p.y*3.2+p.x*.65-uTime*.55)*.022+sin(p.y*6.7-p.x*1.3-uTime*.79)*.009+sin(p.y*14.2+p.x*2.8-uTime*1.1)*.003;}
-  void main(){
-    vec2 p=vWorld.xz;float e=.03;
-    vec2 slope=vec2(wave(p+vec2(e,0.))-wave(p-vec2(e,0.)),wave(p+vec2(0.,e))-wave(p-vec2(0.,e)))/(2.*e);
-    vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
-    vec3 view=normalize(cameraPosition-vWorld);
-    vec3 sun=normalize(vec3(.18,.18,-1.));
-    vec3 halfRay=normalize(view+sun);
-    float glint=pow(max(dot(normal,halfRay),0.),180./(1.+length(fwidth(slope))*24.));
-    float fresnel=.04+.96*pow(1.-max(dot(view,normal),0.),5.);
-    vec3 deep=vec3(.014,.065,.079);
-    vec3 sky=mix(vec3(.22,.40,.53),vec3(.40,.30,.16),uWarmth);
-    vec3 color=mix(deep,sky,fresnel*.75)*(.10+uIntensity*.95);
-    color+=mix(vec3(.62,.82,1.),vec3(1.,.78,.39),uWarmth)*glint*(.2+uIntensity*1.3);
+    float height=uLevel+oceanHeight(vWorld.xz,uTime);
+    if(vWorld.y>height)discard;
+    vec3 ray=normalize(vWorld-cameraPosition);
+    float depth=max(0.,height-vWorld.y);
+    float path=ray.y>.025?min(35.,depth/ray.y):35.;
+    vec3 extinction=exp(-uAbsorption*path);
+    vec3 deep=vec3(.030,.055,.060);
+    vec3 shallow=vec3(.19,.27,.27);
+    vec3 color=mix(deep,shallow,extinction)*(.10+uIntensity*.90);
+    // Soft sparse shafts in the exterior water, with depth attenuation.
+    float shafts=pow(.5+.5*sin(vWorld.x*2.1+vWorld.y*.8+uTime*.12+sin(vWorld.x*4.8-uTime*.15)*.6),12.);
+    color+=vec3(.14,.19,.19)*shafts*exp(-depth*.7)*uIntensity*.07;
+    float edge=1.-smoothstep(.006,.035,depth);
+    color=mix(color,vec3(.19,.26,.26)*(.15+uIntensity*.6),edge*.32);
     gl_FragColor=vec4(color,1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;
 const skyFragment = /* glsl */`
@@ -183,7 +165,7 @@ function createRoom(kind: WindowPlaceKind) {
   for(let i=0;i<128*128;i++){const v=190+Math.floor(rng()*55);noise[i*4]=v;noise[i*4+1]=v;noise[i*4+2]=v;noise[i*4+3]=255;}
   const texture=new THREE.DataTexture(noise,128,128);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(6,6);texture.needsUpdate=true;
   wall.map=texture;wall.bumpMap=texture;wall.bumpScale=.025;floor.map=texture;floor.bumpMap=texture;floor.bumpScale=.012;
-  const frame = new THREE.MeshStandardMaterial({color: '#091013', roughness: .38, metalness: .62});
+  const frame = new THREE.MeshStandardMaterial({color:kind==='ocean'?'#101111':'#091013',roughness:kind==='ocean'?.82:.38,metalness:kind==='ocean'?.08:.62});
   addBox(group, owned, [12, .18, 19], [0, 0, 4.5], floor);
   addBox(group, owned, [12, .18, 19], [0, 7, 4.5], wall);
   addBox(group, owned, [.18, 7, 19], [-6, 3.5, 4.5], wall);
@@ -211,14 +193,22 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
   const {group, owned, opening} = createRoom(kind);
   scene.add(group);
   const sunlight={value:new THREE.Vector3()};
+  const photons=kind==='ocean'?createOceanPhotonMap():undefined;
+  const dust=photons?createOceanDust(group,photons.volume):undefined;
+  const lightTime={value:0},lightLevel={value:.3},lightStrength={value:0},lightTint={value:new THREE.Color()};
   const windowBounds={value:new THREE.Vector4(opening.left,opening.right,opening.bottom,opening.top)};
   const projectionUniforms = {uSun:sunlight,uWindow:windowBounds,uTime: {value: 0}, uStrength: {value: .5}, uAngle: {value: 0}, uWall: {value: 0}, uTint: {value: new THREE.Color()}};
-  const projectionMaterial = new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader: kind === 'leaf' ? leafProjectionFragment : causticFragment, uniforms: projectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending});
-  const projected = new THREE.Mesh(new THREE.PlaneGeometry(11.6, 13.5), projectionMaterial);
-  projected.rotation.x = -Math.PI / 2; projected.position.set(0, .105, -1.3); group.add(projected); owned.push(projected);
+  const projectionMaterial = photons?oceanLightMaterial(photons.textures.floor,0,sunlight,lightTime,lightLevel,lightStrength,lightTint):new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader:leafProjectionFragment, uniforms: projectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending});
+  const projected = new THREE.Mesh(new THREE.PlaneGeometry(photons?11.82:11.6,photons?18.89:13.5), projectionMaterial);
+  projected.rotation.x = -Math.PI / 2; projected.position.set(0,.105,photons?4.555:-1.3); group.add(projected); owned.push(projected);
   const wallProjectionUniforms = {uSun:sunlight,uWindow:windowBounds,uTime: {value: 0}, uStrength: {value: .5}, uAngle: {value: 0}, uWall: {value: 1}, uTint: {value: new THREE.Color()}};
-  const wallProjection = new THREE.Mesh(new THREE.PlaneGeometry(13.5, 6.7), new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader: kind === 'leaf' ? leafProjectionFragment : causticFragment, uniforms: wallProjectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending}));
-  wallProjection.rotation.y = Math.PI / 2; wallProjection.position.set(-5.88, 3.45, 1.1); group.add(wallProjection); owned.push(wallProjection);
+  const wallProjection = new THREE.Mesh(new THREE.PlaneGeometry(photons?18.89:13.5,photons?6.815:6.7), photons?oceanLightMaterial(photons.textures.left,1,sunlight,lightTime,lightLevel,lightStrength,lightTint):new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader:leafProjectionFragment, uniforms: wallProjectionUniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending}));
+  wallProjection.rotation.y = Math.PI / 2; wallProjection.position.set(photons?-5.895:-5.88,photons?3.5025:3.45,photons?4.555:1.1); group.add(wallProjection); owned.push(wallProjection);
+
+  if(photons){
+    const right=new THREE.Mesh(new THREE.PlaneGeometry(18.89,6.815),oceanLightMaterial(photons.textures.right,2,sunlight,lightTime,lightLevel,lightStrength,lightTint));
+    right.rotation.y=-Math.PI/2;right.position.set(5.895,3.5025,4.555);group.add(right);
+  }
 
   const target = new THREE.Object3D(); target.position.set(kind === 'leaf' ? 1.2 : 0, 1.25, 1.7); group.add(target);
   if(!areaLightsReady){RectAreaLightUniformsLib.init();areaLightsReady=true;}
@@ -229,8 +219,11 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
   const skyBounce=new THREE.HemisphereLight(0xdce5db,0x37382f,.6);group.add(skyBounce);
   const volumeUniforms = {uSun:sunlight,uTime: {value: 0}, uStrength: {value: .4}, uWarmth: {value: .2}, uActivity: {value: .2}, uWindow: {value: new THREE.Vector4(opening.left, opening.right, opening.bottom, opening.top)}};
   const volume = new THREE.Mesh(new THREE.BoxGeometry(11.7, 6.7, 18.6), new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader: volumeFragment, uniforms: volumeUniforms, transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.AdditiveBlending}));
-  volume.position.set(0, 3.5, 4.5); group.add(volume); owned.push(volume);
+  volume.visible=kind!=='ocean';volume.position.set(0, 3.5, 4.5); group.add(volume); owned.push(volume);
 
+  let oceanLevel:OceanLevel='below';
+  const waterLevels={below:.30,half:1.75,submerged:3.35};
+  let ocean:ReturnType<typeof createOceanSurface>|undefined;
   let animated: (elapsed: number, state: WindowPlaceState) => void;
   if (kind === 'leaf') {
     const r = random(932);
@@ -269,28 +262,42 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind): Wi
       skyUniforms.uWarmth.value = state.warmth; skyUniforms.uIntensity.value = Math.max(.10, state.intensity); skyUniforms.uAngle.value = state.angle;
     };
   } else {
-    const oceanUniforms = {uTime: {value: 0}, uActivity: {value: .2}, uWarmth: {value: .2}, uIntensity: {value: .5}};
-    const sea = new THREE.Mesh(new THREE.PlaneGeometry(500, 400, 120, 100), new THREE.ShaderMaterial({vertexShader: oceanVertex, fragmentShader: oceanFragment, uniforms: oceanUniforms}));
-    sea.rotation.x = -Math.PI / 2; sea.position.set(0, .78, -205.2); group.add(sea); owned.push(sea);
-    const skyUniforms = {uWarmth: {value: .2}, uIntensity: {value: .5}, uAngle: {value: 0}};
-    const sky = new THREE.Mesh(new THREE.PlaneGeometry(1200, 400), new THREE.ShaderMaterial({vertexShader: projectionVertex, fragmentShader: skyFragment, uniforms: skyUniforms}));
-    sky.position.set(0, 120, -410); group.add(sky); owned.push(sky);
-    animated = (elapsed, state) => { oceanUniforms.uTime.value = elapsed; oceanUniforms.uActivity.value = Math.min(.55, .12 + state.activity * .42); oceanUniforms.uWarmth.value = state.warmth; oceanUniforms.uIntensity.value = Math.max(.08, state.intensity); skyUniforms.uWarmth.value = state.warmth; skyUniforms.uIntensity.value = Math.max(.10, state.intensity); skyUniforms.uAngle.value = state.angle; };
+    ocean=createOceanSurface(group);
+    const underwaterUniforms={uAbsorption:{value:oceanAbsorption},uTime:{value:0},uLevel:{value:waterLevels.below},uIntensity:{value:.5}};
+    const underwater=new THREE.Mesh(new THREE.PlaneGeometry(12.4,7.4),new THREE.ShaderMaterial({
+      vertexShader:projectionVertex,fragmentShader:underwaterFragment,uniforms:underwaterUniforms,
+    }));
+    underwater.name='ocean-exterior-underwater';
+    // Extend behind all slabs: a pane only as wide as the aperture leaks sky at oblique views.
+    underwater.position.set(0,3.5,-5.13);
+    group.add(underwater);
+    animated=(elapsed,state)=>{
+      const level=waterLevels[oceanLevel];
+      ocean!.update(elapsed,state,level);
+      underwaterUniforms.uTime.value=elapsed;underwaterUniforms.uLevel.value=level;
+      underwaterUniforms.uIntensity.value=state.intensity;
+    };
   }
 
   return {
+    setOceanLevel(level){oceanLevel=level;},
     update(elapsed, state) {
       const strength = Math.max(.08, state.intensity);
       const tint = projectionUniforms.uTint.value.copy(cool).lerp(warm, state.warmth);
-      projectionUniforms.uTime.value = elapsed; projectionUniforms.uStrength.value = strength; projectionUniforms.uAngle.value = state.angle;
-      wallProjectionUniforms.uTime.value = elapsed; wallProjectionUniforms.uStrength.value = strength; wallProjectionUniforms.uAngle.value = state.angle; wallProjectionUniforms.uTint.value.copy(tint);
-      sunlight.value.set(kind==='leaf'?-.65-state.angle*.18:-.25,kind==='leaf'?-.85+state.angle*.12:-.20,1).normalize();
+      projectionUniforms.uTime.value = elapsed; projectionUniforms.uStrength.value = strength*(kind==='ocean'?(oceanLevel==='below'?.025:.22):1); projectionUniforms.uAngle.value = state.angle;
+      wallProjectionUniforms.uTime.value = elapsed; wallProjectionUniforms.uStrength.value = projectionUniforms.uStrength.value; wallProjectionUniforms.uAngle.value = state.angle; wallProjectionUniforms.uTint.value.copy(tint);
+      if(photons){
+        const sun=oceanSunDirection(state.angle);sunlight.value.copy(sun).negate();
+        lightTime.value=Math.floor(elapsed*15+1e-7)/15;lightLevel.value=waterLevels[oceanLevel];lightStrength.value=state.intensity*8;lightTint.value.copy(tint);
+        photons.update(lightTime.value,lightLevel.value,sun,state.lowQuality);
+        dust!.update(lightTime.value,lightLevel.value,sunlight.value,state.intensity,state.beamStrength??1,state.lowQuality??false);
+      }else sunlight.value.set(-.65-state.angle*.18,-.85+state.angle*.12,1).normalize();
       target.position.copy(windowLight.position).addScaledVector(sunlight.value,7);
-      skyBounce.color.copy(tint);skyBounce.intensity=.04+strength*.40;
-      windowLight.intensity = .08 + strength * 4; windowLight.color.copy(tint);
-      volumeUniforms.uTime.value = elapsed; volumeUniforms.uWarmth.value = state.warmth; volumeUniforms.uActivity.value = state.activity; volumeUniforms.uStrength.value = strength * (state.beamStrength ?? 1) * (state.lowQuality ? .56 : 1);
-      animated(elapsed, state);
+      skyBounce.color.copy(tint);skyBounce.intensity=.04+strength*(photons?.20:.40);
+      windowLight.intensity = photons?(.04+strength*1.8)*(oceanLevel==='submerged'?.35:oceanLevel==='half'?.65:1):.08+strength*4; windowLight.color.copy(tint);
+      volumeUniforms.uTime.value = elapsed; volumeUniforms.uWarmth.value = state.warmth; volumeUniforms.uActivity.value = state.activity; volumeUniforms.uStrength.value = strength * (kind==='ocean'?.18:1) * (state.beamStrength ?? 1) * (state.lowQuality ? .56 : 1);
+      animated(photons?lightTime.value:elapsed, state);
     },
-    dispose() { scene.remove(group); disposeObject(group); },
+    dispose() { dust?.dispose();photons?.dispose();ocean?.dispose(); scene.remove(group); disposeObject(group); },
   };
 }

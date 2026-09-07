@@ -102,7 +102,7 @@ float floorFacing = max(-koiNormal.y, 0.0);
 vec3 floorBounce = vec3(.60,.48,.32) * (.035 + .36*floorSun) * floorFacing;
 reflectedLight.indirectDiffuse += diffuseColor.rgb * (skyBounce + floorBounce + vec3(.012)) * uKoiDiffuseFill;`);
   };
-  material.customProgramCacheKey = () => `${cacheKey.call(material)}|stillwater-koi-directional-bounce-v2`;
+  material.customProgramCacheKey = () => `${cacheKey.call(material)}|quiet-places-koi-directional-bounce-v2`;
   material.needsUpdate = true;
 }
 
