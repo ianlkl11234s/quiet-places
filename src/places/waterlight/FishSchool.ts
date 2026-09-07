@@ -1,11 +1,8 @@
+import type {LightingState} from '../../player/contracts.ts';
+import {seededRandom} from '../../shared/math/seededRandom.ts';
 import * as THREE from 'three';
 
-export type FishSchoolState = {
-  intensity: number;
-  warmth: number;
-  angle: number;
-  activity: number;
-};
+export type FishSchoolState = LightingState;
 
 export type FishSchool = {
   update: (dt: number, elapsed: number, state: FishSchoolState) => void;
@@ -28,13 +25,7 @@ const FORWARD = new THREE.Vector3(1, 0, 0);
 const NEIGHBOUR_RADIUS_SQ = 2.4;
 const SEPARATION_RADIUS_SQ = 1.3;
 
-function seededRandom(seed: number): () => number {
-  let value = seed >>> 0;
-  return () => {
-    value = (value * 1664525 + 1013904223) >>> 0;
-    return value / 0x100000000;
-  };
-}
+
 
 function triangle(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();

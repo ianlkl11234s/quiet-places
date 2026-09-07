@@ -1,13 +1,11 @@
+import {seededRandom as random} from '../../shared/math/seededRandom.ts';
 import * as THREE from 'three';
-import {oceanWaveGLSL} from './OceanOptics.ts';
-import {oceanAirTransmissionGLSL} from './OceanLightMaterial.ts';
+import {oceanWaveGLSL} from '../../shared/water/Optics.ts';
+import {oceanAirTransmissionGLSL} from './LightMaterial.ts';
 
 const ROOM_MIN=new THREE.Vector3(-5.91,.095,-4.89), ROOM_MAX=new THREE.Vector3(5.91,6.91,14);
 
-function random(seed:number){
-  let state=seed>>>0;
-  return ()=>((state=(state*1664525+1013904223)>>>0)/4294967296);
-}
+
 
 /** Sparse single-scattering cue. The photon volume guides refracted paths; it is not GI. */
 export function createOceanDust(group:THREE.Group,volume:THREE.Data3DTexture){

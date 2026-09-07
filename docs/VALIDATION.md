@@ -116,3 +116,25 @@
 ### PR 前驗收
 
 偏好遷移、水景相機邊界、Ocean 光學／光子與場景生命週期測試均通過；TypeScript／Vite 建置通過。`docs/DEPLOYMENT.md` 沿用本機接手用途，不納入公開提交。
+
+
+## 三景目錄與共用元素整理 — 2026-09-07
+
+- 工作分支 `codex/shared-scene-elements`，以已合併的 `2938a59` 為基底，另保留原工作區13檔的當時快照。原工作區仍持續製作；本分支不包含快照之後的改動。
+- 三景集中到 `src/places/<scene-id>/`；場景契約、水體數學、LCG 亂數與模型資源所有權分別抽到 `player/`、`shared/`。水光 GPU 取樣含專屬天窗座標，保留在場景內。
+- `npm test`：16 passed、0 failed；涵蓋水體數值與 shader 約定、亂數序列、模型資源去重／釋放、場景生命週期、偏好與相機邊界。魟魚測試使用 fixture，不能證明真實資產可接入。
+- `npm run build` 與 `git diff --check` 通過；既有主 bundle 超過500 kB提示仍存在。本輪未執行獨立 browser GPU 壓測 `tests/water-gpu.ts`。
+- 本機瀏覽器1280×720實看水光、樹影、海光（窗下與半窗）；同頁水光→樹影→海光切換成功，暫停按鈕變為「繼續流動」並可恢復。error／warn log為空。截圖保存於 `exports/shared-scene-review/`；動畫時刻不同，不作逐像素等同比較。
+- 快照魟魚GLB缺少骨架動畫clips，整理前海光載入失敗；草稿與母檔保留，正式海光入口暫不接入。這是已知資產相容性限制，不是模型驗收通過。
+- 本輪為本地整理，尚未commit、PR、merge或部署；沒有新增實機手機效能或完整物理光照驗證。
+
+
+## 完成版海光與生物資料整合 — 2026-09-07
+
+- 依使用者指示在 `codex/shared-scene-elements` 整合海光完成版：兩隻骨架魟魚、方向性天空／地板反射、修正側緣頂點色的模型、7秒漲退潮。沿用已整理的場景介面與共用模型資源所有權；未改其美術與游姿數值。
+- 13檔穩定來源快照見 `exports/shared-scene-review/ocean-completed-source-snapshot.json`。GLB SHA-256 `e5909d095f4c09971b35e917e7c8b16e3a3468405b798373da8837d24bc89061`，實際讀回8 clips／72 joints，模型詳細清單見同目錄 `stingray-asset-readback.json`。上輪「缺clips而停用」狀態已解決。
+- `npm test` 17 passed、0 failed；實際GLB蒙皮／非靜止鰭動畫／loop endpoints通過，另驗證獨立骨架、暫停、釋放及借用floor/volume不被魟魚回收。潮汐測試包含初始preset、7秒過渡、同elapsed暫停、重選位置連續與海面／水色／魟魚受光同步。
+- `npm run build` 通過，54 modules；既有主bundle大於500kB提示保留。文件連結與 `git diff --check` 通過。
+- 本機Codex瀏覽器1280×720：半窗兩隻魟魚可見，切至全淹完成、暫停／恢復可操作，海光→水光→樹影→海光載入成功；error／warn為空。畫面見 `exports/shared-scene-review/oceanlight-stingrays-submerged.jpg`。
+- 新增 `docs/biology/` 索引、魟魚製作頁與附件原文存檔；區分需求、原始研究、藝術近似、已實作及驗收。原文SHA與附件一致，未把81項條款列為全部完成。
+- 本輪未重建Blender資產、未做新生物、實機效能或完整物理驗證；整合分支尚未commit／PR／發布。

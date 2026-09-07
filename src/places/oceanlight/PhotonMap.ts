@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {refractRay, sampleOceanWave, oceanAbsorption} from './OceanOptics.ts';
+import {refractRay, sampleOceanWave, oceanAbsorption} from '../../shared/water/Optics.ts';
 
 export type OceanPhotonReceiver = 'floor' | 'left' | 'right';
 export interface OceanPhotonHit { receiver: OceanPhotonReceiver; entry: THREE.Vector3; position: THREE.Vector3; energy: THREE.Vector3; }

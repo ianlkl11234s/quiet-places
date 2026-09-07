@@ -1,4 +1,5 @@
-export interface LightState { intensity:number; warmth:number; angle:number; activity:number }
+import type {LightingState} from '../player/contracts.ts';
+export type LightState=LightingState;
 // Art-directed keyframes; local time is device time, not astronomical solar position.
 const frames = [
   [0,.09,0,-.15,.3],[5,.11,.1,-.3,.3],[6.5,.36,.35,-.7,.5],

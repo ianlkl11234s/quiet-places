@@ -1,21 +1,15 @@
+import type {SceneState} from '../../player/contracts.ts';
+import {seededRandom} from '../../shared/math/seededRandom.ts';
 import * as THREE from 'three';
-import {WATER_ROOM} from './WaterRoom';
-import {createWaterSimulation} from '../systems/WaterSimulation';
-import {oceanAbsorption, oceanWaveGLSL} from './OceanOptics.ts';
-import {SHALLOW_SEA_BOTTOM, SHALLOW_SEA_DEPTH, shallowSeaSunDirection} from './ShallowSeaOptics.ts';
+import {WATER_ROOM} from './Room.ts';
+import {createWaterSimulation} from '../../systems/WaterSimulation.ts';
+import {oceanAbsorption, oceanWaveGLSL} from '../../shared/water/Optics.ts';
+import {disturbedSurfaceGLSL, disturbedSurfaceSlopeGLSL} from './SurfaceSampling.ts';
+import {SHALLOW_SEA_BOTTOM, SHALLOW_SEA_DEPTH, shallowSeaSunDirection} from './ShallowSea.ts';
 
-export interface EnvironmentState {
-  intensity: number;
-  warmth: number;
-  angle: number;
-  activity: number;
-  beamStrength?: number;
-  rain?: number;
-  lowQuality?: boolean;
-}
 
 export interface WaterlightEnvironment {
-  update(elapsed: number, state: EnvironmentState, dt?: number): void;
+  update(elapsed: number, state: SceneState, dt?: number): void;
   disturb(u: number, v: number): void;
   resetWater(): void;
   readonly waterMode: string;
@@ -56,15 +50,7 @@ const causticFragment = /* glsl */ `
   uniform float uWarmth;
   varying vec3 vWorld;
   ${oceanWaveGLSL}
-  vec2 surfaceSlope(vec2 p){
-    vec2 slope=oceanSlope(p,uTime);
-    if(uUseSimulation>.5){
-      vec2 uv=clamp(vec2(p.x/3.6+.5,.5-(p.y+.2)/3.6),0.,1.);
-      vec2 e=uWaveTexel;
-      slope+=3.*vec2(texture2D(uWaves,clamp(uv+vec2(e.x,0.),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(e.x,0.),0.,1.)).r,-(texture2D(uWaves,clamp(uv+vec2(0.,e.y),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(0.,e.y),0.,1.)).r))/(2.*3.6*e);
-    }
-    return slope;
-  }
+  ${disturbedSurfaceSlopeGLSL}
   vec2 refractedOffset(vec2 p,float receiverDepth){
     vec2 slope=surfaceSlope(p);
     vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
@@ -111,18 +97,7 @@ const shallowSeaFragment = /* glsl */ `
   varying vec3 vWorld;
   ${waterField}
   ${oceanWaveGLSL}
-  float disturbanceHeight(vec2 xz){
-    vec2 uv=clamp(vec2(xz.x/3.6+.5,.5-(xz.y+.2)/3.6),0.,1.);
-    return uUseSimulation>.5?texture2D(uWaves,uv).r*3.:0.;
-  }
-  vec2 surfaceSlope(vec2 xz){
-    vec2 slope=oceanSlope(xz,uTime);
-    if(uUseSimulation>.5){
-      vec2 uv=clamp(vec2(xz.x/3.6+.5,.5-(xz.y+.2)/3.6),0.,1.),e=uWaveTexel;
-      slope+=3.*vec2(texture2D(uWaves,clamp(uv+vec2(e.x,0.),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(e.x,0.),0.,1.)).r,-(texture2D(uWaves,clamp(uv+vec2(0.,e.y),0.,1.)).r-texture2D(uWaves,clamp(uv-vec2(0.,e.y),0.,1.)).r))/(2.*3.6*e);
-    }
-    return slope;
-  }
+  ${disturbedSurfaceGLSL}
   vec3 skyAt(vec3 d){
     float up=clamp(d.y,0.,1.);
     float sunset=smoothstep(.6,.95,uWarmth);
@@ -328,13 +303,12 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const temp = new THREE.Color();
 
   let rainClock=0;
-  let rainSeed=7123;
-  const rainRandom=()=>{rainSeed=(Math.imul(rainSeed,1664525)+1013904223)>>>0;return rainSeed/4294967296;};
+  let rainRandom=seededRandom(7123);
   return {
     get waterMode(){return waterMode;},
     get hasSimulation(){return Boolean(simulation);},
     disturb(u,v){simulation?.disturb(u,v);},
-    resetWater(){simulation?.reset();rainClock=0;rainSeed=7123;},
+    resetWater(){simulation?.reset();rainClock=0;rainRandom=seededRandom(7123);},
     update(elapsed, state, dt=0) {
       const rain=THREE.MathUtils.clamp(state.rain??0,0,1);
       if(rain>0 && dt>0){

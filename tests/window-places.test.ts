@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
-import { createFloorKoi } from '../src/world/FloorKoi.ts';
-import { createWindowPlace, type WindowPlaceKind } from '../src/world/WindowPlaces.ts';
+import { createFloorKoi } from '../src/legacy/FloorKoi.ts';
+import { createWindowPlace, type WindowPlaceKind } from '../src/places/oceanlight/WindowRoom.ts';
+import type { StingrayFactory, StingrayLighting } from '../src/places/oceanlight/Stingrays.ts';
 
 const state = { intensity: .7, warmth: .35, angle: .2, activity: .6 };
 
@@ -64,15 +65,22 @@ test('FloorKoi keeps fish low, bounded, pausable, and safely disposable', () => 
   assert.doesNotThrow(() => koi.dispose(), 'a second dispose is harmless');
 });
 
-test('ocean window keeps the exterior surface, submerged pane, and water level in lockstep', () => {
+test('ocean window eases water level while surface, pane, and ray lighting stay in lockstep', () => {
   const scene = new THREE.Scene();
-  const place = createWindowPlace(scene, 'ocean');
+  let rayLighting: StingrayLighting | undefined;
+  const rayUpdates: number[] = [];
+  const rayFactory: StingrayFactory = Object.assign((_group: THREE.Group, lighting: StingrayLighting) => {
+    rayLighting = lighting;
+    return { update: (elapsed: number) => { rayUpdates.push(elapsed); }, dispose() {} };
+  }, { dispose() {} });
+  const place = createWindowPlace(scene, 'ocean', rayFactory);
   assert.equal(scene.getObjectByName('FloorKoi'), undefined, 'the ocean room does not create interior fish');
 
   const sea = scene.getObjectByName('ocean-surface') as THREE.Mesh | undefined;
   const underwater = scene.getObjectByName('ocean-exterior-underwater') as THREE.Mesh | undefined;
   assert.ok(sea, 'the exterior sea is present');
   assert.ok(underwater, 'the exterior underwater pane is present');
+  assert.ok(rayLighting, 'the ocean place provides transported lighting to the rays');
   const seaPositions = sea.geometry.getAttribute('position') as THREE.BufferAttribute;
   let closestZ = -Infinity;
   for (let index = 0; index < seaPositions.count; index += 1) closestZ = Math.max(closestZ, seaPositions.getZ(index));
@@ -80,18 +88,34 @@ test('ocean window keeps the exterior surface, submerged pane, and water level i
 
   const seaUniforms = (sea.material as THREE.ShaderMaterial).uniforms;
   const paneUniforms = (underwater.material as THREE.ShaderMaterial).uniforms;
-  for (const [level, height] of [['below', .30], ['half', 1.75], ['submerged', 3.35]] as const) {
-    place.setOceanLevel(level);
-    place.update(12.5, state);
-    assert.equal(seaUniforms.uLevel.value, height, `${level} updates the sea height`);
-    assert.equal(paneUniforms.uLevel.value, height, `${level} updates the submerged pane height`);
-    assert.ok(Math.abs(seaUniforms.uTime.value-12.5)<1/15, `${level} stays within one lighting timestep`);
-    assert.equal(paneUniforms.uTime.value, seaUniforms.uTime.value, `${level} pane shares the frozen light timestep`);
-  }
+  const assertSharedLevel = (height: number, label: string) => {
+    assert.equal(seaUniforms.uLevel.value, height, `${label}: sea height`);
+    assert.equal(paneUniforms.uLevel.value, height, `${label}: pane height`);
+    assert.equal(rayLighting!.level.value, height, `${label}: ray lighting height`);
+  };
 
-  const frozenTime=seaUniforms.uTime.value;
-  place.update(12.5, {...state, activity: .05});
-  assert.equal(seaUniforms.uTime.value, frozenTime, 'a repeated elapsed time does not advance the surface wave clock');
-  assert.equal(paneUniforms.uTime.value, frozenTime, 'a repeated elapsed time does not advance the pane wave clock');
+  place.setOceanLevel('half');
+  place.update(12.5, state);
+  assertSharedLevel(1.75, 'initial preset applies immediately');
+  assert.ok(Math.abs(seaUniforms.uTime.value - 12.5) < 1 / 15, 'surface stays within one lighting timestep');
+  assert.equal(paneUniforms.uTime.value, seaUniforms.uTime.value, 'pane shares the frozen light timestep');
+
+  place.setOceanLevel('submerged');
+  place.update(12.5, state);
+  assertSharedLevel(1.75, 'a later selection starts from the visible height');
+  place.update(16, state);
+  const midway = seaUniforms.uLevel.value;
+  assert.ok(midway > 1.75 && midway < 3.35, 'the seven-second tide has an intermediate height');
+  assert.ok(Math.abs(midway - (1.75 + 3.35) / 2) < 1e-9, 'the smootherstep tide reaches the semantic midpoint halfway through');
+  assertSharedLevel(midway, 'mid-tide');
+
+  place.update(16, {...state, activity: .05});
+  assertSharedLevel(midway, 'repeated elapsed time pauses the tide');
+  place.setOceanLevel('below');
+  place.update(16, state);
+  assertSharedLevel(midway, 'reselecting during a tide does not jump');
+  place.update(23, state);
+  assertSharedLevel(.30, 'the new tide reaches its target after seven seconds');
+  assert.equal(rayUpdates.at(-1), 23, 'rays update on the shared scene clock');
   place.dispose();
 });

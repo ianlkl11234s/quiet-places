@@ -34,6 +34,7 @@ npm run dev
 開啟終端顯示的本機網址。正式建置與預覽：
 
 ```sh
+npm test
 npm run build
 npm run preview
 ```
@@ -43,6 +44,16 @@ npm run preview
 - 由「調整空間」切換場景、時段與各場景專屬設定。
 - 在畫面拖曳觀看；鍵盤 `←`、`→` 旋轉，`Home` 回到初始視角。
 - 可暫停流動、重設視角與使用全螢幕；音訊預設不播放，須手動開始。
+
+## 專案結構
+
+- `src/places/`：三個場景各自的入口、光照與動態。
+- `src/player/contracts.ts`：共用場景介面。
+- `src/shared/`：波場／折射、模型資源與可重現亂數。
+- `src/systems/`：時間、偏好、音訊與 GPU 波動。
+- `assets/blender/` 存放製作來源，`public/` 存放網頁資產，`exports/` 存放驗收輸出。
+
+完整維護入口與新增場景方式見[現行架構](docs/ARCHITECTURE.md)。生物資產的來源、近似邊界與驗收狀態見[生物資料索引](docs/biology/README.md)。
 
 ## 技術與文件
 

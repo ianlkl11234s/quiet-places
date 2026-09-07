@@ -1,4 +1,4 @@
-import { LEGACY_PREFERENCES_STORAGE_KEY, loadPreferences, PREFERENCES_STORAGE_KEY, savePreferences, type PreferencesStorage } from '../src/systems/Preferences.js';
+import { LEGACY_PREFERENCES_STORAGE_KEY, loadPreferences, PREFERENCES_STORAGE_KEY, savePreferences, type PreferencesStorage } from '../src/systems/Preferences.ts';
 
 class MemoryStorage implements PreferencesStorage {
   private readonly values = new Map<string, string>();

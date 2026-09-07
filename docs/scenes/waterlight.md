@@ -1,5 +1,7 @@
 # 水光之間／Waterlight：場景規格
 
+> 現行程式入口：`src/places/waterlight/index.ts`；場景細節：`src/places/waterlight/Environment.ts`。跨場景共用元素見 [架構文件](../ARCHITECTURE.md)。下方歷史紀錄的舊路徑對應本次整理前版本。
+
 > 集合架構見 [ARCHITECTURE.md](../ARCHITECTURE.md)，集合規格見 [PROJECT_SPEC.md](../../PROJECT_SPEC.md)。本檔由原單場景規格搬移，保留驗收紀錄；舊勾選不代表所有裝置均已驗證。
 
 ## 產品定義
@@ -88,3 +90,9 @@
 - Browser：1280×720 正午／暮色、暫停及恢復、晴雨切換／重設水面；390×844 雨日可見水面漣漪與地面聚散，房間及天窗無破面。最後恢復正午晴日、標準品質、100%光束與正常動畫。
 - 開發中 HMR 曾顯示已移除變數 `waterUniforms` 的 ReferenceError；最終清理並 reload 後沒有新增 runtime／shader error。畫面證據在本次 Codex browser 工具輸出中，未另存成圖片檔。
 - 尚未做實機 GPU／FPS、Blender 對照、正式發布或使用者視覺確認。初次驗收為本地草稿；使用者後續已授權以此版本開 PR 並合併。
+
+## 2026-09-07：場景目錄與共用元素整理
+
+- 在 `codex/shared-scene-elements` 將場景程式集中到 `src/places/waterlight/`；保留本場景材質、光路、鏡頭與動態的既有參數。
+- 共用狀態由 `player/contracts.ts` 定義，水體數學／亂數／模型資源按實際需求引用 `shared/`；不把場景曝光、天空或光學近似共用化。
+- 整理分支尚未提交或發布；視覺驗收範圍見 [驗收記錄](../VALIDATION.md)。

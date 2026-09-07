@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {createWaterSimulation} from '../src/systems/WaterSimulation';
+import {createWaterSimulation} from '../src/systems/WaterSimulation.ts';
 const result=document.querySelector('#result')!;
 try{
  const renderer=new THREE.WebGLRenderer();renderer.setSize(64,64);document.body.append(renderer.domElement);

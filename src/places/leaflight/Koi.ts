@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
+import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 
 export type BlenderKoi = {
   /** `elapsed` is the single animation clock; supplying the same value restores the same pose. */
@@ -38,27 +39,10 @@ const paths: readonly Route[] = [
   {centerX: -1.65, centerZ: -1.15, radiusX: 1.22, radiusZ: 1.35, period: 78, phase: 1.93+Math.PI*4/3, height: .31, bobPhase: 4.5, scale: 1},
 ];
 
-function collectModelResources(root: THREE.Object3D) {
-  const geometries = new Set<THREE.BufferGeometry>();
-  const materials = new Set<THREE.Material>();
-  const textures = new Set<THREE.Texture>();
-  root.traverse(object => {
-    if (!(object instanceof THREE.Mesh)) return;
-    geometries.add(object.geometry);
-    for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-      materials.add(material);
-      for (const value of Object.values(material)) if (value instanceof THREE.Texture) textures.add(value);
-    }
-  });
-  return {geometries, materials, textures};
-}
-
 function disposeTemplateResources(root: THREE.Object3D) {
-  const {geometries, materials, textures} = collectModelResources(root);
+  const resources = collectModelResources(root);
   root.removeFromParent();
-  textures.forEach(texture => texture.dispose());
-  materials.forEach(material => material.dispose());
-  geometries.forEach(geometry => geometry.dispose());
+  disposeModelResources(resources, ['textures', 'materials', 'geometries', 'skeletons']);
 }
 
 function isOpaque(material: THREE.Material) {
@@ -155,12 +139,14 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
     const daylight = {value: .04};
     const koiInstances: KoiInstance[] = [];
     const ownedMaterials = new Set<THREE.Material>();
+    const ownedSkeletons = new Set<THREE.Skeleton>();
 
     for (const route of paths) {
       // SkeletonUtils preserves both skinned bones and morph-target animation
       // bindings, while sharing immutable GLB geometry and textures.
       const carrier = new THREE.Group();
       const koi = cloneSkinned(template);
+      collectModelResources(koi).skeletons.forEach(skeleton => ownedSkeletons.add(skeleton));
       const length = route.scale;
       const scale = length / sourceLength;
       koi.scale.setScalar(scale);
@@ -214,6 +200,9 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
           mixer.stopAllAction();
           mixer.uncacheRoot(animatedRoot);
         });
+        // SkeletonUtils allocates one skeleton per clone; geometry and textures
+        // stay owned by the single-use template released below.
+        disposeModelResources({skeletons: ownedSkeletons}, ['skeletons']);
         ownedMaterials.forEach(material => material.dispose());
         root.clear();
         // This is a single-use factory. No other instance can retain these

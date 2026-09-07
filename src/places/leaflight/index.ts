@@ -1,22 +1,14 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {EXRLoader} from 'three/addons/loaders/EXRLoader.js';
-import type {PlaceInstance} from '../places/catalog';
-import {installLeaflightMotion} from './LeaflightMotion';
-import {createLeaflightLighting} from './LeaflightLighting';
-import {prepareBlenderKoi} from './BlenderKoi';
+import type {PlaceInstance} from '../../player/contracts.ts';
+import {installLeaflightMotion} from './FoliageMotion.ts';
+import {createLeaflightLighting} from './Lighting.ts';
+import {prepareBlenderKoi} from './Koi.ts';
+import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 
 function disposeModel(root:THREE.Object3D){
-  const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>();
-  root.traverse(object=>{
-    if(!(object instanceof THREE.Mesh))return;
-    geometries.add(object.geometry);
-    for(const material of Array.isArray(object.material)?object.material:[object.material]){
-      materials.add(material);
-      for(const value of Object.values(material))if(value instanceof THREE.Texture)textures.add(value);
-    }
-  });
-  textures.forEach(texture=>texture.dispose());materials.forEach(material=>material.dispose());geometries.forEach(geometry=>geometry.dispose());
+  disposeModelResources(collectModelResources(root),['textures','materials','geometries','skeletons']);
   root.removeFromParent();
 }
 

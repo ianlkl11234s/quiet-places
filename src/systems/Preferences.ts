@@ -1,4 +1,4 @@
-import {isPlaceId,type PlaceId} from '../places/metadata.js';
+import {isPlaceId,type PlaceId} from '../places/metadata.ts';
 export type RenderQuality = 'standard' | 'low';
 export type Weather = 'clear' | 'rain';
 

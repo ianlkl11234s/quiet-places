@@ -8,22 +8,18 @@ const waves = [
   [.070,.43,.31,.42,0], [.042,-.73,.54,.61,1.7],
   [.025,1.28,-.76,.91,3.8], [.015,-.94,-.72,1.22,.6], [.009,1.74,1.31,1.71,4.1],
 ] as const;
+
 export function sampleOceanWave(x:number,z:number,time:number){
   let height=0,dx=0,dz=0;
   for(const [a,kx,kz,w,phase] of waves){const p=kx*x+kz*z+w*time+phase;const d=a*Math.cos(p);height+=a*Math.sin(p);dx+=d*kx;dz+=d*kz;}
   return {height,dx,dz};
 }
+
 const f=(v:number)=>Number.isInteger(v)?`${v}.0`:String(v);
 export const oceanWaveGLSL=`
 float oceanHeight(vec2 xz,float time){return ${waves.map(([a,x,z,w,p])=>`${f(a)}*sin(dot(xz,vec2(${f(x)},${f(z)}))+time*${f(w)}+${f(p)})`).join('+')};}
 vec2 oceanSlope(vec2 xz,float time){return ${waves.map(([a,x,z,w,p])=>`${f(a)}*vec2(${f(x)},${f(z)})*cos(dot(xz,vec2(${f(x)},${f(z)}))+time*${f(w)}+${f(p)})`).join('+')};}
 `;
-
-// An art-directed solar trajectory, not a geographic/astronomical ephemeris.
-// Shared by sky, sea specular, aperture direct light and the photon solver.
-export function oceanSunDirection(angle:number){
-  return new THREE.Vector3(.12+angle*.16,Math.max(.12,.90-Math.abs(angle)*.95),-1).normalize();
-}
 
 /** Snell refraction plus unpolarized dielectric Fresnel power transmission.
  * normal points into the incident medium; null means back-face incidence or TIR.
