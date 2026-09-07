@@ -1,0 +1,8 @@
+{
+  "mesh": "RoomSurface",
+  "uv": "UV0",
+  "texture": "/textures/leaflight/room-indirect.exr",
+  "lightmapIntensity": 0.65,
+  "containsDirect": false,
+  "calibration": "Tune lightmapIntensity in the web renderer; this map contains diffuse indirect only."
+}

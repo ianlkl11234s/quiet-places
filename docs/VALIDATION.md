@@ -92,3 +92,14 @@
 - 距牆至少 0.35；超寬畫幅依 near plane 尺寸增加距離，resize 會重新收緊邊界。仍禁止平移、縮放與俯仰。
 - `npm run build`、既有 preferences 測試及新增 `tests/water-room.test.ts` 通過。後者檢查 16:9、390:844 與 8:1 畫幅，沿整段軌道取樣 near-plane 四角、兩側越界、大幅輸入與無效起點。
 - 本機瀏覽器驗收：桌面兩側連續方向鍵、Home、390×844 預覽的雙向拖曳、停點與反向離牆，均未見穿牆。此為桌面瀏覽器模擬畫幅，未宣稱手機實機驗收。
+
+## 2026-09-07 窗景擴充
+
+- `npm run build` 通過；既有主 bundle 超過 500 kB 警告仍存在，新窗景與 ZIP 模組 lazy load。
+- `node --experimental-strip-types --test tests/window-places.test.ts`：3 passed，0 failed。
+- Preferences 經 NodeNext 編譯後執行通過，加入場景保存。
+- 實際瀏覽器：海光→水光→樹影可切換；水光顯示 GPU 水面波動模擬；暫停後仍可操作；八圖生成成功並能返回原空間。
+- `exports/window-series/manifest.json` 記錄八張 1024×1536 PNG 的 SHA-256；ZIP 內每張與磁碟一致、八圖雜湊不同，主 agent 逐張視覺檢查。
+- 臨時 localhost 接收服務僅用於把 runtime Blob 保存到 repo，已停止並移除前端臨時呼叫；正式 UI 匯出再次驗證通過、不依賴接收服務。
+- 目前美術比參考圖更程序化，樹葉形狀與焦散仍需使用者主觀驗收。沒有完整物理光照、實機手機或 production 驗證。
+- 本任務預覽 tabs=[]，dev server 最後唯讀抽樣 0.6% CPU；這不是整機 CPU 或即時上限保證。

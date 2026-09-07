@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#151411" />
+    <title>Blender GLB 對照 Viewer</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #151411; color: #eee9df; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 50% 15%, #383126, #151411 58%); }
+      main { width: min(100%, 1120px); display: grid; grid-template-columns: minmax(280px, 2fr) minmax(240px, 1fr); gap: 24px; align-items: start; }
+      .canvas-wrap { width: min(100%, calc((100svh - 48px) * 2 / 3)); aspect-ratio: 2 / 3; justify-self: center; position: relative; overflow: hidden; border: 1px solid #776b59; background: #11100d; box-shadow: 0 24px 70px #0009; }
+      canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+      .badge { position: absolute; inset: 12px auto auto 12px; max-width: calc(100% - 24px); padding: 7px 9px; background: #151411cf; border: 1px solid #97866c; font-size: 12px; letter-spacing: .04em; }
+      aside { padding: 6px 0; }
+      h1 { font-size: clamp(22px, 3vw, 34px); line-height: 1.1; margin: 0 0 12px; font-weight: 600; }
+      p { color: #c9c0b1; line-height: 1.55; margin: 0 0 18px; }
+      fieldset { margin: 0 0 16px; padding: 12px; border: 1px solid #61594c; }
+      legend { padding: 0 5px; font-size: 13px; color: #b9ab94; }
+      label { display: block; margin: 9px 0; cursor: pointer; }
+      input { accent-color: #d8b77b; }
+      button { appearance: none; border: 1px solid #bba177; background: #252119; color: #fff9ef; padding: 10px 12px; cursor: pointer; font: inherit; }
+      button:hover:not(:disabled) { background: #3c3427; }
+      button:disabled { opacity: .5; cursor: wait; }
+      #status { min-height: 3.2em; font-size: 14px; color: #d7c6aa; }
+      #status[data-error="true"] { color: #ffb4a7; }
+      @media (max-width: 720px) { body { padding: 16px; } main { grid-template-columns: 1fr; gap: 18px; } .canvas-wrap { width: min(100%, calc((100svh - 270px) * 2 / 3)); } aside { width: min(100%, 520px); justify-self: center; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="canvas-wrap" aria-label="Blender 模型對照畫布">
+        <div class="badge">樹影午後 · 動態預覽</div>
+      </section>
+      <aside>
+        <h1>Leaflight · 午後微風</h1>
+        <p>沿著窗外的枝葉，讓光慢慢走進房間。與主網站共用同一個動態場景。</p>
+        <fieldset>
+          <legend>比對設定</legend>
+          <label><input id="shadows" type="checkbox" checked /> 顯示日光陰影</label>
+          <label><input id="sky-fill" type="checkbox" checked /> 顯示間接光</label>
+          <label for="beam">光束強度</label><input id="beam" type="range" min="0" max="2.5" step="0.05" value="1" />
+        </fieldset>
+        <button id="pause" type="button">暫停微風</button>
+        <button id="export" type="button" disabled>儲存圖片</button>
+        <p id="status" role="status" aria-live="polite">正在載入 /models/leaflight-study.glb…</p>
+      </aside>
+    </main>
+    <script type="module" src="/src/blender-review.ts"></script>
+  </body>
+</html>

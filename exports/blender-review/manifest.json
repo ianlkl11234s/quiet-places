@@ -1,0 +1,51 @@
+{
+  "stage": "Dynamic full-screen web integration; final visual review pending",
+  "source": "Self-authored Blender geometry and procedural materials; no reference image embedded",
+  "files": [
+    {
+      "path": "assets/blender/leaflight-study.blend",
+      "bytes": 790673,
+      "sha256": "65af09607857c22ddb9efb34ba593c813b4c6f31a774863083f2a3ee0b40bfbd"
+    },
+    {
+      "path": "public/models/leaflight-study.glb",
+      "bytes": 4389120,
+      "sha256": "19ddfb9a9583c396d2eefd874d5b43d5225b6eba3c20b302a80a31e991e59244"
+    },
+    {
+      "path": "exports/blender-review/leaflight-afternoon.png",
+      "bytes": 507462,
+      "sha256": "bcb9ca6c25e8576ff4da3293c619aaf81b69d4c4c0dbfc1059b680da40ac182e"
+    },
+    {
+      "path": "assets/blender/leaflight-web.blend",
+      "bytes": 2278806,
+      "sha256": "408c0e5fb53cc1802e068f643fe0528fadd77c4b131b70136fa0b51ef32c4109"
+    },
+    {
+      "path": "public/textures/leaflight/room-roughness.png",
+      "bytes": 12011,
+      "sha256": "93938fa3132ae9895f8fbc3aeb8de8b37297aa356abdcf928eb12638083027ad"
+    },
+    {
+      "path": "public/textures/leaflight/room-normal.png",
+      "bytes": 273037,
+      "sha256": "f07cd40e7b1349aefba17fde2f5dcb2c5df37f83bb7b3190fbdfed432d242533"
+    },
+    {
+      "path": "public/textures/leaflight/room-indirect.json",
+      "bytes": 258,
+      "sha256": "b1d4e31f5929b19dc22fa4af1d0d56fd4cc42be206f148f3be9827a0f833bcfb"
+    },
+    {
+      "path": "public/textures/leaflight/room-albedo.png",
+      "bytes": 204372,
+      "sha256": "4b3d91eb3fd96772cd61ebe1f362000438d220598902c92b3409b5aee70b475f"
+    },
+    {
+      "path": "public/textures/leaflight/room-indirect.exr",
+      "bytes": 1581834,
+      "sha256": "70cc1c2d4186e6fa257c41b0a63bd6a48e690d765d823b62d211c3021e7f5b84"
+    }
+  ]
+}

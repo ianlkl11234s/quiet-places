@@ -1,0 +1,27 @@
+{
+  "name": "Self-authored Koi Carp",
+  "dimensionsMeters": {
+    "length": 1.152,
+    "width": 0.7,
+    "height": 0.415
+  },
+  "nativeCoordinates": {
+    "head": "+X",
+    "up": "+Z",
+    "glTF": "head +X, up +Y"
+  },
+  "trianglesApprox": 1680,
+  "materials": {
+    "vertexColor": "Koi_Color (white / irregular vermilion patches)",
+    "roughness": 0.4,
+    "emissive": false
+  },
+  "animation": {
+    "clip": "Swim",
+    "durationSeconds": 2.5,
+    "loop": "seamless morph-target travelling wave; no root translation"
+  },
+  "source": "assets/blender/scripts/koi.py",
+  "shadowNote": "Runtime body origin sits 0.25\u20130.31m above floor; directional shadow map handles projection.",
+  "glbSha256": "378a20d5512acceb20c9ea69c1d0a153f887e2d0da907f48a8b630ad029bcd1e"
+}

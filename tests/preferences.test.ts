@@ -61,9 +61,10 @@ function storageFailuresAreSafe(): void {
 
 function roundTrip(): void {
   const storage = new MemoryStorage();
-  const preferences = { version: 1 as const, hour: 6.5, live: true, beamStrength: 2.5, volume: 0.4, quality: 'low' as const, weather: 'rain' as const, rainIntensity: 0.8 };
+  const preferences = { version: 1 as const, place: 'leaflight' as const, hour: 6.5, live: true, beamStrength: 2.5, volume: 0.4, quality: 'low' as const, weather: 'rain' as const, rainIntensity: 0.8 };
   equal(savePreferences(preferences, storage), true, 'save succeeds');
   const loaded = loadPreferences(storage);
+  equal(loaded.place, 'leaflight', 'place round-trips');
   equal(loaded.hour, 6.5, 'hour round-trips');
   equal(loaded.live, true, 'live round-trips');
   equal(loaded.beamStrength, 2.5, 'maximum beam strength round-trips');

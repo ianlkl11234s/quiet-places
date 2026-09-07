@@ -1,6 +1,6 @@
 # Quiet Places：技術架構與遷移設計
 
-狀態：**設計，尚未實作**。現有應用仍為單場景；本文的目錄、介面、路由與生命週期是後續實作契約。產品流程與交付階段以 [PROJECT_SPEC.md](../PROJECT_SPEC.md) 為準。
+狀態：**部分實作**。`src/places/metadata.ts` 和 `catalog.ts` 已提供三場景 metadata、lazy factory 與共用 runtime 切換；設定可保存場景，八圖匯出已可執行。實際介面見 `PlaceInstance`，實作說明見 [WINDOW_SCENES.md](WINDOW_SCENES.md)。本文其餘首頁、hash router、淡入淡出、音訊 mixer 與建議目錄仍是後續設計，不能視為已交付。產品流程與交付階段以 [PROJECT_SPEC.md](../PROJECT_SPEC.md) 為準。
 
 ## 1. 主要決策
 

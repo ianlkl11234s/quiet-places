@@ -1,0 +1,41 @@
+{
+  "artifactPhase": "baked-room-pbr",
+  "cameraTargetThree": [
+    1.0,
+    3.700000047683716,
+    -2.799999952316284
+  ],
+  "sun": {
+    "directionBlender": [
+      -1.0,
+      0.45,
+      -0.85
+    ],
+    "directionThree": [
+      -1.0,
+      -0.85,
+      -0.45
+    ],
+    "intensity": 20.0,
+    "colorLinear": [
+      1.0,
+      0.75,
+      0.45
+    ]
+  },
+  "exposureEV": 0.8,
+  "roomSurface": {
+    "mesh": "RoomSurface",
+    "uv": "UV0",
+    "albedo": "/textures/leaflight/room-albedo.png",
+    "normal": "/textures/leaflight/room-normal.png",
+    "roughness": "/textures/leaflight/room-roughness.png",
+    "indirect": "/textures/leaflight/room-indirect.exr",
+    "lightmapIntensity": 0.65,
+    "containsDirect": false,
+    "calibration": "Tune lightmapIntensity in the renderer; do not add a direct-light contribution."
+  },
+  "limitations": [
+    "Tree materials remain simplified for the review export."
+  ]
+}
