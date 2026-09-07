@@ -50,4 +50,6 @@ npm run dev -- --port 5188 --strictPort
 - [docs/original-brief.txt](docs/original-brief.txt)：完整原始描述。
 - [docs/VALIDATION.md](docs/VALIDATION.md)：驗收證據、限制與下一步。
 
-目前是本機原型，未部署、未 push、未建立雲端服務。視覺追求感知近似；水面、焦散與體積光並非物理正確模擬。
+水景正式站：https://quiet-places.zeabur.app/ 。公開 repository：`ianlkl11234s/quiet-places`，Zeabur 連接 `main`，push 後自動建置更新。
+
+目前線上只發布水光之間（晴日／雨日）；其他場景仍在獨立開發分支。視覺追求感知近似；水面、焦散與體積光並非物理正確模擬。
