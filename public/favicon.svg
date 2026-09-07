@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
   <title id="title">Quiet Places／靜隅</title>
-  <desc id="desc">一道天光穿過暗室，在水面留下波紋。</desc>
-  <rect width="64" height="64" rx="15" fill="#101e23"/>
-  <path d="M29 13h19L32 43H16Z" fill="#b9d5ce" opacity=".18"/>
-  <path d="M29 13h19l-4 8H25Z" fill="#eee7ce"/>
-  <path d="M14 43c6-5 12 5 18 0s12 5 18 0" fill="none" stroke="#a9d1c7" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M19 51c5-3 9 3 14 0s9 3 13 0" fill="none" stroke="#a9d1c7" stroke-width="2.5" stroke-linecap="round" opacity=".55"/>
+  <desc id="desc">黑暗中一扇圓形天窗，白色陽光向下灑落，逐漸淡去。</desc>
+  <defs>
+    <linearGradient id="sunlight" x1="0" y1="23" x2="0" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".5"/>
+      <stop offset=".6" stop-color="#fff" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#000"/>
+  <path d="M24 23H40L50 55H14Z" fill="url(#sunlight)"/>
+  <circle cx="32" cy="18" r="10" fill="#000" stroke="#fff" stroke-width="2.5"/>
 </svg>
