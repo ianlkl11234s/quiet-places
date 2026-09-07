@@ -148,3 +148,21 @@ build通過（exports/long-fin-koi-integration/build-soft-light.log）；CUA實�
 20分鐘數值測試：4隻均曾越過投影開口半徑2.35m並返回1.5m內，最大速度0.307999m/s，最小中心間距0.626520m，保持牆面餘量與同時最多兩隻加速。此明暗指標是開口投影近似，非逐魚照度量測。26項測試與build通過（exports/long-fin-koi-integration/tests-excursions.log與build-excursions.log）。CUA reload目前5182預覽後，實際可見光柱右側的深色魚輪廓。未提交或發布，基準仍為25bc75f。
 
 2026-09-07：使用者確認目前預覽並授權提交；上述活力魚群、柔化水波光束與暗區往返一併納入本次commit。未推送或發布。
+
+## 2026-09-07：更深青藍海水試稿
+
+使用者希望天窗海水更深、接近沖繩海的清透感，減少塑膠片感。本輪從fd8d753另作未提交試稿：SHALLOW_SEA_DEPTH由0.8增至3.0m；密封底面仍Y=7m、室內仍乾燥。天窗視線與焦散投影共用新深度。
+
+天窗專用RGB吸收係數改為(0.22,0.065,0.035)m⁻¹，沿視線水中路程衰減，搭配青藍水中色與較弱的暖色混合。這是美術校色，非沖繩實測海水；未修改共用Ocean吸收常數，室內燈光仍保留原美術照明，並非整場能量守恆解算。
+
+雲亮紋混合0.55→0.24，smoothstep範圍0.62–0.94→0.38–1.30，減少大片白色硬邊扭曲。Waterlight的surfaceSlope／disturbanceHeight新增兩組一致的局部細波：振幅0.0015／0.0008m、波向量(6.2,2.7)／(-4.1,7.3)rad/m、頻率1.4／1.85rad/s；天窗、焦散與柔光共用坡度及時間。初稿細波幅度過大使地面產生斑點，已降低至上述值。
+
+本機build與26項測試通過，記錄exports/long-fin-koi-integration/build-deeper-sea.log及tests-deeper-sea.log。CUA實際reload14:00預覽，檢視天窗青藍色、柔化亮紋與室內焦散；console error讀回為空。未做真實海域比對、全時段／實機FPS驗收，尚未commit或發布。
+
+## 2026-09-07：PR前全頁閃白與效能检查
+
+使用者澄清是整個網頁短暫閃白，並非魚或水面局部閃爍。HTML原本只有theme-color，實際暗底在JavaScript import的CSS中；本輪將最低限度暗底／文字色／color-scheme直接放進head，減少CSS尚未到達或開發重載時露出瀏覽器白底。此為可確認的載入缺口修正，尚不能證明使用者每次閃白都源自此處。
+
+骨架實例檢查發現SkeletonUtils按mesh複製骨架，現在同魚且骨頭／inverse binds完全一致的部件共用一個palette，魚與魚仍獨立；測試assert16個skeleton。幀率節流保留排程相位，避免晚一點的RAF把每幀時程持續向後拖；動畫dt仍使用實際呈現時間。
+
+新增tests/waterlight-performance.html，載入真實main與composer，5秒暖機＋15秒量測；CPU值是composer提交時間，不是GPU計時。初次766×912 DPR1標準模式約27.00fps、幀時間p95=50ms／max95.8ms、texture135；修改後765×912 DPR0.9約29.47fps、p95=35.3ms／max146.9ms、texture39。視窗與DPR不同，並非嚴格同條件benchmark，最大延遲仍表示偶發卡頓，不能宣稱無效能問題或代表實機手機表現。測試26項、build通過；完整PR驗收將在整合main後補記。

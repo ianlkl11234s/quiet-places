@@ -65,6 +65,7 @@ test('adapter binds each rig, freezes at dt=0, blends Actions and releases share
     assert.notEqual(firstBone, secondBone, 'reused variant owns independent bones');
     assert.ok(firstBone.quaternion.angleTo(secondBone.quaternion) > 1e-6, 'reused variant has independent animation phase');
     const skeletons = collectModelResources(scene).skeletons;
+    assert.equal(skeletons.size, 16, 'one shared bone palette per fish, independent across instances');
     let skeletonDisposals = 0;
     skeletons.forEach(skeleton => { const dispose = skeleton.dispose.bind(skeleton); skeleton.dispose = () => { skeletonDisposals++; dispose(); }; });
     const a = firstBone.quaternion.clone(), b = secondBone.quaternion.clone(); school.update(1 / 60, 2, {intensity: 1, warmth: .5, angle: .2, activity: .5});

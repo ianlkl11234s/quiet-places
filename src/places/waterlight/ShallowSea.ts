@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export const SHALLOW_SEA_BOTTOM = 7;
-export const SHALLOW_SEA_DEPTH = .8;
+export const SHALLOW_SEA_DEPTH = 3.0;
 
 // Waterlight keeps its accepted left/back wall composition. The vector points
 // from the room toward the sun and is used by every visible and lighting pass.

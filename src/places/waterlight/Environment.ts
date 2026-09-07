@@ -3,7 +3,7 @@ import {seededRandom} from '../../shared/math/seededRandom.ts';
 import * as THREE from 'three';
 import {WATER_ROOM} from './Room.ts';
 import {createWaterSimulation} from '../../systems/WaterSimulation.ts';
-import {oceanAbsorption, oceanWaveGLSL} from '../../shared/water/Optics.ts';
+import {oceanWaveGLSL} from '../../shared/water/Optics.ts';
 import {disturbedSurfaceGLSL, disturbedSurfaceSlopeGLSL} from './SurfaceSampling.ts';
 import {SHALLOW_SEA_BOTTOM, SHALLOW_SEA_DEPTH, shallowSeaSunDirection} from './ShallowSea.ts';
 
@@ -87,7 +87,7 @@ const causticFragment = /* glsl */ `
 `;
 
 // The lower plane is an ideal sealed air/water interface. It is deliberately
-// opaque: its transmitted colour follows a camera ray through the 0.8 m water
+// opaque: its transmitted colour follows a camera ray through the scene-depth water
 // layer and the moving free surface, so the room never becomes water-filled by
 // alpha blending or a second, accidental refraction pass.
 const shallowSeaFragment = /* glsl */ `
@@ -101,15 +101,15 @@ const shallowSeaFragment = /* glsl */ `
   vec3 skyAt(vec3 d){
     float up=clamp(d.y,0.,1.);
     float sunset=smoothstep(.6,.95,uWarmth);
-    vec3 horizon=mix(vec3(.20,.44,.59),vec3(.78,.64,.45),sunset);
-    vec3 zenith=mix(vec3(.035,.15,.31),vec3(.34,.31,.36),sunset);
+    vec3 horizon=mix(vec3(.20,.48,.62),vec3(.78,.64,.45),sunset);
+    vec3 zenith=mix(vec3(.045,.24,.43),vec3(.34,.31,.36),sunset);
     vec3 sky=mix(horizon,zenith,pow(up,.48));
     // Broad, low-contrast clouds are sampled after both refractions. They
     // make the moving ray bend legible without adding a second water pattern.
     vec2 cloudP=d.xz/max(d.y,.16)*2.6+vec2(2.1+uTime*.003,5.7-uTime*.002);
     float cloud=noise2(cloudP)+noise2(cloudP*2.07+vec2(3.1,7.4))*.38;
-    cloud=smoothstep(.62,.94,cloud);
-    sky=mix(sky,mix(vec3(.65,.78,.82),vec3(.88,.77,.60),sunset),cloud*.55);
+    cloud=smoothstep(.38,1.30,cloud);
+    sky=mix(sky,mix(vec3(.65,.78,.82),vec3(.88,.77,.60),sunset),cloud*.24);
     sky=mix(sky,vec3(.25,.32,.35)+cloud*.12,uRain*.75);
     sky+=mix(vec3(.92,.97,1.),vec3(1.,.82,.55),uWarmth)*pow(max(dot(d,uSunDirection),0.),260.)*.55;
     return sky*(.035+uIntensity*.965);
@@ -135,7 +135,7 @@ const shallowSeaFragment = /* glsl */ `
     float lowerF=.0204+.9796*pow(1.-clamp(dot(vec3(0.,-1.,0.),-incoming),0.,1.),5.);
     float upperF=.0204+.9796*pow(1.-clamp(dot(surfaceNormal,waterRay),0.,1.),5.);
     vec3 attenuation=exp(-uAbsorption*travel);
-    vec3 waterTint=mix(vec3(.16,.44,.47),vec3(.42,.54,.48),uWarmth)*(.10+uIntensity*.16);
+    vec3 waterTint=mix(vec3(.018,.32,.40),vec3(.20,.36,.33),uWarmth)*(.18+uIntensity*.46);
     vec3 reflected=vec3(.012,.027,.032)+skyAt(reflect(incoming,vec3(0.,-1.,0.)))*lowerF*.12;
     if(length(airRay)<.01){ gl_FragColor=vec4(reflected+waterTint*.32,1.); return; }
     vec3 transmitted=mix(waterTint,skyAt(normalize(airRay)),attenuation);
@@ -280,7 +280,7 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   makePlane(3.6,-2-minZ,new THREE.Vector3(0,height,(minZ-2)/2),new THREE.Euler(Math.PI/2,0,0));
 
   const sealGeometry = new THREE.PlaneGeometry(3.6,3.6,32,32); disposable.push(sealGeometry);
-  const shallowSeaUniforms={...waveUniforms,uRain:{value:0},uTime:{value:0},uWarmth:{value:.5},uIntensity:{value:1},uSunDirection:{value:shallowSeaSunDirection(0)},uAbsorption:{value:oceanAbsorption.clone()}};
+  const shallowSeaUniforms={...waveUniforms,uRain:{value:0},uTime:{value:0},uWarmth:{value:.5},uIntensity:{value:1},uSunDirection:{value:shallowSeaSunDirection(0)},uAbsorption:{value:new THREE.Vector3(.22,.065,.035)}};
   const sealMaterial=new THREE.ShaderMaterial({uniforms:shallowSeaUniforms,vertexShader:causticVertex,fragmentShader:shallowSeaFragment,side:THREE.DoubleSide}); disposable.push(sealMaterial);
   const seal=new THREE.Mesh(sealGeometry,sealMaterial);seal.rotation.x=-Math.PI/2;seal.position.set(0,SEA_BOTTOM,-.2);seal.name='shallow-sea-seal';add(seal);
 

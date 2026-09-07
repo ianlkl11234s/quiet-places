@@ -65,6 +65,16 @@ export async function prepareLongFinKoiSchool(): Promise<FishSchoolFactory> {
       const root = cloneSkeleton(template);
       root.name = `KOI_INSTANCE_${String(index + 1).padStart(2, '0')}`;
       root.userData.variantSource = template.name;
+      // SkeletonUtils clones a skeleton per mesh. Parts of this fish share the
+      // same bones/inverse binds, so keep one palette per fish, not per fin.
+      const palettes: THREE.Skeleton[] = [];
+      root.traverse(object => {
+        if (!(object instanceof THREE.SkinnedMesh)) return;
+        const skeleton = object.skeleton;
+        const shared = palettes.find(candidate => candidate.bones.length === skeleton.bones.length && candidate.bones.every((bone, i) => bone === skeleton.bones[i] && candidate.boneInverses[i].equals(skeleton.boneInverses[i])));
+        if (shared) { object.skeleton = shared; skeleton.dispose(); }
+        else palettes.push(skeleton);
+      });
       collectModelResources(root).skeletons.forEach(skeleton => resources.skeletons.add(skeleton));
       const carrier = new THREE.Group(); carrier.name = `long-fin-koi-${index + 1}`;
       root!.removeFromParent(); carrier.add(root!); group.add(carrier); root!.traverse(object => { if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; } }); configureLongFinMaterials(root!);
