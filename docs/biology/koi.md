@@ -1,6 +1,52 @@
-# 錦鯉造型近似製作頁
+# 錦鯉：模型、骨架與游動系統
 
-> 狀態：樹影午後的可重建原創資產與網站接入紀錄。此頁只描述目前模型與動畫；它不是品種鑑定、解剖重建、游姿量測或流體模擬。
+> 狀態：樹影午後錦鯉的來源、重做與網站接入紀錄；最新狀態見上方 2026-09-07 重做章節，舊模型列為歷史。未宣稱生物力學或流體模擬。
+
+## 2026-09-07：重做骨架版（本機已驗證）
+
+- 使用者要求參考魟魚製作流程更新樹影午後錦鯉，並明確表示可重做、希望更真實。原始完整文件及 SHA-256 見[參考存檔](references/README.md)。文件是需求參考，不是完成證明。
+- 改動集中於魚的模型、材質、骨架、Actions、路徑與驗證。房間、樹、曝光、日照、地面間接光與設定面板沿用原基準。下方舊 `Swim` morph 模型紀錄保留為歷史。
+- 新來源分成 `assets/blender/scripts/koi.py`（造型、材質、骨架、蒙皮、匯出）及 `koi_motion.py`（控制參數、姿態計算、Actions、NLA 與動作驗證）。在独立 Blender factory-startup 背景程序建置，不修改開啟中的美術場景。
+
+### 形態依據與近似
+
+- 2026-09-07 核對 [FAO / Peteri 2009 的鯉魚資料](https://www.fao.org/fishery/docs/DOCUMENT/aquaculture/CulturedSpecies/file/en/en_commoncarp.htm)：細長且側扁的體形、厚唇、兩對口鬚與長背鰭基部，作為修正方向。這不是各錦鯉品系比例或花紋的鑑定資料。
+- 另核對 [JEB 2013 的鯉科尾鰭與游泳研究](https://journals.biologists.com/jeb/article/216/16/3164/11570/The-effects-of-caudal-fin-loss-and-regeneration-on)，只確認研究涵蓋鯉魚與尾擺／尾鰭功能，不將幼魚實驗或其他魚種數值套作本資產游速。
+- 模型、程序花紋貼圖與鰭面為本專案原創。没有下載模型、照片貼圖或重發布外部圖片。0.55 m 原生全長與身體比例是使用者任務書的美術預設；未聲稱量測真實個體。魚身依然是室內近地的超現實編舞，不新增水體、浮力、避障或群游求解。
+
+### 動作與控制
+
+- Blender 使用 `+Y` 朝頭、`+Z` 朝背，glTF Y-up 匯出後為 `-Z` 前方、`+Y` 上方。網站依實際 Z 軸長度縮放，三尾可見全長維持約 0.92／0.86／1 m；此場景放大與 0.55 m 母檔尺度分開記錄。
+- `KOI_RIG` 包含頭、五節脊柱、尾柄、三節尾鰭與成對／中線鰭骨。頭部保持相對穩定，後半身以 `s^2.35` 振幅包絡及中心線切線角驅動；角度導數除以身長，並轉成父骨相對旋轉。尾中／尾端使用時間延遲跟隨，並非軟體或水阻求解。
+- 30 fps 烘焙九個 Actions：IDLE_HOVER 10 s、SLOW_CRUISE 12 s、CRUISE 8 s、TURN_LEFT／RIGHT 各 8 s、RISE／DESCEND 各 6 s、CIRCLE_SLOW 16 s、GLIDE 8 s。`KOI_ACT_` 為完整名稱前綴，NLA tracks 預設 muted，慢游為 active action。
+- 慢游與停留為原地循環；轉彎／巡游／升降／滑行保留 root travel，不能直接與網站路徑疊加。圓游為閉合路徑。旋轉以與方向一致的符號配合積分路徑，升降為阻尼步階響應近似。
+- 真正循環的 phase、振幅變化、胸鰭、heave 與 roll 都在 clip 長度內保持週期；不是把最後一幀硬設回第一幀。慢游預設 0.78 Hz 為了循環取整為 12 s／9 次＝0.75 Hz；所有速度、頻率與細部動作仍是美術校準。
+- 自訂屬性是**重新烘焙控制**，不是 live drivers。修改 `KOI_RIG` 的 wave、forward_speed、turn、pectoral、heave、roll、depth、tail_follow、organic_variation 與 motion_seed 後呼叫 `build_actions(rig)`。相同參數和 seed 可重現；共用到其他 rig 的 Actions 會先拒絕覆寫。
+
+### 網站轉換
+
+- `src/places/leaflight/KoiMotion.ts` 保留約 78 s／圈的活動範圍，加入各魚不同的平滑速度变化和小幅升降；鼻端依完整速度向量朝向，並有小幅轉彎傾斜。
+- 只有原地 `KOI_ACT_SLOW_CRUISE` 用於網站。積分路徑距離除以每次尾擺約 17% 顯示身長，得到連續的動畫 clock；這是視覺步距比例，非游泳效率測量。網站取用約 0.35–1.15 Hz 的驗證界限。
+- `Koi.ts` 在烘焙姿態上加小幅後半身轉彎偏移；每次先還原上一份烘焙姿態，避免相同 elapsed 累積偏轉。蒙皮、受光座標與 shadow pass 共用實際骨架。三個 clone 擁有獨立骨架和材質，幾何／貼圖由單一 factory 統一釋放。
+- 中性近距離三視角與 36 s 三圈檢查入口：`tests/koi-gpu.html`。正式樹影入口依然是 `/?place=leaflight`；測試頁不加入產品選單。
+
+### 材質與最後造型修正
+
+- 第一版草稿雖有骨架，但鰭根浮離、尾鰭像紙片、嘴唇與眼睛過大；未接受該版視覺驗收。最後重做為共享截面切線的身體、貼合身體的曲面魚鰭、細鰭條、較小側眼、相連的小唇圈、曲線口鬚與鰓蓋線。
+- 五種 Blender 可選材質有獨立程序花紋；預設 Kohaku 使用 packed 1024×512 sRGB 花紋，避免低密度頂點色造成鋸齒狀斑塊邊界。512×256 非色彩 normal map 只提供淺的鱗片邊緣起伏；已實際輸出到 GLB。它不是照片或測量所得皮膚細節。
+- 網站保留既有窗洞方向補光與地面反射近似；以同一骨架處理身體和鰭条的投影。鰭 alpha／transmission 為視覺近似；部分薄邊在低解析度仍可能有取樣鋸齒。
+
+### 本輪驗收
+
+- Blender 5.1.2 背景建置成功；實際骨架、全 mesh 權重總和、九個 Actions、慢游／停留首尾與速度、圓游姿態矩陣及速度檢查通過。可編輯 `.blend`、GLB、metadata 與預覽圖均已儲存。
+- 最終 GLB：1,789,020 bytes、20 meshes、26,002 triangles、1 skin／20 joints、9 Actions、2 張 embedded PNG（花紋及 normal map）。SHA-256 與清單見 [實際資產讀回](../../exports/koi-integration/asset-readback.json)。
+- Node 實際蒙皮取樣：前方 15% 身體橫向 excursion 0.00223 m、後方 20% 0.04615 m，比值 0.0483；不是單純包絡公式。三個實例兩圈、每 2 s 取樣全部變形頂點：最低 0.0873 m、最高 0.4913 m，皆在房間內。15 分鐘路徑測試亦檢查間距、鼻端與速度、尾擺 cadence 及跨圈連續性。
+- `npm test` **21/21** 與 `npm run build` 通過；既有 bundle >500 kB 提示保留。測試同 elapsed 多次不累積轉向，seek 還原，資源僅釋放一次。日誌在 [tests.log](../../exports/koi-integration/tests.log)、[build.log](../../exports/koi-integration/build.log)。
+- Browser 實際解碼 GLB／兩張貼圖，上視、側視、斜視的慢游 36 s（三圈）完成，另核對不同尾擺相位。[三視角](../../exports/koi-integration/three-views.png)。樹影正式場景入口 1280×720、14:00 可見新魚身與投影；[場景圖](../../exports/koi-integration/leaflight.png)。暫停後兩次 screenshot 完全一致；切換場景返回另見 browser readback。
+- 使用者已於 2026-09-07 確認「這樣可以」並授權提交此版本。本輪是本機驗收，尚未發布或完成實體手機效能驗收。仍屬程序造型與運動學近似；不宣稱照片級、完整任務書每項驗收、流體／肌肉求解或網站九狀態自主行為。來源、網站接入、測試與本機證據隨此次錦鯉重做提交保存。
+
+
+## 舊版 morph 基準（保留歷史，已由上方重做工作取代）
 
 ## 範圍與來源
 

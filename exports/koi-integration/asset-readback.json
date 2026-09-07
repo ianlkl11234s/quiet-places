@@ -1,0 +1,32 @@
+{
+  "sha256": "929cf6dd15a03de3a06953cac9e39243c23abd9894e978bbbdd17d07323eeaf9",
+  "bytes": 1789020,
+  "meshes": 20,
+  "skins": 1,
+  "joints": [
+    20
+  ],
+  "animations": [
+    "KOI_ACT_CIRCLE_SLOW",
+    "KOI_ACT_CRUISE",
+    "KOI_ACT_DESCEND",
+    "KOI_ACT_GLIDE",
+    "KOI_ACT_IDLE_HOVER",
+    "KOI_ACT_RISE",
+    "KOI_ACT_SLOW_CRUISE",
+    "KOI_ACT_TURN_LEFT",
+    "KOI_ACT_TURN_RIGHT"
+  ],
+  "images": [
+    {
+      "name": "KOI_Subtle_Scale_Normal",
+      "mimeType": "image/png"
+    },
+    {
+      "name": "KOI_Coat_KOHAKU",
+      "mimeType": "image/png"
+    }
+  ],
+  "triangles": 26002,
+  "normalMaps": 1
+}
