@@ -15,13 +15,18 @@ export interface MusicPlayer {
 interface Track {
   title: string;
   source: string;
+  suggestedPeriod?: string;
 }
 
 const tracks: readonly Track[] = [
-  { title: 'Submerged Sunlight（沉入日光）', source: '/audio/submerged-sunlight.m4a' },
-  { title: 'Waterline Hush（水線低語）', source: '/audio/waterline-hush.m4a' },
-  { title: 'Sun Through Water（穿過水面的陽光）', source: '/audio/sun-through-water.m4a' },
-  { title: 'Sun Through Water (1)（穿過水面的陽光（二））', source: '/audio/sun-through-water-2.m4a' },
+  { title: '沉光漫游', source: '/audio/submerged-sunlight.m4a' },
+  { title: '水線低語', source: '/audio/waterline-hush.m4a' },
+  { title: '晴光入水', source: '/audio/sun-through-water.m4a' },
+  { title: '波影流年', source: '/audio/sun-through-water-2.m4a' },
+  { title: '晨光迴環', source: '/audio/dawn-cycles.m4a', suggestedPeriod: '晨曦至上午' },
+  { title: '暮色餘韻', source: '/audio/dusk-resonance.m4a', suggestedPeriod: '傍晚' },
+  { title: '夜色低迴', source: '/audio/nightfall-undertone.m4a', suggestedPeriod: '夜間' },
+  { title: '靜室微光', source: '/audio/quiet-room-glow.m4a', suggestedPeriod: '深夜' },
 ];
 
 const clampVolume = (value: number) => Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0));
@@ -39,14 +44,14 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
   root.setAttribute('aria-label', '本地音樂播放器');
   const title = document.createElement('p');
   title.className = 'music-player__title';
-  title.textContent = '水下選曲';
+  title.textContent = '空間選曲';
   const select = document.createElement('select');
   select.className = 'music-player__track';
   select.setAttribute('aria-label', '選擇曲目');
   tracks.forEach((track, index) => {
     const option = document.createElement('option');
     option.value = String(index);
-    option.textContent = track.title;
+    option.textContent = track.suggestedPeriod ? `${track.title} · ${track.suggestedPeriod}` : track.title;
     select.append(option);
   });
   const play = document.createElement('button');
@@ -69,8 +74,9 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
   const loop = document.createElement('input');
   loop.type = 'checkbox';
   loop.className = 'music-player__loop';
-  loop.setAttribute('aria-label', '循環播放');
-  loopLabel.append(loop, document.createTextNode(' 循環播放'));
+  loop.checked = true;
+  loop.setAttribute('aria-label', '循環歌單');
+  loopLabel.append(loop, document.createTextNode(' 循環歌單'));
   const status = document.createElement('p');
   status.className = 'music-player__status';
   status.setAttribute('role', 'status');
@@ -132,6 +138,8 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     audio.pause();
     wantedPlaying = false;
     trackIndex = index;
+    select.value = String(index);
+    progress.textContent = '0:00';
     audio.removeAttribute('src');
     audio.load();
     setStatus(`已選擇：${tracks[trackIndex].title}`);
@@ -144,6 +152,8 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
   audio.addEventListener('play', render);
   audio.addEventListener('pause', render);
   audio.addEventListener('ended', () => {
+    if (disposed || !wantedPlaying) return;
+    if (loop.checked) { setTrack((trackIndex + 1) % tracks.length, true); return; }
     wantedPlaying = false;
     render();
   });
@@ -161,7 +171,6 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     audio.volume = value;
     options.onVolumeChange?.(value);
   });
-  loop.addEventListener('change', () => { audio.loop = loop.checked; });
 
   return {
     visibility(hidden) { if (hidden) stop(); },
