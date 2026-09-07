@@ -53,3 +53,13 @@ GUI 原場景有多個保留的 study iteration；不要刪除未確認的使用
 ### 通透開口微調
 
 降低天空霧白與薄雲混合強度，樹的空氣透視上限降為 2.5%。室內近似 volume 對穿越窗洞的視線不再疊加，避免天空／枝葉像覆蓋半透明膜；室內光束與窗邊局部補光保留。此處是視覺近似，不是玻璃材質（沒有新增玻璃）。主 app 日光 browser 目視開口更清楚、console 無錯誤；build/diff check 通過。
+
+## Blender 錦鯉接入樹影房間
+
+新增 `assets/blender/koi.blend`、可重建 `scripts/koi.py` 與 `public/models/koi.glb`。白紅斑錦鯉、眼睛／鬚／魚鰭／雙叉尾；body/fins 同組 morph travelling wave，GLB Swim animation 實際長度與 hash 見 koi.metadata.json。原 room study 與 GUI 未修改。
+
+`BlenderKoi.ts` 以三個 animation mixer 驅動同資產 clone，78 秒低速迴游，錯開三分之一圈以避免交疊；中心離地 .25–.31m。真正 castShadow/receiveShadow，弱非 emissive 漫反射填光隨 daylight 下降。葉影、房間遮蔽與日照共用 directional shadow map。LeaflightPlace 預載魚資產後才切換；釋放 mixer、clone material 與 single-owner shared assets。
+
+驗收：主 app 無 browser error/warning；目視暗處與日照中的魚亮度不同，日照魚有地面投影。Node 實際載入 GLB／runtime，每 4 秒採樣至 88 秒：mesh 頂點皆在房間內、最低離地 .083m、最高 .502m、魚中心距離 >1.2m；相同 elapsed 還原相同位置，dispose 重複呼叫不重複釋放，7 geometries 釋放。build/diff check 通過。
+
+限制：第一版低多邊形錦鯉，美術可再細化鱗片、透光魚鰭與游姿；未做水體流體／碰撞求解。原 room volume 仍為近似，沒有動態魚身 depth texture 截斷。不是完整物理離線渲染。未 push／發布。

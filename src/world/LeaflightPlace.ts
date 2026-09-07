@@ -4,6 +4,7 @@ import {EXRLoader} from 'three/addons/loaders/EXRLoader.js';
 import type {PlaceInstance} from '../places/catalog';
 import {installLeaflightMotion} from './LeaflightMotion';
 import {createLeaflightLighting} from './LeaflightLighting';
+import {prepareBlenderKoi} from './BlenderKoi';
 
 function disposeModel(root:THREE.Object3D){
   const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>();
@@ -71,6 +72,9 @@ export async function prepareLeaflight(){
     }
   });
   if(!roomMaterials.size){indirect.dispose();disposeModel(root);throw new Error('樹影場景缺少烘焙後的 RoomSurface。');}
+  let prepareFish:Awaited<ReturnType<typeof prepareBlenderKoi>>;
+  try{prepareFish=await prepareBlenderKoi();}
+  catch(error){disposeModel(root);throw error;}
   let consumed=false;
   const factory=(scene:THREE.Scene,renderer:THREE.WebGLRenderer):PlaceInstance=>{
     consumed=true;
@@ -78,6 +82,7 @@ export async function prepareLeaflight(){
     const lighting=createLeaflightLighting(scene);
     lighting.fill.intensity=0; // Baked exterior bounce supplies the room's indirect light.
     const motion=installLeaflightMotion(root);
+    const fish=prepareFish(scene);
     const originalShadow=renderer.shadowMap.enabled;
     const originalShadowType=renderer.shadowMap.type;
     renderer.shadowMap.enabled=true;
@@ -89,6 +94,7 @@ export async function prepareLeaflight(){
       update(_dt,elapsed,state){
         skyDaylight.value=THREE.MathUtils.clamp(state.intensity/.9,.03,1);
         motion.update(elapsed,.85,skyDaylight.value);
+        fish.update(_dt,elapsed,skyDaylight.value);
         lighting.update(elapsed,state.beamStrength??1,state.intensity/.9,state.warmth,state.angle);
         // One afternoon indirect basis, gently scaled for other moments. Direct
         // leaf shadows remain live; per-moment rebakes are a later fidelity pass.
@@ -96,11 +102,11 @@ export async function prepareLeaflight(){
       },
       disturb(){},resetWater(){},
       dispose(){
-        motion.dispose();lighting.dispose();disposeModel(root);
+        fish.dispose();motion.dispose();lighting.dispose();disposeModel(root);
         renderer.shadowMap.enabled=originalShadow;
         renderer.shadowMap.type=originalShadowType;
       },
     };
   };
-  return Object.assign(factory,{dispose(){if(!consumed){consumed=true;disposeModel(root);}}});
+  return Object.assign(factory,{dispose(){if(!consumed){consumed=true;prepareFish.dispose();disposeModel(root);}}});
 }
