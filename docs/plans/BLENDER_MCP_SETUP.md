@@ -45,9 +45,13 @@ Blender Preferences 已保存：Allow Online Access 開啟，官方 MCP host 為
 
 ## Codex 載入狀態與後續
 
-**設定、server 啟動與 Blender 端到端讀回已通過；當前既有任務的可呼叫工具清單仍沒有 Blender。** 這兩件事不可混為一談。請重新載入 Codex／建立載入新設定的任務，再確認工具清單有 `blender` 並呼叫唯讀摘要。不自動關閉 Codex，以免打斷使用者其他工作。
+**2026-09-07 使用者重開 Codex 後，原生 MCP 工具載入與直接呼叫已通過。** 安裝當時既有任務尚未載入新工具；本次直接透過 Codex 的 `mcp__blender__` 工具呼叫驗證，沒有使用外部 Python client 代替。
 
-下一次只讀工具清單／摘要即可驗收客戶端載入，不必重裝或重建模型。未來升級先保留快照，再做同一連線 smoke；避免再次解析到不相容的 MCP SDK 主版本。
+- `get_objects_summary({})`：`status=ok`、`isError=false`；Scene／Layout，作用中物件 Cube，場景包含 Camera、Cube、Light。
+- `get_blendfile_summary_datablocks({})`：`status=ok`、`isError=false`；3 個物件、1 個 mesh、1 個 camera、1 個 light、1 個 scene；目前 render engine 為 `BLENDER_EEVEE`。
+- 兩項皆為唯讀查詢，未建模、改動場景、保存 `.blend` 或啟動渲染。此結果證明 Codex → 官方 MCP server → 正在開啟的 Blender 可用，不代表 GPU 渲染或網站匯出已驗證。
+
+未來升級先保留快照，再做同一連線 smoke；避免再次解析到不相容的 MCP SDK 主版本。
 
 ## 停用與回復
 
