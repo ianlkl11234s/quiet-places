@@ -2,7 +2,9 @@
 
 > 現行程式入口：`src/places/oceanlight/index.ts`；場景細節：`src/places/oceanlight/WindowRoom.ts`。跨場景共用元素見 [架構文件](../ARCHITECTURE.md)。下方歷史紀錄的舊路徑對應本次整理前版本。
 
-2026-09-07。基準為已發布 `bcddfe4`；目前在 `codex/ocean-window-studies` 製作本地比較稿，尚未提交或發布，也未取得使用者選版確認。
+目前版本：海光完成版、魟魚與潮汐已隨 [PR #2](https://github.com/ianlkl11234s/quiet-places/pull/2) 合併至 `main`（`27e597f`）。使用者已確認製作效果；本機驗收通過，正式部署未驗證。
+
+以下按製作順序保留歷史比較與驗收紀錄；文中的「未提交」與舊檔案路徑代表當時狀態，不代表目前版本。
 
 ## 本次範圍與介質
 
@@ -170,7 +172,7 @@
 
 - 在 `codex/shared-scene-elements` 將場景程式集中到 `src/places/oceanlight/`；保留本場景材質、光路、鏡頭與動態的既有參數。
 - 共用狀態由 `player/contracts.ts` 定義，水體數學／亂數／模型資源按實際需求引用 `shared/`；不把場景曝光、天空或光學近似共用化。
-- 整理分支尚未提交或發布；視覺驗收範圍見 [驗收記錄](../VALIDATION.md)。
+- 目錄整理已隨 [PR #2](https://github.com/ianlkl11234s/quiet-places/pull/2) 合併至 `main`（`27e597f`）；視覺驗收範圍見 [驗收記錄](../VALIDATION.md)。
 
 ### 整理時的魟魚草稿狀態
 
@@ -213,11 +215,11 @@
 - 依使用者「海光已做完」的指示，將完成版模型、骨架動畫、表面受光與7秒潮汐接回 `codex/shared-scene-elements`。前述缺clips、暫不載入的紀錄為整理當時狀態，已由本節取代。
 - 現行程式位於 `src/places/oceanlight/{Stingrays,StingrayMotion,WindowRoom,index}.ts`；保留原作的數值／shader／路徑，接上共用模型資源釋放。GLB與母檔由同一次穩定快照取得；來源hash見 `exports/shared-scene-review/ocean-completed-source-snapshot.json`。
 - 生物本體、骨架、動作及參考任務书集中在[生物文件區](../biology/README.md)，魟魚入口為[Southern Stingray](../biology/southern-stingray.md)。本場景頁保留海光受光、水位和接入紀錄；生物資料不再只能從場景歷史中找。
-- 尚未commit／PR／發布；本次整合驗收記於[驗收記錄](../VALIDATION.md)。
+- 本次整合已隨 [PR #2](https://github.com/ianlkl11234s/quiet-places/pull/2) 合併至 `main`（`27e597f`），部署未驗證；本次整合驗收記於[驗收記錄](../VALIDATION.md)。
 
 
 ### 來源工作區後續確認
 
 整合期間，來源場景筆記追加使用者已確認造型／游姿、受光與潮汐效果「很好」，並授權來源工作區保存本地基準。本整合保留同一份模型與程式；來源工作區的提交和本整理分支的提交／發布狀態分開記錄。
 
-來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理分支仍是本地未提交整合。
+來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理已由 PR #2 合併至 `main`（`27e597f`）。

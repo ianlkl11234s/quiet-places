@@ -95,4 +95,4 @@
 
 - 在 `codex/shared-scene-elements` 將場景程式集中到 `src/places/waterlight/`；保留本場景材質、光路、鏡頭與動態的既有參數。
 - 共用狀態由 `player/contracts.ts` 定義，水體數學／亂數／模型資源按實際需求引用 `shared/`；不把場景曝光、天空或光學近似共用化。
-- 整理分支尚未提交或發布；視覺驗收範圍見 [驗收記錄](../VALIDATION.md)。
+- 目錄整理已隨 [PR #2](https://github.com/ianlkl11234s/quiet-places/pull/2) 合併至 `main`（`27e597f`）；視覺驗收範圍見 [驗收記錄](../VALIDATION.md)。
