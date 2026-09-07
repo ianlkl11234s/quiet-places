@@ -1,4 +1,4 @@
-import { LEGACY_PREFERENCES_STORAGE_KEY, loadPreferences, PREFERENCES_STORAGE_KEY, savePreferences, type PreferencesStorage } from '../src/systems/Preferences.ts';
+import { getRoomPreferences, LEGACY_PREFERENCES_STORAGE_KEY, loadPreferences, PREFERENCES_STORAGE_KEY, savePreferences, saveRoomPreferences, type PreferencesStorage } from '../src/systems/Preferences.ts';
 
 class MemoryStorage implements PreferencesStorage {
   private readonly values = new Map<string, string>();
@@ -68,7 +68,7 @@ function storageFailuresAreSafe(): void {
 
 function roundTrip(): void {
   const storage = new MemoryStorage();
-  const preferences = { version: 1 as const, place: 'leaflight' as const, hour: 6.5, live: true, beamStrength: 2.5, volume: 0.4, quality: 'low' as const, weather: 'rain' as const, rainIntensity: 0.8 };
+  const preferences = { version: 1 as const, place: 'leaflight' as const, hour: 6.5, live: true, beamStrength: 2.5, volume: 0.4, quality: 'low' as const, weather: 'rain' as const, rainIntensity: 0.8, rooms: {} };
   equal(savePreferences(preferences, storage), true, 'save succeeds');
   const loaded = loadPreferences(storage);
   equal(loaded.place, 'leaflight', 'place round-trips');
@@ -87,8 +87,51 @@ function legacyPreferencesMigrateToTheNewKey(): void {
   const loaded = loadPreferences(storage);
   equal(loaded.place, 'oceanlight', 'legacy place is loaded');
   equal(loaded.hour, 17.5, 'legacy hour is loaded');
-  equal(storage.getItem(PREFERENCES_STORAGE_KEY), JSON.stringify(legacy), 'legacy preferences migrate to the new key');
+  equal(JSON.parse(storage.getItem(PREFERENCES_STORAGE_KEY)!).rooms.waterlight === undefined, true, 'legacy migration stores an empty room map');
   equal(storage.getItem(LEGACY_PREFERENCES_STORAGE_KEY), JSON.stringify(legacy), 'legacy key is retained');
+}
+
+function roomPreferencesAreIndependentAndRoundTrip(): void {
+  const storage = new MemoryStorage();
+  const preferences = loadPreferences(storage);
+  saveRoomPreferences(preferences, 'waterlight', { hour: 0, live: false, beamStrength: 0, weather: 'rain', rainIntensity: 0, oceanLevel: 'below' });
+  saveRoomPreferences(preferences, 'oceanlight', { hour: 23.5, live: true, beamStrength: 2.5, weather: 'clear', rainIntensity: 1, oceanLevel: 'submerged' });
+  equal(savePreferences(preferences, storage), true, 'room preferences save');
+
+  const loaded = loadPreferences(storage);
+  const waterlight = getRoomPreferences(loaded, 'waterlight');
+  const oceanlight = getRoomPreferences(loaded, 'oceanlight');
+  equal(waterlight.hour, 0, 'room hour preserves zero');
+  equal(waterlight.beamStrength, 0, 'room beam strength preserves zero');
+  equal(waterlight.rainIntensity, 0, 'room rain intensity preserves zero');
+  equal(oceanlight.oceanLevel, 'submerged', 'ocean level round-trips');
+  waterlight.hour = 12;
+  equal(getRoomPreferences(loaded, 'waterlight').hour, 0, 'returned room preferences are independent copies');
+}
+
+function roomPreferencesSanitizeAndFallBack(): void {
+  const storage = new MemoryStorage();
+  storage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({
+    version: 1, place: 'leaflight', hour: 7, live: true, beamStrength: 1.5, weather: 'rain', rainIntensity: 0.2,
+    rooms: {
+      leaflight: { hour: -3, live: 'yes', beamStrength: 9, weather: 'snow', rainIntensity: 2, oceanLevel: 'high' },
+      invalid: { hour: 4 },
+    },
+  }));
+  const loaded = loadPreferences(storage);
+  const leaflight = getRoomPreferences(loaded, 'leaflight');
+  equal(leaflight.hour, 0, 'room hour clamps');
+  equal(leaflight.live, false, 'room live is strict');
+  equal(leaflight.beamStrength, 2.5, 'room beam strength clamps');
+  equal(leaflight.weather, 'clear', 'room weather falls back');
+  equal(leaflight.rainIntensity, 1, 'room rain intensity clamps');
+  equal(leaflight.oceanLevel, 'below', 'room ocean level falls back');
+  equal(loaded.rooms.invalid, undefined, 'unknown rooms are filtered');
+
+  const legacy = loadPreferences(new MemoryStorage());
+  legacy.place = 'leaflight'; legacy.hour = 9; legacy.live = true; legacy.beamStrength = 1.2; legacy.weather = 'rain'; legacy.rainIntensity = 0.4;
+  equal(getRoomPreferences(legacy, 'leaflight').hour, 9, 'legacy current room uses top-level hour');
+  equal(getRoomPreferences(legacy, 'waterlight').hour, 14, 'unvisited room uses defaults');
 }
 
 function newKeyTakesPriorityOverLegacy(): void {
@@ -118,3 +161,5 @@ roundTrip();
 legacyPreferencesMigrateToTheNewKey();
 newKeyTakesPriorityOverLegacy();
 failedMigrationStillReturnsLegacyPreferences();
+roomPreferencesAreIndependentAndRoundTrip();
+roomPreferencesSanitizeAndFallBack();
