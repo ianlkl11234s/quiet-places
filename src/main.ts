@@ -9,25 +9,30 @@ import {preparePlace,places,moments,isPlaceId,type PlaceId} from './places/catal
 import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay.ts';
 import {createAudioSystem} from './systems/AudioSystem.ts';
 import {createMusicPlayer} from './systems/MusicPlayer.ts';
-import {loadPreferences,savePreferences} from './systems/Preferences.ts';
+import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences} from './systems/Preferences.ts';
 import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
 import './style.css';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
 async function start(){
  const preferences=loadPreferences();
- const persist=()=>{savePreferences(preferences);};
+ const persist=()=>{
+  saveRoomPreferences(preferences,currentPlace,{hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,oceanLevel});
+  savePreferences(preferences);
+ };
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.4:1.75));
  renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  el('space').append(renderer.domElement);
- const scene=new THREE.Scene();scene.background=new THREE.Color('#080e11');
+ let scene=new THREE.Scene();scene.background=new THREE.Color('#080e11');
  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,700);
  const requestedPlace=new URLSearchParams(location.search).get('place');
  let currentPlace:PlaceId=isPlaceId(requestedPlace)?requestedPlace:preferences.place;
  const requestedSea=new URLSearchParams(location.search).get('sea');
- let oceanLevel:OceanLevel=isOceanLevel(requestedSea)?requestedSea:'below';
+ const initialRoom=getRoomPreferences(preferences,currentPlace);
+ Object.assign(preferences,initialRoom);
+ let oceanLevel:OceanLevel=isOceanLevel(requestedSea)?requestedSea:initialRoom.oceanLevel;
  let place=(await preparePlace(currentPlace))(scene,renderer);
  place.setOceanLevel?.(oceanLevel);
  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
@@ -53,7 +58,7 @@ async function start(){
  controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:null};controls.saveState();
  renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','拖曳環繞天窗，靠近牆面時停止；左右方向鍵旋轉，Home 回到初始視角');
  renderer.domElement.addEventListener('keydown',e=>{
-  if(exporting||!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
+  if(exporting||switching||!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
   if(e.key==='Home'){resetView();return;}
   const angle=THREE.MathUtils.clamp(controls.getAzimuthalAngle()+(e.key==='ArrowLeft'?-.08:.08),controls.minAzimuthAngle,controls.maxAzimuthAngle);
   const offset=camera.position.clone().sub(controls.target),radius=Math.hypot(offset.x,offset.z);
@@ -67,7 +72,7 @@ async function start(){
  renderer.domElement.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)waterDown={x:e.clientX,y:e.clientY,id:e.pointerId};});
  renderer.domElement.addEventListener('pointercancel',()=>{waterDown=undefined;});
  renderer.domElement.addEventListener('pointerup',e=>{
-  const start=waterDown;waterDown=undefined;if(currentPlace!=='waterlight')return;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
+  const start=waterDown;waterDown=undefined;if(switching||exporting)return;if(currentPlace!=='waterlight')return;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
   const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);
   if(raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)place.disturb(u,v);}
  });
@@ -76,16 +81,23 @@ async function start(){
   const samples=currentPlace==='oceanlight'?Math.min(preferences.quality==='low'?2:4,renderer.capabilities.maxSamples):0;
   for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==samples){target.samples=samples;target.dispose();}
  }
- updateAntialiasing();composer.addPass(new RenderPass(scene,camera));
+ updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,elapsed=0,last=performance.now(),lastPresented=last,raf=0,lost=false;
  let beamStrength=preferences.beamStrength;
  let hour=preferences.live?localHour():preferences.hour,live=preferences.live;let state=sampleTime(hour);
  const panel=el('settings'),toggle=el<HTMLButtonElement>('settings-toggle'),pause=el<HTMLButtonElement>('pause');
- let switching=false,exporting=false,switchId=0;
+ let switching=false,exporting=false;
+ const transition=el('room-transition');
+ async function fadeRoom(covered:boolean){
+  const animation=transition.animate([{opacity:getComputedStyle(transition).opacity},{opacity:covered?1:0}],{duration:reduce.matches?80:covered?350:650,easing:'ease-in-out',fill:'forwards'});
+  await animation.finished;
+  transition.style.opacity=covered?'1':'0';animation.cancel();
+ }
  const placeSelect=el<HTMLSelectElement>('place-select');placeSelect.value=currentPlace;
  function describePlace(){
   const isWater=currentPlace==='waterlight';
+  document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.place===currentPlace)));
   el('water-options').hidden=!isWater;
   el('ocean-options').hidden=currentPlace!=='oceanlight';
   document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.oceanLevel===oceanLevel)));
@@ -109,23 +121,52 @@ async function start(){
   controls.minPolarAngle=homePolar;controls.maxPolarAngle=homePolar;controls.saveState();controls.enableDamping=!reduce.matches;
  }
  async function switchPlace(id:PlaceId,save=true){
-  const token=++switchId;switching=true;
-  if(!exporting){status.hidden=false;status.textContent='正在走進另一個空間。';}
+  if(switching||(!exporting&&id===currentPlace))return;
+  switching=true;
+  const old={place,scene,id:currentPlace,oceanLevel,hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,elapsed,position:camera.position.clone(),target:controls.target.clone()};
+  let candidate:typeof place|undefined,committed=false;
+  const busyInputs=Array.from(document.querySelectorAll<HTMLInputElement|HTMLButtonElement|HTMLSelectElement>('#settings input,#settings button,#settings select,[data-place],#place-select')).map(input=>({input,disabled:input.disabled}));
+  busyInputs.forEach(({input})=>{input.disabled=true;});controls.enabled=false;
+  const loading=window.setTimeout(()=>{if(!exporting){status.hidden=false;status.textContent='正在走進另一個空間。';}},500);
   try{
-   const factory=await preparePlace(id);if(token!==switchId){factory.dispose?.();return;}
-   place.dispose();place=factory(scene,renderer);currentPlace=id;place.setOceanLevel?.(oceanLevel);
+   if(save)persist();
+   const factory=await preparePlace(id);
+   const nextScene=new THREE.Scene();nextScene.background=new THREE.Color('#080e11');
+   try{candidate=factory(nextScene,renderer);}catch(error){factory.dispose?.();throw error;}
+   if(!exporting)await fadeRoom(true);
+   const room=save?getRoomPreferences(preferences,id):undefined;
+   if(room){hour=room.live?localHour():room.hour;live=room.live;beamStrength=room.beamStrength;oceanLevel=room.oceanLevel;preferences.weather=room.weather;preferences.rainIntensity=room.rainIntensity;}
+   place=candidate;scene=nextScene;renderPass.scene=scene;currentPlace=id;place.setOceanLevel?.(oceanLevel);
    homeCamera();elapsed=0;state=sampleTime(hour);
-   placeSelect.value=id;if(save){preferences.place=id;persist();}
-   describePlace();
+   const rainy=id==='waterlight'&&preferences.weather==='rain';
+   place.update(0,elapsed,{...state,intensity:state.intensity*(rainy?.72:1),warmth:state.warmth*(rainy?.45:1),beamStrength,rain:rainy?preferences.rainIntensity:0,lowQuality:preferences.quality==='low'});
+   composer.render();
+   committed=true;old.place.dispose();
+   placeSelect.value=id;
+   if(save){preferences.place=id;preferences.hour=hour;preferences.live=live;preferences.beamStrength=beamStrength;persist();}
+   describePlace();syncRoomInputs();
+   clearTimeout(loading);if(!exporting)status.hidden=true;
+   if(!exporting)await fadeRoom(false);
   }catch(error){
-   console.error(error);status.hidden=false;status.textContent='場景暫時無法載入，請重新整理後重試。';
+   if(!committed){
+    candidate?.dispose();place=old.place;scene=old.scene;renderPass.scene=scene;currentPlace=old.id;
+    ({oceanLevel,hour,live,beamStrength,elapsed}=old);preferences.weather=old.weather;preferences.rainIntensity=old.rainIntensity;
+    homeCamera();camera.position.copy(old.position);controls.target.copy(old.target);controls.update();state=sampleTime(hour);placeSelect.value=currentPlace;
+    describePlace();syncRoomInputs();composer.render();
+   }
+   if(!exporting){await fadeRoom(false);status.hidden=false;status.textContent='房間暫時無法載入，已保留原房間；請重新整理後再試。';}
    throw error;
-  }finally{if(token===switchId){switching=false;if(!exporting)status.hidden=true;requestRender();}}
+  }finally{
+   clearTimeout(loading);switching=false;controls.enabled=!exporting;
+   busyInputs.forEach(({input,disabled})=>{input.disabled=disabled;});el<HTMLButtonElement>('water-reset').disabled=exporting||!place.hasSimulation;requestRender();
+  }
  }
- placeSelect.addEventListener('change',()=>{if(!exporting)void switchPlace(placeSelect.value as PlaceId).catch(()=>{status.hidden=false;});});
+ function chooseRoom(id:PlaceId){if(exporting||switching)return;setPanel(false);void switchPlace(id).catch(error=>console.error(error));}
+ placeSelect.addEventListener('change',()=>chooseRoom(placeSelect.value as PlaceId));
+ document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.addEventListener('click',()=>{if(isPlaceId(button.dataset.place))chooseRoom(button.dataset.place);}));
  document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.addEventListener('click',()=>{
   const level=button.dataset.oceanLevel;if(exporting||currentPlace!=='oceanlight'||!isOceanLevel(level))return;
-  oceanLevel=level;place.setOceanLevel?.(level);describePlace();requestRender();
+  oceanLevel=level;place.setOceanLevel?.(level);persist();describePlace();requestRender();
  }));
  el('water-reset').addEventListener('click',()=>place.resetWater());
  const range=el<HTMLInputElement>('hour'),liveInput=el<HTMLInputElement>('live');
@@ -139,11 +180,24 @@ async function start(){
  quality.addEventListener('change',()=>{preferences.quality=quality.value==='low'?'low':'standard';resize();persist();});
  rainInput.addEventListener('input',()=>{preferences.rainIntensity=Number(rainInput.value)/100;weatherLabels();persist();requestRender();});
  function updateLabels(){el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);pause.textContent=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-pressed',String(paused));}
- function setPanel(open:boolean){panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));document.body.classList.remove('resting');if(open)el('close-settings').focus();else toggle.focus();}
+ const panels=[{panel,toggle},{panel:el('rooms-panel'),toggle:el<HTMLButtonElement>('rooms-toggle')},{panel:el('about-panel'),toggle:el<HTMLButtonElement>('about-toggle')}];
+ let activeToggle:HTMLButtonElement|undefined;
+ function setPanel(open:boolean,target=panel){
+  const previous=activeToggle;
+  for(const entry of panels){const visible=open&&entry.panel===target;entry.panel.hidden=!visible;entry.toggle.setAttribute('aria-expanded',String(visible));if(visible)activeToggle=entry.toggle;}
+  document.body.classList.remove('resting');
+  if(open)target.querySelector<HTMLButtonElement>('button')?.focus();else{activeToggle=undefined;previous?.focus();}
+ }
+ function syncRoomInputs(){
+  liveInput.checked=live;beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
+  weather.value=preferences.weather;rainInput.value=String(preferences.rainIntensity*100);updateLabels();
+ }
  function resetView(){controls.enableDamping=false;controls.update();controls.reset();controls.enableDamping=!reduce.matches;}
  el('reset-view').addEventListener('click',resetView);
- toggle.addEventListener('click',()=>setPanel(panel.hidden));el('close-settings').addEventListener('click',()=>setPanel(false));
- document.addEventListener('keydown',e=>{wake();if(e.key==='Escape'&&!panel.hidden)setPanel(false)});
+ panels.forEach(entry=>entry.toggle.addEventListener('click',()=>setPanel(entry.panel.hidden,entry.panel)));
+ ['close-settings','close-rooms','close-about'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
+ document.addEventListener('pointerdown',event=>{if(activeToggle&&event.target instanceof Node&&!panels.some(entry=>entry.panel.contains(event.target as Node)||entry.toggle.contains(event.target as Node)))setPanel(false);});
+ document.addEventListener('keydown',e=>{wake();if(e.key==='Escape'&&activeToggle)setPanel(false)});
  el<HTMLInputElement>('beam-strength').addEventListener('input',e=>{const value=Number((e.target as HTMLInputElement).value);beamStrength=value/100;preferences.beamStrength=beamStrength;persist();el('beam-value').textContent=`${value}%`;requestRender();});
  range.addEventListener('input',()=>{hour=+range.value;live=false;liveInput.checked=false;preferences.hour=hour;preferences.live=false;persist();updateLabels();requestRender();});
  document.querySelectorAll<HTMLButtonElement>('[data-hour]').forEach(button=>button.addEventListener('click',()=>{hour=+button.dataset.hour!;live=false;liveInput.checked=false;preferences.hour=hour;preferences.live=false;persist();updateLabels();requestRender();}));
@@ -153,12 +207,12 @@ async function start(){
  el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
  document.addEventListener('fullscreenchange',()=>{el('fullscreen').textContent=document.fullscreenElement?'離開全螢幕':'全螢幕'});
- let idle=0;function wake(){document.body.classList.remove('resting');clearTimeout(idle);idle=window.setTimeout(()=>{if(panel.hidden&&!document.querySelector(':focus-visible'))document.body.classList.add('resting')},6500)}
+ let idle=0;function wake(){document.body.classList.remove('resting');clearTimeout(idle);idle=window.setTimeout(()=>{if(panels.every(entry=>entry.panel.hidden)&&!document.querySelector(':focus-visible'))document.body.classList.add('resting')},6500)}
  document.addEventListener('pointermove',wake);document.addEventListener('pointerdown',wake);document.addEventListener('focusin',wake);
  const gallery=el('series-gallery');
  const galleryImages=el('series-images');
  const imageUrls:string[]=[];
- const galleryBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,#settings'));
+ const galleryBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,.entry-dock,#settings,#rooms-panel,#about-panel'));
  function galleryInert(value:boolean){galleryBackground.forEach(element=>{element.inert=value;});}
  function closeGallery(){gallery.hidden=true;galleryInert(false);audio.visibility(document.hidden);music.visibility(document.hidden);requestRender();el('export-series').focus();}
  el('close-gallery').addEventListener('click',closeGallery);
