@@ -25,8 +25,8 @@ APERTURE = {
     'roofY': 3.0,
     'blenderY': [.325, 1.175],
 }
-ROOM_X = [-2.20, 1.80]
-ROOM_WIDTH_VERSION = 'four-metre-v2'
+ROOM_X = [-1.90, 1.80]
+ROOM_WIDTH_VERSION = '3.7-metre-v3'
 GRATE_Y = 3.04
 GRATE_DEPTH = .045
 FRAME = .04
@@ -34,13 +34,13 @@ SLAT_X = [.89 + (index + 1) * (.77 / 10) for index in range(9)]
 SLAT_Z = [-1.135, -.365]
 BRACE_Z = [-1.135 + (index + 1) * (.77 / 3) for index in range(2)]
 SECONDARY_APERTURE = {
-    'x': [-2.10, -1.25],
+    'x': [-1.80, -.95],
     'z': [-1.175, -.325],
     'roofY': 3.0,
     'blenderY': [.325, 1.175],
 }
 SECONDARY_FRAME = FRAME
-SECONDARY_SLAT_X = sorted(-.40 - x for x in SLAT_X)
+SECONDARY_SLAT_X = sorted(-.10 - x for x in SLAT_X)
 SECONDARY_SLAT_Z = SLAT_Z
 SECONDARY_BRACE_Z = BRACE_Z
 
@@ -170,6 +170,8 @@ def previous_left_edge(scene, key):
     version = scene.get(key)
     if version == ROOM_WIDTH_VERSION:
         return ROOM_X[0]
+    if version == 'four-metre-v2':
+        return -2.2
     if version == 'left-widened-v1':
         return -2.7
     if version is None:
@@ -341,12 +343,12 @@ def export_web(scene):
     }
     data['corridorBounds'] = {
         'x': ROOM_X,
-        'centerX': -.20,
-        'widthMetres': 4.0,
+        'centerX': -.05,
+        'widthMetres': 3.7,
         'widthVersion': ROOM_WIDTH_VERSION,
         'rightEdgeFixed': True,
         'uvPreserved': True,
-        'geometryApproximation': 'Joined RoomSurface keeps UV/material data; its left wall moves to x=-2.2m and negative-x floor vertices resize with the wall. Far corridor widens about its fixed right x=1.8 edge.',
+        'geometryApproximation': 'Joined RoomSurface keeps UV/material data; its left wall moves to x=-1.9m and negative-x floor vertices resize with the wall. Far corridor widens about its fixed right x=1.8 edge.',
     }
     metadata_path.write_text(json.dumps(data, indent=2) + '\n')
 
