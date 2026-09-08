@@ -7,12 +7,14 @@ test('editable drain export and runtime share aperture and metal-bar locations',
  const metadata=JSON.parse(readFileSync(new URL('../public/models/afterlight-courtyard.metadata.json',import.meta.url),'utf8'));
  assert.deepEqual(metadata.aperture.x,[drainOpening.minX,drainOpening.maxX]);
  assert.deepEqual(metadata.aperture.z,[drainOpening.minZ,drainOpening.maxZ]);
- assert.deepEqual(metadata.secondaryAperture.x,[oppositeDrainOpening.minX,oppositeDrainOpening.maxX]);
+ metadata.secondaryAperture.x.forEach((x:number,i:number)=>assert.ok(Math.abs(x-[oppositeDrainOpening.minX,oppositeDrainOpening.maxX][i])<1e-9));
  assert.deepEqual(metadata.secondaryAperture.z,metadata.aperture.z);
  const area=(drainOpening.maxX-drainOpening.minX)*(drainOpening.maxZ-drainOpening.minZ);
  assert.ok(area<=1.15*1.3*.5,'each opening at most half the previous area');
  assert.ok(Math.abs((drainOpening.maxX-drainOpening.minX)-(drainOpening.maxZ-drainOpening.minZ))<1e-9,'square opening');
  assert.ok(corridor.maxX-corridor.minX>3.6,'wider corridor');
+ assert.deepEqual(metadata.corridorBounds.x,[corridor.minX,corridor.maxX]);
+ assert.equal(metadata.corridorBounds.centerX,corridor.centerX);
  const mirror=drainSlats.map(x=>2*corridor.centerX-x).sort((a,b)=>a-b);
  metadata.secondaryDrainGrate.slatX.forEach((x:number,i:number)=>assert.ok(Math.abs(x-mirror[i])<1e-9));
  assert.deepEqual(metadata.secondaryDrainGrate.braceZ,metadata.drainGrate.braceZ);

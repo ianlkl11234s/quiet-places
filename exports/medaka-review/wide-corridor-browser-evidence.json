@@ -1,0 +1,29 @@
+{
+  "baseline": "73938e8",
+  "checkpoint": "619373e",
+  "corridorWidthMetres": 4.5,
+  "openingSizeMetres": [
+    0.85,
+    0.85
+  ],
+  "areaReduction": 0.5167224080267558,
+  "cameraUnchanged": true,
+  "tests": {
+    "passed": 42,
+    "failed": 0
+  },
+  "browser": {
+    "rainPauseExact": [
+      0,
+      0.65,
+      1
+    ],
+    "disposeCycles": 3,
+    "remainingGeometries": 0,
+    "remainingTextures": 0,
+    "remainingSceneChildren": 0,
+    "consoleErrors": [],
+    "visual": "Portrait noon: plant remains in main light, secondary grate outside main composition; dark corridor retained. No 120-second performance run this iteration."
+  },
+  "approximation": "Fixed baked indirect lighting and retained UVs; not dynamic global illumination."
+}

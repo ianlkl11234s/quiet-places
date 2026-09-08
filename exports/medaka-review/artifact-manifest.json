@@ -28,12 +28,12 @@
     "sha256": "7a725db22099721ffa153764f98ef840a5e244d26dd1fc0f42eaad1ea0e5c6d4"
   },
   "assets/blender/afterlight-courtyard.blend": {
-    "bytes": 360070,
-    "sha256": "f77c04d9315817304e3ff8a83da7983bb9d310f684ecbbab0ed0c87178448ff8"
+    "bytes": 360249,
+    "sha256": "9e620dd86d262c486b51345086750e599f4bf6c3bf2cbb2f9ce0478bd08ee679"
   },
   "assets/blender/afterlight-web.blend": {
-    "bytes": 10887032,
-    "sha256": "1eb1835f2efbe8f443718c78de123169c513fcb0df111ccdee56646aea2a4756"
+    "bytes": 10895982,
+    "sha256": "06d768137ce58fa3b98a6b58bd0494ea8a72815b0ce2cc59ecd2611d6c52561e"
   },
   "src/places/afterlight/PlantGeometry.ts": {
     "bytes": 14644,
@@ -44,27 +44,27 @@
     "sha256": "34972a44df8cb6556b67f6c9a48b13ee2adda0747a0ac9a80de121d94a865858"
   },
   "src/places/afterlight/RainField.ts": {
-    "bytes": 1234,
-    "sha256": "00fbea9d009fe00b72c4b3a81be805354c2a5fc0981908393e04f04fcd7e65eb"
+    "bytes": 1260,
+    "sha256": "ddbccb07fd5ca0d3693e2bfd40dbd4789a0cbfbbb57032dd0d8e1c8b2df204d1"
   },
   "src/places/afterlight/RainInteraction.ts": {
     "bytes": 5862,
     "sha256": "9cbf2ad8d519c0d2e0316b19e6a97be01184da42bf275381e928a4e6e8ea6d3d"
   },
   "public/models/afterlight-courtyard.glb": {
-    "bytes": 9680628,
-    "sha256": "9d809a1809c961f3f2bfdf5f7e0b149906d494632424401953b65e8825d20d75"
+    "bytes": 9681452,
+    "sha256": "c75f3570edb20cc8d158d71f2af8756cd849079557caccacc855c6f6c030f78c"
   },
   "public/models/afterlight-courtyard.metadata.json": {
-    "bytes": 3985,
-    "sha256": "fff51d93a54fb8e03ae25446eb44dce49fb2d06787d2bc891ed14597e885b6ab"
+    "bytes": 4348,
+    "sha256": "f7c6852a2b61034f846247ffde5403dea44cd67eac92f84866f55464dedd0edb"
   },
   "public/textures/afterlight/room-indirect.exr": {
     "bytes": 3154363,
-    "sha256": "5c8bb0ae09fb68c04a36feee331741d7264f8cfa89cac252d60cfd1ef7b2c53a"
+    "sha256": "830f14e920ccfdd506ff05a9edde930a6f27d1388798513c16e7fa05716af6f4"
   },
   "src/places/afterlight/DrainOpening.ts": {
-    "bytes": 1102,
-    "sha256": "df9f15d625da552cdb6d3dd1a535194c48ea2bf637f7561bf9a6f8c8bd5a9188"
+    "bytes": 1231,
+    "sha256": "46f0d6b234c865472e8fa160fc960cf739422dd8fd2239104218e697f41d6ee2"
   }
 }

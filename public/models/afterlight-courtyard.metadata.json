@@ -130,17 +130,17 @@
   },
   "aperture": {
     "x": [
-      0.4,
-      1.55
+      0.85,
+      1.7
     ],
     "z": [
-      -1.4,
-      -0.1
+      -1.175,
+      -0.325
     ],
     "roofY": 3.0,
     "blenderY": [
-      0.1,
-      1.4
+      0.325,
+      1.175
     ]
   },
   "drainGrate": {
@@ -154,41 +154,41 @@
     "slatCount": 9,
     "slatWidthX": 0.022,
     "slatZ": [
-      -1.36,
-      -0.14
+      -1.135,
+      -0.365
     ],
     "slatX": [
-      0.547,
-      0.654,
-      0.7610000000000001,
-      0.8680000000000001,
-      0.9750000000000001,
-      1.082,
-      1.189,
-      1.296,
-      1.403
+      0.967,
+      1.044,
+      1.121,
+      1.198,
+      1.275,
+      1.3519999999999999,
+      1.429,
+      1.506,
+      1.583
     ],
     "braceCount": 2,
     "braceWidthZ": 0.018,
     "braceZ": [
-      -0.9533333333333334,
-      -0.5466666666666667
+      -0.8783333333333334,
+      -0.6216666666666667
     ],
     "material": "DrainGrate_RoughSteel; nonemissive, rough metal"
   },
   "secondaryAperture": {
     "x": [
-      -1.55,
-      -0.4
+      -2.6,
+      -1.75
     ],
     "z": [
-      -1.4,
-      -0.1
+      -1.175,
+      -0.325
     ],
     "roofY": 3.0,
     "blenderY": [
-      0.1,
-      1.4
+      0.325,
+      1.175
     ]
   },
   "secondaryDrainGrate": {
@@ -202,26 +202,38 @@
     "slatCount": 9,
     "slatWidthX": 0.022,
     "slatZ": [
-      -1.36,
-      -0.14
+      -1.135,
+      -0.365
     ],
     "slatX": [
-      -1.403,
-      -1.296,
-      -1.189,
-      -1.082,
-      -0.9750000000000001,
-      -0.8680000000000001,
-      -0.7610000000000001,
-      -0.654,
-      -0.547
+      -2.483,
+      -2.406,
+      -2.329,
+      -2.252,
+      -2.175,
+      -2.098,
+      -2.021,
+      -1.944,
+      -1.867
     ],
     "braceCount": 2,
     "braceWidthZ": 0.018,
     "braceZ": [
-      -0.9533333333333334,
-      -0.5466666666666667
+      -0.8783333333333334,
+      -0.6216666666666667
     ],
     "material": "DrainGrate_RoughSteel; nonemissive, rough metal"
+  },
+  "corridorBounds": {
+    "x": [
+      -2.7,
+      1.8
+    ],
+    "centerX": -0.45,
+    "widthMetres": 4.5,
+    "widthVersion": "left-widened-v1",
+    "rightEdgeFixed": true,
+    "uvPreserved": true,
+    "geometryApproximation": "Joined RoomSurface keeps UV/material data; its left wall translates -0.9m and negative-x floor vertices stretch 1.5x. Far corridor widens about its fixed right x=1.8 edge."
   }
 }
