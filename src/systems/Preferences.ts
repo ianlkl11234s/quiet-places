@@ -1,6 +1,6 @@
 import {isOceanLevel,isPlaceId,type OceanLevel,type PlaceId} from '../places/metadata.ts';
 export type RenderQuality = 'standard' | 'low';
-export type Weather = 'clear' | 'rain';
+export type Weather = 'clear' | 'rain' | 'heavy-rain';
 
 export interface RoomPreferences {
   hour: number;
@@ -72,13 +72,18 @@ function roomDefaults(): RoomPreferences {
   };
 }
 
-function normalizeRoom(value: unknown, fallback: RoomPreferences): RoomPreferences {
+function normalizeWeather(value: unknown, fallback: Weather, id?: PlaceId): Weather {
+  if (value === 'clear' || value === 'rain') return value;
+  return value === 'heavy-rain' && id === 'afterlight' ? value : fallback;
+}
+
+function normalizeRoom(value: unknown, fallback: RoomPreferences, id?: PlaceId): RoomPreferences {
   const candidate = value && typeof value === 'object' ? value as Partial<RoomPreferences> : {};
   return {
     hour: clamp(candidate.hour, fallback.hour, 0, 23.99),
     live: candidate.live === true,
     beamStrength: clamp(candidate.beamStrength, fallback.beamStrength, 0, 2.5),
-    weather: candidate.weather === 'rain' || candidate.weather === 'clear' ? candidate.weather : fallback.weather,
+    weather: normalizeWeather(candidate.weather, fallback.weather, id),
     rainIntensity: clamp(candidate.rainIntensity, fallback.rainIntensity, 0, 1),
     oceanLevel: isOceanLevel(candidate.oceanLevel) ? candidate.oceanLevel : fallback.oceanLevel,
   };
@@ -88,7 +93,7 @@ function normalizeRooms(value: unknown): Preferences['rooms'] {
   if (!value || typeof value !== 'object') return {};
   const rooms: Preferences['rooms'] = {};
   for (const [id, room] of Object.entries(value)) {
-    if (isPlaceId(id)) rooms[id] = normalizeRoom(room, roomDefaults());
+    if (isPlaceId(id)) rooms[id] = normalizeRoom(room, roomDefaults(), id);
   }
   return rooms;
 }
@@ -105,7 +110,7 @@ function normalize(value: unknown): Preferences {
     beamStrength: clamp(candidate.beamStrength, fallback.beamStrength, 0, 2.5),
     volume: clamp(candidate.volume, fallback.volume, 0, 1),
     quality: candidate.quality === 'low' || candidate.quality === 'standard' ? candidate.quality : fallback.quality,
-    weather: candidate.weather === 'rain' || candidate.weather === 'clear' ? candidate.weather : fallback.weather,
+    weather: normalizeWeather(candidate.weather, fallback.weather, candidate.place === 'afterlight' ? 'afterlight' : undefined),
     rainIntensity: clamp(candidate.rainIntensity, fallback.rainIntensity, 0, 1),
     rooms: normalizeRooms(candidate.rooms),
   };
@@ -114,7 +119,7 @@ function normalize(value: unknown): Preferences {
 /** Returns an independent, fully normalized preference set for one room. */
 export function getRoomPreferences(preferences: Preferences, id: PlaceId): RoomPreferences {
   const saved = preferences.rooms?.[id];
-  if (saved) return normalizeRoom(saved, roomDefaults());
+  if (saved) return normalizeRoom(saved, roomDefaults(), id);
   const legacyFallback = id === preferences.place
     ? {
       hour: preferences.hour,
@@ -125,13 +130,13 @@ export function getRoomPreferences(preferences: Preferences, id: PlaceId): RoomP
       oceanLevel: 'below' as const,
     }
     : roomDefaults();
-  return normalizeRoom(legacyFallback, roomDefaults());
+  return normalizeRoom(legacyFallback, roomDefaults(), id);
 }
 
 /** Stores a normalized copy so each room remains independent. */
 export function saveRoomPreferences(preferences: Preferences, id: PlaceId, room: RoomPreferences): void {
   preferences.rooms ??= {};
-  preferences.rooms[id] = normalizeRoom(room, roomDefaults());
+  preferences.rooms[id] = normalizeRoom(room, roomDefaults(), id);
 }
 
 export function loadPreferences(storage?: PreferencesStorage): Preferences {

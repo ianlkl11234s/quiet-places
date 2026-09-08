@@ -3,6 +3,8 @@ import type {OceanLevel} from '../places/metadata.ts';
 
 /** Art-directed light state; intensity is relative, angle is not an ephemeris. */
 export interface LightingState {
+  /** Local art-directed hour, optional for legacy scene callers. */
+  hour?:number;
   intensity:number;
   warmth:number;
   angle:number;
@@ -13,6 +15,7 @@ export interface LightingState {
 export interface SceneState extends LightingState {
   beamStrength?:number;
   rain?:number;
+  heavyRain?:boolean;
   lowQuality?:boolean;
 }
 

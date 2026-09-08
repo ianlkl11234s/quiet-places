@@ -1,0 +1,60 @@
+{
+  "baseline": "9cf5033",
+  "tests": 42,
+  "build": "passed",
+  "projection": {
+    "viewport": [
+      1280,
+      720
+    ],
+    "fov": 53,
+    "sampleSeconds": [
+      10,
+      60
+    ],
+    "mainLeaves": 39,
+    "baselineDryExcursionPx": 0.62193,
+    "baselineHeavyExcursionPx": 1.31121,
+    "currentHeavyExcursionPx": 17.49999,
+    "baselineHeavyMaxFrameTravelPx": 0.0191522,
+    "currentHeavyMaxFrameTravelPx": 0.198378
+  },
+  "geometrySampling": {
+    "seconds": 60,
+    "intervalSeconds": 0.1,
+    "maxLeafX": 1.702472,
+    "wallX": 1.71,
+    "rootFixed": true
+  },
+  "pauseExact": [
+    {
+      "rain": 0,
+      "heavy": false
+    },
+    {
+      "rain": 0.65,
+      "heavy": false
+    },
+    {
+      "rain": 1,
+      "heavy": true
+    }
+  ],
+  "disposeCycles": 3,
+  "remainingGeometries": 0,
+  "remainingTextures": 0,
+  "remainingSceneChildren": 0,
+  "continuous": {
+    "seconds": 120.0108,
+    "frames": 7957,
+    "averageFps": 66.3024,
+    "p95Ms": 17.2,
+    "hits": 642,
+    "releases": 60,
+    "maxAngleRadians": 0.1215759,
+    "maxStemAngleRadians": 0.00154927,
+    "drawCalls": 291,
+    "triangles": 41210
+  },
+  "limits": "Screen excursion is the largest leaf-tip range across the interval, not a per-impact amplitude. Local desktop acceptance, art-directed spring response, not measured botanical mechanics."
+}

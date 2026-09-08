@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-08 morning",
+  "cameraDolly": 0.25,
+  "lightSamplesBefore": 3304,
+  "lightSamplesAfter": 7504,
+  "fishLengthsUnchanged": true,
+  "localDiffuseBounce": {
+    "center": [
+      1.15,
+      0.8,
+      -0.35
+    ],
+    "fadeMetres": [
+      0.3,
+      1.05
+    ],
+    "gain": 0.65
+  },
+  "browser": {
+    "daytimeAndMoonPortraitInspected": true,
+    "dryPauseExact": true,
+    "wetStablePauseExact": true,
+    "wetInitialSettlingChannels": 317,
+    "disposeCycles": 3,
+    "afterDisposeGeometries": 0,
+    "afterDisposeTextures": 0,
+    "afterDisposeSceneChildren": 0,
+    "consoleErrors": []
+  },
+  "testsPassed": 27,
+  "build": "pass"
+}

@@ -1,0 +1,25 @@
+{
+  "shoalRigs": 26,
+  "sceneFrames": [
+    0,
+    3600
+  ],
+  "currentFrame": 0,
+  "actionCount": 26,
+  "fcurvesPerAction": [
+    54
+  ],
+  "keyPointsPerCurve": [
+    3601
+  ],
+  "actionRanges": [
+    [
+      0.0,
+      3600.0
+    ]
+  ],
+  "motionCacheFrames": 3601,
+  "motionCacheFish": 26,
+  "root0Error": 0.0,
+  "root3600Error": 0.0
+}

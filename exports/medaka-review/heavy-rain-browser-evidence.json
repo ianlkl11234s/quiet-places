@@ -1,0 +1,69 @@
+{
+  "baseline": "887efe3",
+  "tests": 41,
+  "build": "passed",
+  "ui": [
+    "Afterlight select contains clear, sunshower and heavy rain",
+    "heavy-rain selection and 95 percent intensity survive reload"
+  ],
+  "pause": [
+    {
+      "rain": 0,
+      "heavyRain": false,
+      "pauseExact": true
+    },
+    {
+      "rain": 0.65,
+      "heavyRain": false,
+      "pauseExact": true
+    },
+    {
+      "rain": 1,
+      "heavyRain": true,
+      "pauseExact": true
+    }
+  ],
+  "dispose": [
+    {
+      "cycle": 0,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 1,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 2,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    }
+  ],
+  "continuous": {
+    "seconds": 120.0157,
+    "rain": 1,
+    "heavyRain": true,
+    "frames": 7648,
+    "averageFps": 63.725,
+    "intervalP50Ms": 15.7,
+    "intervalP95Ms": 27.1,
+    "viewport": [
+      1280,
+      720
+    ],
+    "plantHits": 653,
+    "plantReleases": 59,
+    "visibleDrops": 3,
+    "stationaryBeads": 6,
+    "geometries": 181,
+    "textures": 86,
+    "drawCalls": 291,
+    "triangles": 41210
+  },
+  "consoleErrors": [],
+  "limits": "Local desktop uncapped QA; not mobile or deployment evidence. Existing player frame cap remains. Fixed budget rain and shallow-floor splash approximation."
+}

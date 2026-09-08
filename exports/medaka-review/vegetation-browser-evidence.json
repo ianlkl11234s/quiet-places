@@ -1,0 +1,67 @@
+{
+  "baseline": "4213c17",
+  "preserved": [
+    "camera",
+    "UI",
+    "fish model and motion cache",
+    "Lighting.ts"
+  ],
+  "pause": [
+    {
+      "rain": 0,
+      "pauseExact": true,
+      "changedChannels": 0,
+      "animationChanges": 7114
+    },
+    {
+      "rain": 0.65,
+      "pauseExact": true,
+      "changedChannels": 0,
+      "animationChanges": 10348
+    }
+  ],
+  "dispose": [
+    {
+      "cycle": 0,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 1,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 2,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    }
+  ],
+  "continuous": {
+    "seconds": 120.0021,
+    "frames": 8217,
+    "averageFps": 68.4738,
+    "intervalP50Ms": 15.6,
+    "intervalP95Ms": 17,
+    "viewport": [
+      1280,
+      720
+    ],
+    "plantHits": 105,
+    "plantReleases": 9,
+    "stationaryBeadsAtEnd": 1,
+    "maxAngleRadians": 0.07707468535079734,
+    "geometries": 161,
+    "textures": 86,
+    "drawCalls": 270,
+    "triangles": 40022
+  },
+  "visual": [
+    "actual player noon with widened middle leaf clusters and preserved corridor negative space"
+  ],
+  "consoleErrors": [],
+  "limits": "Local desktop only. QA continuous test uncapped; main player retains frame cap. Blender contains editable rest geometry; runtime spring and water approximations are not baked actions."
+}

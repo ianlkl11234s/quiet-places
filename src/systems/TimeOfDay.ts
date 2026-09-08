@@ -11,7 +11,7 @@ export function sampleTime(hour:number):LightState {
   let i=0;while(i<frames.length-2&&frames[i+1][0]<=h)i++;
   const a=frames[i],b=frames[i+1];const x=(h-a[0])/(b[0]-a[0]);const t=x*x*(3-2*x);
   const lerp=(n:number)=>a[n]+(b[n]-a[n])*t;
-  return {intensity:lerp(1),warmth:lerp(2),angle:lerp(3),activity:lerp(4)};
+  return {hour:h,intensity:lerp(1),warmth:lerp(2),angle:lerp(3),activity:lerp(4)};
 }
 export function localHour(){const d=new Date();return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600}
 export function formatHour(hour:number){const total=Math.floor(hour*60);return `${String(Math.floor(total/60)%24).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`}

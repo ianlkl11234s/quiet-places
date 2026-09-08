@@ -1,0 +1,74 @@
+{
+  "public/models/medaka.glb": {
+    "bytes": 55612,
+    "sha256": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300"
+  },
+  "public/models/medaka-motion.bin": {
+    "bytes": 4494048,
+    "sha256": "46987da6b00ba752f804704053657fbe138a5be459e06c7e4e3acca67e06aafb"
+  },
+  "public/models/medaka-motion.json": {
+    "bytes": 5634,
+    "sha256": "26d34bd707534c60255fb6e6eec49841e5dd2181461ab4c2b87d3712c8682e15"
+  },
+  "assets/blender/medaka_quiet_rain_shoal.blend": {
+    "bytes": 12735867,
+    "sha256": "2eecf8ffe89c4fe3fcce9d64b8d907b88958e9b1476e921acb81c23784bfa932"
+  },
+  "public/models/afterlight-weeds.glb": {
+    "bytes": 27268,
+    "sha256": "975f80b7aced746a1d0e8643722a8bee8ce26c6bf4fc7b552fdbffd1fa1acc88"
+  },
+  "public/models/afterlight-weeds.metadata.json": {
+    "bytes": 1247,
+    "sha256": "3a43b6073144f2b778b97f5e79250dc67a6ecb10e2c4c94df3baac52d487dad8"
+  },
+  "public/models/afterlight-vegetation.glb": {
+    "bytes": 465548,
+    "sha256": "7a725db22099721ffa153764f98ef840a5e244d26dd1fc0f42eaad1ea0e5c6d4"
+  },
+  "assets/blender/afterlight-courtyard.blend": {
+    "bytes": 360357,
+    "sha256": "847432645868024951f0b3d6f4fe68b1489c5ffb8708dfee4ba48cb0799a4548"
+  },
+  "assets/blender/afterlight-web.blend": {
+    "bytes": 10886505,
+    "sha256": "00a22f630d3539267afab09664966ef95521c24ff4c9f318beb813336425a037"
+  },
+  "src/places/afterlight/PlantGeometry.ts": {
+    "bytes": 14644,
+    "sha256": "6dba1ca981b8b3434329b65821e35502ba6fed7ecdd1b7d5b9dc72b8afce424e"
+  },
+  "src/places/afterlight/PlantPhysics.ts": {
+    "bytes": 11128,
+    "sha256": "34972a44df8cb6556b67f6c9a48b13ee2adda0747a0ac9a80de121d94a865858"
+  },
+  "src/places/afterlight/RainField.ts": {
+    "bytes": 1260,
+    "sha256": "ddbccb07fd5ca0d3693e2bfd40dbd4789a0cbfbbb57032dd0d8e1c8b2df204d1"
+  },
+  "src/places/afterlight/RainInteraction.ts": {
+    "bytes": 5862,
+    "sha256": "9cbf2ad8d519c0d2e0316b19e6a97be01184da42bf275381e928a4e6e8ea6d3d"
+  },
+  "public/models/afterlight-courtyard.glb": {
+    "bytes": 9681708,
+    "sha256": "106e5a6f4789b5eb2855e97da03cfe6c63c4583574a1f0645fb3b6de5113ecc0"
+  },
+  "public/models/afterlight-courtyard.metadata.json": {
+    "bytes": 4402,
+    "sha256": "9e27c095638128c9db0cf2a05f48bcfbda97e604fd88f75f49e9955f798e2f94"
+  },
+  "public/textures/afterlight/room-indirect.exr": {
+    "bytes": 3154363,
+    "sha256": "9468796635d633acc3e4b592699eca06e0c04c1d5e460639d96270cf1c4a043d"
+  },
+  "src/places/afterlight/DrainOpening.ts": {
+    "bytes": 1222,
+    "sha256": "d0158fa9eec0ca9cfa7c0bc6438b2db9a3c0970cf1624467f3db757b8b2a15f8"
+  },
+  "src/places/afterlight/DayCycle.ts": {
+    "bytes": 877,
+    "sha256": "f0c39dddd555550d0d0b7c0c865c7bd857280294b23ff818cea58dd423d83d27"
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "artifactPhase": "baked-room-pbr",
+  "camera": {
+    "name": "Camera_Hero",
+    "positionThree": [
+      0.425,
+      0.8175,
+      2.25
+    ],
+    "targetThree": [
+      1.25,
+      0.72,
+      -0.6
+    ],
+    "lensMm": 24.0
+  },
+  "sun": {
+    "directionToSceneThree": [
+      0.28,
+      -1.0,
+      0.25
+    ],
+    "colorLinear": [
+      1.0,
+      0.8,
+      0.55
+    ]
+  },
+  "roomSurface": {
+    "mesh": "RoomSurface",
+    "uv": "UV0",
+    "albedo": "/textures/afterlight/room-albedo.png",
+    "normal": "/textures/afterlight/room-normal.png",
+    "roughness": "/textures/afterlight/room-roughness.png",
+    "indirect": "/textures/afterlight/room-indirect.exr",
+    "lightmapIntensity": 0.65,
+    "containsDirect": false
+  },
+  "foliage": {
+    "objectPrefixes": [
+      "Foliage_",
+      "Leaf_",
+      "Stem_"
+    ],
+    "windExtras": [
+      "windRootY",
+      "windHeight",
+      "windScale"
+    ],
+    "vertexColor": "LeafColor",
+    "groupedMeshCount": 5,
+    "sourceMeshCount": 155,
+    "trianglesBefore": 6906,
+    "trianglesAfter": 6906,
+    "grouping": "material + windRootY + windHeight + windScale; evaluated world transforms joined for export only"
+  },
+  "rootCracks": {
+    "coordinateSystem": "Blender X/Y, ground Z=0; Three maps as (x,-y,0)",
+    "mainCrack": {
+      "x": [
+        1.37,
+        1.39
+      ],
+      "y": [
+        0.0,
+        0.7
+      ],
+      "soilZ": -0.015
+    },
+    "branches": [
+      {
+        "x": [
+          1.24,
+          1.38
+        ],
+        "y": [
+          0.056,
+          0.074
+        ]
+      },
+      {
+        "x": [
+          1.37,
+          1.49
+        ],
+        "y": [
+          0.611,
+          0.629
+        ]
+      }
+    ],
+    "rootCenters": [
+      [
+        1.28,
+        0.06
+      ],
+      [
+        1.38,
+        0.38
+      ],
+      [
+        1.48,
+        0.62
+      ]
+    ]
+  },
+  "rootBounds": {
+    "placement": "wall-floor junction",
+    "wallInnerX": 1.71,
+    "gapMetres": [
+      0.018,
+      0.025
+    ],
+    "soilTopMetres": -0.024,
+    "roots": [
+      [
+        1.698,
+        0.38
+      ]
+    ]
+  },
+  "plantGeometry": {
+    "morphology": "Solanum americanum / Pilea microphylla source-informed approximation, not botanical validation",
+    "seed": 38074,
+    "heroShoots": 1,
+    "heroHeightsMetres": [
+      1.35
+    ],
+    "overhang": false
+  },
+  "aperture": {
+    "x": [
+      0.6,
+      1.7
+    ],
+    "z": [
+      -1.13,
+      0.37
+    ],
+    "roofY": 3.0,
+    "blenderY": [
+      -0.37,
+      1.13
+    ]
+  },
+  "drainGrate": {
+    "coordinateSystem": "Three x/z; Blender=(x,-z,y)",
+    "centerY": 3.04,
+    "verticalExtent": [
+      3.0175,
+      3.0625
+    ],
+    "frameWidth": 0.04,
+    "slatCount": 9,
+    "slatWidthX": 0.022,
+    "slatZ": [
+      -1.09,
+      0.33
+    ],
+    "slatX": [
+      0.742,
+      0.8440000000000001,
+      0.9460000000000001,
+      1.048,
+      1.15,
+      1.2520000000000002,
+      1.354,
+      1.456,
+      1.558
+    ],
+    "braceCount": 2,
+    "braceWidthZ": 0.018,
+    "braceZ": [
+      -0.6166666666666667,
+      -0.14333333333333342
+    ],
+    "material": "DrainGrate_RoughSteel; nonemissive, rough metal"
+  },
+  "secondaryAperture": {
+    "x": [
+      -1.9,
+      -0.8
+    ],
+    "z": [
+      -1.13,
+      0.37
+    ],
+    "roofY": 3.0,
+    "blenderY": [
+      -0.37,
+      1.13
+    ]
+  },
+  "secondaryDrainGrate": {
+    "coordinateSystem": "Three x/z; Blender=(x,-z,y)",
+    "centerY": 3.04,
+    "verticalExtent": [
+      3.0175,
+      3.0625
+    ],
+    "frameWidth": 0.04,
+    "slatCount": 9,
+    "slatWidthX": 0.022,
+    "slatZ": [
+      -1.09,
+      0.33
+    ],
+    "slatX": [
+      -1.758,
+      -1.656,
+      -1.554,
+      -1.4520000000000002,
+      -1.3499999999999999,
+      -1.248,
+      -1.1460000000000001,
+      -1.044,
+      -0.942
+    ],
+    "braceCount": 2,
+    "braceWidthZ": 0.018,
+    "braceZ": [
+      -0.6166666666666667,
+      -0.14333333333333342
+    ],
+    "material": "DrainGrate_RoughSteel; nonemissive, rough metal"
+  },
+  "corridorBounds": {
+    "x": [
+      -2.0,
+      1.8
+    ],
+    "centerX": -0.1,
+    "widthMetres": 3.8,
+    "widthVersion": "3.8-metre-v4",
+    "rightEdgeFixed": true,
+    "uvPreserved": true,
+    "geometryApproximation": "Joined RoomSurface keeps UV/material data; its left wall moves to x=-2.0m and negative-x floor vertices resize with the wall. Far corridor widens about its fixed right x=1.8 edge."
+  }
+}

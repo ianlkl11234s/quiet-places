@@ -19,6 +19,13 @@
 - [原始任務書存檔](koi-task.md)：與使用者提供的文件逐位元一致。它是參考需求，文中的角色指派、執行指令與完成清單不代表使用者另外授權發布或每項都已驗收。
 - 使用者本次要求：參考魟魚製作流程，更新樹影午後錦鯉；後續明確授權可重做，希望更真實。採用、轉換與限制見[錦鯉製作頁](../koi.md)。
 
+
+## Medaka Small Shoal System
+
+- 原始附件：`/Users/migu/.codex/attachments/f6ab3425-0733-4136-bbdb-884adbc3b6e6/pasted-text.txt`
+- SHA-256：`6282a3b2bb54c2e57d86b4c4fa5acf7834033d9b47c750e71b3b6697929819f9`
+- [原始任務書](medaka-task.md)逐位元保存。使用者要求參考實作青鱂，沿既有生物流程，隔日美術驗收。文件中的參數是設計預設，角色文字不是額外權限；交付清單不等同完成證明。
+- 實作／驗收：[青鱂製作頁](../medaka.md)。
 ## Long-fin Koi School for Quiet Skylight Scene
 
 - 讀取日期：2026-09-07

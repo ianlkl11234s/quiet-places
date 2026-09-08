@@ -16,6 +16,15 @@ const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
 async function start(){
  const preferences=loadPreferences();
+ const afterlightCard=document.createElement('button');
+ afterlightCard.className='room-card room-card--afterlight';afterlightCard.dataset.place='afterlight';afterlightCard.setAttribute('aria-pressed','false');
+ afterlightCard.innerHTML='<span class="room-card__name">雨後天井</span><span class="room-card__detail">雨後的光與新葉</span>';
+ document.querySelector('.room-cards')?.append(afterlightCard);
+ const afterlightOption=document.createElement('option');afterlightOption.value='afterlight';afterlightOption.textContent='雨後天井 · 雨後的光與新葉';el<HTMLSelectElement>('place-select').append(afterlightOption);
+ const afterlightCameraOptions=document.createElement('div');
+ afterlightCameraOptions.id='afterlight-camera-options';afterlightCameraOptions.hidden=true;
+ afterlightCameraOptions.innerHTML='<label for="afterlight-camera-distance">鏡頭遠近 <output id="afterlight-camera-distance-value">0%</output></label><input id="afterlight-camera-distance" type="range" min="0" max="30" step="1" value="0"><div class="actions"><button id="afterlight-camera-reset">回原位</button></div>';
+ document.querySelector('label[for="beam-strength"]')?.before(afterlightCameraOptions);
  const persist=()=>{
   saveRoomPreferences(preferences,currentPlace,{hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,oceanLevel});
   savePreferences(preferences);
@@ -37,6 +46,7 @@ async function start(){
  place.setOceanLevel?.(oceanLevel);
  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
  renderer.toneMappingExposure=place.exposure??1.1;
+ camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();
  camera.position.set(...place.position);
  const controls=new OrbitControls(camera,renderer.domElement);
  // Rotate around the skylight's vertical axis, keeping the room in the composition.
@@ -96,19 +106,23 @@ async function start(){
  }
  const placeSelect=el<HTMLSelectElement>('place-select');placeSelect.value=currentPlace;
  function describePlace(){
+  document.body.dataset.place=currentPlace;
   const isWater=currentPlace==='waterlight';
+  const hasWeather=isWater||currentPlace==='afterlight';
   document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.place===currentPlace)));
-  el('water-options').hidden=!isWater;
+  el('water-options').hidden=!hasWeather;
   el('ocean-options').hidden=currentPlace!=='oceanlight';
+  el('afterlight-camera-options').hidden=currentPlace!=='afterlight';
   document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.oceanLevel===oceanLevel)));
   el('water-reset').hidden=!isWater;
   el('water-mode').textContent=place.waterMode;
   el<HTMLButtonElement>('water-reset').disabled=!place.hasSimulation;
-  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，靠近牆面時停止。':'拖曳環繞天窗，靠近牆面時停止。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':'窗外海面三種水位。拖曳微調視角，左右各 15°。';
-  renderer.domElement.setAttribute('aria-label',isWater?'拖曳環繞天窗，靠近牆面時停止；方向鍵旋轉，Home重設':'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設');
+  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，靠近牆面時停止。':'拖曳環繞天窗，靠近牆面時停止。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':currentPlace==='afterlight'?'青鱂在植物與陰影間聚散。拖曳微調視角，左右各 6°。':'窗外海面三種水位。拖曳微調視角，左右各 15°。';
+  renderer.domElement.setAttribute('aria-label',isWater?'拖曳環繞天窗，靠近牆面時停止；方向鍵旋轉，Home重設':currentPlace==='afterlight'?'拖曳觀看雨後天井，左右各6度；滾輪拉近拉遠，方向鍵旋轉，Home重設':'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設');
   weatherLabels();document.title=`${el('place-title').textContent} · Quiet Places／靜隅`;el('space').setAttribute('aria-label',`${el('place-title').textContent}：即時生成的靜謐空間`);
  }
- function homeCamera(){
+ function homeCamera(resetAfterlightDistance=true){
+  if(resetAfterlightDistance)afterlightCameraDistance=0;
   updateAntialiasing();
   renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=place.exposure??1.1;
@@ -123,7 +137,7 @@ async function start(){
  async function switchPlace(id:PlaceId,save=true){
   if(switching||(!exporting&&id===currentPlace))return;
   switching=true;
-  const old={place,scene,id:currentPlace,oceanLevel,hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,elapsed,position:camera.position.clone(),target:controls.target.clone()};
+  const old={place,scene,id:currentPlace,oceanLevel,hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,elapsed,afterlightCameraDistance,position:camera.position.clone(),target:controls.target.clone()};
   let candidate:typeof place|undefined,committed=false;
   const busyInputs=Array.from(document.querySelectorAll<HTMLInputElement|HTMLButtonElement|HTMLSelectElement>('#settings input,#settings button,#settings select,[data-place],#place-select')).map(input=>({input,disabled:input.disabled}));
   busyInputs.forEach(({input})=>{input.disabled=true;});controls.enabled=false;
@@ -138,10 +152,15 @@ async function start(){
    if(room){hour=room.live?localHour():room.hour;live=room.live;beamStrength=room.beamStrength;oceanLevel=room.oceanLevel;preferences.weather=room.weather;preferences.rainIntensity=room.rainIntensity;}
    place=candidate;scene=nextScene;renderPass.scene=scene;currentPlace=id;place.setOceanLevel?.(oceanLevel);
    homeCamera();elapsed=0;state=sampleTime(hour);
-   const rainy=id==='waterlight'&&preferences.weather==='rain';
-   place.update(0,elapsed,{...state,intensity:state.intensity*(rainy?.72:1),warmth:state.warmth*(rainy?.45:1),beamStrength,rain:rainy?preferences.rainIntensity:0,lowQuality:preferences.quality==='low'});
+   const waterRain=id==='waterlight'&&preferences.weather==='rain';
+   const afterlightHeavyRain=id==='afterlight'&&preferences.weather==='heavy-rain';
+   const sceneRain=(id==='waterlight'&&preferences.weather==='rain')||(id==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain));
+   place.update(0,elapsed,{...state,intensity:state.intensity*(waterRain?.72:1),warmth:state.warmth*(waterRain?.45:1),beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
    composer.render();
+   // Retiring scenes must not undo the candidate renderer state after its first frame.
+   const candidateShadow={enabled:renderer.shadowMap.enabled,type:renderer.shadowMap.type};
    committed=true;old.place.dispose();
+   renderer.shadowMap.enabled=candidateShadow.enabled;renderer.shadowMap.type=candidateShadow.type;
    placeSelect.value=id;
    if(save){preferences.place=id;preferences.hour=hour;preferences.live=live;preferences.beamStrength=beamStrength;persist();}
    describePlace();syncRoomInputs();
@@ -150,8 +169,8 @@ async function start(){
   }catch(error){
    if(!committed){
     candidate?.dispose();place=old.place;scene=old.scene;renderPass.scene=scene;currentPlace=old.id;
-    ({oceanLevel,hour,live,beamStrength,elapsed}=old);preferences.weather=old.weather;preferences.rainIntensity=old.rainIntensity;
-    homeCamera();camera.position.copy(old.position);controls.target.copy(old.target);controls.update();state=sampleTime(hour);placeSelect.value=currentPlace;
+    ({oceanLevel,hour,live,beamStrength,elapsed}=old);afterlightCameraDistance=old.afterlightCameraDistance;preferences.weather=old.weather;preferences.rainIntensity=old.rainIntensity;
+    homeCamera(false);camera.position.copy(old.position);controls.target.copy(old.target);controls.update();state=sampleTime(hour);placeSelect.value=currentPlace;
     describePlace();syncRoomInputs();composer.render();
    }
    if(!exporting){await fadeRoom(false);status.hidden=false;status.textContent='房間暫時無法載入，已保留原房間；請重新整理後再試。';}
@@ -173,10 +192,32 @@ async function start(){
  liveInput.checked=live;
  const beamInput=el<HTMLInputElement>('beam-strength');beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
  const weather=el<HTMLSelectElement>('weather'),quality=el<HTMLSelectElement>('quality'),rainInput=el<HTMLInputElement>('rain-intensity');
+ const afterlightCameraDistanceInput=el<HTMLInputElement>('afterlight-camera-distance'),afterlightCameraDistanceValue=el('afterlight-camera-distance-value');
+ let afterlightCameraDistance=0;
+ function syncAfterlightCameraDistance(){
+  afterlightCameraDistanceInput.value=String(Math.round(afterlightCameraDistance*100));afterlightCameraDistanceValue.textContent=`${Math.round(afterlightCameraDistance*100)}%`;
+ }
+ function applyAfterlightCameraDistance(){
+  if(currentPlace!=='afterlight')return;
+  const distance=homePosition.distanceTo(controls.target)*(1-afterlightCameraDistance);
+  const offset=camera.position.clone().sub(controls.target);
+  if(offset.lengthSq()===0)offset.copy(homePosition).sub(controls.target);
+  camera.position.copy(controls.target).add(offset.setLength(distance));controls.update();
+ }
  weather.value=preferences.weather;quality.value=preferences.quality;rainInput.value=String(preferences.rainIntensity*100);
- function weatherLabels(){el('rain-controls').hidden=preferences.weather!=='rain';el('rain-value').textContent=`${Math.round(preferences.rainIntensity*100)}%`;el('place-title').textContent=currentPlace==='waterlight'?(preferences.weather==='rain'?'雨落水面':'水光之間'):places.find(p=>p.id===currentPlace)!.name;}
+ function weatherLabels(){
+  const afterlight=currentPlace==='afterlight',weatherVisible=currentPlace==='waterlight'||afterlight;
+  const heavyRain=weather.querySelector<HTMLOptionElement>('option[value="heavy-rain"]');
+  if(afterlight&&!heavyRain){const option=document.createElement('option');option.value='heavy-rain';option.textContent='雨後天井 · 大雨';weather.append(option);}
+  if(!afterlight)heavyRain?.remove();
+  weather.value=preferences.weather;
+  el('rain-controls').hidden=!weatherVisible||preferences.weather==='clear';el('rain-value').textContent=`${Math.round(preferences.rainIntensity*100)}%`;
+  weather.options[0].textContent=afterlight?'雨後天井 · 雨後':'水光之間 · 晴日';
+  weather.options[1].textContent=afterlight?'雨後天井 · 太陽雨':'雨落水面 · 雨日';
+  el('place-title').textContent=currentPlace==='waterlight'?(preferences.weather==='rain'?'雨落水面':'水光之間'):places.find(p=>p.id===currentPlace)!.name;
+ }
  describePlace();
- weather.addEventListener('change',()=>{preferences.weather=weather.value==='rain'?'rain':'clear';place.resetWater();weatherLabels();persist();requestRender();});
+ weather.addEventListener('change',()=>{preferences.weather=currentPlace==='afterlight'&&weather.value==='heavy-rain'?'heavy-rain':weather.value==='rain'?'rain':'clear';if(currentPlace==='waterlight')place.resetWater();weatherLabels();persist();requestRender();});
  quality.addEventListener('change',()=>{preferences.quality=quality.value==='low'?'low':'standard';resize();persist();});
  rainInput.addEventListener('input',()=>{preferences.rainIntensity=Number(rainInput.value)/100;weatherLabels();persist();requestRender();});
  function updateLabels(){el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);pause.textContent=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-pressed',String(paused));}
@@ -190,10 +231,27 @@ async function start(){
  }
  function syncRoomInputs(){
   liveInput.checked=live;beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
-  weather.value=preferences.weather;rainInput.value=String(preferences.rainIntensity*100);updateLabels();
+  weather.value=preferences.weather;rainInput.value=String(preferences.rainIntensity*100);syncAfterlightCameraDistance();updateLabels();
  }
- function resetView(){controls.enableDamping=false;controls.update();controls.reset();controls.enableDamping=!reduce.matches;}
+ function resetView(){
+  if(currentPlace==='afterlight')afterlightCameraDistance=0;
+  controls.enableDamping=false;controls.update();controls.reset();controls.enableDamping=!reduce.matches;syncAfterlightCameraDistance();
+ }
  el('reset-view').addEventListener('click',resetView);
+ afterlightCameraDistanceInput.addEventListener('input',()=>{
+  if(currentPlace!=='afterlight')return;
+  afterlightCameraDistance=Number(afterlightCameraDistanceInput.value)/100;applyAfterlightCameraDistance();syncAfterlightCameraDistance();requestRender();
+ });
+ el('afterlight-camera-reset').addEventListener('click',()=>{if(currentPlace==='afterlight')resetView();});
+ renderer.domElement.addEventListener('wheel',event=>{
+  if(currentPlace!=='afterlight'||switching||exporting||event.ctrlKey||!controls.enabled)return;
+  event.preventDefault();
+  // Normalize wheel lines/pages and trackpad pixels into the same bounded dolly.
+  const pixels=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?renderer.domElement.clientHeight:1);
+  const step=THREE.MathUtils.clamp(pixels*.0003,-.06,.06);
+  afterlightCameraDistance=THREE.MathUtils.clamp(afterlightCameraDistance-step,0,.30);
+  applyAfterlightCameraDistance();syncAfterlightCameraDistance();requestRender();
+ },{passive:false});
  panels.forEach(entry=>entry.toggle.addEventListener('click',()=>setPanel(entry.panel.hidden,entry.panel)));
  ['close-settings','close-rooms','close-about'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
  document.addEventListener('pointerdown',event=>{if(activeToggle&&event.target instanceof Node&&!panels.some(entry=>entry.panel.contains(event.target as Node)||entry.toggle.contains(event.target as Node)))setPanel(false);});
@@ -244,33 +302,40 @@ async function start(){
   if(live){const next=localHour();const changed=Math.floor(next*60)!==Math.floor(hour*60);hour=next;if(changed)updateLabels();}
   const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);
   for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
-  const rainy=currentPlace==='waterlight'&&preferences.weather==='rain';
-  const lighting=rainy?{...state,intensity:state.intensity*.72,warmth:state.warmth*.45}:state;
+  state.hour=((state.hour??hour)+(((hour-(state.hour??hour)+36)%24)-12)*ease+24)%24;
+  const waterRain=currentPlace==='waterlight'&&preferences.weather==='rain';
+  const afterlightHeavyRain=currentPlace==='afterlight'&&preferences.weather==='heavy-rain';
+  const sceneRain=(currentPlace==='waterlight'&&preferences.weather==='rain')||(currentPlace==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain));
+  const lighting=waterRain?{...state,intensity:state.intensity*.72,warmth:state.warmth*.45}:state;
   if(!paused&&!switching)elapsed+=dt;
-  place.update(paused||switching?0:dt,elapsed,{...lighting,beamStrength,rain:rainy?preferences.rainIntensity:0,lowQuality:preferences.quality==='low'});
+  place.update(paused||switching?0:dt,elapsed,{...lighting,beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
   controls.enableDamping=!reduce.matches;controls.update();composer.render();rendering=false;
   if(!paused||now<dirtyUntil)raf=requestAnimationFrame(frame);
  }
  const exportButton=el<HTMLButtonElement>('export-series');
+ const exportCount=places.filter(place=>place.id!=='waterlight').length*moments.length;
+ exportButton.textContent=`輸出場景時刻 · ${exportCount} 張圖片`;
+ el('series-gallery').setAttribute('aria-label',`${exportCount} 種安靜的時刻`);
  exportButton.addEventListener('click',async()=>{
   if(exporting||switching)return;
   exporting=true;exportButton.disabled=true;placeSelect.disabled=true;controls.enabled=false;
   cancelAnimationFrame(raf);raf=0;audio.visibility(true);music.visibility(true);
   const inputStates=Array.from(panel.querySelectorAll<HTMLInputElement|HTMLButtonElement|HTMLSelectElement>('input,button,select')).map(input=>({input,disabled:input.disabled}));
   inputStates.forEach(({input})=>{input.disabled=true;});
-  const saved={id:currentPlace,hour,elapsed,position:camera.position.clone(),target:controls.target.clone()};
+  const saved={id:currentPlace,hour,elapsed,afterlightCameraDistance,position:camera.position.clone(),target:controls.target.clone()};
   const files:Record<string,Uint8Array>={};
   imageUrls.forEach(url=>URL.revokeObjectURL(url));imageUrls.length=0;galleryImages.replaceChildren();
   try{
    const {zipSync}=await import('three/addons/libs/fflate.module.js');
    let completed=0;
-   for(const id of ['leaflight','oceanlight'] as const){
+   const exportPlaces=places.filter(place=>place.id!=='waterlight');
+   for(const {id} of exportPlaces){
     await switchPlace(id,false);
     renderer.setPixelRatio(1);renderer.setSize(1024,1536,false);composer.setPixelRatio(1);composer.setSize(1024,1536);
     camera.aspect=1024/1536;camera.fov=place.fov??58;camera.updateProjectionMatrix();
     for(const moment of moments){
      if(document.hidden||lost)throw new Error('輸出已暫停，請保持頁面在前景後重試。');
-     status.hidden=false;status.textContent=`輸出 ${++completed} / 8 · ${places.find(p=>p.id===id)!.name} · ${moment.name}`;
+     status.hidden=false;status.textContent=`輸出 ${++completed} / ${exportPlaces.length*moments.length} · ${places.find(p=>p.id===id)!.name} · ${moment.name}`;
      // Seeded geometry, frozen elapsed and exact keyframes make the series comparable.
      place.update(0,12,{...sampleTime(moment.hour),beamStrength:1,lowQuality:false});
      composer.render();
@@ -286,10 +351,10 @@ async function start(){
    const archive=zipSync(files,{level:0});
    const url=URL.createObjectURL(new Blob([archive as Uint8Array<ArrayBuffer>],{type:'application/zip'}));
    imageUrls.push(url);const link=el<HTMLAnchorElement>('download-series');link.href=url;link.download='quiet-places-eight-moments.zip';gallery.hidden=false;galleryInert(true);el('close-gallery').focus();
-   el('export-message').textContent='八張圖片已備妥，可預覽或下載。';
+   el('export-message').textContent=`${exportCount} 張圖片已備妥，可預覽或下載。`;
   }catch(error){el('export-message').textContent=error instanceof Error?error.message:'圖片輸出失敗，請重試。';}
   finally{
-   try{await switchPlace(saved.id,false);hour=saved.hour;elapsed=saved.elapsed;camera.position.copy(saved.position);controls.target.copy(saved.target);controls.update();}
+   try{await switchPlace(saved.id,false);hour=saved.hour;elapsed=saved.elapsed;afterlightCameraDistance=saved.afterlightCameraDistance;camera.position.copy(saved.position);controls.target.copy(saved.target);controls.update();syncRoomInputs();}
    finally{exporting=false;inputStates.forEach(({input,disabled})=>{input.disabled=disabled;});controls.enabled=true;exportButton.disabled=false;placeSelect.disabled=false;status.hidden=true;if(gallery.hidden){audio.visibility(document.hidden);music.visibility(document.hidden);}resize();updateLabels();requestRender();}
   }
  });

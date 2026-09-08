@@ -1,0 +1,57 @@
+{
+  "species": "Oryzias latipes morphology-inspired original",
+  "masterLengthMetres": 0.038,
+  "actualSourceLengthMetres": 0.03807999938726425,
+  "actualBlenderYBounds": [
+    -0.01899999938905239,
+    0.01907999999821186
+  ],
+  "nativeForwardBlender": "+Y",
+  "forwardThree": "-Z",
+  "skinnedMesh": "Medaka_Master",
+  "rootNode": "Medaka_Rig",
+  "bones": [
+    "MedakaRoot",
+    "Spine_01",
+    "Spine_02",
+    "Spine_03",
+    "Spine_04",
+    "Spine_05",
+    "Peduncle",
+    "Tail_Base",
+    "Tail_Tip",
+    "Pectoral_L",
+    "Pectoral_R"
+  ],
+  "localLateralRotationAxis": "Z",
+  "inplaceClip": "MEDAKA_ACT_INPLACE_SWIM_1S",
+  "clipFrequencyHz": 2,
+  "tailPose": {
+    "q": "clamp((v-.035)/(.24-.035),0,1)",
+    "tailDisplacement": "L*.035*(.65+.55*q)*(1+.2*accel)",
+    "localAxis": "Z",
+    "formula": "integratedPhase input; atan(displacement derivative / L), adjacent difference",
+    "pectoral": "0.20*(1-.55*q)*sin(integratedPhase), local Z opposite signs"
+  },
+  "skinWeights": {
+    "vertices": 562,
+    "minimum": 0.9999999701976776,
+    "maximum": 1.0000000298023224,
+    "unweighted": 0
+  },
+  "skinnedExcursion": {
+    "headLateralMetres": 0.0,
+    "tailLateralMetres": 0.00044791535765398294,
+    "headToTailRatio": 0.0,
+    "passesHeadUnderQuarter": true
+  },
+  "motionBinContract": {
+    "fps": 30,
+    "durationSeconds": 120,
+    "fishCount": 22,
+    "strideFloat32": 12,
+    "threeToBlenderPosition": "(x,-z,y)",
+    "integratedPhase": "already includes individual fish phase; never add motionPhase",
+    "pectoral": "0.20*(1-.55*q)*sin(integratedPhase), local Z signs L+/R-"
+  }
+}
