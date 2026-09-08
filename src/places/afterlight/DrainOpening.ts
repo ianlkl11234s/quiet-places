@@ -2,7 +2,9 @@
 export const drainOpening={minX:.40,maxX:1.55,minZ:-1.40,maxZ:-.10,roofY:3,frame:.04,slatWidth:.022,braceWidth:.018};
 export const drainSlats=Array.from({length:9},(_,i)=>.44+(i+1)*1.07/10);
 export const drainBraces=Array.from({length:2},(_,i)=>-1.36+(i+1)*1.22/3);
+export const oppositeDrainOpening={...drainOpening,minX:-drainOpening.maxX,maxX:-drainOpening.minX};
 export function drainIsOpen(x:number,z:number){
+ x=Math.abs(x);
  return x>.44&&x<1.51&&z>-1.36&&z<-.14&&drainSlats.every(v=>Math.abs(x-v)>.011)&&drainBraces.every(v=>Math.abs(z-v)>.009);
 }
 // Sample an actual open cell, rather than making rain emerge through metal.

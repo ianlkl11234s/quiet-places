@@ -31,6 +31,16 @@ FRAME = .04
 SLAT_X = [.44 + (index + 1) * (1.07 / 10) for index in range(9)]
 SLAT_Z = [-1.36, -.14]
 BRACE_Z = [-1.36 + (index + 1) * (1.22 / 3) for index in range(2)]
+SECONDARY_APERTURE = {
+    'x': [-1.55, -.40],
+    'z': [-1.40, -.10],
+    'roofY': 3.0,
+    'blenderY': [.10, 1.40],
+}
+SECONDARY_FRAME = FRAME
+SECONDARY_SLAT_X = sorted(-x for x in SLAT_X)
+SECONDARY_SLAT_Z = SLAT_Z
+SECONDARY_BRACE_Z = BRACE_Z
 
 
 def material(name, color, roughness, metallic=0.0):
@@ -124,15 +134,28 @@ def remove_source_roofs():
 
 def build_roof(scene, collection):
     concrete = material('DrainRoof_DarkConcrete', (.115, .125, .115), .88)
-    # Blender Y is negative Three Z.  Four pieces cover the old roof footprint
-    # while leaving exactly the requested x/z skylight bounds.
-    pieces = (
-        ('DrainRoof_Fore', (0.0, -1.95, 3.0), (3.6, 4.10, .24)),
-        ('DrainRoof_Back', (0.0, 1.70, 3.0), (3.6, .60, .24)),
-        ('DrainRoof_Left', (-.70, .75, 3.0), (2.20, 1.30, .24)),
-        ('DrainRoof_Right', (1.675, .75, 3.0), (.25, 1.30, .24)),
-    )
-    return [cube(collection, *piece, concrete, bevel=.015) for piece in pieces]
+    # Five non-beveled prisms are joined into one mesh: fore, back, and the
+    # left/centre/right strips between the mirrored apertures.  Their shared
+    # coordinates have no bevel gap through which daylight can leak.
+    pieces = ((-1.8, 1.8, -2.0, -1.4), (-1.8, 1.8, -.10, 4.0),
+              (-1.8, -1.55, -1.4, -.10), (-.40, .40, -1.4, -.10),
+              (1.55, 1.8, -1.4, -.10))
+    vertices, faces = [], []
+    for x0, x1, z0, z1 in pieces:
+        y0, y1 = -z1, -z0
+        base = len(vertices)
+        vertices.extend(((x0, y0, 2.88), (x1, y0, 2.88), (x1, y1, 2.88), (x0, y1, 2.88),
+                         (x0, y0, 3.12), (x1, y0, 3.12), (x1, y1, 3.12), (x0, y1, 3.12)))
+        faces.extend(((base, base + 3, base + 2, base + 1), (base + 4, base + 5, base + 6, base + 7),
+                      (base, base + 1, base + 5, base + 4), (base + 1, base + 2, base + 6, base + 5),
+                      (base + 2, base + 3, base + 7, base + 6), (base + 3, base, base + 4, base + 7)))
+    mesh = bpy.data.meshes.new('DrainRoof_Near')
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(concrete)
+    mesh.update()
+    roof = bpy.data.objects.new('DrainRoof_Near', mesh)
+    collection.objects.link(roof)
+    return [roof]
 
 
 def build_grate(collection):
@@ -147,6 +170,20 @@ def build_grate(collection):
         items.append(cube(collection, f'DrainGrate_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, 1.22, GRATE_DEPTH), steel, .002))
     for index, z in enumerate(BRACE_Z):
         items.append(cube(collection, f'DrainGrate_Brace_{index + 1:02d}', (.975, -z, GRATE_Y), (1.07, .018, GRATE_DEPTH), steel, .002))
+    return items
+
+
+def build_secondary_grate(collection):
+    steel = material('DrainGrate_RoughSteel', (.075, .082, .078), .72, metallic=.88)
+    items = []
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_West', (-1.53, .75, GRATE_Y), (SECONDARY_FRAME, 1.30, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_East', (-.42, .75, GRATE_Y), (SECONDARY_FRAME, 1.30, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_North', (-.975, .12, GRATE_Y), (1.15, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_South', (-.975, 1.38, GRATE_Y), (1.15, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
+    for index, x in enumerate(SECONDARY_SLAT_X):
+        items.append(cube(collection, f'DrainGrate_Secondary_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, 1.22, GRATE_DEPTH), steel, .002))
+    for index, z in enumerate(SECONDARY_BRACE_Z):
+        items.append(cube(collection, f'DrainGrate_Secondary_Brace_{index + 1:02d}', (-.975, -z, GRATE_Y), (1.07, .018, GRATE_DEPTH), steel, .002))
     return items
 
 
@@ -184,6 +221,21 @@ def export_web(scene):
         'braceZ': BRACE_Z,
         'material': 'DrainGrate_RoughSteel; nonemissive, rough metal',
     }
+    data['secondaryAperture'] = SECONDARY_APERTURE
+    data['secondaryDrainGrate'] = {
+        'coordinateSystem': 'Three x/z; Blender=(x,-z,y)',
+        'centerY': GRATE_Y,
+        'verticalExtent': [round(GRATE_Y - GRATE_DEPTH / 2, 4), round(GRATE_Y + GRATE_DEPTH / 2, 4)],
+        'frameWidth': SECONDARY_FRAME,
+        'slatCount': 9,
+        'slatWidthX': .022,
+        'slatZ': SECONDARY_SLAT_Z,
+        'slatX': SECONDARY_SLAT_X,
+        'braceCount': 2,
+        'braceWidthZ': .018,
+        'braceZ': SECONDARY_BRACE_Z,
+        'material': 'DrainGrate_RoughSteel; nonemissive, rough metal',
+    }
     metadata_path.write_text(json.dumps(data, indent=2) + '\n')
 
 
@@ -203,16 +255,22 @@ def run(export=False):
     assets = container(scene)
     roof = build_roof(scene, assets)
     grate = build_grate(assets)
+    secondary_grate = build_secondary_grate(assets)
     scene['aperture_three'] = APERTURE
     scene['drain_grate_three'] = {
         'y': GRATE_Y, 'depth': GRATE_DEPTH, 'slatX': SLAT_X,
         'slatZ': SLAT_Z, 'braceZ': BRACE_Z,
     }
-    scene['drain_update'] = {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate)}
+    scene['secondary_aperture_three'] = SECONDARY_APERTURE
+    scene['secondary_drain_grate_three'] = {
+        'y': GRATE_Y, 'depth': GRATE_DEPTH, 'slatX': SECONDARY_SLAT_X,
+        'slatZ': SECONDARY_SLAT_Z, 'braceZ': SECONDARY_BRACE_Z,
+    }
+    scene['drain_update'] = {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate), 'secondaryGratePieces': len(secondary_grate)}
     bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
     if export:
         export_web(scene)
-    return {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate)}
+    return {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate), 'secondaryGratePieces': len(secondary_grate)}
 
 
 if __name__ == '__main__':

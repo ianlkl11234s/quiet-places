@@ -27,6 +27,7 @@ const beamFragment=/* glsl */`
   float t=(p.y-3.)/uSun.y;
   if(t<0.)return 0.;
   vec3 q=p-uSun*t;
+  q.x=abs(q.x); // Mirrored drain openings, both occluded by their actual grate meshes.
   return smoothstep(${opening.minX.toFixed(3)},${(opening.minX+.04).toFixed(3)},q.x)*(1.-smoothstep(${(opening.maxX-.04).toFixed(3)},${opening.maxX.toFixed(3)},q.x))*
    smoothstep(${opening.minZ.toFixed(3)},${(opening.minZ+.04).toFixed(3)},q.z)*(1.-smoothstep(${(opening.maxZ-.04).toFixed(3)},${opening.maxZ.toFixed(3)},q.z));
  }
