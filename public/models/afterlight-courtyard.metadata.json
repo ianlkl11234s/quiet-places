@@ -134,13 +134,13 @@
       1.7
     ],
     "z": [
-      -1.4,
-      0.1
+      -1.13,
+      0.37
     ],
     "roofY": 3.0,
     "blenderY": [
-      -0.1,
-      1.4
+      -0.37,
+      1.13
     ]
   },
   "drainGrate": {
@@ -154,8 +154,8 @@
     "slatCount": 9,
     "slatWidthX": 0.022,
     "slatZ": [
-      -1.36,
-      0.06
+      -1.09,
+      0.33
     ],
     "slatX": [
       0.742,
@@ -171,8 +171,8 @@
     "braceCount": 2,
     "braceWidthZ": 0.018,
     "braceZ": [
-      -0.8866666666666667,
-      -0.41333333333333344
+      -0.6166666666666667,
+      -0.14333333333333342
     ],
     "material": "DrainGrate_RoughSteel; nonemissive, rough metal"
   },
@@ -182,13 +182,13 @@
       -0.8
     ],
     "z": [
-      -1.4,
-      0.1
+      -1.13,
+      0.37
     ],
     "roofY": 3.0,
     "blenderY": [
-      -0.1,
-      1.4
+      -0.37,
+      1.13
     ]
   },
   "secondaryDrainGrate": {
@@ -202,8 +202,8 @@
     "slatCount": 9,
     "slatWidthX": 0.022,
     "slatZ": [
-      -1.36,
-      0.06
+      -1.09,
+      0.33
     ],
     "slatX": [
       -1.758,
@@ -219,8 +219,8 @@
     "braceCount": 2,
     "braceWidthZ": 0.018,
     "braceZ": [
-      -0.8866666666666667,
-      -0.41333333333333344
+      -0.6166666666666667,
+      -0.14333333333333342
     ],
     "material": "DrainGrate_RoughSteel; nonemissive, rough metal"
   },

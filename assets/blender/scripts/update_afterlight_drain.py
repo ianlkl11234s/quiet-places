@@ -21,9 +21,9 @@ import bpy
 ROOT = Path(__file__).resolve().parents[3]
 APERTURE = {
     'x': [.60, 1.70],
-    'z': [-1.40, .10],
+    'z': [-1.13, .37],
     'roofY': 3.0,
-    'blenderY': [-.10, 1.40],
+    'blenderY': [-.37, 1.13],
 }
 ROOM_X = [-2.00, 1.80]
 ROOM_WIDTH_VERSION = '3.8-metre-v4'
@@ -31,13 +31,13 @@ GRATE_Y = 3.04
 GRATE_DEPTH = .045
 FRAME = .04
 SLAT_X = [.64 + (index + 1) * (1.02 / 10) for index in range(9)]
-SLAT_Z = [-1.36, .06]
-BRACE_Z = [-1.36 + (index + 1) * (1.42 / 3) for index in range(2)]
+SLAT_Z = [-1.09, .33]
+BRACE_Z = [-1.09 + (index + 1) * (1.42 / 3) for index in range(2)]
 SECONDARY_APERTURE = {
     'x': [-1.90, -.80],
-    'z': [-1.40, .10],
+    'z': [-1.13, .37],
     'roofY': 3.0,
-    'blenderY': [-.10, 1.40],
+    'blenderY': [-.37, 1.13],
 }
 SECONDARY_FRAME = FRAME
 SECONDARY_SLAT_X = sorted(-.20 - x for x in SLAT_X)
