@@ -5,8 +5,9 @@ export function sampleAfterlightDay(hour:number){
  const smooth=(a:number,b:number,x:number)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
  // The moon follows the opposite half-orbit. At either horizon direct light
  // fades to zero before the active emitter switches; sky fill bridges twilight.
- const y=Math.max(.02,Math.abs(altitude)),z=Math.cos(phase)*(day?1:-1);
- const length=Math.hypot(.28*y,y,z);
- return {incoming:[.28*y/length,-y/length,z/length] as [number,number,number],
+ // The corridor runs along Z; the daily arc crosses its width along X.
+ const y=Math.max(.02,Math.abs(altitude)),x=Math.cos(phase)*(day?1:-1)+.28*y;
+ const length=Math.hypot(x,y);
+ return {incoming:[x/length,-y/length,0] as [number,number,number],
   daylight:smooth(-.12,.12,altitude),sunStrength:smooth(.02,.3,altitude),moonStrength:smooth(.05,.6,-altitude)};
 }
