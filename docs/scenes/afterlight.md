@@ -230,3 +230,16 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 ## 本地提交記錄
 
 2026-09-08：使用者授權提交本輪完整場景與歷次調整，commit標題 `feat: add Afterlight courtyard with medaka shoal and camera controls`；包含可重建Blender來源、網站資產、驗收與製作筆記。以上各節「未提交」描述為當時歷史狀態。本次僅建立本地commit，未push或發布。
+
+
+## 2026-09-08 保留基準後的少量增補
+
+使用者確認喜歡的基準已先保存於 `f3f2d5a`。本輪22→26尾，前22尾逐幀binary與個體metadata均與該commit完全相同；原場景GLB、母魚GLB、相機與光影設定不變。新增4尾在植物前方x≈1.30、z≈.03、y=.40/.55/.70/1.20 m以24/30/40/30秒小橢圓巡游，長4.56 cm，固定低速尾頻2.2–2.65 Hz；是美術編舞，非新增生態行為模擬。重建須保有上述Git基準commit。26尾Blender骨架已同步，每action54 curves、3601 keys，首尾root與bin誤差0。
+
+獨立原創 `afterlight-weeds.glb` 增加5撮牆腳小草，非經核實的特定物種。根在y=-.024 m；實測露出地面高度1.145/2.181/3.200/1.759/1.371 cm，10 meshes/320 triangles。網站合併載入，沿用foliage風、depth與資源釋放，兩份場景blend保留可編輯來源。
+
+三顆共用dock按鈕改為22%不透明黑底、7%白色邊框，移除亮面漸層與陰影，hover/展開為44%黑底；44px操作區與鍵盤focus保留。
+
+光影核對：直射與植物陰影共用DirectionalLight；體積光採同方向及shadow-map遮擋。體積光孔洞採屋頂中心平面y=3的解析矩形，屋頂實體有24 cm厚度，所以孔洞邊缘並非完整光學積分；建築間接光是固定烘焙後縮放，反射為固定局部PMREM，魚身補光與月夜可見度為美術近似。未更動使用者喜歡的光影，不能稱為完整物理模擬。
+
+驗收：28 tests、build通過；本地browser確認魚、小草與一致的透明黑色按鈕，console無error。新增內容留待美術確認，未push或發布。

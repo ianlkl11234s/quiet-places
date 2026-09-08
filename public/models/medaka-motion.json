@@ -2,7 +2,7 @@
   "duration": 120.0,
   "fps": 30,
   "frameCount": 3601,
-  "fishCount": 22,
+  "fishCount": 26,
   "stride": 12,
   "choreography": {
     "triangleAnchorsXZ": [
@@ -178,6 +178,30 @@
       "colorVariant": 3,
       "motionPhase": 2198.6292,
       "motionSeed": 6.04478
+    },
+    {
+      "length": 0.0456,
+      "colorVariant": 0,
+      "motionPhase": 0.2,
+      "motionSeed": 0.2
+    },
+    {
+      "length": 0.0456,
+      "colorVariant": 1,
+      "motionPhase": 1.8,
+      "motionSeed": 1.8
+    },
+    {
+      "length": 0.0456,
+      "colorVariant": 2,
+      "motionPhase": 3.5,
+      "motionSeed": 3.5
+    },
+    {
+      "length": 0.0456,
+      "colorVariant": 3,
+      "motionPhase": 5.1,
+      "motionSeed": 5.1
     }
   ],
   "events": [

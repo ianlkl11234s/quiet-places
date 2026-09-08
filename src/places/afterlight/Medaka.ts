@@ -4,7 +4,7 @@ import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 import {prepareMedakaMotion, type MedakaMotionSample} from './MedakaMotion.ts';
 
-const FISH_COUNT = 22;
+const FISH_COUNT = 26;
 const TAIL_BONES = ['Spine_01','Spine_02','Spine_03','Spine_04','Spine_05','Peduncle','Tail_Base','Tail_Tip'];
 const REQUIRED_BONES = ['MedakaRoot',...TAIL_BONES,'Pectoral_L','Pectoral_R'];
 const TAU = Math.PI * 2;
@@ -88,7 +88,7 @@ export async function prepareMedaka(): Promise<MedakaFactory> {
   let motion;
   try{motion=await prepareMedakaMotion();}catch(error){releaseTemplate(gltf.scene);throw error;}
   const template=gltf.scene;
-  if(motion.metadata.fishCount!==FISH_COUNT){releaseTemplate(template);throw new Error('青鱂動態快取不是 22 尾。');}
+  if(motion.metadata.fishCount!==FISH_COUNT){releaseTemplate(template);throw new Error('青鱂動態快取不是 26 尾。');}
   let master: THREE.SkinnedMesh|undefined;
   template.traverse(object=>{if(!master&&object instanceof THREE.SkinnedMesh&&object.name.startsWith('Medaka_Master'))master=object;});
   if(!template.getObjectByName('Medaka_Rig') || !master){releaseTemplate(template);throw new Error('青鱂模型缺少骨架主體。');}

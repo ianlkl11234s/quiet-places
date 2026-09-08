@@ -8,16 +8,16 @@ const metadata = JSON.parse(await readFile(new URL('../public/models/medaka-moti
 const binary = await readFile(new URL('../public/models/medaka-motion.bin', import.meta.url));
 const motion = decodeMedakaMotion(metadata, binary.buffer.slice(binary.byteOffset, binary.byteOffset + binary.byteLength));
 
-test('medaka cache preserves its 120-second, 22-fish binary contract', () => {
-  assert.deepEqual([metadata.duration, metadata.fps, metadata.frameCount, metadata.fishCount, metadata.stride], [120, 30, 3601, 22, 12]);
-  assert.equal(binary.byteLength, 3601 * 22 * 12 * 4);
+test('medaka cache preserves its 120-second, 26-fish binary contract', () => {
+  assert.deepEqual([metadata.duration, metadata.fps, metadata.frameCount, metadata.fishCount, metadata.stride], [120, 30, 3601, 26, 12]);
+  assert.equal(binary.byteLength, 3601 * 26 * 12 * 4);
   assert.deepEqual(metadata.states, ['LOCAL_CRUISE','PLANT_HOVER','LOOSE_SHOAL','GROUP_ACCELERATE','FAST_TRANSIT','GROUP_DECELERATE','REGROUP','SCATTER_MINOR','SHADOW_ROAM']);
 });
 
 test('medaka sampler is bounded, nose-forward, separated, and contains every behavioural state', () => {
   const states = new Set<number>(); let minSeparation = Infinity; let fast = 0;
   for (let time = 0; time < 120; time += .1) {
-    const fish = Array.from({length: 22}, (_, index) => motion.sample(time, index));
+    const fish = Array.from({length: 26}, (_, index) => motion.sample(time, index));
     for (let index=0; index<fish.length; index++) {
       const pose=fish[index]; states.add(pose.state); if (pose.speed >= .14) fast++;
       assert.ok(pose.position.x >= -.8 && pose.position.x <= 1.6 && pose.position.y >= .18 && pose.position.y <= 1.6 && pose.position.z >= -1.7 && pose.position.z <= .9);
@@ -33,7 +33,7 @@ test('medaka sampler is bounded, nose-forward, separated, and contains every beh
 });
 
 test('medaka loop has a continuous return and phase interpolation survives wrapping', () => {
-  for(let i=0;i<22;i++) {
+  for(let i=0;i<26;i++) {
     const a=motion.sample(0,i), end=motion.sample(120-1/30,i), seam=motion.sample(120,i);
     assert.ok(end.position.distanceTo(seam.position)<.02, 'no positional seam teleport');
     assert.ok(end.quaternion.angleTo(seam.quaternion)<.45, 'no heading flip at seam');
@@ -44,7 +44,7 @@ test('medaka loop has a continuous return and phase interpolation survives wrapp
 
 
 test('medaka baked headings stay bounded through hover and the loop seam', () => {
-  for(let index=0;index<22;index++) {
+  for(let index=0;index<26;index++) {
     let previous=motion.sample(-1/30,index).quaternion;
     for(let frame=0;frame<3600;frame++) {
       const current=motion.sample(frame/30,index).quaternion;

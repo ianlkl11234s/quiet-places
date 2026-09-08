@@ -53,7 +53,7 @@ Waterlight 與其 Rainfall 天候變體可操作並具有本機驗收紀錄；�
 
 ## Afterlight／雨後天井
 
-近景植物、潮濕走廊、局部天井採光與延伸至黑暗消失點的長廊；天候分為雨後與太陽雨。沿用 Blender 可編輯來源、烘焙 PBR／indirect 與單一播放器，加入22尾青鱂、圓角三區群游及滑桿／滾輪鏡頭微調。製作狀態與近似邊界見 [afterlight.md](scenes/afterlight.md)。
+近景植物、潮濕走廊、局部天井採光與延伸至黑暗消失點的長廊；天候分為雨後與太陽雨。沿用 Blender 可編輯來源、烘焙 PBR／indirect 與單一播放器，加入26尾青鱂、圓角三區群游及滑桿／滾輪鏡頭微調。製作狀態與近似邊界見 [afterlight.md](scenes/afterlight.md)。
 
 ## Snow／雪落無聲（後續候選）
 

@@ -1,0 +1,64 @@
+{
+  "asset": "afterlight-weeds",
+  "tuftCount": 5,
+  "objectCount": 10,
+  "rootBlenderZ": -0.024,
+  "windExtras": {
+    "windRootY": -0.024,
+    "windHeightRange": [
+      0.043,
+      0.068
+    ],
+    "windScale": 0.08
+  },
+  "boundsBlender": {
+    "min": [
+      1.6834394931793213,
+      -1.5617822408676147,
+      -0.024000000208616257
+    ],
+    "max": [
+      1.7085734605789185,
+      0.8315037488937378,
+      0.03200387954711914
+    ]
+  },
+  "triangles": 320,
+  "tufts": [
+    {
+      "id": "01",
+      "threeZ": -0.82,
+      "bladeLengthMetres": 0.043,
+      "blades": 2,
+      "actualMaxWorldZ": 0.011447425931692123
+    },
+    {
+      "id": "02",
+      "threeZ": -0.56,
+      "bladeLengthMetres": 0.056,
+      "blades": 4,
+      "actualMaxWorldZ": 0.0218147374689579
+    },
+    {
+      "id": "03",
+      "threeZ": -0.31,
+      "bladeLengthMetres": 0.068,
+      "blades": 5,
+      "actualMaxWorldZ": 0.03200387954711914
+    },
+    {
+      "id": "04",
+      "threeZ": 0.24,
+      "bladeLengthMetres": 0.051,
+      "blades": 3,
+      "actualMaxWorldZ": 0.017585888504981995
+    },
+    {
+      "id": "05",
+      "threeZ": 1.55,
+      "bladeLengthMetres": 0.046,
+      "blades": 2,
+      "actualMaxWorldZ": 0.013710688799619675
+    }
+  ]
+}

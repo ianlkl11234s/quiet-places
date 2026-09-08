@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | Southern stingray（`Hypanus americanus`）造型近似 | 海光之室；骨架、Actions、GLB 與網站 adapter 已接入正式場景路徑，實際 GLB 與本機場景整合檢查通過 | 製作與限制完整；生物學與實機驗收不完整 | [製作頁](southern-stingray.md) |
 | 錦鯉造型近似 | 樹影午後；重做曲面魚鰭、20 骨／9 Actions、花紋與 normal map，三尾路徑已接入 | 實際蒙皮、GLB、browser 與 build 已本機驗證；生物學精確度、實機效能與发布未驗證 | [製作頁](koi.md) |
-| 青鱂（`Oryzias latipes`）造型近似 | 雨後天井；22隻狀態相依鬆散群游、原創骨架模型與網站已接入 | 來源、行為近似與本機測試已記錄；美術驗收待使用者確認 | [製作頁](medaka.md) |
+| 青鱂（`Oryzias latipes`）造型近似 | 雨後天井；26隻狀態相依鬆散群游、原創骨架模型與網站已接入 | 來源、行為近似與本機測試已記錄；美術驗收待使用者確認 | [製作頁](medaka.md) |
 | 程序魚群 | 水光之間；即時生成的九尾 fish school 已接入 | 程式、材質與 steering 近似完整；無物種、資產或生物學宣稱，實機效能未驗證 | [製作頁](procedural-fish.md) |
 
 ## 新增生物的最小文件格式

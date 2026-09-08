@@ -10,7 +10,10 @@ import {prepareMedaka} from './Medaka.ts';
 
 export async function prepareAfterlight(){
  const gltf=await new GLTFLoader().loadAsync('/models/afterlight-courtyard.glb');
- const root=gltf.scene,resources=collectModelResources(root);
+ const root=gltf.scene;
+ try{const weeds=await new GLTFLoader().loadAsync('/models/afterlight-weeds.glb');root.add(weeds.scene);}
+ catch(error){disposeModelResources(collectModelResources(root));throw error;}
+ const resources=collectModelResources(root);
  let indirect:THREE.DataTexture;
  try{indirect=await new EXRLoader().loadAsync('/textures/afterlight/room-indirect.exr');}
  catch(error){disposeModelResources(resources);throw error;}

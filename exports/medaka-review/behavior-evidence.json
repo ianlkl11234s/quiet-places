@@ -1,16 +1,16 @@
 {
   "occupancyBySunRotation": {
     "-0.16": {
-      "min": 4,
-      "max": 10
+      "min": 8,
+      "max": 14
     },
     "0.0": {
-      "min": 3,
-      "max": 8
+      "min": 5,
+      "max": 10
     },
     "0.16": {
       "min": 2,
-      "max": 6
+      "max": 7
     }
   },
   "triangleVisits": [
@@ -106,8 +106,8 @@
     }
   ],
   "light": {
-    "fishCount": 14,
-    "samples": 18105
+    "fishCount": 17,
+    "samples": 26911
   },
   "plant": {
     "penetrationSamples": 0,

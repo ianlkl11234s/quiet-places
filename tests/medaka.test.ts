@@ -20,16 +20,16 @@ function expectClipParity(scene:THREE.Object3D, clip:THREE.AnimationClip, time:n
 }
 
 function motionResponse(url: string): Response {
-  if(url.endsWith('.json'))return Response.json({duration:120,fps:1,frameCount:121,fishCount:22,stride:12,states:['LOCAL_CRUISE'],fish:Array.from({length:22},(_,index)=>({length:(.03+index%4*.005)*1.2,colorVariant:index%4,motionPhase:index,motionSeed:index})),events:[]});
-  const values=new Float32Array(121*22*12);
-  for(let frame=0;frame<=120;frame++)for(let index=0;index<22;index++){
-    const offset=(frame*22+index)*12;
+  if(url.endsWith('.json'))return Response.json({duration:120,fps:1,frameCount:121,fishCount:26,stride:12,states:['LOCAL_CRUISE'],fish:Array.from({length:26},(_,index)=>({length:(.03+index%4*.005)*1.2,colorVariant:index%4,motionPhase:index,motionSeed:index})),events:[]});
+  const values=new Float32Array(121*26*12);
+  for(let frame=0;frame<=120;frame++)for(let index=0;index<26;index++){
+    const offset=(frame*26+index)*12;
     values.set([-.5+index*.035,.28+(index%3)*.03,-.7,0,0,0,1,.04,frame*.31+index,.12,0,.03],offset);
   }
   return new Response(values.buffer);
 }
 
-test('real medaka GLB creates 22 small independently skinned fish with deterministic bone poses and one-time release',async()=>{
+test('real medaka GLB creates 26 small independently skinned fish with deterministic bone poses and one-time release',async()=>{
   const gltf=await loadAsset(),originalLoad=GLTFLoader.prototype.loadAsync,originalFetch=globalThis.fetch;
   GLTFLoader.prototype.loadAsync=async()=>gltf;
   globalThis.fetch=(async(input: string|URL|Request)=>motionResponse(String(input))) as typeof fetch;
@@ -48,7 +48,7 @@ test('real medaka GLB creates 22 small independently skinned fish with determini
     const resources=collectModelResources(gltf.scene),disposals=new Map<THREE.BufferGeometry,number>();
     resources.geometries.forEach(geometry=>{disposals.set(geometry,0);geometry.addEventListener('dispose',()=>disposals.set(geometry,disposals.get(geometry)!+1));});
     const factory=await prepareMedaka(),parent=new THREE.Group(),shoal=factory(parent);
-    assert.equal(shoal.root.parent,parent);assert.equal(shoal.root.children.length,22);
+    assert.equal(shoal.root.parent,parent);assert.equal(shoal.root.children.length,26);
     const first=shoal.root.getObjectByName('medaka-1')!,second=shoal.root.getObjectByName('medaka-2')!;
     assert.notEqual(first.getObjectByName('Tail_Tip'),second.getObjectByName('Tail_Tip'),'each clone has an independent skeleton');
     const poses=()=>{const values:number[]=[];shoal.root.traverse(object=>{if((object as THREE.Bone).isBone)values.push(...object.quaternion.toArray());});return values;};

@@ -2,7 +2,7 @@
 python3 -m assets.blender.scripts.medaka.generate_motion
 """
 from __future__ import annotations
-import json, math, struct
+import json, math, struct, subprocess
 from pathlib import Path
 from .config import *
 from .shoal import Shoal, norm, length
@@ -147,13 +147,29 @@ def main() -> None:
             fish.phase=fish.phase+math.tau*frequency/SIM_FPS
     close_periodically(frames)
     OUT.mkdir(parents=True,exist_ok=True)
-    values=[value for frame in frames for value in frame]
+    # The committed 22-fish cache is immutable.  Read it back and expand each
+    # frame so the first 22 records remain byte-for-byte identical.
+    baseline=subprocess.check_output(['git','show','f3f2d5a:public/models/medaka-motion.bin'],cwd=ROOT)
+    old=struct.unpack('<%sf'%(len(baseline)//4),baseline)
+    if len(old)!=3601*22*STRIDE: raise RuntimeError('unexpected 22-fish baseline')
+    values=[]
+    extra=[]
+    for fish,(y,phase) in enumerate(((.40,.2),(.55,1.8),(.70,3.5),(1.20,5.1)),start=22):
+        extra.append({'length':.0456,'colorVariant':fish-22,'motionPhase':phase,'motionSeed':phase})
+    for frame in range(3601):
+        values.extend(old[frame*22*STRIDE:(frame+1)*22*STRIDE])
+        t=frame/FPS
+        for j,(y,phase) in enumerate(((.40,.2),(.55,1.8),(.70,3.5),(1.20,5.1))):
+            period=(24.,30.,40.,30.)[j]; u=math.tau*t/period+phase; x=1.30+.035*math.cos(u); z=.03+.055*math.sin(u)
+            vx=-.035*math.sin(u)*math.tau/period;vz=.055*math.cos(u)*math.tau/period; speed=math.hypot(vx,vz)
+            values.extend([x,y,z,*quaternion_from_forward([vx,0.,vz]),speed,phase+math.tau*t*(2.2+j*.15),.15,0.,0.])
     (OUT/'medaka-motion.bin').write_bytes(struct.pack('<%sf'%len(values),*values))
-    metadata={'duration':DURATION,'fps':FPS,'frameCount':len(frames),'fishCount':FISH_COUNT,'stride':STRIDE,
+    baseline_meta=json.loads(subprocess.check_output(['git','show','f3f2d5a:public/models/medaka-motion.json'],cwd=ROOT))
+    metadata={'duration':DURATION,'fps':FPS,'frameCount':len(frames),'fishCount':26,'stride':STRIDE,
       'choreography':{'triangleAnchorsXZ':[[.55,-.90],[1.03,-.38],[1.30,-.38]],'triangleFish':12,'periodsSeconds':[30,40,60],'residentLightFish':3,'displayScale':1.2},
       'coordinateSystem':'Three.js Y-up; fish local -Z forward and +Y dorsal/up','states':list(STATE_NAMES),
       'simulation':{'fps':SIM_FPS,'seed':SEED,'loopRestoreSeconds':8,'method':'state-dependent local-neighbor steering'},
-      'fish':[{'length':round(f.length,5),'colorVariant':f.color,'motionPhase':round(f.phase,5),'motionSeed':round(f.seed,5)} for f in shoal.fish],
+      'fish':baseline_meta['fish']+extra,
       'events':shoal.event_log,'binary':'little-endian Float32; frame-major; fields position.xyz quaternion.xyzw speed tailPhase amplitudeQ state accelerationNormalized'}
     (OUT/'medaka-motion.json').write_text(json.dumps(metadata,indent=2)+'\n')
     review=ROOT/'exports/medaka-review'; review.mkdir(parents=True,exist_ok=True)
