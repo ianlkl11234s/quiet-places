@@ -19,3 +19,9 @@ test('Afterlight traverses dawn, high noon, dusk and moon across the full wrappe
   last=now;
  }
 });
+
+test('twilight lasts four hours',()=>{
+ assert.equal(sampleAfterlightDay(17).daylight,1);
+ assert.equal(sampleAfterlightDay(19).daylight,.5);
+ assert.equal(sampleAfterlightDay(21).daylight,0);
+});
