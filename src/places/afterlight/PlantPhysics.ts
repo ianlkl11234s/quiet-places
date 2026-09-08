@@ -5,9 +5,9 @@ import {createRainInteraction} from './RainInteraction.ts';
 const STEP=1/60;
 const hash=(n:number)=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
 function noise(t:number,seed:number,period:number){const x=t/period,i=Math.floor(x),f=x-i;return THREE.MathUtils.lerp(hash(i+seed),hash(i+seed+1),f*f*(3-2*f))*2-1;}
-function airflow(t:number){
+function airflow(t:number,heavy:boolean){
  const gust=THREE.MathUtils.smoothstep(noise(t,19,23),-.15,.65);
- return new THREE.Vector3(noise(t,41,7),.08*noise(t,73,4),noise(t,109,12)).multiplyScalar(.018+.075*gust);
+ return new THREE.Vector3(noise(t,41,7),.08*noise(t,73,4),noise(t,109,12)).multiplyScalar((.12+.38*gust)*(heavy?1.2:1));
 }
 type Diagnostics={hits:number,releases:number,visibleDrops:number,maxAngle:number,maxStemAngle:number,maxWetness:number,stationaryBeads:number};
 export function createAfterlightPlantPhysics(){
@@ -35,20 +35,20 @@ export function createAfterlightPlantPhysics(){
   diag={hits:0,releases:0,visibleDrops:0,maxAngle:0,maxStemAngle:0,maxWetness:.26,stationaryBeads:0};root.updateMatrixWorld(true);
  }
  function step(rain:number,heavy:boolean){
-  const t=tick*STEP,wind=airflow(t);root.updateMatrixWorld(true);state.forEach(s=>s.force.set(0,0));
+  const t=tick*STEP,wind=airflow(t,heavy);root.updateMatrixWorld(true);state.forEach(s=>s.force.set(0,0));
   const hits=rainContact.update((tick+1)*STEP,STEP,rain,heavy);
   for(const hit of hits){
    const leaf=leaves[hit.leafIndex],s=state[leaf.jointIndex];
    const length=Math.max(.01,leaf.tip.length()),mass=Math.max(.000008,leaf.area*.16),inertia=mass*length*length/3*(1+s.wetness*.12);
    const incidence=Math.abs(hit.normal.y);
-   const impulse=THREE.MathUtils.clamp(hit.mass*hit.speed*length*hit.lever*incidence/inertia*.075,.006,.10);
+   const impulse=THREE.MathUtils.clamp(hit.mass*hit.speed*length*hit.lever*incidence/inertia*.9,.08,1.6);
    diag.hits++;s.wetness=Math.min(1,s.wetness+.055+hit.mass*22000);s.waterLoad+=.009+hit.mass*6000;
    s.velocity.x-=impulse;
-   let parent=joints[leaf.jointIndex].parentIndex,transmitted=impulse*.10;
+   let parent=joints[leaf.jointIndex].parentIndex,transmitted=impulse*.055;
    for(let depth=0;depth<3&&parent>=0;depth++){state[parent].velocity.x-=transmitted;transmitted*=.12;parent=joints[parent].parentIndex;}
   }
   for(let k=0;k<leaves.length;k++){
-   const leaf=leaves[k],s=state[leaf.jointIndex],joint=joints[leaf.jointIndex];
+   const leaf=leaves[k],s=state[leaf.jointIndex];
    leaf.mesh.getWorldQuaternion(worldQ);normal.set(0,0,1).applyQuaternion(worldQ).normalize();leaf.mesh.getWorldPosition(center);
    const shelter=THREE.MathUtils.clamp((1.72-center.x)*2.5,.12,1)*( .45+.55*THREE.MathUtils.clamp(center.y/1.35,0,1));
    const speed=wind.length(),incidence=Math.abs(normal.dot(wind.clone().normalize()));
@@ -57,7 +57,7 @@ export function createAfterlightPlantPhysics(){
    torque.copy(leaf.tip).multiplyScalar(.5).applyQuaternion(worldQ).cross(force);
    localTorque.copy(torque).applyQuaternion(worldQ.clone().invert());
    const effectiveInertia=inertia*(1+s.wetness*.12);
-   s.force.set(localTorque.x/effectiveInertia,localTorque.z/effectiveInertia).clampLength(0,.65);
+   s.force.set(localTorque.x/effectiveInertia,localTorque.z/effectiveInertia).clampLength(0,3.2);
    // Rest geometry already balances dry gravity. Extra retained water moves that equilibrium.
    s.force.x-=s.wetness*.065*64;
    s.wetness=Math.max(0,s.wetness-STEP/150);s.waterLoad=Math.max(0,s.waterLoad-STEP*.0005);
@@ -70,7 +70,7 @@ export function createAfterlightPlantPhysics(){
     const vertices=leaf.mesh.geometry.getAttribute('position');
     for(let v=0;v<vertices.count;v+=6){const local=new THREE.Vector3().fromBufferAttribute(vertices,v);if(local.y<leaf.tip.y*.5)continue;const world=leaf.mesh.localToWorld(local.clone());if(world.y<lowest.y){lowest=world;anchor=local;}}
     d.anchor.lerp(anchor,1-Math.exp(-STEP*2));d.mesh.position.copy(root.worldToLocal(leaf.mesh.localToWorld(d.anchor.clone())));d.mesh.scale.setScalar(.00065+.00115*Math.min(1,d.age/3.5));
-    if(d.age>2.5+hash(leaf.seed)*3.0&&s.waterLoad>=threshold*.78){d.forming=false;d.age=0;d.velocity.set(0,-.035,0);forming[k]=-1;s.waterLoad=Math.max(0,s.waterLoad-threshold);s.velocity.x+=.05;cooldown[k]=t+8+hash(tick)*12;diag.releases++;}
+    if(d.age>2.5+hash(leaf.seed)*3.0&&s.waterLoad>=threshold*.78){d.forming=false;d.age=0;d.velocity.set(0,-.035,0);forming[k]=-1;s.waterLoad=Math.max(0,s.waterLoad-threshold);s.velocity.x+=.16;cooldown[k]=t+8+hash(tick)*12;diag.releases++;}
    }
    leaf.mesh.material.roughness=THREE.MathUtils.lerp(leaf.baseRoughness,Math.max(.27,leaf.baseRoughness-.23),s.wetness);
    leaf.mesh.material.color.copy(dryColors[k]).multiplyScalar(1-.045*s.wetness);
@@ -89,11 +89,20 @@ export function createAfterlightPlantPhysics(){
    // Frequencies reflect increasing flexibility AND decreasing effective inertia.
    const leaf=leafByJoint.get(i);
    const omega=(joint.kind==='stem'?4:joint.kind==='branch'?5.5:joint.kind==='petiole'?7:joint.kind==='weed'?10:THREE.MathUtils.clamp(8*Math.pow(.003/Math.max(.0002,leaf?.area??.003),.25),6,12))/Math.sqrt(1+s.wetness*.12);
-   const damping=joint.kind==='stem'?1.02:joint.kind==='branch'?.96:.78;
-   if(!leaf){const parent=joints[i].parentIndex;const shared=noise(t-(parent<0?0:.12),31,8);s.force.x+=shared*(joint.kind==='stem'?.004:.025);if(parent>=0)s.force.addScaledVector(state[parent].angle,omega*omega*.08);}
+   const damping=joint.kind==='stem'?1.02:joint.kind==='branch'?.78:leaf?.38:.68;
+   if(!leaf){
+    const parent=joint.parentIndex;
+    // A slow shared gust bends branches; their springs delay the distal tips.
+    // Small per-joint variations break lockstep while keeping one airflow field.
+    const shared=noise(t-i*.035,31,8),cross=noise(t-i*.045,47,11);
+    const amplitude=parent<0?0:joint.kind==='stem'?.0012:joint.kind==='branch'?.032:.012;
+    s.force.x+=shared*amplitude*omega*omega*(heavy?1.2:1);
+    s.force.y+=cross*amplitude*.55*omega*omega;
+    if(parent>=0)s.force.addScaledVector(state[parent].angle,omega*omega*.08);
+   }
    s.velocity.addScaledVector(s.force,STEP).addScaledVector(s.angle,-omega*omega*STEP);
    s.velocity.multiplyScalar(Math.exp(-2*damping*omega*STEP));s.angle.addScaledVector(s.velocity,STEP);
-   const cap=joint.kind==='stem'?.0025:joint.kind==='branch'?.014:joint.kind==='petiole'?.025:.085;
+   const cap=joint.kind==='stem'?.0025:joint.kind==='branch'?.055:joint.kind==='petiole'?.045:.22;
    if(s.angle.length()>cap){s.angle.setLength(cap);s.velocity.multiplyScalar(.5);}
    joint.object.quaternion.copy(joint.rest).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(s.angle.x,0,s.angle.y)));
    diag.maxAngle=Math.max(diag.maxAngle,s.angle.length());if(joint.kind==='stem')diag.maxStemAngle=Math.max(diag.maxStemAngle,s.angle.length());

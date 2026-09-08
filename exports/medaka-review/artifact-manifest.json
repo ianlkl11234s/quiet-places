@@ -40,8 +40,8 @@
     "sha256": "6dba1ca981b8b3434329b65821e35502ba6fed7ecdd1b7d5b9dc72b8afce424e"
   },
   "src/places/afterlight/PlantPhysics.ts": {
-    "bytes": 10777,
-    "sha256": "c28cd0745e6c149cb818617146e8db4fd5d0a12296d86bff70542d49f78f9615"
+    "bytes": 11128,
+    "sha256": "34972a44df8cb6556b67f6c9a48b13ee2adda0747a0ac9a80de121d94a865858"
   },
   "src/places/afterlight/RainField.ts": {
     "bytes": 1162,
