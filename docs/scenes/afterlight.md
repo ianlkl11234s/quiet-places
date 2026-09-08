@@ -295,3 +295,12 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 - 風場尺度從.018+.075gust改.12+.38gust，大雨×1.2；葉片氣动力加速度限幅.65→3.2。枝條以8/11秒coherent noise驅動小幅平衡角，stem約.0012rad、branch .032rad、petiole .012rad（根節點0），階層spring提供時間差。這些為即時美術有效參數，不代表實測風速或植物組織模型。
 - 回歸量測：hero 1280×720、FOV53°，60秒積分、捨前10秒，主植葉尖最大screen excursion約17.5px；原版無雨約.62px、大雨約1.31px。大雨逐幀最大位移.019→.198px。這是移動範圍／每幀位移，不是單滴必然移動17px。新大雨60秒主葉關節最大約6.51°，包含濕重力；每100ms檢查全葉面vertices最大x1.70248<牆1.71，根位置不動。
 - 42 tests與build通過，新增主株原鏡頭可见位移及動態牆界檢查；三種天候GPU pause exact、3次dispose清空。參考motion-browser-evidence.json。未改Blender rest形狀；動態仍由網站階層近似運算，未發布。
+
+## 2026-09-08 左右對稱排水格柵
+
+- 可還原舊版 `3d4d63d`；建模與runtime設定先以 `1e07088` 保存檢查點，再產生資產與驗收commit。使用者先提出另一側小角落透光，後修正為左右對稱；最終依對稱版本製作。
+- 原右側開口不變，在Three x[-1.55,-.40]、z[-1.40,-.10]加入鏡射開口，兩側各1.15×1.30m，各4框／9長條／2橫撐，共30個格柵mesh；材質、y3.04、厚4.5cm與主洞相同。這是參考照片的美術設計，非排水工程規格。
+- Near屋頂改為1個DrainRoof_Near mesh內5個共邊prism，世界高度2.88–3.12m保持24cm厚；內部分割無bevel，避免接縫漏光。牆地及遠廊幾何、UV、植物、魚群、相機保持原版。
+- 直射光、格柵陰影與體積光共用兩個實際開口；解析孔洞用abs(x)鏡射，RainField與drainIsOpen同樣支援兩側。保留曝光、主光及大雨調光倍率，沒有加全域補光。以Metal Cycles 64 samples重新烘焙diffuse indirect EXR，使另一側開口的反射光進入原有牆地lightmap；仍為固定GI基底，非動態全局光照。
+- 開口總面積翻倍，候選雨滴改普通160／大雨480，以seed將雨路各約一半分到兩側，維持每側近似原密度；雨勢slider、低品質45%、water droplet pool與水花預算不變。所有雨滴仍只穿格柵孔洞並使用同一葉面碰撞系統。
+- 完成兩份可編輯blend與網站GLB、metadata、EXR同步。42 tests與build通過，包括鏡射格柵metadata、左右孔洞雨路及原相機植物動態牆界。主頁目視左側地板格柵亮區與第二道入射光，中間深廊仍暗；詳見paired-drain-browser-evidence.json。僅本地版本，未push或發布。

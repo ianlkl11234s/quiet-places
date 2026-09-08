@@ -1,0 +1,64 @@
+{
+  "baseline": "3d4d63d",
+  "configurationCheckpoint": "1e07088",
+  "tests": 42,
+  "build": "passed",
+  "cameraExact": true,
+  "exposureChanged": false,
+  "apertures": {
+    "rightX": [
+      0.4,
+      1.55
+    ],
+    "leftX": [
+      -1.55,
+      -0.4
+    ],
+    "sharedZ": [
+      -1.4,
+      -0.1
+    ]
+  },
+  "visual": [
+    "left-floor grate light patch and second shaft visible in actual player",
+    "right plant remains lit; distant middle corridor remains dark"
+  ],
+  "pauseExact": [
+    {
+      "rain": 0,
+      "heavy": false
+    },
+    {
+      "rain": 0.65,
+      "heavy": false
+    },
+    {
+      "rain": 1,
+      "heavy": true
+    }
+  ],
+  "disposeCycles": 3,
+  "remainingGeometries": 0,
+  "remainingTextures": 0,
+  "remainingSceneChildren": 0,
+  "continuous": {
+    "seconds": 120.0047,
+    "frames": 10371,
+    "averageFps": 86.4216,
+    "p50Ms": 8.4,
+    "p95Ms": 24.9,
+    "viewport": [
+      1280,
+      720
+    ],
+    "hits": 625,
+    "releases": 58,
+    "geometries": 193,
+    "textures": 86,
+    "drawCalls": 279,
+    "triangles": 41174
+  },
+  "consoleErrors": [],
+  "lighting": "Both physically modeled drain openings; refreshed Metal Cycles 64-sample indirect map, existing exposure and weather multipliers",
+  "limits": "Local uncapped desktop QA only. Fixed GI, shadow-map and volume approximations, not full dynamic transport."
+}
