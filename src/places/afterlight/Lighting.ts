@@ -125,9 +125,9 @@ export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLR
    const night=cycle.daylight;
    incoming.set(...cycle.incoming);
    sun.position.copy(center).addScaledVector(incoming,-15);
-   sun.intensity=(6*THREE.MathUtils.clamp(clearIntensity/.9,.025,1.15)*cycle.sunStrength+.6*cycle.moonStrength)*weatherScale;
+   sun.intensity=(6*THREE.MathUtils.clamp(clearIntensity/.9,.025,1.15)*cycle.sunStrength+1.2*cycle.moonStrength)*weatherScale;
    sun.color.setRGB(THREE.MathUtils.lerp(.45,1,night),THREE.MathUtils.lerp(.61,.88-warmth*.12,night),THREE.MathUtils.lerp(1,.62-warmth*.22,night));
-   fill.intensity=(.045+.08*day)*night+.085*(1-night);
+   fill.intensity=(.10+.08*day)*night+.10*(1-night);
    const shadowSize=low?1024:2048;
    if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.mapSize.set(shadowSize,shadowSize);sun.shadow.map?.dispose();sun.shadow.map=null;}
    skyMaterial.uniforms.uTime.value=time;skyMaterial.uniforms.uDaylight.value=day;skyMaterial.uniforms.uWarmth.value=warmth;

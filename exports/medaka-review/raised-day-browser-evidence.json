@@ -1,0 +1,21 @@
+{
+  "baseline": "c82effe",
+  "gpuSamples": 49,
+  "glErrors": [],
+  "meanLuminance8bit": {
+    "0": 3.824398587213938,
+    "6.5": 5.944798175336558,
+    "12": 16.079040459630118,
+    "17.5": 6.602600209399578,
+    "23": 3.824398587213938,
+    "24": 3.824398587213938
+  },
+  "visualChecked": [
+    "06:30",
+    "17:30",
+    "23:00"
+  ],
+  "testsPassed": 43,
+  "build": "passed",
+  "artDirection": "Raised cross-corridor solar arc; fixed high-angle moon with restored intensity 1.2"
+}
