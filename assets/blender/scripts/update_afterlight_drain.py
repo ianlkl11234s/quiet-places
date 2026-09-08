@@ -25,8 +25,8 @@ APERTURE = {
     'roofY': 3.0,
     'blenderY': [.325, 1.175],
 }
-ROOM_X = [-2.70, 1.80]
-ROOM_WIDTH_VERSION = 'left-widened-v1'
+ROOM_X = [-2.20, 1.80]
+ROOM_WIDTH_VERSION = 'four-metre-v2'
 GRATE_Y = 3.04
 GRATE_DEPTH = .045
 FRAME = .04
@@ -34,13 +34,13 @@ SLAT_X = [.89 + (index + 1) * (.77 / 10) for index in range(9)]
 SLAT_Z = [-1.135, -.365]
 BRACE_Z = [-1.135 + (index + 1) * (.77 / 3) for index in range(2)]
 SECONDARY_APERTURE = {
-    'x': [-2.60, -1.75],
+    'x': [-2.10, -1.25],
     'z': [-1.175, -.325],
     'roofY': 3.0,
     'blenderY': [.325, 1.175],
 }
 SECONDARY_FRAME = FRAME
-SECONDARY_SLAT_X = sorted(-.90 - x for x in SLAT_X)
+SECONDARY_SLAT_X = sorted(-.40 - x for x in SLAT_X)
 SECONDARY_SLAT_Z = SLAT_Z
 SECONDARY_BRACE_Z = BRACE_Z
 
@@ -166,10 +166,22 @@ def move_world_x(obj, indices, transform):
     obj.data.update()
 
 
+def previous_left_edge(scene, key):
+    version = scene.get(key)
+    if version == ROOM_WIDTH_VERSION:
+        return ROOM_X[0]
+    if version == 'left-widened-v1':
+        return -2.7
+    if version is None:
+        return -1.8
+    raise RuntimeError(f'Unknown corridor width version: {version}')
+
+
 def widen_web_room(scene, room):
     """Keep web UVs/materials: change positions only, once per source blend."""
     if scene.get('afterlight_web_room_width_version') == ROOM_WIDTH_VERSION:
         return {'leftWallVertices': 0, 'floorVertices': 0}
+    old_left = previous_left_edge(scene, 'afterlight_web_room_width_version')
     left_wall, floor = set(), set()
     for component in components(room.data):
         positions = [room.matrix_world @ room.data.vertices[index].co for index in component]
@@ -182,37 +194,38 @@ def widen_web_room(scene, room):
         # Floor components are the only horizontal pieces at ground level.
         elif max(zs) <= .20:
             floor.update(component)
-    move_world_x(room, left_wall, lambda x: x - .90)
-    move_world_x(room, floor, lambda x: x * 1.5 if x < 0 else x)
+    move_world_x(room, left_wall, lambda x: x + ROOM_X[0] - old_left)
+    move_world_x(room, floor, lambda x: x * ROOM_X[0] / old_left if x < 0 else x)
     scene['afterlight_web_room_width_version'] = ROOM_WIDTH_VERSION
     return {'leftWallVertices': len(left_wall), 'floorVertices': len(floor)}
 
 
-def stretch_negative_x_floor(obj):
-    move_world_x(obj, range(len(obj.data.vertices)), lambda x: x * 1.5 if x < 0 else x)
+def stretch_negative_x_floor(obj, old_left):
+    move_world_x(obj, range(len(obj.data.vertices)), lambda x: x * ROOM_X[0] / old_left if x < 0 else x)
 
 
-def widen_far_mesh(obj):
-    # Preserve the fixed x=1.8 edge while extending the far corridor to -2.7.
-    move_world_x(obj, range(len(obj.data.vertices)), lambda x: 1.8 + 1.25 * (x - 1.8))
+def widen_far_mesh(obj, old_left):
+    # Preserve the fixed x=1.8 edge while resizing the far corridor.
+    move_world_x(obj, range(len(obj.data.vertices)), lambda x: 1.8 + (1.8 - ROOM_X[0]) / (1.8 - old_left) * (x - 1.8))
 
 
 def widen_source_and_far(scene, source):
     """Widen authored room/FarCorridor without changing the fixed right edge."""
     if scene.get('afterlight_mesh_width_version') == ROOM_WIDTH_VERSION:
         return {'leftWalls': 0, 'stretchedMeshes': 0}
+    old_left = previous_left_edge(scene, 'afterlight_mesh_width_version')
     walls = stretched = 0
     for obj in bpy.data.objects:
         if obj.type != 'MESH':
             continue
         if obj.name in ('RoomSurface_LeftWall', 'FarCorridor_LeftWall'):
-            obj.location.x -= .90
+            obj.location.x += ROOM_X[0] - old_left
             walls += 1
         elif obj.name.startswith('FarCorridor_') and obj.name != 'FarCorridor_RightWall':
-            widen_far_mesh(obj)
+            widen_far_mesh(obj, old_left)
             stretched += 1
         elif obj.name.startswith('RoomSurface_') and 'Floor' in obj.name:
-            stretch_negative_x_floor(obj)
+            stretch_negative_x_floor(obj, old_left)
             stretched += 1
     scene['afterlight_mesh_width_version'] = ROOM_WIDTH_VERSION
     return {'leftWalls': walls, 'stretchedMeshes': stretched}
@@ -223,9 +236,13 @@ def build_roof(scene, collection):
     # Five non-beveled prisms are joined into one mesh: fore, back, and the
     # left/centre/right strips between the mirrored apertures.  Their shared
     # coordinates have no bevel gap through which daylight can leak.
-    pieces = ((-2.70, 1.80, -2.0, -1.175), (-2.70, 1.80, -.325, 4.0),
-              (-2.70, -2.30, -1.175, -.325), (-1.45, .55, -1.175, -.325),
-              (1.40, 1.80, -1.175, -.325))
+    left, right = ROOM_X
+    secondary_left, secondary_right = SECONDARY_APERTURE['x']
+    primary_left, primary_right = APERTURE['x']
+    near, far = APERTURE['z']
+    pieces = ((left, right, -2.0, near), (left, right, far, 4.0),
+              (left, secondary_left, near, far), (secondary_right, primary_left, near, far),
+              (primary_right, right, near, far))
     vertices, faces = [], []
     for x0, x1, z0, z1 in pieces:
         y0, y1 = -z1, -z0
@@ -324,12 +341,12 @@ def export_web(scene):
     }
     data['corridorBounds'] = {
         'x': ROOM_X,
-        'centerX': -.45,
-        'widthMetres': 4.5,
+        'centerX': -.20,
+        'widthMetres': 4.0,
         'widthVersion': ROOM_WIDTH_VERSION,
         'rightEdgeFixed': True,
         'uvPreserved': True,
-        'geometryApproximation': 'Joined RoomSurface keeps UV/material data; its left wall translates -0.9m and negative-x floor vertices stretch 1.5x. Far corridor widens about its fixed right x=1.8 edge.',
+        'geometryApproximation': 'Joined RoomSurface keeps UV/material data; its left wall moves to x=-2.2m and negative-x floor vertices resize with the wall. Far corridor widens about its fixed right x=1.8 edge.',
     }
     metadata_path.write_text(json.dumps(data, indent=2) + '\n')
 

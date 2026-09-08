@@ -178,8 +178,8 @@
   },
   "secondaryAperture": {
     "x": [
-      -2.6,
-      -1.75
+      -2.1,
+      -1.25
     ],
     "z": [
       -1.175,
@@ -206,15 +206,15 @@
       -0.365
     ],
     "slatX": [
-      -2.483,
-      -2.406,
-      -2.329,
-      -2.252,
-      -2.175,
-      -2.098,
-      -2.021,
-      -1.944,
-      -1.867
+      -1.983,
+      -1.9060000000000001,
+      -1.8290000000000002,
+      -1.7519999999999998,
+      -1.6749999999999998,
+      -1.5979999999999999,
+      -1.521,
+      -1.444,
+      -1.367
     ],
     "braceCount": 2,
     "braceWidthZ": 0.018,
@@ -226,14 +226,14 @@
   },
   "corridorBounds": {
     "x": [
-      -2.7,
+      -2.2,
       1.8
     ],
-    "centerX": -0.45,
-    "widthMetres": 4.5,
-    "widthVersion": "left-widened-v1",
+    "centerX": -0.2,
+    "widthMetres": 4.0,
+    "widthVersion": "four-metre-v2",
     "rightEdgeFixed": true,
     "uvPreserved": true,
-    "geometryApproximation": "Joined RoomSurface keeps UV/material data; its left wall translates -0.9m and negative-x floor vertices stretch 1.5x. Far corridor widens about its fixed right x=1.8 edge."
+    "geometryApproximation": "Joined RoomSurface keeps UV/material data; its left wall moves to x=-2.2m and negative-x floor vertices resize with the wall. Far corridor widens about its fixed right x=1.8 edge."
   }
 }

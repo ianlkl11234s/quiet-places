@@ -2,7 +2,7 @@
 export const drainOpening={minX:.85,maxX:1.70,minZ:-1.175,maxZ:-.325,roofY:3,frame:.04,slatWidth:.022,braceWidth:.018};
 export const drainSlats=Array.from({length:9},(_,i)=>.89+(i+1)*.77/10);
 export const drainBraces=Array.from({length:2},(_,i)=>-1.135+(i+1)*.77/3);
-export const corridor={minX:-2.7,maxX:1.8,centerX:-.45};
+export const corridor={minX:-2.2,maxX:1.8,centerX:-.2};
 export const oppositeDrainOpening={...drainOpening,minX:2*corridor.centerX-drainOpening.maxX,maxX:2*corridor.centerX-drainOpening.minX};
 export function drainIsOpen(x:number,z:number){
  if(x<corridor.centerX)x=2*corridor.centerX-x;
