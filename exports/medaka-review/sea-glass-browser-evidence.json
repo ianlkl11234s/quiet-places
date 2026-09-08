@@ -1,0 +1,27 @@
+{
+  "baseline": "627d96a",
+  "testsPassed": 45,
+  "build": "passed",
+  "gpuSamples": 49,
+  "glErrors": [],
+  "midnightClosed": true,
+  "twilightHours": [
+    17,
+    21
+  ],
+  "pebbles": 6,
+  "lightsAdded": 0,
+  "geometries": 199,
+  "textures": 86,
+  "pauseExact": [
+    true,
+    true,
+    true
+  ],
+  "disposeCyclesCleared": 3,
+  "limitations": [
+    "time-driven residual glow, not stored physical energy",
+    "alpha and roughness approximation, no refraction or SSS",
+    "local shader bounce, no dynamic GI"
+  ]
+}

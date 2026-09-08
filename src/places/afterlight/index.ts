@@ -1,3 +1,4 @@
+import {installSeaGlass} from './SeaGlass.ts';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {EXRLoader} from 'three/addons/loaders/EXRLoader.js';
@@ -90,6 +91,7 @@ export async function prepareAfterlight(){
   }
   const surfacesState=installSurfaceMaterials(surfaces);
   const shadows=installContactShadows(root);
+  const seaGlass=installSeaGlass(root,surfaces,environment.texture);
   let disposed=false;
   return {
    position:position.toArray(),target:target.toArray(),fov:hero.fov,yawRange:Math.PI/30,
@@ -99,12 +101,12 @@ export async function prepareAfterlight(){
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     const heavy=state.heavyRain??false;
     const light=lighting.update(elapsed,(state.beamStrength??1)*(heavy?.55:1),state.intensity*(heavy?.62:1),state.warmth*(heavy?.55:1),state.angle,state.lowQuality??false,state.hour,state.intensity);
-    shadows.update(light.incoming);farDay.value=light.indirect;medaka.update(elapsed,light.day);
+    seaGlass.update(state.hour??14,state.rain??0);shadows.update(light.incoming);farDay.value=light.indirect;medaka.update(elapsed,light.day);
     for(const m of surfaces){m.lightMapIntensity=Math.PI*.7*light.indirect;m.envMapIntensity=.7*light.indirect;}
     surfacesState.update(elapsed,state.rain??0);foliage.update(elapsed,light.day,state.rain??0,state.angle,heavy);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle,foliage.rainBlocks,heavy);
    },
    disturb(){},resetWater(){},
-   dispose(){if(disposed)return;disposed=true;shadows.dispose();surfacesState.dispose();lighting.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},
+   dispose(){if(disposed)return;disposed=true;seaGlass.dispose();shadows.dispose();surfacesState.dispose();lighting.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},
   };
  };
  return Object.assign(factory,{dispose(){if(!consumed){consumed=true;release();}}});

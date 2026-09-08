@@ -121,11 +121,13 @@ export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLR
    low=lowQuality;
    const cycle=sampleAfterlightDay(hour);
    const weatherScale=THREE.MathUtils.clamp(intensity/Math.max(.001,clearIntensity),0,1);
-   const day=THREE.MathUtils.clamp(intensity/.9,.025,1.15);
+   const clearDay=(.09+.91*cycle.daylight)/.9;
+   const day=clearDay*weatherScale;
+   warmth=cycle.warmth*weatherScale;
    const night=cycle.daylight;
    incoming.set(...cycle.incoming);
    sun.position.copy(center).addScaledVector(incoming,-15);
-   sun.intensity=(6*THREE.MathUtils.clamp(clearIntensity/.9,.025,1.15)*cycle.sunStrength+1.2*cycle.moonStrength)*weatherScale;
+   sun.intensity=(6*clearDay*cycle.sunStrength+1.2*cycle.moonStrength)*weatherScale;
    sun.color.setRGB(THREE.MathUtils.lerp(.45,1,night),THREE.MathUtils.lerp(.61,.88-warmth*.12,night),THREE.MathUtils.lerp(1,.62-warmth*.22,night));
    fill.intensity=(.10+.08*day)*night+.10*(1-night);
    const shadowSize=low?1024:2048;
