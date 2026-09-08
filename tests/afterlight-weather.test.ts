@@ -35,3 +35,15 @@ test('a leaf-intercepted rain drop disappears below the actual hit until its nex
 test('rain enters through open grate cells across repeated cycles',()=>{
  for(let i=0;i<80;i++)for(let t=0;t<100;t+=.37){const p=rainSample(i,t),fall=3-p.y;assert.ok(drainIsOpen(p.x-.012*fall,p.z-.0042*fall));}
 });
+
+
+test('heavy rain triples the active field and switching back preserves sunshower visuals',()=>{
+ const weather=createAfterlightWeather(new THREE.Scene()),rain=weather.root.children[0] as THREE.Mesh;
+ weather.update(12,1,1,false);const positions=Array.from(rain.geometry.attributes.position.array),alpha=Array.from(rain.geometry.attributes.alpha.array);
+ assert.equal(rain.geometry.drawRange.count,80*6);
+ weather.update(12,1,1,false,.25,undefined,true);assert.equal(rain.geometry.drawRange.count,240*6);
+ weather.update(12,1,1,true,.25,undefined,true);assert.ok(rain.geometry.drawRange.count<240*6);
+ weather.update(12,1,1,false);assert.deepEqual(Array.from(rain.geometry.attributes.position.array),positions);assert.deepEqual(Array.from(rain.geometry.attributes.alpha.array),alpha);
+ assert.equal((weather.root.getObjectByName('afterlight-heavy-splashes') as THREE.InstancedMesh).count,0);
+ weather.dispose();
+});

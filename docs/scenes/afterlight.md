@@ -278,3 +278,11 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 - 重建順序：原afterlight build/bake後執行 `update_afterlight_drain.py -- --all`（自動開兩份blend並export房間GLB）；再 export_afterlight_vegetation.mjs、sync_afterlight_vegetation.py；最後以web blend執行refresh_afterlight_indirect.py。這輪已使用Metal/64 samples重烘牆地diffuse indirect EXR，保留原曝光、光源位置與魚群。屋頂新材質不用舊lightmap；間接光仍為固定場景烘焙，非隨日照或植物動態重新積分。
 - 主鏡頭先維持原構圖，匯出位置/rotation僅浮點誤差<2e-8；FOV完全相同。本輪用來比較株形與排水口本身，尚未更改為俯視。
 - 本地驗收：39 tests、build通過；格柵metadata與runtime位置一致、非發光；兩種雨態pause readback完全相同、3次dispose後geometry/textures/scene children皆0。主頁已目視確認牆地格柵投影及長廊暗部。完整本輪資料見drain-browser-evidence.json；未push或發布。
+
+## 2026-09-08 大雨天候
+
+- 基準 `887efe3`，新增Afterlight專用「大雨」天候，與雨後／太陽雨並列，沿用雨勢slider與每個場景的偏好保存。其它場景不提供heavy-rain；舊偏好繼續相容。
+- `SceneState.heavyRain`將UI選擇傳給Afterlight。RainField候選池80→240，前80個seed／速度不變；普通太陽雨仍只用原80個，大雨依相同0–100% slider使用最多240個（低品質45%）。雨路仍由格柵孔洞採樣，新增雨滴使用同一swept-triangle葉面碰撞；不增加植物擺動上限。
+- 大雨線段長度×1.25，線寬與速度分布不變。落地broken rings由最多10→24槽、可見opacity×1.5；另外最多48顆1.4mm半徑的短暫水花，以.38m/s起跳及9.81m/s²重力落回地面，存活75ms。這是美術化、固定預算的薄濕地表效果，不是水層／排水流體解算，也未增加雷電或音效。
+- 大雨日照強度×.62、暖度×.55、體積光強度×.55，保留格柵影與植物可讀性；固定GI與反射探針沿用既有基底按天候縮放，並非重新模擬雲層。普通太陽雨的雨滴位置／alpha在切回後可精確重現。
+- 植物／建築靜態幾何沒有變更，因此不重匯出或改動Blender。41 tests與build通過，包括雨態切回、加量葉擊、暫停、偏好保存與跨場景隔離。GPU/browser結果記錄於heavy-rain-browser-evidence.json。本地commit，未發布。

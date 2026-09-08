@@ -156,6 +156,27 @@ function afterlightPreferencesAreRecognized(): void {
   equal(afterlight.rainIntensity, .65, 'afterlight rain intensity round-trips');
 }
 
+function heavyRainStaysInAfterlight(): void {
+  const storage = new MemoryStorage();
+  const preferences = loadPreferences(storage);
+  saveRoomPreferences(preferences, 'afterlight', { hour: 17.5, live: false, beamStrength: 1, weather: 'heavy-rain', rainIntensity: .8, oceanLevel: 'below' });
+  saveRoomPreferences(preferences, 'waterlight', { hour: 14, live: false, beamStrength: 1, weather: 'heavy-rain', rainIntensity: .3, oceanLevel: 'below' });
+  equal(savePreferences(preferences, storage), true, 'heavy rain preferences save');
+
+  const loaded = loadPreferences(storage);
+  equal(getRoomPreferences(loaded, 'afterlight').weather, 'heavy-rain', 'afterlight keeps heavy rain');
+  equal(getRoomPreferences(loaded, 'afterlight').rainIntensity, .8, 'afterlight heavy rain keeps intensity');
+  equal(getRoomPreferences(loaded, 'waterlight').weather, 'clear', 'heavy rain cannot leak into waterlight');
+
+  storage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify({
+    version: 1, place: 'waterlight', weather: 'heavy-rain', rooms: { waterlight: { weather: 'heavy-rain' }, afterlight: { weather: 'heavy-rain' } },
+  }));
+  const isolated = loadPreferences(storage);
+  equal(isolated.weather, 'clear', 'waterlight top-level heavy rain is invalid');
+  equal(getRoomPreferences(isolated, 'waterlight').weather, 'clear', 'saved waterlight heavy rain is invalid');
+  equal(getRoomPreferences(isolated, 'afterlight').weather, 'heavy-rain', 'saved afterlight heavy rain remains valid');
+}
+
 function failedMigrationStillReturnsLegacyPreferences(): void {
   const storage = new MigrationWriteFailingStorage();
   storage.setItem(LEGACY_PREFERENCES_STORAGE_KEY, JSON.stringify({ version: 1, place: 'leaflight', hour: 12, live: true }));
@@ -173,6 +194,7 @@ roundTrip();
 legacyPreferencesMigrateToTheNewKey();
 newKeyTakesPriorityOverLegacy();
 afterlightPreferencesAreRecognized();
+heavyRainStaysInAfterlight();
 failedMigrationStillReturnsLegacyPreferences();
 roomPreferencesAreIndependentAndRoundTrip();
 roomPreferencesSanitizeAndFallBack();

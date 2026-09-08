@@ -40,16 +40,16 @@
     "sha256": "6dba1ca981b8b3434329b65821e35502ba6fed7ecdd1b7d5b9dc72b8afce424e"
   },
   "src/places/afterlight/PlantPhysics.ts": {
-    "bytes": 10739,
-    "sha256": "48f295e1f9163fbf5ed81ba624f87129878819aa93429a41930f0d898c29ffb0"
+    "bytes": 10777,
+    "sha256": "c28cd0745e6c149cb818617146e8db4fd5d0a12296d86bff70542d49f78f9615"
   },
   "src/places/afterlight/RainField.ts": {
-    "bytes": 1030,
-    "sha256": "de2ea3938d5f5cd4805947a8f41b782141815585f3df09d394393d9f81b63732"
+    "bytes": 1162,
+    "sha256": "d7676912452cb71a752f7d96b3cf3d406acfa7e68793ff94c2fd6638562b25dc"
   },
   "src/places/afterlight/RainInteraction.ts": {
-    "bytes": 5869,
-    "sha256": "e68edcc80e2fdea03d0f869dd81aacd7cd299c987a8a0f110c5893279dcf38f8"
+    "bytes": 5862,
+    "sha256": "9cbf2ad8d519c0d2e0316b19e6a97be01184da42bf275381e928a4e6e8ea6d3d"
   },
   "public/models/afterlight-courtyard.glb": {
     "bytes": 9633516,

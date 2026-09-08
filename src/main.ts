@@ -152,8 +152,9 @@ async function start(){
    place=candidate;scene=nextScene;renderPass.scene=scene;currentPlace=id;place.setOceanLevel?.(oceanLevel);
    homeCamera();elapsed=0;state=sampleTime(hour);
    const waterRain=id==='waterlight'&&preferences.weather==='rain';
-   const sceneRain=(id==='waterlight'||id==='afterlight')&&preferences.weather==='rain';
-   place.update(0,elapsed,{...state,intensity:state.intensity*(waterRain?.72:1),warmth:state.warmth*(waterRain?.45:1),beamStrength,rain:sceneRain?preferences.rainIntensity:0,lowQuality:preferences.quality==='low'});
+   const afterlightHeavyRain=id==='afterlight'&&preferences.weather==='heavy-rain';
+   const sceneRain=(id==='waterlight'&&preferences.weather==='rain')||(id==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain));
+   place.update(0,elapsed,{...state,intensity:state.intensity*(waterRain?.72:1),warmth:state.warmth*(waterRain?.45:1),beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
    composer.render();
    // Retiring scenes must not undo the candidate renderer state after its first frame.
    const candidateShadow={enabled:renderer.shadowMap.enabled,type:renderer.shadowMap.type};
@@ -205,13 +206,17 @@ async function start(){
  weather.value=preferences.weather;quality.value=preferences.quality;rainInput.value=String(preferences.rainIntensity*100);
  function weatherLabels(){
   const afterlight=currentPlace==='afterlight',weatherVisible=currentPlace==='waterlight'||afterlight;
-  el('rain-controls').hidden=!weatherVisible||preferences.weather!=='rain';el('rain-value').textContent=`${Math.round(preferences.rainIntensity*100)}%`;
+  const heavyRain=weather.querySelector<HTMLOptionElement>('option[value="heavy-rain"]');
+  if(afterlight&&!heavyRain){const option=document.createElement('option');option.value='heavy-rain';option.textContent='雨後天井 · 大雨';weather.append(option);}
+  if(!afterlight)heavyRain?.remove();
+  weather.value=preferences.weather;
+  el('rain-controls').hidden=!weatherVisible||preferences.weather==='clear';el('rain-value').textContent=`${Math.round(preferences.rainIntensity*100)}%`;
   weather.options[0].textContent=afterlight?'雨後天井 · 雨後':'水光之間 · 晴日';
   weather.options[1].textContent=afterlight?'雨後天井 · 太陽雨':'雨落水面 · 雨日';
   el('place-title').textContent=currentPlace==='waterlight'?(preferences.weather==='rain'?'雨落水面':'水光之間'):places.find(p=>p.id===currentPlace)!.name;
  }
  describePlace();
- weather.addEventListener('change',()=>{preferences.weather=weather.value==='rain'?'rain':'clear';if(currentPlace==='waterlight')place.resetWater();weatherLabels();persist();requestRender();});
+ weather.addEventListener('change',()=>{preferences.weather=currentPlace==='afterlight'&&weather.value==='heavy-rain'?'heavy-rain':weather.value==='rain'?'rain':'clear';if(currentPlace==='waterlight')place.resetWater();weatherLabels();persist();requestRender();});
  quality.addEventListener('change',()=>{preferences.quality=quality.value==='low'?'low':'standard';resize();persist();});
  rainInput.addEventListener('input',()=>{preferences.rainIntensity=Number(rainInput.value)/100;weatherLabels();persist();requestRender();});
  function updateLabels(){el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);pause.textContent=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-pressed',String(paused));}
@@ -295,10 +300,11 @@ async function start(){
   const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);
   for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
   const waterRain=currentPlace==='waterlight'&&preferences.weather==='rain';
-  const sceneRain=(currentPlace==='waterlight'||currentPlace==='afterlight')&&preferences.weather==='rain';
+  const afterlightHeavyRain=currentPlace==='afterlight'&&preferences.weather==='heavy-rain';
+  const sceneRain=(currentPlace==='waterlight'&&preferences.weather==='rain')||(currentPlace==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain));
   const lighting=waterRain?{...state,intensity:state.intensity*.72,warmth:state.warmth*.45}:state;
   if(!paused&&!switching)elapsed+=dt;
-  place.update(paused||switching?0:dt,elapsed,{...lighting,beamStrength,rain:sceneRain?preferences.rainIntensity:0,lowQuality:preferences.quality==='low'});
+  place.update(paused||switching?0:dt,elapsed,{...lighting,beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
   controls.enableDamping=!reduce.matches;controls.update();composer.render();rendering=false;
   if(!paused||now<dirtyUntil)raf=requestAnimationFrame(frame);
  }

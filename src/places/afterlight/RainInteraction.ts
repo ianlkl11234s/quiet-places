@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {rainDrops, rainOrigin, rainSample, type RainBlock} from './RainField.ts';
+import {activeRainCount, rainDrops, rainOrigin, rainSample, type RainBlock} from './RainField.ts';
 import type {PlantLeaf} from './PlantGeometry.ts';
 
 export interface RainContact {
@@ -99,11 +99,11 @@ export function createRainInteraction(leaves: PlantLeaf[]) {
 
   return {
     blocks,
-    update(time: number, dt: number, strength: number) {
+    update(time: number, dt: number, strength: number, heavy=false) {
       if (dt <= 0 || strength <= 0) return [] as RainContact[];
       const colliders = createColliders(leaves);
       const contacts: RainContact[] = [];
-      const active = Math.floor(rainDrops.length * THREE.MathUtils.clamp(strength, 0, 1));
+      const active = activeRainCount(strength,heavy);
       for (let index = 0; index < active; index++) {
         const previous = rainSample(index, time - dt);
         const current = rainSample(index, time);

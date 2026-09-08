@@ -16,3 +16,11 @@ test('sunshower only wets aperture-reachable leaf geometry and produces bounded 
  const d=plant.diagnostics();assert.ok(d.hits>0,'60 seconds has deterministic leaf hits');assert.ok(d.maxWetness>0);assert.ok(d.visibleDrops<=3);assert.ok(d.releases>0,'formed drops detach');
  plant.dispose();
 });
+
+
+test('heavy rain shares extra leaf contacts and remains pausable with bounded drops',()=>{
+ const normal=createAfterlightPlantPhysics(),heavy=createAfterlightPlantPhysics();normal.update(30,1);heavy.update(30,1,true);
+ assert.ok(heavy.diagnostics().hits>normal.diagnostics().hits);assert.ok(heavy.diagnostics().visibleDrops<=3);
+ const frozen=heavy.debug();heavy.update(30,1,true);assert.deepEqual(heavy.debug(),frozen);
+ normal.dispose();heavy.dispose();
+});

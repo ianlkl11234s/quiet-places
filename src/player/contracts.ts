@@ -13,6 +13,7 @@ export interface LightingState {
 export interface SceneState extends LightingState {
   beamStrength?:number;
   rain?:number;
+  heavyRain?:boolean;
   lowQuality?:boolean;
 }
 

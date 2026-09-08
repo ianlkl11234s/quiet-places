@@ -16,5 +16,5 @@ export function installAfterlightFoliage(root:THREE.Object3D){
     `);
   };material.customProgramCacheKey=()=> 'afterlight-physical-thin-leaf-v2';
  });
- return {rainBlocks:plant.rainBlocks,update(elapsed:number,daylight:number,rain=0,angle=.25){day.value=daylight;sun.value.set(.28,-1,.25).normalize().applyAxisAngle(new THREE.Vector3(0,1,0),THREE.MathUtils.clamp(angle-.25,-.16,.16));plant.update(elapsed,rain);},dispose(){plant.dispose();}};
+ return {rainBlocks:plant.rainBlocks,update(elapsed:number,daylight:number,rain=0,angle=.25,heavy=false){day.value=daylight;sun.value.set(.28,-1,.25).normalize().applyAxisAngle(new THREE.Vector3(0,1,0),THREE.MathUtils.clamp(angle-.25,-.16,.16));plant.update(elapsed,rain,heavy);},dispose(){plant.dispose();}};
 }

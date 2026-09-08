@@ -34,9 +34,9 @@ export function createAfterlightPlantPhysics(){
   drops.forEach(d=>{d.leaf=-1;d.mesh.visible=false;d.forming=false;d.age=0;});forming.fill(-1);cooldown.forEach((_,i)=>cooldown[i]=hash(leaves[i].seed)*8);
   diag={hits:0,releases:0,visibleDrops:0,maxAngle:0,maxStemAngle:0,maxWetness:.26,stationaryBeads:0};root.updateMatrixWorld(true);
  }
- function step(rain:number){
+ function step(rain:number,heavy:boolean){
   const t=tick*STEP,wind=airflow(t);root.updateMatrixWorld(true);state.forEach(s=>s.force.set(0,0));
-  const hits=rainContact.update((tick+1)*STEP,STEP,rain);
+  const hits=rainContact.update((tick+1)*STEP,STEP,rain,heavy);
   for(const hit of hits){
    const leaf=leaves[hit.leafIndex],s=state[leaf.jointIndex];
    const length=Math.max(.01,leaf.tip.length()),mass=Math.max(.000008,leaf.area*.16),inertia=mass*length*length/3*(1+s.wetness*.12);
@@ -114,9 +114,9 @@ export function createAfterlightPlantPhysics(){
   diag.visibleDrops=drops.filter(d=>d.mesh.visible).length;
  }
  root.userData.physicsDebug=()=>({...diag});reset();
- return {root,rainBlocks:rainContact.blocks,update(elapsed:number,rain:number){
+ return {root,rainBlocks:rainContact.blocks,update(elapsed:number,rain:number,heavy=false){
   if(disposed||!Number.isFinite(elapsed))return;const time=Math.max(0,elapsed);if(time<last)reset();last=time;
-  const target=Math.floor(time/STEP+1e-7);for(;tick<target;tick++)step(THREE.MathUtils.clamp(rain,0,1));
+  const target=Math.floor(time/STEP+1e-7);for(;tick<target;tick++)step(THREE.MathUtils.clamp(rain,0,1),heavy);
   root.userData.plantDiagnostics={...diag};
  },debug(){return state.map(s=>({angle:s.angle.length(),wetness:s.wetness,waterLoad:s.waterLoad}));},diagnostics(){return {...diag};},dispose(){if(disposed)return;disposed=true;beads.dispose();dropGeometry.dispose();dropMaterial.dispose();geometry.dispose();}};
 }

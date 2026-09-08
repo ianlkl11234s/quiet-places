@@ -8,23 +8,25 @@ document.querySelector('#stage')!.append(renderer.domElement);
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(50,1280/720,.1,700);
 let place=(await prepareAfterlight())(scene,renderer);
 const setup=()=>{camera.position.set(...place.position);camera.lookAt(...place.target);camera.fov=place.fov!;camera.updateProjectionMatrix();renderer.toneMapping=place.toneMapping!;renderer.toneMappingExposure=place.exposure!;};setup();
+let heavyRain=false;
 let rain=0,beam=1,hour=14,portrait=false;
 const plants=()=>scene.getObjectByName('Afterlight_LivingPlants')?.userData.plantDiagnostics;
 const result=document.querySelector('#result')!;
-function draw(time=12){place.update(0,time,{...sampleTime(hour),beamStrength:beam,rain});renderer.render(scene,camera);}
+function draw(time=12){place.update(0,time,{...sampleTime(hour),beamStrength:beam,rain,heavyRain});renderer.render(scene,camera);}
 draw();
 result.textContent='實際場景已載入。固定 elapsed=12s，點擊驗證取得 GPU readback 與 dispose 結果。';
-document.querySelector('#rain')!.addEventListener('click',()=>{rain=rain?0:.65;draw();});
+document.querySelector('#rain')!.addEventListener('click',()=>{heavyRain=false;rain=rain?0:.65;draw();});
+document.querySelector('#heavy')!.addEventListener('click',()=>{heavyRain=!heavyRain;rain=heavyRain?1:.65;draw();});
 document.querySelector('#beam')!.addEventListener('click',()=>{beam=beam?0:1;draw();});
 document.querySelector('#portrait')!.addEventListener('click',()=>{portrait=!portrait;renderer.setSize(portrait?390:1280,portrait?844:720);camera.aspect=portrait?390/844:1280/720;camera.updateProjectionMatrix();draw();});
 document.querySelector('#hour')!.addEventListener('change',event=>{hour=Number((event.target as HTMLSelectElement).value);draw();});
 document.querySelector('#verify')!.addEventListener('click',async()=>{
  const pixels=()=>{const gl=renderer.getContext(),p=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,p);return p;};
  const reports:unknown[]=[];
- for(const wet of [0,.65]){
-  rain=wet;draw();const initial=pixels();draw();const a=pixels();draw();const b=pixels();let changes=0;let settlingChanges=0;for(let i=0;i<a.length;i++)if(initial[i]!==a[i])settlingChanges++;for(let i=0;i<a.length;i++)if(a[i]!==b[i])changes++;
+ for(const wet of [0,.65,1]){
+  heavyRain=wet===1;rain=wet;draw();const initial=pixels();draw();const a=pixels();draw();const b=pixels();let changes=0;let settlingChanges=0;for(let i=0;i<a.length;i++)if(initial[i]!==a[i])settlingChanges++;for(let i=0;i<a.length;i++)if(a[i]!==b[i])changes++;
   draw(12.5);const c=pixels();let animationChanges=0;for(let i=0;i<a.length;i++)if(a[i]!==c[i])animationChanges++;
-  reports.push({rain:wet,settlingChanges,pauseExact:changes===0,changedChannels:changes,animationChanges});
+  reports.push({rain:wet,heavyRain,settlingChanges,pauseExact:changes===0,changedChannels:changes,animationChanges});
  }
  const memory=[];
  for(let i=0;i<3;i++){
