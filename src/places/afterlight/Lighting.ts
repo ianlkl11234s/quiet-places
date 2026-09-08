@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {sampleAfterlightDay} from './DayCycle.ts';
 import {corridor,drainOpening as opening} from './DrainOpening.ts';
 
 // Sky gradient derived from the existing leaflight sky; calibration belongs to this courtyard.
@@ -116,21 +117,22 @@ export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLR
    try{return pmrem.fromScene(capture,0,.03,180,{size:128,position:new THREE.Vector3(.8,.25,.6)});}
    finally{pmrem.dispose();light.shadow.map?.dispose();}
   },
-  update(time:number,beamStrength:number,intensity:number,warmth:number,angle:number,lowQuality:boolean){
+  update(time:number,beamStrength:number,intensity:number,warmth:number,angle:number,lowQuality:boolean,hour=14,clearIntensity=intensity){
    low=lowQuality;
+   const cycle=sampleAfterlightDay(hour);
+   const weatherScale=THREE.MathUtils.clamp(intensity/Math.max(.001,clearIntensity),0,1);
    const day=THREE.MathUtils.clamp(intensity/.9,.025,1.15);
-   // Art-directed day/night basis: moonlight is dim and cool, never a bright afternoon map.
-   const night=THREE.MathUtils.smoothstep(intensity,.09,.3);
-   incoming.set(.28,-1,.25).normalize().applyAxisAngle(new THREE.Vector3(0,1,0),THREE.MathUtils.clamp(angle-.25,-.16,.16));
+   const night=cycle.daylight;
+   incoming.set(...cycle.incoming);
    sun.position.copy(center).addScaledVector(incoming,-15);
-   sun.intensity=6*day*(2-night);
+   sun.intensity=(6*THREE.MathUtils.clamp(clearIntensity/.9,.025,1.15)*cycle.sunStrength+.6*cycle.moonStrength)*weatherScale;
    sun.color.setRGB(THREE.MathUtils.lerp(.45,1,night),THREE.MathUtils.lerp(.61,.88-warmth*.12,night),THREE.MathUtils.lerp(1,.62-warmth*.22,night));
-   fill.intensity=.018*day+.085*(1-night);
+   fill.intensity=(.045+.08*day)*night+.085*(1-night);
    const shadowSize=low?1024:2048;
    if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.mapSize.set(shadowSize,shadowSize);sun.shadow.map?.dispose();sun.shadow.map=null;}
    skyMaterial.uniforms.uTime.value=time;skyMaterial.uniforms.uDaylight.value=day;skyMaterial.uniforms.uWarmth.value=warmth;
-   uniforms.uBeam.value=THREE.MathUtils.clamp(beamStrength,0,2.5);uniforms.uDay.value=day*(.08+.92*night);uniforms.uWarm.value=warmth;uniforms.uSteps.value=low?16:32;
-   return {day,indirect:day*(.15+.85*night)+.35*(1-night)};
+   uniforms.uBeam.value=THREE.MathUtils.clamp(beamStrength,0,2.5);uniforms.uDay.value=day*cycle.sunStrength+.008*cycle.moonStrength;uniforms.uWarm.value=warmth;uniforms.uSteps.value=low?16:32;
+   return {day,incoming,indirect:day*(.15+.85*night)+.35*(1-night)};
   },
   dispose(){scene.onBeforeRender=previous;root.removeFromParent();sky.geometry.dispose();skyMaterial.dispose();beam.geometry.dispose();beamMaterial.dispose();ownedDepth.forEach(m=>m.dispose());target.dispose();sun.shadow.map?.dispose();},
  };

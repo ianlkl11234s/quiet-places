@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {corridor,drainOpening as aperture} from './DrainOpening.ts';
 
 // Small blocker search: receiver/blocker separation controls the penumbra.
 // This is a bounded shadow-map approximation, not an area-light path tracer.
@@ -36,12 +37,15 @@ export function installContactShadows(root:THREE.Object3D){
       // Restrained aperture-space daylight transmission, shared by all receivers.
       // An authored exterior environment mask; no new offscreen props.
       vec3 opening=vOpeningWorld-uOpeningSun*((vOpeningWorld.y-3.)/uOpeningSun.y);
-      float outdoor=.975+.025*sin(opening.x*13.+sin(opening.z*8.))*sin(opening.z*17.+.8);
+      if(opening.x<${corridor.centerX.toFixed(3)})opening.x=${(2*corridor.centerX).toFixed(3)}-opening.x;
+      float throughDrain=step(${aperture.minX.toFixed(3)},opening.x)*step(opening.x,${aperture.maxX.toFixed(3)})*
+       step(${aperture.minZ.toFixed(3)},opening.z)*step(opening.z,${aperture.maxZ.toFixed(3)});
+      float outdoor=throughDrain*(.975+.025*sin(opening.x*13.+sin(opening.z*8.))*sin(opening.z*17.+.8));
       reflectedLight.directDiffuse*=outdoor;reflectedLight.directSpecular*=outdoor;
     `);
   };
   const oldKey=key.call(material);material.customProgramCacheKey=()=>oldKey+'-contact-shadow-v1';material.needsUpdate=true;
   restore.push(()=>{material.onBeforeCompile=compile;material.customProgramCacheKey=key;material.needsUpdate=true;});
  }
- return {update(angle:number){sun.value.set(.28,-1,.25).normalize().applyAxisAngle(new THREE.Vector3(0,1,0),THREE.MathUtils.clamp(angle-.25,-.16,.16));},dispose(){restore.splice(0).forEach(fn=>fn());}};
+ return {update(incoming:THREE.Vector3){sun.value.copy(incoming);},dispose(){restore.splice(0).forEach(fn=>fn());}};
 }

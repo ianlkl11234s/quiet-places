@@ -1,0 +1,23 @@
+{
+  "baseline": "0014d81",
+  "widthMetres": 3.8,
+  "gpuSamples": 49,
+  "stepHours": 0.5,
+  "glErrors": [],
+  "meanLuminance8bit": {
+    "0": 3.0301426380084675,
+    "6.5": 2.6023654468314277,
+    "12": 15.202998150390716,
+    "17.5": 4.038514924453539,
+    "23": 3.2774429303204315,
+    "24": 3.0301426380084675
+  },
+  "testsPassed": 43,
+  "build": "passed",
+  "browserConsoleErrors": [],
+  "limitations": [
+    "Art-directed orbit, no location/date ephemeris or lunar phases",
+    "Fixed indirect and reflection basis",
+    "Sampled full day, not 24 hours wall-clock playback"
+  ]
+}

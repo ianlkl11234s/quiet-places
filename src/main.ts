@@ -299,6 +299,7 @@ async function start(){
   if(live){const next=localHour();const changed=Math.floor(next*60)!==Math.floor(hour*60);hour=next;if(changed)updateLabels();}
   const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);
   for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
+  state.hour=((state.hour??hour)+(((hour-(state.hour??hour)+36)%24)-12)*ease+24)%24;
   const waterRain=currentPlace==='waterlight'&&preferences.weather==='rain';
   const afterlightHeavyRain=currentPlace==='afterlight'&&preferences.weather==='heavy-rain';
   const sceneRain=(currentPlace==='waterlight'&&preferences.weather==='rain')||(currentPlace==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain));

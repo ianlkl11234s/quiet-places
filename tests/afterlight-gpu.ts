@@ -54,3 +54,18 @@ document.querySelector('#play-loop')!.addEventListener('click',()=>{
  };
  requestAnimationFrame(tick);
 });
+
+// Render every half hour through the same scene update and real GPU.
+document.querySelector('#day-cycle')!.addEventListener('click',async()=>{
+ const saved=hour,reports=[];
+ for(let step=0;step<=48;step++){
+  hour=step/2;draw();draw();
+  const gl=renderer.getContext(),pixels=new Uint8Array(gl.drawingBufferWidth*gl.drawingBufferHeight*4);
+  gl.readPixels(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+  let luminance=0;for(let i=0;i<pixels.length;i+=4)luminance+=pixels[i]*.2126+pixels[i+1]*.7152+pixels[i+2]*.0722;
+  reports.push({hour,meanLuminance:luminance/(pixels.length/4),glError:gl.getError()});
+  result.textContent=`24小時驗證：${hour}:00`;
+  await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+ }
+ hour=saved;draw();result.textContent=JSON.stringify({dayCycle:reports},null,2);
+});

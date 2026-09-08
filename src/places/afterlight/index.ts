@@ -98,8 +98,8 @@ export async function prepareAfterlight(){
     // A previous scene is disposed after our first frame; reassert ownership on update.
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     const heavy=state.heavyRain??false;
-    const light=lighting.update(elapsed,(state.beamStrength??1)*(heavy?.55:1),state.intensity*(heavy?.62:1),state.warmth*(heavy?.55:1),state.angle,state.lowQuality??false);
-    shadows.update(state.angle);farDay.value=light.indirect;medaka.update(elapsed,light.day);
+    const light=lighting.update(elapsed,(state.beamStrength??1)*(heavy?.55:1),state.intensity*(heavy?.62:1),state.warmth*(heavy?.55:1),state.angle,state.lowQuality??false,state.hour,state.intensity);
+    shadows.update(light.incoming);farDay.value=light.indirect;medaka.update(elapsed,light.day);
     for(const m of surfaces){m.lightMapIntensity=Math.PI*.7*light.indirect;m.envMapIntensity=.7*light.indirect;}
     surfacesState.update(elapsed,state.rain??0);foliage.update(elapsed,light.day,state.rain??0,state.angle,heavy);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle,foliage.rainBlocks,heavy);
    },
