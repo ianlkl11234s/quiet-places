@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {drainIsOpen} from './DrainOpening.ts';
 import {rainDrops,rainSample,rainOrigin,type RainBlock} from './RainField.ts';
 
 export function createAfterlightWeather(scene:THREE.Scene){
@@ -29,7 +30,7 @@ export function createAfterlightWeather(scene:THREE.Scene){
     const topX=x-.012*d.length,topY=Math.min(3,y+d.length),topZ=z-.0042*d.length,w=d.width*.5;
     positions.set([x-w,y,z,x+w,y,z,topX+w,topY,topZ,x-w,y,z,topX+w,topY,topZ,topX-w,topY,topZ],i*18);
     const qx=x-sx*(3-y),qz=z-sz*(3-y),smooth=THREE.MathUtils.smoothstep;
-    const lit=smooth(qx,.62,.68)*(1-smooth(qx,1.22,1.28))*smooth(qz,-1.25,-1.19)*(1-smooth(qz,-.41,-.35));
+    const lit=(drainIsOpen(qx,qz)?1:0);
     const fade=smooth(y,0,.12)*(1-smooth(y,2.88,3));
     const intercepted=blocked?.get(i);
     const alpha=intercepted?.cycle===index&&y<intercepted.y?0:d.brightness*fade*(.018+.19*lit)*(.25+.75*day);

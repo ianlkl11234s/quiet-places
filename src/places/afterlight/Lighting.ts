@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {drainOpening as opening} from './DrainOpening.ts';
 
 // Sky gradient derived from the existing leaflight sky; calibration belongs to this courtyard.
 const skyVertex = /* glsl */ `
@@ -26,8 +27,8 @@ const beamFragment=/* glsl */`
   float t=(p.y-3.)/uSun.y;
   if(t<0.)return 0.;
   vec3 q=p-uSun*t;
-  return smoothstep(.62,.66,q.x)*(1.-smoothstep(1.24,1.28,q.x))*
-   smoothstep(-1.25,-1.21,q.z)*(1.-smoothstep(-.39,-.35,q.z));
+  return smoothstep(${opening.minX.toFixed(3)},${(opening.minX+.04).toFixed(3)},q.x)*(1.-smoothstep(${(opening.maxX-.04).toFixed(3)},${opening.maxX.toFixed(3)},q.x))*
+   smoothstep(${opening.minZ.toFixed(3)},${(opening.minZ+.04).toFixed(3)},q.z)*(1.-smoothstep(${(opening.maxZ-.04).toFixed(3)},${opening.maxZ.toFixed(3)},q.z));
  }
  void main(){
   vec2 uv=(gl_FragCoord.xy-uViewport.xy)/uViewport.zw;

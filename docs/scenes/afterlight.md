@@ -267,3 +267,14 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 - 近距葉片中心的微弱排斥只降低局部重疊；不是完整葉片自碰撞、表面張力或流體解算。美術調校的有效質量、衝量倍率和含水量不應視為實測植物參數。
 - GLB與兩份Blender場景已同步新rest geometry；網站仍為程序幾何權威，動態未烘成Blender actions。來源、座標轉換與重建命令沿用上一節。
 - 驗收：37 tests與build通過；兩種雨態暫停GPU readback完全相同，三次dispose後geometry/textures/scene children皆0。120秒連續播放、濕度與碰撞數據見本輪 `vegetation-browser-evidence.json`、`vegetation-physics-evidence.json`。本地驗收，未push或發布。
+
+## 2026-09-08 多方向株形與排水格柵試作
+
+- 可還原基準 `1bb24d4`。使用者要求枝葉向不同方向展開，開口加大並參考所附長方形金屬排水格柵照片；尺寸為場景美術設計，非台灣排水工程規格。
+- 49片葉保持，6條側枝由原近水平25–48cm改為先上揚的21–35cm，向牆平行的正負z與朝外混合。依牆距限制葉柄，放寬成熟葉寬、增加X/Z斜立姿態差。主冠約1.216m，葉面頂點最大x1.70125小於牆內面1.71m；深度約.689m。取消為接雨固定指定6片葉的造型限制；雨滴碰撞跟隨株形。
+- 屋頂開口Three x[.40,1.55]、z[-1.40,-.10]、y3m，由.66×.90m擴為1.15×1.30m（面積約2.52倍）。4塊新頂板維持24cm厚；web只刪除原RoomSurface中完全位於Blender z≥2.85的獨立屋頂component（224 vertices），其餘牆地UV保持。
+- 真實格柵幾何：4cm框、9根2.2cm寬長條、2根1.8cm寬橫撐，中心Three y3.04、厚4.5cm；暗色粗糙金屬無emissive。材質及物件可在兩份blend的DrainAssets collection編輯。網站direct、shadow與體積光depth共用這些mesh；沿用有限解析度shadow filter，非完整光學積分。
+- `DrainOpening.ts`與metadata共享開口／條位契約；雨從實際開放格孔採樣，仍80個候選與相同速度，不為加大開口額外增加雨量。光束解析開口已同步放大，格柵遮蔽由shadow map提供。
+- 重建順序：原afterlight build/bake後執行 `update_afterlight_drain.py -- --all`（自動開兩份blend並export房間GLB）；再 export_afterlight_vegetation.mjs、sync_afterlight_vegetation.py；最後以web blend執行refresh_afterlight_indirect.py。這輪已使用Metal/64 samples重烘牆地diffuse indirect EXR，保留原曝光、光源位置與魚群。屋頂新材質不用舊lightmap；間接光仍為固定場景烘焙，非隨日照或植物動態重新積分。
+- 主鏡頭先維持原構圖，匯出位置/rotation僅浮點誤差<2e-8；FOV完全相同。本輪用來比較株形與排水口本身，尚未更改為俯視。
+- 本地驗收：39 tests、build通過；格柵metadata與runtime位置一致、非發光；兩種雨態pause readback完全相同、3次dispose後geometry/textures/scene children皆0。主頁已目視確認牆地格柵投影及長廊暗部。完整本輪資料見drain-browser-evidence.json；未push或發布。

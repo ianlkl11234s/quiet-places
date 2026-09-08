@@ -1,0 +1,65 @@
+{
+  "baseline": "1bb24d4",
+  "tests": 39,
+  "build": "passed",
+  "cameraChangeMaxFloatError": 2e-08,
+  "visual": [
+    "noon real player: rectangular grate projection on wall and floor",
+    "dark distant corridor preserved",
+    "plant has upward secondary branches with positive and negative z directions"
+  ],
+  "pause": [
+    {
+      "rain": 0,
+      "pauseExact": true,
+      "changedChannels": 0
+    },
+    {
+      "rain": 0.65,
+      "pauseExact": true,
+      "changedChannels": 0
+    }
+  ],
+  "dispose": [
+    {
+      "cycle": 0,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 1,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 2,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    }
+  ],
+  "continuous": {
+    "seconds": 120.0102,
+    "frames": 8442,
+    "averageFps": 70.344,
+    "intervalP50Ms": 15.3,
+    "intervalP95Ms": 16.7,
+    "viewport": [
+      1280,
+      720
+    ],
+    "plantHits": 159,
+    "plantReleases": 20,
+    "visibleDrops": 2,
+    "stationaryBeads": 3,
+    "geometries": 180,
+    "textures": 86,
+    "drawCalls": 277,
+    "triangles": 40034
+  },
+  "consoleErrors": [],
+  "lighting": "Metal Cycles 64 samples refreshed diffuse-indirect EXR; real grate meshes cast direct and volume shadows",
+  "limits": "Local desktop QA, not deployment. Fixed baked GI and shadow-map/spring approximations. Camera held for plant/opening comparison."
+}

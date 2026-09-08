@@ -24,31 +24,47 @@
     "sha256": "3a43b6073144f2b778b97f5e79250dc67a6ecb10e2c4c94df3baac52d487dad8"
   },
   "public/models/afterlight-vegetation.glb": {
-    "bytes": 465632,
-    "sha256": "488b0f042d67fe684ffe93375e93328b741a92aecee19d690bc223c889968f91"
+    "bytes": 465548,
+    "sha256": "7a725db22099721ffa153764f98ef840a5e244d26dd1fc0f42eaad1ea0e5c6d4"
   },
   "assets/blender/afterlight-courtyard.blend": {
-    "bytes": 380866,
-    "sha256": "c98e02ac283d460a343ba4b810cf366c229ab583e1a8f1903e1e3884b762057f"
+    "bytes": 408270,
+    "sha256": "23441f0f730751008168fccedf9501b454e9270929771c9c7da8f8aba55e420e"
   },
   "assets/blender/afterlight-web.blend": {
-    "bytes": 11220245,
-    "sha256": "14db50a20384cb6d40c6e1e26a252c7c99a4811697943a790a30a2330569ba91"
+    "bytes": 10886840,
+    "sha256": "db5d1fcc109212e0c8fff50b557ca771bc7f7e22890e8dbe0d5d3284689b2215"
   },
   "src/places/afterlight/PlantGeometry.ts": {
-    "bytes": 14214,
-    "sha256": "161aef709f174bf4b1a0adffcecf3cdb19fa08e50d857b3be1aadee18a8b9db1"
+    "bytes": 14644,
+    "sha256": "6dba1ca981b8b3434329b65821e35502ba6fed7ecdd1b7d5b9dc72b8afce424e"
   },
   "src/places/afterlight/PlantPhysics.ts": {
     "bytes": 10739,
     "sha256": "48f295e1f9163fbf5ed81ba624f87129878819aa93429a41930f0d898c29ffb0"
   },
   "src/places/afterlight/RainField.ts": {
-    "bytes": 986,
-    "sha256": "668ff4d14d3f4d77041af50d1d70ebb1d118a53eecf7115dfdcb18975f7dc70b"
+    "bytes": 1030,
+    "sha256": "de2ea3938d5f5cd4805947a8f41b782141815585f3df09d394393d9f81b63732"
   },
   "src/places/afterlight/RainInteraction.ts": {
     "bytes": 5869,
     "sha256": "e68edcc80e2fdea03d0f869dd81aacd7cd299c987a8a0f110c5893279dcf38f8"
+  },
+  "public/models/afterlight-courtyard.glb": {
+    "bytes": 9633516,
+    "sha256": "9cab6271e217c7ed14ae22869b8c0d5d20b31b389d008ad1fd97d858da832a44"
+  },
+  "public/models/afterlight-courtyard.metadata.json": {
+    "bytes": 3152,
+    "sha256": "99d92813735510f3216b9f89fa2258ebd1052704e2f678baf5763f183e1bff15"
+  },
+  "public/textures/afterlight/room-indirect.exr": {
+    "bytes": 3154363,
+    "sha256": "49f09a131eaef96735d7109e43ed45c58182aba0da6b054efb154740885a0ca8"
+  },
+  "src/places/afterlight/DrainOpening.ts": {
+    "bytes": 985,
+    "sha256": "cde273466bed7c2a4cb90748e968466d77e444472b0c74f4f3e78602f4b308d5"
   }
 }

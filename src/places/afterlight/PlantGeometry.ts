@@ -103,13 +103,14 @@ export function createPlantGeometry(): PlantGeometry {
   };
   const addLeaf = (parent: THREE.Object3D, parentIndex: number, direction: THREE.Vector3, length: number, width: number, phase: number, defect: number | null) => {
     parent.updateWorldMatrix(true, false);
-    // Keep all foliage on the open, light-facing side of the wall.  Directions
-    // arrive in the parent frame; turn them into world space, constrain their
-    // wall-normal component, then return to the same parent frame.
+    // Directions arrive in the parent frame.  Most leaves follow their branch
+    // along the wall, while only the few that would point into it are softened.
     const parentWorld = parent.getWorldQuaternion(new THREE.Quaternion());
     const parentWorldPosition = parent.getWorldPosition(new THREE.Vector3());
     const petioleWorldDirection = direction.clone().applyQuaternion(parentWorld);
-    petioleWorldDirection.x = -Math.max(.92, Math.abs(petioleWorldDirection.x));
+    // A leaf may turn along the wall or slightly back toward it when it has
+    // room; only the local wall clearance is constrained.
+    petioleWorldDirection.x = Math.min(petioleWorldDirection.x, -.30, 1.62 - parentWorldPosition.x);
     petioleWorldDirection.normalize();
     const petiole = new THREE.Group();
     petiole.name = 'plant-petiole';
@@ -118,7 +119,7 @@ export function createPlantGeometry(): PlantGeometry {
     // the wall use enough of that real segment to keep the blade clear of it.
     const small=length<.04;
     const petioleLength = small?.006+random()*.007:.018+random()*.027;
-    width=length/(2*(2+random()*1.2));
+    width=Math.max(width*.7, length/(2*(2+random()*1.2)));
     const petioleDirection = petioleWorldDirection.applyQuaternion(parentWorld.clone().invert());
     orientToward(petiole, petioleDirection);
     const petioleIndex = addJoint(petiole, parent, parentIndex, 'petiole');
@@ -135,6 +136,8 @@ export function createPlantGeometry(): PlantGeometry {
     const worldLeaf=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(across,axis,face));
     leafJoint.quaternion.copy(petiole.getWorldQuaternion(new THREE.Quaternion()).invert()).multiply(worldLeaf);
     leafJoint.rotateY(-.24-random()*.62);
+    leafJoint.rotateX(THREE.MathUtils.degToRad(-18+random()*40));
+    leafJoint.rotateZ(THREE.MathUtils.degToRad(-10+random()*20));
     const leafIndex = addJoint(leafJoint, petiole, petioleIndex, 'leaf');
     const height = parentWorldPosition.y;
     const color = height > 1.05 ? 0x9cab52 : height > .28 ? 0x516d35 : 0x3d4b2e;
@@ -190,10 +193,17 @@ export function createPlantGeometry(): PlantGeometry {
       branch.name = 'plant-secondary-branch';
       const angle = alternation + (random() < .5 ? Math.PI * .42 : -Math.PI * .42);
       current.updateWorldMatrix(true, false);
-      const branchWorld = new THREE.Vector3(-.94, .11 + random() * .12, [-.08, .04, -.06, .08, -.04, .06][branchOrder]).normalize();
+      const branchWorld = [
+        new THREE.Vector3(-.48, .54, .66),
+        new THREE.Vector3(-.72, .43, -.54),
+        new THREE.Vector3(-.32, .61, .79),
+        new THREE.Vector3(-.63, .47, -.61),
+        new THREE.Vector3(-.41, .56, .72),
+        new THREE.Vector3(-.78, .38, -.43),
+      ][branchOrder].normalize();
       orientToward(branch, branchWorld.applyQuaternion(current.getWorldQuaternion(new THREE.Quaternion()).invert()));
       const branchIndex = addJoint(branch, current, currentIndex, 'branch');
-      const branchLength = [.25, .35, .463, .38, .45, .31][branchOrder] + random() * .018;
+      const branchLength = [.21, .29, .34, .30, .35, .26][branchOrder] + random() * .016;
       const lowerRadius = radius * .58;
       const kneeLength = branchLength * (.45 + random() * .12);
       localSegment(branch, kneeLength, lowerRadius, lowerRadius * .68, branchMaterial, geometries);

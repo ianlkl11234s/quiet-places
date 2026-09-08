@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import {drainIsOpen} from '../src/places/afterlight/DrainOpening.ts';
 import {rainSample} from '../src/places/afterlight/RainField.ts';
 import {createAfterlightWeather} from '../src/places/afterlight/Weather.ts';
 
@@ -12,7 +13,7 @@ test('sunshower stays in the aperture and freezes exactly with the player clock'
   const a=Array.from(rain.geometry.attributes.position.array);
   weather.update(t,.65,1,false);
   assert.deepEqual(Array.from(rain.geometry.attributes.position.array),a);
-  for(let i=0;i<a.length;i+=3){assert.ok(a[i]>.62&&a[i]<1.28);assert.ok(a[i+1]>=0&&a[i+1]<=3);assert.ok(a[i+2]>-1.25&&a[i+2]<-.35);}
+  for(let i=0;i<a.length;i+=3){assert.ok(a[i]>.40&&a[i]<1.55);assert.ok(a[i+1]>=0&&a[i+1]<=3);assert.ok(a[i+2]>-1.40&&a[i+2]<-.10);}
  }
  const standard=rain.geometry.drawRange.count;
  weather.update(360,.65,1,true);assert.ok(rain.geometry.drawRange.count<standard);
@@ -29,4 +30,8 @@ test('a leaf-intercepted rain drop disappears below the actual hit until its nex
  assert.equal(rain.geometry.getAttribute('alpha').getX(0),0);
  weather.update(time,1,1,false,.25,new Map([[0,{cycle:drop.cycle-1,y:3}]]));
  assert.equal(rain.geometry.getAttribute('alpha').getX(0),initial);weather.dispose();
+});
+
+test('rain enters through open grate cells across repeated cycles',()=>{
+ for(let i=0;i<80;i++)for(let t=0;t<100;t+=.37){const p=rainSample(i,t),fall=3-p.y;assert.ok(drainIsOpen(p.x-.012*fall,p.z-.0042*fall));}
 });

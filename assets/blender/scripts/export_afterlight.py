@@ -76,7 +76,7 @@ def run():
     if not room or not camera: raise RuntimeError('RoomSurface or Camera_Hero is missing')
     bpy.ops.object.select_all(action='DESELECT'); room.select_set(True); camera.select_set(True)
     for obj in scene.objects:
-        if obj.type=='MESH' and obj.name.startswith('FarCorridor_'): obj.select_set(True)
+        if obj.type=='MESH' and obj.name.startswith(('FarCorridor_', 'DrainRoof_', 'DrainGrate_')): obj.select_set(True)
     for obj in joined: obj.select_set(True)
     output=ROOT/'public/models/afterlight-courtyard.glb'; output.parent.mkdir(parents=True,exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=str(output),export_format='GLB',use_selection=True,export_cameras=True,export_extras=True,export_attributes=True,export_apply=True)
