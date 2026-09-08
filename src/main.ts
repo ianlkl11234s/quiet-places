@@ -18,7 +18,7 @@ async function start(){
  const preferences=loadPreferences();
  const afterlightCard=document.createElement('button');
  afterlightCard.className='room-card room-card--afterlight';afterlightCard.dataset.place='afterlight';afterlightCard.setAttribute('aria-pressed','false');
- afterlightCard.innerHTML='<span class="room-card__name">雨後天井</span><span class="room-card__detail">雨後的光與新葉</span>';
+ afterlightCard.innerHTML='<span class="room-card__name">雨後天井</span>';
  document.querySelector('.room-cards')?.append(afterlightCard);
  const afterlightOption=document.createElement('option');afterlightOption.value='afterlight';afterlightOption.textContent='雨後天井 · 雨後的光與新葉';el<HTMLSelectElement>('place-select').append(afterlightOption);
  const afterlightCameraOptions=document.createElement('div');
