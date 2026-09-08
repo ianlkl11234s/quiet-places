@@ -1,0 +1,16 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><style>html{background:#080e11;color:#ddd;font:14px monospace}pre{white-space:pre-wrap}</style><title>Music decode check</title><button id="start">開始靜音播放檢查</button><pre id="result">等待操作</pre><script type="module">
+const sources=['dawn-cycles','dusk-resonance','nightfall-undertone','quiet-room-glow'];
+document.querySelector('#start').addEventListener('click',async()=>{
+document.querySelector('#start').disabled=true;
+const results=[];
+for(const source of sources){
+ const audio=new Audio('/audio/'+source+'.m4a');audio.muted=true;
+ try{
+  await Promise.race([(async()=>{await audio.play();await new Promise(resolve=>audio.addEventListener('timeupdate',function check(){if(audio.currentTime>.3){audio.removeEventListener('timeupdate',check);resolve();}}));})(),new Promise((_,reject)=>setTimeout(()=>reject(Error('Playback timeout')),15000))]);
+  results.push({source,duration:audio.duration,played:audio.currentTime,readyState:audio.readyState});
+ }catch(error){results.push({source,error:String(error)});}
+ finally{audio.pause();audio.removeAttribute('src');audio.load();}
+ document.querySelector('#result').textContent=JSON.stringify({done:results.length===sources.length,results},null,2);
+}
+});
+</script></html>

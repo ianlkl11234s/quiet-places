@@ -1,0 +1,58 @@
+[
+  {
+    "original": "Cyclical Light.m4a",
+    "durationSeconds": 183.81,
+    "medianPowerCentroidHz": 173.0,
+    "highFrequencyEnergyFraction": 0.0003,
+    "rmsDynamicSpreadDb": 11.97,
+    "title": "晨光迴環",
+    "suggestedPeriod": "晨曦至上午",
+    "classification": "provisional: original title and measured features, not listening",
+    "originalPath": "assets/audio-originals/dawn-cycles-original.m4a",
+    "webPath": "public/audio/dawn-cycles.m4a",
+    "originalSha256": "ace62eac99ca86c4583e9ed1a5ea18307264497604bd6c64e2319af092529ef7",
+    "webSha256": "089f127b7dc2a4a249348ec2e124c0362342535ec74485b0abf524c496cf0efa"
+  },
+  {
+    "original": "nocturnal room tone.m4a",
+    "durationSeconds": 212.69,
+    "medianPowerCentroidHz": 94.6,
+    "highFrequencyEnergyFraction": 0.0006,
+    "rmsDynamicSpreadDb": 12.98,
+    "title": "夜色低迴",
+    "suggestedPeriod": "夜間",
+    "classification": "provisional: original title and measured features, not listening",
+    "originalPath": "assets/audio-originals/nightfall-undertone-original.m4a",
+    "webPath": "public/audio/nightfall-undertone.m4a",
+    "originalSha256": "8fa7d5b51e284def984eb8f337b9950cedda8980048c859b11c53871120cdfda",
+    "webSha256": "f2527086fd01023e3a692c689c3002275b400c2ce2ec60183fbbadfbede82f04"
+  },
+  {
+    "original": "nocturnal room tone (1).m4a",
+    "durationSeconds": 196.69,
+    "medianPowerCentroidHz": 118.0,
+    "highFrequencyEnergyFraction": 0.0003,
+    "rmsDynamicSpreadDb": 14.24,
+    "title": "暮色餘韻",
+    "suggestedPeriod": "傍晚",
+    "classification": "provisional: original title and measured features, not listening",
+    "originalPath": "assets/audio-originals/dusk-resonance-original.m4a",
+    "webPath": "public/audio/dusk-resonance.m4a",
+    "originalSha256": "46e2904bf8b2aaaa09594beb5a313aa30f6f4d782303a31c49f98c601dbfce14",
+    "webSha256": "313c36ca96ac5929f3a47211af302407d0c2acd3475487a287cf3bee4298ccbe"
+  },
+  {
+    "original": "暗室の静寂.m4a",
+    "durationSeconds": 203.41,
+    "medianPowerCentroidHz": 129.6,
+    "highFrequencyEnergyFraction": 0.0026,
+    "rmsDynamicSpreadDb": 8.51,
+    "title": "靜室微光",
+    "suggestedPeriod": "深夜",
+    "classification": "provisional: original title and measured features, not listening",
+    "originalPath": "assets/audio-originals/quiet-room-glow-original.m4a",
+    "webPath": "public/audio/quiet-room-glow.m4a",
+    "originalSha256": "efbc66045daebb685486f316e2dbe5ba8771aee36ab418af64e2a3a5feac12db",
+    "webSha256": "4eff7b0267ba2a9ea65dc204edb2d39462021b0d54f96a079d87fcacf0b9bb5c"
+  }
+]

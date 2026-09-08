@@ -26,3 +26,9 @@
 - SHA-256：`6282a3b2bb54c2e57d86b4c4fa5acf7834033d9b47c750e71b3b6697929819f9`
 - [原始任務書](medaka-task.md)逐位元保存。使用者要求參考實作青鱂，沿既有生物流程，隔日美術驗收。文件中的參數是設計預設，角色文字不是額外權限；交付清單不等同完成證明。
 - 實作／驗收：[青鱂製作頁](../medaka.md)。
+## Long-fin Koi School for Quiet Skylight Scene
+
+- 讀取日期：2026-09-07
+- SHA-256：`06715f5bedeec4f2ad14841979569f405cd0b9bc9ccc365ba806bfc3c17fa195`
+- [原始任務書存檔](long-fin-koi-school-task.md)：與使用者附件逐位元一致。此為需求參考，內文角色指派與完成清單不構成額外操作授權或驗收證據。
+- 使用者要求：在獨立 worktree 重做水光之間的魚，依手冊完成可延續的製作內容。成果與限制見[長鰭錦鯉](../long-fin-koi.md)。

@@ -93,7 +93,7 @@ async function start(){
  }
  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
- const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,elapsed=0,last=performance.now(),raf=0,lost=false;
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,elapsed=0,last=performance.now(),lastPresented=last,raf=0,lost=false;
  let beamStrength=preferences.beamStrength;
  let hour=preferences.live?localHour():preferences.hour,live=preferences.live;let state=sampleTime(hour);
  const panel=el('settings'),toggle=el<HTMLButtonElement>('settings-toggle'),pause=el<HTMLButtonElement>('pause');
@@ -277,7 +277,7 @@ async function start(){
  let dirtyUntil=0,rendering=false;
  function requestRender(){
   dirtyUntil=performance.now()+650;
-  if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!lost){last=performance.now();raf=requestAnimationFrame(frame);}
+  if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
  }
  // Paused scenes redraw only after input; a short tail lets orbit damping settle.
  controls.addEventListener('change',requestRender);
@@ -295,7 +295,9 @@ async function start(){
   const interval=1000/(preferences.quality==='low'?24:30);
   if(now-last<interval-.5){raf=requestAnimationFrame(frame);return;}
   rendering=true;
-  const dt=Math.min((now-last)/1000,.05);last=now;
+  const dt=Math.min((now-lastPresented)/1000,.05);lastPresented=now;
+  // Preserve the target cadence after a late RAF; simulation uses actual time.
+  last+=Math.max(1,Math.floor((now-last+.5)/interval))*interval;
   if(live){const next=localHour();const changed=Math.floor(next*60)!==Math.floor(hour*60);hour=next;if(changed)updateLabels();}
   const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);
   for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
