@@ -5,7 +5,7 @@ import {createAfterlightWeather} from '../src/places/afterlight/Weather.ts';
 
 test('sunshower stays in the aperture and freezes exactly with the player clock',()=>{
  const scene=new THREE.Scene(),weather=createAfterlightWeather(scene);
- const rain=weather.root.children[0] as THREE.LineSegments;
+ const rain=weather.root.children[0] as THREE.Mesh;
  for(const t of [0,.1,3,30,360]){
   weather.update(t,.65,1,false);
   const a=Array.from(rain.geometry.attributes.position.array);

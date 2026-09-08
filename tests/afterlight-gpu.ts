@@ -9,6 +9,7 @@ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(50,1280/720,.1,
 let place=(await prepareAfterlight())(scene,renderer);
 const setup=()=>{camera.position.set(...place.position);camera.lookAt(...place.target);camera.fov=place.fov!;camera.updateProjectionMatrix();renderer.toneMapping=place.toneMapping!;renderer.toneMappingExposure=place.exposure!;};setup();
 let rain=0,beam=1,hour=14,portrait=false;
+const plants=()=>scene.getObjectByName('Afterlight_LivingPlants')?.userData.plantDiagnostics;
 const result=document.querySelector('#result')!;
 function draw(time=12){place.update(0,time,{...sampleTime(hour),beamStrength:beam,rain});renderer.render(scene,camera);}
 draw();
@@ -46,7 +47,7 @@ document.querySelector('#play-loop')!.addEventListener('click',()=>{
   if(second!==lastReport){lastReport=second;result.textContent=`連續播放 ${Math.min(second,120)} / 120 秒 · ${frames} frames`;}
   if(elapsed<120){requestAnimationFrame(tick);return;}
   const sorted=intervals.slice(2).sort((a,b)=>a-b);
-  result.textContent=JSON.stringify({continuousSeconds:elapsed,frames,averageFps:frames/elapsed,frameIntervalP50:sorted[Math.floor(sorted.length*.5)],frameIntervalP95:sorted[Math.floor(sorted.length*.95)],viewport:[renderer.domElement.width,renderer.domElement.height],memory:renderer.info.memory,render:renderer.info.render},null,2);
+  result.textContent=JSON.stringify({continuousSeconds:elapsed,plant:plants(),frames,averageFps:frames/elapsed,frameIntervalP50:sorted[Math.floor(sorted.length*.5)],frameIntervalP95:sorted[Math.floor(sorted.length*.95)],viewport:[renderer.domElement.width,renderer.domElement.height],memory:renderer.info.memory,render:renderer.info.render},null,2);
   controls.forEach(control=>control.disabled=false);
  };
  requestAnimationFrame(tick);

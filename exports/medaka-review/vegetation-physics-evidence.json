@@ -1,0 +1,36 @@
+{
+  "baseline": "cda5e79",
+  "after60": {
+    "hits": 49,
+    "releases": 5,
+    "visibleDrops": 0,
+    "maxAngle": 0.06844142040796669,
+    "maxStemAngle": 0.00024809657164916995,
+    "maxWetness": 1
+  },
+  "after120": {
+    "hits": 92,
+    "releases": 13,
+    "visibleDrops": 0,
+    "maxAngle": 0.06844142040796669,
+    "maxStemAngle": 0.00024809657164916995,
+    "maxWetness": 1
+  },
+  "dryingMaxWetness": 0.5966666666668454,
+  "geometry": {
+    "leaves": 31,
+    "joints": 97,
+    "bounds": {
+      "min": [
+        1.2356934151536179,
+        -0.024000000843312587,
+        -0.8293934598855851
+      ],
+      "max": [
+        1.7040244440138483,
+        1.363178641135204,
+        1.5679664399981315
+      ]
+    }
+  }
+}

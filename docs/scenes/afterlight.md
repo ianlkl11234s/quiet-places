@@ -243,3 +243,17 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 光影核對：直射與植物陰影共用DirectionalLight；體積光採同方向及shadow-map遮擋。體積光孔洞採屋頂中心平面y=3的解析矩形，屋頂實體有24 cm厚度，所以孔洞邊缘並非完整光學積分；建築間接光是固定烘焙後縮放，反射為固定局部PMREM，魚身補光與月夜可見度為美術近似。未更動使用者喜歡的光影，不能稱為完整物理模擬。
 
 驗收：28 tests、build通過；本地browser確認魚、小草與一致的透明黑色按鈕，console無error。新增內容留待美術確認，未push或發布。
+
+## 2026-09-08 Scene Realism / 植物重建
+
+- 還原基準：`cda5e79`（26尾魚、五撮小草、透明黑色UI）；本輪獨立提交。相機座標、觀看目標/FOV、UI與魚群資產維持此基準，未新增佈景物件。
+- 來源：原創 `PlantGeometry.ts`，31片葉／97個階層節點（主莖、側枝、葉柄、葉面及5株小草）。主根Three=(1.698,-.024,-.38)，延續約1.3m高度；莖半徑約4.8→0.7mm。葉形使用非對稱、縱向/橫向曲率、重力向下葉尖、微鋸齒、主脈隆起與正負扭轉。葉齡按高度區分，非經驗證的特定植物物種模型。
+- 5株小草各2片小葉，原根點不變，株高7–12cm左右；它們使用更细的莖、小葉和較高自然頻率，沒有增加數量。完整幾何驗證包含牆界、法線、雨路交集與資源一次性釋放。
+- 物理：`PlantPhysics.ts` 固定60Hz，平時增量積分；回到較早elapsed時從seed重播。rest姿態已包含乾葉重力形狀；附加含水負載造成下垂。採有效轉動慣量、面積/朝向/近牆遮風的drag、分部位spring/damping及衝量向上遞減，並非科學植物/FEM解算。不同頻率的4–15秒seeded value-noise驅動微風，沒有整株sin旋轉。
+- 雨滴：只對天窗垂直雨路內的葉面抽樣做機率撞擊；不是每個可見雨滴的逐三角碰撞。葉片保存濕度/積水，濕度改變顏色、roughness、負載與葉尖位置；稀少水滴形成1.1–2.4秒後釋出，重力下落並引起局部回彈，最多3顆可見水滴，落地即收回pool。停雨慢乾約150秒。60秒/.65雨量測得49次微小葉擊、5次滴落；最大葉關節約3.92°（含濕重力偏移），主莖單節最大約.014°。這是該seed診斷，不是每分鐘保證事件數。
+- 變形使用實際Object3D階層，因此beauty、shadow與camera-depth共用相同位置；`Foliage.ts` 僅負責薄葉逆光材質和物理接入。沒有對整片植物額外套另一組影子動畫。
+- 牆地：`SurfaceMaterials.ts` 延續既有貼圖/基本色相。牆面以世界zy、地面xz建立0.5–2m低頻色差與5–30cm弱濕度差；牆腳0–8cm較深濕，弱化到約25cm，邊界隨z變化。局部濕膜降低roughness與micro normal對比，地板roughness不低於.30，不變成鏡面。雨量提高後約16秒趨濕，停雨以90秒時間常數乾燥。1–10mm微表面細節仍來自原normal/roughness貼圖。
+- 光：保留光源位置/曝光/亮暗比例。`ShadowFilter.ts` 8次blocker搜尋+9次比較，依遮蔽物到接收面深度差調整.55–2.8 texel半影；屬有限解析度PCSS近似，非路徑追蹤。外部daylight遮蔽用孔洞座標內最多5%的低對比透射mask近似，未新增外部遮擋物件。原天空fill、烘焙間接光、濕地局部PMREM與體積空氣保留，未增加fog/grain。固定GI仍不會隨雨重烘焙，也不是完整動態多次反射。
+- 雨視覺：仍80個候選、相同降雨強度，線段改成具0.55–1.2mm寬差的薄片，保留既有速度/長度/亮度/光區淡出差異；近遠透視自然改變投影寬度。魚仍無emissive，沿用日照與陰影區受光。
+- 可編輯來源：`node --experimental-strip-types assets/blender/scripts/export_afterlight_vegetation.mjs` 從網站rest geometry匯出 `public/models/afterlight-vegetation.glb`，再以背景Blender執行 `sync_afterlight_vegetation.py` 同步兩份blend。座標Three Y-up經glTF import轉Blender Z-up；此轮網站程序幾何為權威，Blender保留可編輯靜態rest形狀，**彈簧動態未宣稱已烘成Blender actions**。舊植物/weed GLB保留於Git基準，網站不再載入舊living meshes。
+- 驗收：32 tests通過。實際GPU暫停兩種雨態重複畫面完全一致，三轮dispose後geometry/textures/scene children皆0；連續播放及最終版本證據見 `exports/medaka-review/vegetation-physics-evidence.json` 與本輪browser證據。未發布。

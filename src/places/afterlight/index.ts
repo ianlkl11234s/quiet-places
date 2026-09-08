@@ -6,14 +6,18 @@ import {collectModelResources,disposeModelResources} from '../../shared/resource
 import {installAfterlightFoliage} from './Foliage.ts';
 import {createAfterlightWeather} from './Weather.ts';
 import {createAfterlightLighting} from './Lighting.ts';
+import {installSurfaceMaterials} from './SurfaceMaterials.ts';
+import {installContactShadows} from './ShadowFilter.ts';
 import {prepareMedaka} from './Medaka.ts';
 
 export async function prepareAfterlight(){
  const gltf=await new GLTFLoader().loadAsync('/models/afterlight-courtyard.glb');
  const root=gltf.scene;
- try{const weeds=await new GLTFLoader().loadAsync('/models/afterlight-weeds.glb');root.add(weeds.scene);}
- catch(error){disposeModelResources(collectModelResources(root));throw error;}
  const resources=collectModelResources(root);
+ // Keep original asset resources owned for disposal, replacing only living meshes.
+ const previousPlants:THREE.Object3D[]=[];
+ root.traverse(o=>{if(o instanceof THREE.Mesh&&/^(Foliage|Leaf|Stem)/.test(o.name))previousPlants.push(o);});
+ previousPlants.forEach(o=>o.removeFromParent());
  let indirect:THREE.DataTexture;
  try{indirect=await new EXRLoader().loadAsync('/textures/afterlight/room-indirect.exr');}
  catch(error){disposeModelResources(resources);throw error;}
@@ -84,6 +88,8 @@ export async function prepareAfterlight(){
    `);};
    m.customProgramCacheKey=()=> 'afterlight-specular-probe';m.needsUpdate=true;
   }
+  const surfacesState=installSurfaceMaterials(surfaces);
+  const shadows=installContactShadows(root);
   let disposed=false;
   return {
    position:position.toArray(),target:target.toArray(),fov:hero.fov,yawRange:Math.PI/30,
@@ -92,12 +98,12 @@ export async function prepareAfterlight(){
     // A previous scene is disposed after our first frame; reassert ownership on update.
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     const light=lighting.update(elapsed,state.beamStrength??1,state.intensity,state.warmth,state.angle,state.lowQuality??false);
-    farDay.value=light.indirect;medaka.update(elapsed,light.day);
+    shadows.update(state.angle);farDay.value=light.indirect;medaka.update(elapsed,light.day);
     for(const m of surfaces){m.lightMapIntensity=Math.PI*.7*light.indirect;m.envMapIntensity=.7*light.indirect;}
-    foliage.update(elapsed,light.day);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle);
+    surfacesState.update(elapsed,state.rain??0);foliage.update(elapsed,light.day,state.rain??0,state.angle);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle);
    },
    disturb(){},resetWater(){},
-   dispose(){if(disposed)return;disposed=true;lighting.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},
+   dispose(){if(disposed)return;disposed=true;shadows.dispose();surfacesState.dispose();lighting.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},
   };
  };
  return Object.assign(factory,{dispose(){if(!consumed){consumed=true;release();}}});

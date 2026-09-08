@@ -1,0 +1,67 @@
+{
+  "baseline": "cda5e79",
+  "preserved": [
+    "camera source GLB",
+    "main player and UI",
+    "fish model and complete motion cache",
+    "light positions and exposure"
+  ],
+  "pause": [
+    {
+      "rain": 0,
+      "pauseExact": true,
+      "changedChannels": 0,
+      "animationChanges": 6858
+    },
+    {
+      "rain": 0.65,
+      "pauseExact": true,
+      "changedChannels": 0,
+      "animationChanges": 10175
+    }
+  ],
+  "dispose": [
+    {
+      "cycle": 0,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 1,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    },
+    {
+      "cycle": 2,
+      "geometries": 0,
+      "textures": 0,
+      "sceneChildren": 0
+    }
+  ],
+  "continuous": {
+    "seconds": 120.0132,
+    "frames": 8105,
+    "averageFps": 67.5342379004976,
+    "intervalP50Ms": 15.8,
+    "intervalP95Ms": 17,
+    "viewport": [
+      1280,
+      720
+    ],
+    "plantHits": 92,
+    "plantReleases": 13,
+    "maxAngleRadians": 0.06844142040796669,
+    "geometries": 114,
+    "textures": 86,
+    "drawCalls": 222,
+    "triangles": 36562
+  },
+  "visual": [
+    "actual player noon beam and UI verified",
+    "portrait 23:00 visible plant and cool subdued illumination"
+  ],
+  "consoleErrors": [],
+  "limits": "Measured on this local desktop browser only; QA continuous test is uncapped, main player uses its existing frame cap. Rest geometry is editable in Blender; website spring physics is not baked into Blender actions."
+}
