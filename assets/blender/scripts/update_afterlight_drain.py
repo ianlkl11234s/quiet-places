@@ -20,25 +20,27 @@ import bpy
 
 ROOT = Path(__file__).resolve().parents[3]
 APERTURE = {
-    'x': [.40, 1.55],
-    'z': [-1.40, -.10],
+    'x': [.55, 1.40],
+    'z': [-1.175, -.325],
     'roofY': 3.0,
-    'blenderY': [.10, 1.40],
+    'blenderY': [.325, 1.175],
 }
+ROOM_X = [-2.70, 1.80]
+ROOM_WIDTH_VERSION = 'left-widened-v1'
 GRATE_Y = 3.04
 GRATE_DEPTH = .045
 FRAME = .04
-SLAT_X = [.44 + (index + 1) * (1.07 / 10) for index in range(9)]
-SLAT_Z = [-1.36, -.14]
-BRACE_Z = [-1.36 + (index + 1) * (1.22 / 3) for index in range(2)]
+SLAT_X = [.59 + (index + 1) * (.77 / 10) for index in range(9)]
+SLAT_Z = [-1.135, -.365]
+BRACE_Z = [-1.135 + (index + 1) * (.77 / 3) for index in range(2)]
 SECONDARY_APERTURE = {
-    'x': [-1.55, -.40],
-    'z': [-1.40, -.10],
+    'x': [-2.30, -1.45],
+    'z': [-1.175, -.325],
     'roofY': 3.0,
-    'blenderY': [.10, 1.40],
+    'blenderY': [.325, 1.175],
 }
 SECONDARY_FRAME = FRAME
-SECONDARY_SLAT_X = sorted(-x for x in SLAT_X)
+SECONDARY_SLAT_X = sorted(-.90 - x for x in SLAT_X)
 SECONDARY_SLAT_Z = SLAT_Z
 SECONDARY_BRACE_Z = BRACE_Z
 
@@ -132,14 +134,98 @@ def remove_source_roofs():
             bpy.data.objects.remove(obj, do_unlink=True)
 
 
+def components(mesh):
+    adjacent = {vertex.index: set() for vertex in mesh.vertices}
+    for polygon in mesh.polygons:
+        indices = polygon.vertices[:]
+        for index, vertex in enumerate(indices):
+            adjacent[vertex].add(indices[(index + 1) % len(indices)])
+            adjacent[vertex].add(indices[index - 1])
+    pending = set(adjacent)
+    result = []
+    while pending:
+        seed = pending.pop()
+        component = {seed}
+        frontier = [seed]
+        while frontier:
+            vertex = frontier.pop()
+            neighbors = adjacent[vertex] & pending
+            pending.difference_update(neighbors)
+            component.update(neighbors)
+            frontier.extend(neighbors)
+        result.append(component)
+    return result
+
+
+def move_world_x(obj, indices, transform):
+    inverse = obj.matrix_world.inverted()
+    for index in indices:
+        world = obj.matrix_world @ obj.data.vertices[index].co
+        world.x = transform(world.x)
+        obj.data.vertices[index].co = inverse @ world
+    obj.data.update()
+
+
+def widen_web_room(scene, room):
+    """Keep web UVs/materials: change positions only, once per source blend."""
+    if scene.get('afterlight_web_room_width_version') == ROOM_WIDTH_VERSION:
+        return {'leftWallVertices': 0, 'floorVertices': 0}
+    left_wall, floor = set(), set()
+    for component in components(room.data):
+        positions = [room.matrix_world @ room.data.vertices[index].co for index in component]
+        xs = [point.x for point in positions]
+        zs = [point.z for point in positions]
+        # The joined left wall is a discrete vertical component; preserve its
+        # thickness by translating it rather than scaling its x coordinates.
+        if max(xs) <= -1.70 and max(zs) > .20:
+            left_wall.update(component)
+        # Floor components are the only horizontal pieces at ground level.
+        elif max(zs) <= .20:
+            floor.update(component)
+    move_world_x(room, left_wall, lambda x: x - .90)
+    move_world_x(room, floor, lambda x: x * 1.5 if x < 0 else x)
+    scene['afterlight_web_room_width_version'] = ROOM_WIDTH_VERSION
+    return {'leftWallVertices': len(left_wall), 'floorVertices': len(floor)}
+
+
+def stretch_negative_x_floor(obj):
+    move_world_x(obj, range(len(obj.data.vertices)), lambda x: x * 1.5 if x < 0 else x)
+
+
+def widen_far_mesh(obj):
+    # Preserve the fixed x=1.8 edge while extending the far corridor to -2.7.
+    move_world_x(obj, range(len(obj.data.vertices)), lambda x: 1.8 + 1.25 * (x - 1.8))
+
+
+def widen_source_and_far(scene, source):
+    """Widen authored room/FarCorridor without changing the fixed right edge."""
+    if scene.get('afterlight_mesh_width_version') == ROOM_WIDTH_VERSION:
+        return {'leftWalls': 0, 'stretchedMeshes': 0}
+    walls = stretched = 0
+    for obj in bpy.data.objects:
+        if obj.type != 'MESH':
+            continue
+        if obj.name in ('RoomSurface_LeftWall', 'FarCorridor_LeftWall'):
+            obj.location.x -= .90
+            walls += 1
+        elif obj.name.startswith('FarCorridor_') and obj.name != 'FarCorridor_RightWall':
+            widen_far_mesh(obj)
+            stretched += 1
+        elif obj.name.startswith('RoomSurface_') and 'Floor' in obj.name:
+            stretch_negative_x_floor(obj)
+            stretched += 1
+    scene['afterlight_mesh_width_version'] = ROOM_WIDTH_VERSION
+    return {'leftWalls': walls, 'stretchedMeshes': stretched}
+
+
 def build_roof(scene, collection):
     concrete = material('DrainRoof_DarkConcrete', (.115, .125, .115), .88)
     # Five non-beveled prisms are joined into one mesh: fore, back, and the
     # left/centre/right strips between the mirrored apertures.  Their shared
     # coordinates have no bevel gap through which daylight can leak.
-    pieces = ((-1.8, 1.8, -2.0, -1.4), (-1.8, 1.8, -.10, 4.0),
-              (-1.8, -1.55, -1.4, -.10), (-.40, .40, -1.4, -.10),
-              (1.55, 1.8, -1.4, -.10))
+    pieces = ((-2.70, 1.80, -2.0, -1.175), (-2.70, 1.80, -.325, 4.0),
+              (-2.70, -2.30, -1.175, -.325), (-1.45, .55, -1.175, -.325),
+              (1.40, 1.80, -1.175, -.325))
     vertices, faces = [], []
     for x0, x1, z0, z1 in pieces:
         y0, y1 = -z1, -z0
@@ -162,28 +248,28 @@ def build_grate(collection):
     steel = material('DrainGrate_RoughSteel', (.075, .082, .078), .72, metallic=.88)
     items = []
     # Perimeter: x rails follow the long z direction; z rails close the ends.
-    items.append(cube(collection, 'DrainGrate_Frame_West', (.42, .75, GRATE_Y), (FRAME, 1.30, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Frame_East', (1.53, .75, GRATE_Y), (FRAME, 1.30, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Frame_North', (.975, .12, GRATE_Y), (1.15, FRAME, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Frame_South', (.975, 1.38, GRATE_Y), (1.15, FRAME, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Frame_West', (.57, .75, GRATE_Y), (FRAME, .85, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Frame_East', (1.38, .75, GRATE_Y), (FRAME, .85, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Frame_North', (.975, .345, GRATE_Y), (.85, FRAME, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Frame_South', (.975, 1.155, GRATE_Y), (.85, FRAME, GRATE_DEPTH), steel, .004))
     for index, x in enumerate(SLAT_X):
-        items.append(cube(collection, f'DrainGrate_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, 1.22, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, f'DrainGrate_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, .77, GRATE_DEPTH), steel, .002))
     for index, z in enumerate(BRACE_Z):
-        items.append(cube(collection, f'DrainGrate_Brace_{index + 1:02d}', (.975, -z, GRATE_Y), (1.07, .018, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, f'DrainGrate_Brace_{index + 1:02d}', (.975, -z, GRATE_Y), (.77, .018, GRATE_DEPTH), steel, .002))
     return items
 
 
 def build_secondary_grate(collection):
     steel = material('DrainGrate_RoughSteel', (.075, .082, .078), .72, metallic=.88)
     items = []
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_West', (-1.53, .75, GRATE_Y), (SECONDARY_FRAME, 1.30, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_East', (-.42, .75, GRATE_Y), (SECONDARY_FRAME, 1.30, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_North', (-.975, .12, GRATE_Y), (1.15, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_South', (-.975, 1.38, GRATE_Y), (1.15, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_West', (-2.28, .75, GRATE_Y), (SECONDARY_FRAME, .85, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_East', (-1.47, .75, GRATE_Y), (SECONDARY_FRAME, .85, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_North', (-1.875, .345, GRATE_Y), (.85, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
+    items.append(cube(collection, 'DrainGrate_Secondary_Frame_South', (-1.875, 1.155, GRATE_Y), (.85, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
     for index, x in enumerate(SECONDARY_SLAT_X):
-        items.append(cube(collection, f'DrainGrate_Secondary_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, 1.22, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, f'DrainGrate_Secondary_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, .77, GRATE_DEPTH), steel, .002))
     for index, z in enumerate(SECONDARY_BRACE_Z):
-        items.append(cube(collection, f'DrainGrate_Secondary_Brace_{index + 1:02d}', (-.975, -z, GRATE_Y), (1.07, .018, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, f'DrainGrate_Secondary_Brace_{index + 1:02d}', (-1.875, -z, GRATE_Y), (.77, .018, GRATE_DEPTH), steel, .002))
     return items
 
 
@@ -236,6 +322,15 @@ def export_web(scene):
         'braceZ': SECONDARY_BRACE_Z,
         'material': 'DrainGrate_RoughSteel; nonemissive, rough metal',
     }
+    data['corridorBounds'] = {
+        'x': ROOM_X,
+        'centerX': -.45,
+        'widthMetres': 4.5,
+        'widthVersion': ROOM_WIDTH_VERSION,
+        'rightEdgeFixed': True,
+        'uvPreserved': True,
+        'geometryApproximation': 'Joined RoomSurface keeps UV/material data; its left wall translates -0.9m and negative-x floor vertices stretch 1.5x. Far corridor widens about its fixed right x=1.8 edge.',
+    }
     metadata_path.write_text(json.dumps(data, indent=2) + '\n')
 
 
@@ -246,10 +341,13 @@ def run(export=False):
         room = bpy.data.objects.get('RoomSurface')
         if not room:
             raise RuntimeError('afterlight-web.blend is missing its joined RoomSurface')
+        width_stats = widen_web_room(scene, room)
+        width_stats['far'] = widen_source_and_far(scene, source=False)
         removed = remove_web_roof_components(room)
         kind = 'web-joined-room'
     else:
         remove_source_roofs()
+        width_stats = widen_source_and_far(scene, source=True)
         removed = 0
         kind = 'editable-source'
     assets = container(scene)
@@ -266,11 +364,12 @@ def run(export=False):
         'y': GRATE_Y, 'depth': GRATE_DEPTH, 'slatX': SECONDARY_SLAT_X,
         'slatZ': SECONDARY_SLAT_Z, 'braceZ': SECONDARY_BRACE_Z,
     }
-    scene['drain_update'] = {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate), 'secondaryGratePieces': len(secondary_grate)}
+    scene['width_version'] = ROOM_WIDTH_VERSION
+    scene['drain_update'] = {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate), 'secondaryGratePieces': len(secondary_grate), 'width': width_stats}
     bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
     if export:
         export_web(scene)
-    return {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate), 'secondaryGratePieces': len(secondary_grate)}
+    return {'kind': kind, 'removedWebRoofVertices': removed, 'roofPieces': len(roof), 'gratePieces': len(grate), 'secondaryGratePieces': len(secondary_grate), 'width': width_stats}
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {drainOpening,oppositeDrainOpening,drainSlats,drainBraces} from '../src/places/afterlight/DrainOpening.ts';
+import {corridor,drainOpening,oppositeDrainOpening,drainSlats,drainBraces} from '../src/places/afterlight/DrainOpening.ts';
 
 test('editable drain export and runtime share aperture and metal-bar locations',()=>{
  const metadata=JSON.parse(readFileSync(new URL('../public/models/afterlight-courtyard.metadata.json',import.meta.url),'utf8'));
@@ -9,7 +9,11 @@ test('editable drain export and runtime share aperture and metal-bar locations',
  assert.deepEqual(metadata.aperture.z,[drainOpening.minZ,drainOpening.maxZ]);
  assert.deepEqual(metadata.secondaryAperture.x,[oppositeDrainOpening.minX,oppositeDrainOpening.maxX]);
  assert.deepEqual(metadata.secondaryAperture.z,metadata.aperture.z);
- const mirror=drainSlats.map(x=>-x).sort((a,b)=>a-b);
+ const area=(drainOpening.maxX-drainOpening.minX)*(drainOpening.maxZ-drainOpening.minZ);
+ assert.ok(area<=1.15*1.3*.5,'each opening at most half the previous area');
+ assert.ok(Math.abs((drainOpening.maxX-drainOpening.minX)-(drainOpening.maxZ-drainOpening.minZ))<1e-9,'square opening');
+ assert.ok(corridor.maxX-corridor.minX>3.6,'wider corridor');
+ const mirror=drainSlats.map(x=>2*corridor.centerX-x).sort((a,b)=>a-b);
  metadata.secondaryDrainGrate.slatX.forEach((x:number,i:number)=>assert.ok(Math.abs(x-mirror[i])<1e-9));
  assert.deepEqual(metadata.secondaryDrainGrate.braceZ,metadata.drainGrate.braceZ);
  metadata.drainGrate.slatX.forEach((x:number,i:number)=>assert.ok(Math.abs(x-drainSlats[i])<1e-9));

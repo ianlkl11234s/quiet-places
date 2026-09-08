@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {drainOpening as opening} from './DrainOpening.ts';
+import {corridor,drainOpening as opening} from './DrainOpening.ts';
 
 // Sky gradient derived from the existing leaflight sky; calibration belongs to this courtyard.
 const skyVertex = /* glsl */ `
@@ -27,7 +27,7 @@ const beamFragment=/* glsl */`
   float t=(p.y-3.)/uSun.y;
   if(t<0.)return 0.;
   vec3 q=p-uSun*t;
-  q.x=abs(q.x); // Mirrored drain openings, both occluded by their actual grate meshes.
+  if(q.x<${corridor.centerX.toFixed(3)})q.x=${(2*corridor.centerX).toFixed(3)}-q.x; // Equal drains mirrored about the widened corridor centre.
   return smoothstep(${opening.minX.toFixed(3)},${(opening.minX+.04).toFixed(3)},q.x)*(1.-smoothstep(${(opening.maxX-.04).toFixed(3)},${opening.maxX.toFixed(3)},q.x))*
    smoothstep(${opening.minZ.toFixed(3)},${(opening.minZ+.04).toFixed(3)},q.z)*(1.-smoothstep(${(opening.maxZ-.04).toFixed(3)},${opening.maxZ.toFixed(3)},q.z));
  }
@@ -43,7 +43,7 @@ const beamFragment=/* glsl */`
   for(int i=0;i<32;i++){
    if(float(i)>=uSteps)break;
    vec3 p=ro+rd*((float(i)+jitter)*stepSize);
-   if(p.y>0.&&p.y<3.&&abs(p.x)<1.8&&p.z>-9.&&p.z<4.)light+=aperture(p)*shadowAt(p)*stepSize;
+   if(p.y>0.&&p.y<3.&&p.x>${corridor.minX.toFixed(3)}&&p.x<${corridor.maxX.toFixed(3)}&&p.z>-9.&&p.z<4.)light+=aperture(p)*shadowAt(p)*stepSize;
   }
   float alpha=(1.-exp(-light*.025*uBeam))*uDay;
   vec3 color=mix(vec3(.43,.55,.7),vec3(.86,.75,.52),uWarm);
