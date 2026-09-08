@@ -376,3 +376,8 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 
 - 依使用者選擇移除SeaGlass模組、6顆碎石、局部殘光／薄水膜與附帶植物直射壓暗，恢復加入碎石前的植物受光；保留獨立修正的17–21點暮色漸變。海玻璃試作仍可由 `c35c274` 查閱。
 - 保留1.5×1.1m對稱格柵、3.8m走道、中央格間對準主株、青鱂與雨態。移除試作測試與manifest項目，暮色測試保留在afterlight-day.test.ts。移除後44 tests與build通過，準備PR至main並依授權合併。
+
+### PR整合驗收
+
+- 已整合main `6c3935d`（音樂／水光之間／新選單），兩份生物索引衝突保留青鱂及長鰭錦鯉，舊程序魚標為歷史。音樂、水光之間與index.html與該main一致；Afterlight黑色按鈕样式限本場景，新房間卡不帶已移除的裝飾預覽。
+- 整合後50 tests與build通過，無發光石主頁目視且console無error。使用者主checkout未追蹤的docs/scenes/afterlight.md保持原樣，未切分支或pull覆蓋。

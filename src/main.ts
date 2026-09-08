@@ -18,7 +18,7 @@ async function start(){
  const preferences=loadPreferences();
  const afterlightCard=document.createElement('button');
  afterlightCard.className='room-card room-card--afterlight';afterlightCard.dataset.place='afterlight';afterlightCard.setAttribute('aria-pressed','false');
- afterlightCard.innerHTML='<span class="room-preview" aria-hidden="true"></span><span class="room-card__name">雨後天井</span><span class="room-card__detail">雨後的光與新葉</span>';
+ afterlightCard.innerHTML='<span class="room-card__name">雨後天井</span><span class="room-card__detail">雨後的光與新葉</span>';
  document.querySelector('.room-cards')?.append(afterlightCard);
  const afterlightOption=document.createElement('option');afterlightOption.value='afterlight';afterlightOption.textContent='雨後天井 · 雨後的光與新葉';el<HTMLSelectElement>('place-select').append(afterlightOption);
  const afterlightCameraOptions=document.createElement('div');
@@ -106,6 +106,7 @@ async function start(){
  }
  const placeSelect=el<HTMLSelectElement>('place-select');placeSelect.value=currentPlace;
  function describePlace(){
+  document.body.dataset.place=currentPlace;
   const isWater=currentPlace==='waterlight';
   const hasWeather=isWater||currentPlace==='afterlight';
   document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.place===currentPlace)));
@@ -350,7 +351,7 @@ async function start(){
    const archive=zipSync(files,{level:0});
    const url=URL.createObjectURL(new Blob([archive as Uint8Array<ArrayBuffer>],{type:'application/zip'}));
    imageUrls.push(url);const link=el<HTMLAnchorElement>('download-series');link.href=url;link.download='quiet-places-eight-moments.zip';gallery.hidden=false;galleryInert(true);el('close-gallery').focus();
-   el('export-message').textContent='八張圖片已備妥，可預覽或下載。';
+   el('export-message').textContent=`${exportCount} 張圖片已備妥，可預覽或下載。`;
   }catch(error){el('export-message').textContent=error instanceof Error?error.message:'圖片輸出失敗，請重試。';}
   finally{
    try{await switchPlace(saved.id,false);hour=saved.hour;elapsed=saved.elapsed;afterlightCameraDistance=saved.afterlightCameraDistance;camera.position.copy(saved.position);controls.target.copy(saved.target);controls.update();syncRoomInputs();}
