@@ -20,24 +20,24 @@ import bpy
 
 ROOT = Path(__file__).resolve().parents[3]
 APERTURE = {
-    'x': [.85, 1.70],
-    'z': [-1.175, -.325],
+    'x': [.60, 1.70],
+    'z': [-1.40, -.10],
     'roofY': 3.0,
-    'blenderY': [.325, 1.175],
+    'blenderY': [.10, 1.40],
 }
 ROOM_X = [-2.00, 1.80]
 ROOM_WIDTH_VERSION = '3.8-metre-v4'
 GRATE_Y = 3.04
 GRATE_DEPTH = .045
 FRAME = .04
-SLAT_X = [.89 + (index + 1) * (.77 / 10) for index in range(9)]
-SLAT_Z = [-1.135, -.365]
-BRACE_Z = [-1.135 + (index + 1) * (.77 / 3) for index in range(2)]
+SLAT_X = [.64 + (index + 1) * (1.02 / 10) for index in range(9)]
+SLAT_Z = [-1.36, -.14]
+BRACE_Z = [-1.36 + (index + 1) * (1.22 / 3) for index in range(2)]
 SECONDARY_APERTURE = {
-    'x': [-1.90, -1.05],
-    'z': [-1.175, -.325],
+    'x': [-1.90, -.80],
+    'z': [-1.40, -.10],
     'roofY': 3.0,
-    'blenderY': [.325, 1.175],
+    'blenderY': [.10, 1.40],
 }
 SECONDARY_FRAME = FRAME
 SECONDARY_SLAT_X = sorted(-.20 - x for x in SLAT_X)
@@ -265,33 +265,30 @@ def build_roof(scene, collection):
     return [roof]
 
 
-def build_grate(collection):
+def build_grate_at(collection, aperture, slats, prefix):
     steel = material('DrainGrate_RoughSteel', (.075, .082, .078), .72, metallic=.88)
+    x0, x1 = aperture['x']
+    z0, z1 = aperture['z']
+    cx, cy = (x0+x1)/2, -(z0+z1)/2
+    width, length = x1-x0, z1-z0
     items = []
-    # Perimeter: x rails follow the long z direction; z rails close the ends.
-    items.append(cube(collection, 'DrainGrate_Frame_West', (.57, .75, GRATE_Y), (FRAME, .85, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Frame_East', (1.38, .75, GRATE_Y), (FRAME, .85, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Frame_North', (.975, .345, GRATE_Y), (.85, FRAME, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Frame_South', (.975, 1.155, GRATE_Y), (.85, FRAME, GRATE_DEPTH), steel, .004))
-    for index, x in enumerate(SLAT_X):
-        items.append(cube(collection, f'DrainGrate_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, .77, GRATE_DEPTH), steel, .002))
+    for name, x in [('West', x0+FRAME/2), ('East', x1-FRAME/2)]:
+        items.append(cube(collection, prefix+'Frame_'+name, (x, cy, GRATE_Y), (FRAME, length, GRATE_DEPTH), steel, .004))
+    for name, z in [('North', z1-FRAME/2), ('South', z0+FRAME/2)]:
+        items.append(cube(collection, prefix+'Frame_'+name, (cx, -z, GRATE_Y), (width, FRAME, GRATE_DEPTH), steel, .004))
+    for index, x in enumerate(slats):
+        items.append(cube(collection, prefix+f'Slat_{index+1:02d}', (x, cy, GRATE_Y), (.022, length-2*FRAME, GRATE_DEPTH), steel, .002))
     for index, z in enumerate(BRACE_Z):
-        items.append(cube(collection, f'DrainGrate_Brace_{index + 1:02d}', (.975, -z, GRATE_Y), (.77, .018, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, prefix+f'Brace_{index+1:02d}', (cx, -z, GRATE_Y), (width-2*FRAME, .018, GRATE_DEPTH), steel, .002))
     return items
+
+
+def build_grate(collection):
+    return build_grate_at(collection, APERTURE, SLAT_X, 'DrainGrate_')
 
 
 def build_secondary_grate(collection):
-    steel = material('DrainGrate_RoughSteel', (.075, .082, .078), .72, metallic=.88)
-    items = []
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_West', (-2.28, .75, GRATE_Y), (SECONDARY_FRAME, .85, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_East', (-1.47, .75, GRATE_Y), (SECONDARY_FRAME, .85, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_North', (-1.875, .345, GRATE_Y), (.85, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
-    items.append(cube(collection, 'DrainGrate_Secondary_Frame_South', (-1.875, 1.155, GRATE_Y), (.85, SECONDARY_FRAME, GRATE_DEPTH), steel, .004))
-    for index, x in enumerate(SECONDARY_SLAT_X):
-        items.append(cube(collection, f'DrainGrate_Secondary_Slat_{index + 1:02d}', (x, .75, GRATE_Y), (.022, .77, GRATE_DEPTH), steel, .002))
-    for index, z in enumerate(SECONDARY_BRACE_Z):
-        items.append(cube(collection, f'DrainGrate_Secondary_Brace_{index + 1:02d}', (-1.875, -z, GRATE_Y), (.77, .018, GRATE_DEPTH), steel, .002))
-    return items
+    return build_grate_at(collection, SECONDARY_APERTURE, SECONDARY_SLAT_X, 'DrainGrate_Secondary_')
 
 
 def export_web(scene):
