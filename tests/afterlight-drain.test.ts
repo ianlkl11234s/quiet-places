@@ -10,7 +10,7 @@ test('editable drain export and runtime share aperture and metal-bar locations',
  metadata.secondaryAperture.x.forEach((x:number,i:number)=>assert.ok(Math.abs(x-[oppositeDrainOpening.minX,oppositeDrainOpening.maxX][i])<1e-9));
  assert.deepEqual(metadata.secondaryAperture.z,metadata.aperture.z);
  assert.ok(Math.abs(drainOpening.maxX-drainOpening.minX-1.1)<1e-9,'1.1m across corridor');
- assert.ok(Math.abs(drainOpening.maxZ-drainOpening.minZ-1.3)<1e-9,'1.3m along wall');
+ assert.ok(Math.abs(drainOpening.maxZ-drainOpening.minZ-1.5)<1e-9,'1.5m along wall');
  assert.ok(corridor.maxX-corridor.minX>3.6,'wider corridor');
  assert.deepEqual(metadata.corridorBounds.x,[corridor.minX,corridor.maxX]);
  assert.equal(metadata.corridorBounds.centerX,corridor.centerX);

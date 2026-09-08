@@ -28,12 +28,12 @@
     "sha256": "7a725db22099721ffa153764f98ef840a5e244d26dd1fc0f42eaad1ea0e5c6d4"
   },
   "assets/blender/afterlight-courtyard.blend": {
-    "bytes": 360255,
-    "sha256": "bef7a2b039bf25338bee35675dd6d2387c97171f39f895bdb846885e01e383f7"
+    "bytes": 360387,
+    "sha256": "bfccbec372775adadd30dfff9aeafcd9cbacdecf537a1be8aebcc24c43e9a05f"
   },
   "assets/blender/afterlight-web.blend": {
-    "bytes": 10887375,
-    "sha256": "78a9eb3ac028bcf6e1ad4a8251bac7a0f44b2594c69d691a30c50ebb75b26d99"
+    "bytes": 10885769,
+    "sha256": "407b11a370a46de4cacfd52b096fd51759b1f751db94ad4171cdddb22e9020b6"
   },
   "src/places/afterlight/PlantGeometry.ts": {
     "bytes": 14644,
@@ -52,19 +52,19 @@
     "sha256": "9cbf2ad8d519c0d2e0316b19e6a97be01184da42bf275381e928a4e6e8ea6d3d"
   },
   "public/models/afterlight-courtyard.glb": {
-    "bytes": 9681500,
-    "sha256": "9c81932098be755f4266d34d121f3c056d25def5ed6735511ab2022bee9b4e9d"
+    "bytes": 9681400,
+    "sha256": "e88680a2092740120fcf4053ed2b319da965c4f87b41f3db569e082b8d667fca"
   },
   "public/models/afterlight-courtyard.metadata.json": {
-    "bytes": 4394,
-    "sha256": "780b2d3935520d77b501b1e06d4513a94e49b643cd5d744985c20af2b99976b0"
+    "bytes": 4392,
+    "sha256": "26ca50713cbc4333e8f6cb8a8e85f4e6848cdbc51770733041b54ac2bcc0a09d"
   },
   "public/textures/afterlight/room-indirect.exr": {
     "bytes": 3154363,
-    "sha256": "15107795f900bbbefec9ec12eddea3446523b69642b0b3378509cd07c0a1df7d"
+    "sha256": "353c4f887e96214b953d8aaad69ef39fb08216390f8785c85238666f2d401288"
   },
   "src/places/afterlight/DrainOpening.ts": {
-    "bytes": 1225,
-    "sha256": "c418080a99e1f82d0e88dbb0415ee0095c8a6e142cc962f1059524c380899965"
+    "bytes": 1222,
+    "sha256": "ae1e0ef4d2d0cb7c19392b7055ad1110c9275fcce04e3ae4d418470b899a2aad"
   }
 }
