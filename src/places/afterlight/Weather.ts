@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-import {seededRandom} from '../../shared/math/seededRandom.ts';
+import {rainDrops,rainSample,rainOrigin,type RainBlock} from './RainField.ts';
 
 export function createAfterlightWeather(scene:THREE.Scene){
  const root=new THREE.Group();root.name='afterlight-sunshower';scene.add(root);
- const random=seededRandom(74019),count=80;
- const drops=Array.from({length:count},()=>({phase:random(),seed:random()*1000,speed:4+random()*2.5,length:.035+random()*.065,brightness:.35+random()*.65,width:.00055+random()*.00065}));
+ const drops=rainDrops,count=drops.length;
  const positions=new Float32Array(count*18),alphas=new Float32Array(count*6);
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));geometry.setAttribute('alpha',new THREE.BufferAttribute(alphas,1));
  const material=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
@@ -19,26 +18,25 @@ export function createAfterlightWeather(scene:THREE.Scene){
   const mesh=new THREE.Mesh(ringGeometry,mat);mesh.renderOrder=2;root.add(mesh);return mesh;
  });
  const hash=(n:number)=>{const v=Math.sin(n*12.9898)*43758.5453;return v-Math.floor(v);};
- const origin=(seed:number,cycle:number)=>({x:.68+hash(seed+cycle*7.13)*.51,z:-1.19+hash(seed+cycle*13.71+4)*.77});
+ const origin=rainOrigin;
  return {root,
-  update(time:number,strength:number,day:number,low:boolean,angle=.25){
+  update(time:number,strength:number,day:number,low:boolean,angle=.25,blocked?:ReadonlyMap<number,RainBlock>){
    const n=Math.floor(count*THREE.MathUtils.clamp(strength,0,1)*(low?.45:1));root.visible=n>0;
    geometry.setDrawRange(0,n*6);
    const turn=THREE.MathUtils.clamp(angle-.25,-.16,.16),sx=.28*Math.cos(turn)+.25*Math.sin(turn),sz=.25*Math.cos(turn)-.28*Math.sin(turn);
    drops.forEach((d,i)=>{
-    const cycle=time*d.speed/3+d.phase,index=Math.floor(cycle),phase=cycle-index,y=3*(1-phase),o=origin(d.seed,index);
-    // Slight shared drift, with a new deterministic entry point on each descent.
-    const drift=.012*(3-y),x=o.x+drift,z=o.z+drift*.35;
+    const {cycle:index,phase,y,x,z}=rainSample(i,time);
     const topX=x-.012*d.length,topY=Math.min(3,y+d.length),topZ=z-.0042*d.length,w=d.width*.5;
     positions.set([x-w,y,z,x+w,y,z,topX+w,topY,topZ,x-w,y,z,topX+w,topY,topZ,topX-w,topY,topZ],i*18);
     const qx=x-sx*(3-y),qz=z-sz*(3-y),smooth=THREE.MathUtils.smoothstep;
     const lit=smooth(qx,.62,.68)*(1-smooth(qx,1.22,1.28))*smooth(qz,-1.25,-1.19)*(1-smooth(qz,-.41,-.35));
     const fade=smooth(y,0,.12)*(1-smooth(y,2.88,3));
-    const alpha=d.brightness*fade*(.018+.19*lit)*(.25+.75*day);
+    const intercepted=blocked?.get(i);
+    const alpha=intercepted?.cycle===index&&y<intercepted.y?0:d.brightness*fade*(.018+.19*lit)*(.25+.75*day);
     alphas.set([alpha,alpha,alpha*.08,alpha,alpha*.08,alpha*.08],i*6);
     if(i<rings.length){
      const age=phase*3/d.speed,ring=rings[i],impact=origin(d.seed,index-1);
-     ring.visible=i<n&&age<.36;
+     ring.visible=i<n&&age<.36&&blocked?.get(i)?.cycle!==index-1;
      ring.position.set(impact.x+.036,.003,impact.z+.0126);ring.rotation.y=hash(d.seed+index)*Math.PI*2;
      ring.scale.setScalar(.008+age*.09);
      (ring.material as THREE.MeshBasicMaterial).opacity=Math.sin(Math.min(1,age/.36)*Math.PI)*.075*(.25+.75*day)*d.brightness;

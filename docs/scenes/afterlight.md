@@ -257,3 +257,13 @@ metadata個體長度由原始species基準一次乘1.20，實際3.880–5.280 cm
 - 雨視覺：仍80個候選、相同降雨強度，線段改成具0.55–1.2mm寬差的薄片，保留既有速度/長度/亮度/光區淡出差異；近遠透視自然改變投影寬度。魚仍無emissive，沿用日照與陰影區受光。
 - 可編輯來源：`node --experimental-strip-types assets/blender/scripts/export_afterlight_vegetation.mjs` 從網站rest geometry匯出 `public/models/afterlight-vegetation.glb`，再以背景Blender執行 `sync_afterlight_vegetation.py` 同步兩份blend。座標Three Y-up經glTF import轉Blender Z-up；此轮網站程序幾何為權威，Blender保留可編輯靜態rest形狀，**彈簧動態未宣稱已烘成Blender actions**。舊植物/weed GLB保留於Git基準，網站不再載入舊living meshes。
 - 驗收：32 tests通過。實際GPU暫停兩種雨態重複畫面完全一致，三轮dispose後geometry/textures/scene children皆0；連續播放及最終版本證據見 `exports/medaka-review/vegetation-physics-evidence.json` 與本輪browser證據。未發布。
+
+## 2026-09-08 葉簇密度與實際雨滴接觸
+
+- 修改前基準已保存於 `4213c17`；本輪獨立 commit，不覆寫基準。依使用者補充文字，保留相機、UI、魚群及日照設定。
+- 原創程序植物總葉數31→49（+58%，主植39、小草10），6條二級枝與2條三級枝；中段較密，上部幼葉、下部稀疏老葉。主植高度較基準+3.7%，hero相機投影寬度NDC .17626335→.22880382（+29.8%），實際前後深度.29796m。葉面錯層至少約6cm，保留可見空隙；不是經植物學核實的特定物種。
+- `RainField.ts` 共享既有80個雨滴的seed、位置、速度與渲染軌跡；`RainInteraction.ts` 以掃掠線段與實際葉面三角形求最近交點，處理重生週期，上葉攔截後不再擊中下葉或產生該滴落地環。接觸衝量受質量、速度、命中槓桿及有效慣量影響，傳向父枝時快速衰減。6片葉具有位於主要落雨範圍內的實際頂點，並非只靠包圍盒交集。
+- 4–12秒低頻微風與23秒變化尺度的弱陣風，階層阻尼與含水慣量造成不同步的小幅反應。最多6顆微小附著珠與3顆形成／下落中的滴水；濕度及seed決定當下可見數量，沒有保證同時填滿。水珠沿變形後葉片遠端最低點移動，形成2.5–5.5秒後依積水量釋出並局部回彈。
+- 近距葉片中心的微弱排斥只降低局部重疊；不是完整葉片自碰撞、表面張力或流體解算。美術調校的有效質量、衝量倍率和含水量不應視為實測植物參數。
+- GLB與兩份Blender場景已同步新rest geometry；網站仍為程序幾何權威，動態未烘成Blender actions。來源、座標轉換與重建命令沿用上一節。
+- 驗收：37 tests與build通過；兩種雨態暫停GPU readback完全相同，三次dispose後geometry/textures/scene children皆0。120秒連續播放、濕度與碰撞數據見本輪 `vegetation-browser-evidence.json`、`vegetation-physics-evidence.json`。本地驗收，未push或發布。

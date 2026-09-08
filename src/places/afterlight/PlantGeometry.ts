@@ -157,16 +157,20 @@ export function createPlantGeometry(): PlantGeometry {
   let current = mainBase;
   let currentIndex = mainBaseIndex;
   const mainSegments = 18;
-  const branchAt = new Set([5, 9, 13]);
+  // The middle of the plant carries the fuller crown.  Six unequal secondary
+  // branches make small, staggered clusters instead of a bilateral fan.
+  const branchAt = [4, 7, 9, 11, 13, 15] as const;
   for (let index = 0; index < mainSegments; index++) {
-    const length = .05 + random() * .045;
+    // Restore the crown's original height after the additional branch clusters
+    // consume a different part of the deterministic random sequence.
+    const length = .05 + random() * .045 + (index > 14 ? .03 : 0);
     const radius = THREE.MathUtils.lerp(.0048, .0007, index / mainSegments);
     localSegment(current, length, radius, radius * .8, stemMaterial, geometries);
     const next = new THREE.Group();
     next.name = 'main-stem-internode';
     next.position.y = length;
     const alternation = (index % 2 ? 1 : -1) * THREE.MathUtils.degToRad(130 + random() * 30);
-    next.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), .045 + random() * .028));
+    next.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), .014 + random() * .012));
     next.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(UP, alternation));
     const nextIndex = addJoint(next, current, currentIndex, 'stem');
     const isRegularLeaf = index > 2 && (index % 2 === 0 || index === 3 || index === 5 || index === 7 || index === 9 || index === 11 || index === 13 || index === 15);
@@ -180,20 +184,56 @@ export function createPlantGeometry(): PlantGeometry {
         leaves.length === 6 || leaves.length === 20 ? (random() < .5 ? -1 : 1) : null,
       );
     }
-    if (branchAt.has(index)) {
+    const branchOrder = branchAt.indexOf(index as typeof branchAt[number]);
+    if (branchOrder >= 0) {
       const branch = new THREE.Group();
       branch.name = 'plant-secondary-branch';
       const angle = alternation + (random() < .5 ? Math.PI * .42 : -Math.PI * .42);
       current.updateWorldMatrix(true, false);
-      const branchWorld = new THREE.Vector3(-.94, .16, index === 5 ? -.28 : index === 9 ? -.20 : -.38).normalize();
+      const branchWorld = new THREE.Vector3(-.94, .11 + random() * .12, [-.08, .04, -.06, .08, -.04, .06][branchOrder]).normalize();
       orientToward(branch, branchWorld.applyQuaternion(current.getWorldQuaternion(new THREE.Quaternion()).invert()));
       const branchIndex = addJoint(branch, current, currentIndex, 'branch');
-      const branchLength = .30 + random() * .045;
-      localSegment(branch, branchLength, radius * .58, radius * .28, branchMaterial, geometries);
-      const branchTip = new THREE.Group(); branchTip.position.y = branchLength;
-      const branchTipIndex = addJoint(branchTip, branch, branchIndex, 'branch');
-      addLeaf(branch, branchIndex, new THREE.Vector3(Math.cos(angle + .52), .36, Math.sin(angle + .52)), .09 + random() * .055, .03 + random() * .018, angle + .52, null);
-      addLeaf(branchTip, branchTipIndex, new THREE.Vector3(Math.cos(angle - .48), .32, Math.sin(angle - .48)), .08 + random() * .06, .028 + random() * .018, angle - .48, null);
+      const branchLength = [.25, .35, .463, .38, .45, .31][branchOrder] + random() * .018;
+      const lowerRadius = radius * .58;
+      const kneeLength = branchLength * (.45 + random() * .12);
+      localSegment(branch, kneeLength, lowerRadius, lowerRadius * .68, branchMaterial, geometries);
+      const branchKnee = new THREE.Group();
+      branchKnee.name = 'plant-secondary-knee';
+      branchKnee.position.y = kneeLength;
+      // The small off-axis kink and downward turn give each branch a visible
+      // gravity sag while preserving the main stem's original overall height.
+      branchKnee.rotateZ((branchOrder % 2 ? 1 : -1) * (.055 + random() * .045));
+      branchKnee.rotateX(.065 + random() * .055);
+      const branchKneeIndex = addJoint(branchKnee, branch, branchIndex, 'branch');
+      const tipLength = branchLength - kneeLength;
+      localSegment(branchKnee, tipLength, lowerRadius * .68, lowerRadius * .28, branchMaterial, geometries);
+      const branchTip = new THREE.Group(); branchTip.position.y = tipLength;
+      const branchTipIndex = addJoint(branchTip, branchKnee, branchKneeIndex, 'branch');
+
+      const clusterScale = branchOrder === 0 || branchOrder === 5 ? .82 : 1;
+      addLeaf(branch, branchIndex, new THREE.Vector3(Math.cos(angle + .52), .33, Math.sin(angle + .52)), (.075 + random() * .045) * clusterScale, .03, angle + .52, null);
+      addLeaf(branchKnee, branchKneeIndex, new THREE.Vector3(Math.cos(angle - .21), .25, Math.sin(angle - .21)), (.082 + random() * .05) * clusterScale, .032, angle - .21, null);
+      const tipLeafDirection = branchOrder === 2
+        ? new THREE.Vector3(-.78, .16, -.55)
+        : new THREE.Vector3(Math.cos(angle + .76), .20, Math.sin(angle + .76));
+      addLeaf(branchTip, branchTipIndex, tipLeafDirection, (.07 + random() * .055) * clusterScale, .028, angle + .76, null);
+      if (branchOrder === 2 || branchOrder === 4) {
+        const twig = new THREE.Group();
+        twig.name = 'plant-tertiary-twig';
+        twig.position.y = tipLength * (.42 + random() * .16);
+        orientToward(twig, new THREE.Vector3(-.72, .08, branchOrder === 2 ? .69 : -.69));
+        const twigIndex = addJoint(twig, branchKnee, branchKneeIndex, 'branch');
+        const twigLength = .095 + random() * .035;
+        localSegment(twig, twigLength, lowerRadius * .3, lowerRadius * .13, branchMaterial, geometries);
+        const twigTip = new THREE.Group(); twigTip.position.y = twigLength;
+        const twigTipIndex = addJoint(twigTip, twig, twigIndex, 'branch');
+        addLeaf(twigTip, twigTipIndex, new THREE.Vector3(-.72, .18, branchOrder === 2 ? .48 : -.48), .07 + random() * .035, .024, angle, null);
+      } else if (branchOrder !== 0) {
+        addLeaf(branchTip, branchTipIndex, new THREE.Vector3(Math.cos(angle - .66), .18, Math.sin(angle - .66)), (.065 + random() * .045) * clusterScale, .026, angle - .66, null);
+      }
+      if (branchOrder === 5) {
+        addLeaf(branchTip, branchTipIndex, new THREE.Vector3(Math.cos(angle + 1.15), .16, Math.sin(angle + 1.15)), .065 + random() * .035, .024, angle + 1.15, null);
+      }
     }
     current = next;
     currentIndex = nextIndex;

@@ -24,23 +24,31 @@
     "sha256": "3a43b6073144f2b778b97f5e79250dc67a6ecb10e2c4c94df3baac52d487dad8"
   },
   "public/models/afterlight-vegetation.glb": {
-    "bytes": 301996,
-    "sha256": "fd7ae68d97dabcdc2276bb87d9c1cc504130133705cdfaf2e0e434b250d498a3"
+    "bytes": 465632,
+    "sha256": "488b0f042d67fe684ffe93375e93328b741a92aecee19d690bc223c889968f91"
   },
   "assets/blender/afterlight-courtyard.blend": {
-    "bytes": 298074,
-    "sha256": "dfa886c6708f47b89e592bcb7ac443f8fad7169f727b64c0e6735e0e5eeb0515"
+    "bytes": 380866,
+    "sha256": "c98e02ac283d460a343ba4b810cf366c229ab583e1a8f1903e1e3884b762057f"
   },
   "assets/blender/afterlight-web.blend": {
-    "bytes": 11136797,
-    "sha256": "c5e426e8c1c4e0adb90709f3c8ba9c59c112c799e50c69c18b9aa63a5aeb9a62"
+    "bytes": 11220245,
+    "sha256": "14db50a20384cb6d40c6e1e26a252c7c99a4811697943a790a30a2330569ba91"
   },
   "src/places/afterlight/PlantGeometry.ts": {
-    "bytes": 11341,
-    "sha256": "b33a1117ceb949672e3829a4c5b50582a990c823c1199c2521e121dc208bd0e6"
+    "bytes": 14214,
+    "sha256": "161aef709f174bf4b1a0adffcecf3cdb19fa08e50d857b3be1aadee18a8b9db1"
   },
   "src/places/afterlight/PlantPhysics.ts": {
-    "bytes": 8084,
-    "sha256": "ec7fed04c0847eb9d314f7525c73640f1eeb93e2dcfd4588c082ca0c17a0b03d"
+    "bytes": 10739,
+    "sha256": "48f295e1f9163fbf5ed81ba624f87129878819aa93429a41930f0d898c29ffb0"
+  },
+  "src/places/afterlight/RainField.ts": {
+    "bytes": 986,
+    "sha256": "668ff4d14d3f4d77041af50d1d70ebb1d118a53eecf7115dfdcb18975f7dc70b"
+  },
+  "src/places/afterlight/RainInteraction.ts": {
+    "bytes": 5869,
+    "sha256": "e68edcc80e2fdea03d0f869dd81aacd7cd299c987a8a0f110c5893279dcf38f8"
   }
 }

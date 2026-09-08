@@ -1,23 +1,23 @@
 {
-  "baseline": "cda5e79",
+  "baseline": "4213c17",
   "preserved": [
-    "camera source GLB",
-    "main player and UI",
-    "fish model and complete motion cache",
-    "light positions and exposure"
+    "camera",
+    "UI",
+    "fish model and motion cache",
+    "Lighting.ts"
   ],
   "pause": [
     {
       "rain": 0,
       "pauseExact": true,
       "changedChannels": 0,
-      "animationChanges": 6858
+      "animationChanges": 7114
     },
     {
       "rain": 0.65,
       "pauseExact": true,
       "changedChannels": 0,
-      "animationChanges": 10175
+      "animationChanges": 10348
     }
   ],
   "dispose": [
@@ -41,27 +41,27 @@
     }
   ],
   "continuous": {
-    "seconds": 120.0132,
-    "frames": 8105,
-    "averageFps": 67.5342379004976,
-    "intervalP50Ms": 15.8,
+    "seconds": 120.0021,
+    "frames": 8217,
+    "averageFps": 68.4738,
+    "intervalP50Ms": 15.6,
     "intervalP95Ms": 17,
     "viewport": [
       1280,
       720
     ],
-    "plantHits": 92,
-    "plantReleases": 13,
-    "maxAngleRadians": 0.06844142040796669,
-    "geometries": 114,
+    "plantHits": 105,
+    "plantReleases": 9,
+    "stationaryBeadsAtEnd": 1,
+    "maxAngleRadians": 0.07707468535079734,
+    "geometries": 161,
     "textures": 86,
-    "drawCalls": 222,
-    "triangles": 36562
+    "drawCalls": 270,
+    "triangles": 40022
   },
   "visual": [
-    "actual player noon beam and UI verified",
-    "portrait 23:00 visible plant and cool subdued illumination"
+    "actual player noon with widened middle leaf clusters and preserved corridor negative space"
   ],
   "consoleErrors": [],
-  "limits": "Measured on this local desktop browser only; QA continuous test is uncapped, main player uses its existing frame cap. Rest geometry is editable in Blender; website spring physics is not baked into Blender actions."
+  "limits": "Local desktop only. QA continuous test uncapped; main player retains frame cap. Blender contains editable rest geometry; runtime spring and water approximations are not baked actions."
 }

@@ -100,7 +100,7 @@ export async function prepareAfterlight(){
     const light=lighting.update(elapsed,state.beamStrength??1,state.intensity,state.warmth,state.angle,state.lowQuality??false);
     shadows.update(state.angle);farDay.value=light.indirect;medaka.update(elapsed,light.day);
     for(const m of surfaces){m.lightMapIntensity=Math.PI*.7*light.indirect;m.envMapIntensity=.7*light.indirect;}
-    surfacesState.update(elapsed,state.rain??0);foliage.update(elapsed,light.day,state.rain??0,state.angle);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle);
+    surfacesState.update(elapsed,state.rain??0);foliage.update(elapsed,light.day,state.rain??0,state.angle);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle,foliage.rainBlocks);
    },
    disturb(){},resetWater(){},
    dispose(){if(disposed)return;disposed=true;shadows.dispose();surfacesState.dispose();lighting.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},

@@ -1,36 +1,35 @@
 {
-  "baseline": "cda5e79",
+  "baseline": "4213c17",
+  "rainStrength": 0.65,
   "after60": {
-    "hits": 49,
-    "releases": 5,
+    "hits": 62,
+    "releases": 4,
     "visibleDrops": 0,
-    "maxAngle": 0.06844142040796669,
-    "maxStemAngle": 0.00024809657164916995,
-    "maxWetness": 1
+    "maxAngle": 0.07707468535079734,
+    "maxStemAngle": 0.0002689213438730111,
+    "maxWetness": 0.9998888888888889,
+    "stationaryBeads": 1
   },
   "after120": {
-    "hits": 92,
-    "releases": 13,
+    "hits": 105,
+    "releases": 9,
     "visibleDrops": 0,
-    "maxAngle": 0.06844142040796669,
-    "maxStemAngle": 0.00024809657164916995,
-    "maxWetness": 1
+    "maxAngle": 0.07707468535079734,
+    "maxStemAngle": 0.0002689213438730111,
+    "maxWetness": 0.9998888888888889,
+    "stationaryBeads": 1
   },
-  "dryingMaxWetness": 0.5966666666668454,
+  "dryingMaxWetness": 0.5967777777779565,
   "geometry": {
-    "leaves": 31,
-    "joints": 97,
-    "bounds": {
-      "min": [
-        1.2356934151536179,
-        -0.024000000843312587,
-        -0.8293934598855851
-      ],
-      "max": [
-        1.7040244440138483,
-        1.363178641135204,
-        1.5679664399981315
-      ]
-    }
+    "leaves": 49,
+    "mainLeaves": 39,
+    "secondaryBranches": 6,
+    "tertiaryBranches": 2,
+    "depthMeters": 0.29796,
+    "heightChangePercent": 3.7,
+    "projectedWidthBaseline": 0.17626335,
+    "projectedWidthCurrent": 0.22880382,
+    "projectedWidthChangePercent": 29.8,
+    "rainCorridorVertexCoverageLeaves": 6
   }
 }
