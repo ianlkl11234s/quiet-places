@@ -1,0 +1,32 @@
+
+> quiet-places@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+Module "src/places/afterlight/DrainOpening.ts" tried to import "assets/config/afterlight-geometry.json" with "type": "json" attributes, but it was already imported elsewhere with no attributes. Please ensure that import attributes for the same module are always consistent.
+✓ 85 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/tools/studio/index.html             4.95 kB │ gzip:   2.20 kB
+dist/index.html                          6.52 kB │ gzip:   2.51 kB
+dist/assets/studio-Dt8Qkdun.css          2.63 kB │ gzip:   1.09 kB
+dist/assets/app-BUY8w5SN.css            14.45 kB │ gzip:   3.94 kB
+dist/assets/seededRandom-SFh7AJ1p.js     0.11 kB │ gzip:   0.12 kB
+dist/assets/Optics-n5NmyYem.js           1.11 kB │ gzip:   0.64 kB
+dist/assets/studio-CUM4MHS7.js           9.63 kB │ gzip:   4.43 kB
+dist/assets/index-Vxi90E72.js           21.74 kB │ gzip:   8.45 kB
+dist/assets/EXRLoader-gy6B9jP9.js       23.26 kB │ gzip:   8.01 kB
+dist/assets/index-BU3tw6qE.js           31.01 kB │ gzip:  12.04 kB
+dist/assets/fflate.module-CXh1ITwj.js   31.80 kB │ gzip:  12.15 kB
+dist/assets/SkeletonUtils-DkwsxyT2.js   45.86 kB │ gzip:  13.58 kB
+dist/assets/index-CmSDNO2G.js           53.34 kB │ gzip:  20.82 kB
+dist/assets/app-VZHQkoGj.js             65.28 kB │ gzip:  18.58 kB
+dist/assets/index-BhimAtnA.js          280.21 kB │ gzip: 117.39 kB
+dist/assets/SceneClock-DW76bE8O.js     562.82 kB │ gzip: 144.81 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.57s

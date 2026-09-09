@@ -4,6 +4,7 @@ export {places,moments,isPlaceId,type PlaceId} from './metadata.ts';
 
 // Loading the catalog creates no scene resources. Each adapter owns its assets.
 export async function preparePlace(id:PlaceId):Promise<PlaceFactory>{
+  if(id==='seaward')return (await import('./seaward/index.ts')).prepareSeaward();
   if(id==='leaflight')return (await import('./leaflight/index.ts')).prepareLeaflight();
   if(id==='waterlight')return (await import('./waterlight/index.ts')).prepareWaterlight();
   if(id==='stairlight')return (await import('./stairlight/index.ts')).prepareStairlight();

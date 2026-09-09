@@ -1,5 +1,17 @@
 # 雨後天井／Afterlight：場景製作規劃
 
+## 目前摘要（2026-09-09 P0–P6）
+
+- 本地重構位於獨立 worktree `/private/tmp/quiet-places-production-p0-p6`，分支 `codex/production-p0-p6`，起點 `f01ea56`。原工作區保留；未合併／發布。
+- 幾何權威為 `assets/config/afterlight-geometry.json`，runtime、Blender 與製作室線框同讀；正式 GLB／GI 沒有被候選覆寫。
+- 青鱂本體已移到 `src/shared/biology/medaka`；本場景仍使用原 26 尾群游 cache，製作室的三尾路徑試片為第二個消費者。
+- 光參數權威為 `assets/config/afterlight-study.json`，預設維持原畫面。四景 24 組固定種子／時刻／畫幅前後像素完全一致；71 tests 與 build 通過。
+- 新入口與限制见 [製作室](../production/STUDIO.md)、[交付與驗收](../production/P0_P6_ACCEPTANCE.md)。開口線框不更新間接光，路徑不做碰撞，音樂公開授權尚待確認。使用者美術確認、實機、發布未完成。
+- 下方製作歷史原文保留；早期無動物規劃與尺寸不可當成目前設定。
+
+## 早期規劃與製作歷史
+
+
 2026-09-07。狀態：使用者已授權製作，進行中，尚未完成美術驗收。分支 `codex/afterlight-courtyard`，worktree `/private/tmp/quiet-places-afterlight`，基於 `main` 的 `7f1635741afd0dbba26b4c97077bc27f82bf524e`。下方保留早期規劃依據；本文末的最新修正取代早期樓梯、植物與相機設定。
 
 ## 感官目標與參考

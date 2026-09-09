@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "asset": {
+    "id": "afterlight-drain",
+    "version": "1.0.0",
+    "source": {
+      "author": "Quiet Places",
+      "license": "original work; licence status not separately assigned"
+    }
+  },
+  "tooling": {
+    "python": "3.14.6",
+    "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+    "blender": "Blender 5.1.2"
+  },
+  "recipeRegistry": {
+    "path": "assets/config/asset-recipes.json",
+    "sha256": "972c69ca9d3e2a49235247afb15b2d823c6252a91ba909442a46ef556ce8b476"
+  },
+  "inputs": [
+    {
+      "path": "assets/blender/afterlight-web.blend",
+      "sha256": "00a22f630d3539267afab09664966ef95521c24ff4c9f318beb813336425a037"
+    },
+    {
+      "path": "assets/blender/scripts/geometry_config.py",
+      "sha256": "895f33e16c21fbbb8a515f94f247438267f5d36a73fd5529154331b0fc76892e"
+    },
+    {
+      "path": "assets/blender/scripts/update_afterlight_drain.py",
+      "sha256": "12a5f5986f5c97d0557fa1e71bdf6cd0a3b20404e54202ac7b485355602777e4"
+    },
+    {
+      "path": "public/models/afterlight-courtyard.metadata.json",
+      "sha256": "9e27c095638128c9db0cf2a05f48bcfbda97e604fd88f75f49e9955f798e2f94"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "models/afterlight-courtyard.glb",
+      "sha256": "0721f280c3489a237b099ffb00b5525b805227e4662ad60ab6d241e06c028d40"
+    },
+    {
+      "path": "models/afterlight-courtyard.metadata.json",
+      "sha256": "d6714f25818445190126d08797832e78cae60e72afc6cc90f41c3357af7ea8e3"
+    }
+  ],
+  "contract": {
+    "units": "metres",
+    "axes": "Three Y-up; Blender=(x,-z,y)",
+    "nodes": [
+      "DrainRoof_Near",
+      "DrainGrate_Frame_West",
+      "DrainGrate_Secondary_Frame_West"
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "readback": {
+      "glbNodes": 50,
+      "requiredNodes": [
+        "DrainGrate_Frame_West",
+        "DrainGrate_Secondary_Frame_West",
+        "DrainRoof_Near"
+      ],
+      "aperture": {
+        "x": [
+          0.6,
+          1.7
+        ],
+        "z": [
+          -1.13,
+          0.37
+        ],
+        "roofY": 3.0,
+        "blenderY": [
+          -0.37,
+          1.13
+        ]
+      },
+      "geometry": {
+        "frameBounds": {
+          "DrainGrate_Frame_West": {
+            "x": [
+              0.6000000052154064,
+              0.6400000043213367
+            ],
+            "z": [
+              -1.1299999952316284,
+              0.3700000047683716
+            ]
+          },
+          "DrainGrate_Frame_East": {
+            "x": [
+              1.6599999479949474,
+              1.6999999471008778
+            ],
+            "z": [
+              -1.1299999952316284,
+              0.3700000047683716
+            ]
+          },
+          "DrainGrate_Frame_North": {
+            "x": [
+              0.5999999642372131,
+              1.699999988079071
+            ],
+            "z": [
+              0.32999999448657036,
+              0.3699999935925007
+            ]
+          },
+          "DrainGrate_Frame_South": {
+            "x": [
+              0.5999999642372131,
+              1.699999988079071
+            ],
+            "z": [
+              -1.13000001385808,
+              -1.0900000147521496
+            ]
+          },
+          "DrainGrate_Secondary_Frame_West": {
+            "x": [
+              -1.8999999947845936,
+              -1.8599999956786633
+            ],
+            "z": [
+              -1.1299999952316284,
+              0.3700000047683716
+            ]
+          },
+          "DrainGrate_Secondary_Frame_East": {
+            "x": [
+              -0.8399999924004078,
+              -0.7999999932944775
+            ],
+            "z": [
+              -1.1299999952316284,
+              0.3700000047683716
+            ]
+          },
+          "DrainGrate_Secondary_Frame_North": {
+            "x": [
+              -1.9000000357627869,
+              -0.800000011920929
+            ],
+            "z": [
+              0.32999999448657036,
+              0.3699999935925007
+            ]
+          },
+          "DrainGrate_Secondary_Frame_South": {
+            "x": [
+              -1.9000000357627869,
+              -0.800000011920929
+            ],
+            "z": [
+              -1.13000001385808,
+              -1.0900000147521496
+            ]
+          }
+        },
+        "roofBounds": [
+          [
+            -2.0,
+            1.7999999523162842
+          ],
+          [
+            2.880000114440918,
+            3.119999885559082
+          ],
+          [
+            -2.0,
+            4.0
+          ]
+        ],
+        "openingBoundary": {
+          "primary": [
+            0.6,
+            1.7,
+            -1.13,
+            0.37
+          ],
+          "secondary": [
+            -1.9,
+            -0.8,
+            -1.13,
+            0.37
+          ]
+        }
+      }
+    },
+    "binaryHashPolicy": "SHA-256 records the produced bytes; visual comparison is required for non-deterministic bakes."
+  },
+  "createdAt": "2026-09-09T04:28:55.920538+00:00",
+  "effectiveGeometryConfig": {
+    "sourcePath": "/private/tmp/quiet-places-production-p0-p6/assets/config/afterlight-geometry.json",
+    "sandboxPath": "config/afterlight-geometry.json",
+    "sha256": "8922682f3dc551372760862b78838880bb8e57d12e9f5fb03f8ccfd455bd04ad"
+  }
+}

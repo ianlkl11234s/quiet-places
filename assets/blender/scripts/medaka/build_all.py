@@ -55,6 +55,12 @@ def configure_review_lighting(scene):
 def finalize_baked_review(scene):
     make_debug_collection(scene);make_shoal_overview(scene);configure_review_lighting(scene);scene.frame_set(0)
 
+def output_dir():
+    if '--output-dir' not in sys.argv: return ROOT
+    index=sys.argv.index('--output-dir')+1
+    if index>=len(sys.argv): raise RuntimeError('--output-dir requires a path')
+    target=Path(sys.argv[index]).resolve();target.mkdir(parents=True,exist_ok=True);return target
+
 def run(bake_motion=False):
     print(f'MEDAKA_BUILD bake_motion={bake_motion}',flush=True)
     bpy.ops.wm.read_factory_settings(use_empty=True);scene=bpy.context.scene;scene.name='Medaka_Quiet_Rain_Shoal';scene.render.engine='CYCLES';scene.cycles.device='GPU';scene.render.threads_mode='FIXED';scene.render.threads=2;scene.render.fps=30;scene.frame_start=0;scene.frame_end=3600
@@ -63,14 +69,16 @@ def run(bake_motion=False):
     rig['shoalFishCount']=22;rig['bakeContract']='motion bin: 30fps, 120s, frame-major 22x12; Three pos=(x,y,z)->Blender(x,-z,y), -Z forward'
     scene['artifactStatus']='master complete; invoke --bake-motion for 22-fish motion bake';scene.render.resolution_x=512;scene.render.resolution_y=512
     length,ymin,ymax=actual_length(mesh);mesh['actualSourceLengthMetres']=length;weights=skin_weight_report(mesh);excursion=skinned_excursion_report(rig,mesh,pose);scene.frame_set(0)
-    blend=ROOT/'assets/blender/medaka_quiet_rain_shoal.blend';blend.parent.mkdir(parents=True,exist_ok=True);bpy.ops.wm.save_as_mainfile(filepath=str(blend))
-    out=ROOT/'public/models/medaka.glb';out.parent.mkdir(parents=True,exist_ok=True)
+    target=output_dir();models=target/'models' if target!=ROOT else ROOT/'public/models';models.mkdir(parents=True,exist_ok=True)
+    blend=target/'medaka_quiet_rain_shoal.blend' if target!=ROOT else ROOT/'assets/blender/medaka_quiet_rain_shoal.blend';blend.parent.mkdir(parents=True,exist_ok=True);bpy.ops.wm.save_as_mainfile(filepath=str(blend))
+    out=models/'medaka.glb'
     bpy.ops.object.select_all(action='DESELECT');mesh.select_set(True);rig.select_set(True);bpy.context.view_layer.objects.active=mesh
     bpy.ops.export_scene.gltf(filepath=str(out),export_format='GLB',export_cameras=False,export_extras=True,export_animations=True,export_apply=True,use_selection=True)
     meta={'species':'Oryzias latipes morphology-inspired original','masterLengthMetres':LENGTH,'actualSourceLengthMetres':length,'actualBlenderYBounds':[ymin,ymax],'nativeForwardBlender':'+Y','forwardThree':'-Z','skinnedMesh':mesh.name,'rootNode':rig.name,'bones':list(BONES),'localLateralRotationAxis':'Z','inplaceClip':'MEDAKA_ACT_INPLACE_SWIM_1S','clipFrequencyHz':2,'tailPose':pose(rig,0,speed=.035,accel=0),'skinWeights':weights,'skinnedExcursion':excursion,'motionBinContract':{'fps':30,'durationSeconds':120,'fishCount':22,'strideFloat32':12,'threeToBlenderPosition':'(x,-z,y)','integratedPhase':'already includes individual fish phase; never add motionPhase','pectoral':'0.20*(1-.55*q)*sin(integratedPhase), local Z signs L+/R-'}}
-    (ROOT/'public/models/medaka.metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
+    (models/'medaka.metadata.json').write_text(json.dumps(meta,indent=2)+'\n')
     if bake_motion:
         print('MEDAKA_BAKE starting 22 fish x 3601 frames',flush=True)
+        if target!=ROOT: raise RuntimeError('motion bake requires the canonical public motion cache; run without --output-dir')
         report=bake_shoal_from_motion(scene,mesh,rig,ROOT);source.hide_render=True;source.hide_viewport=True;finalize_baked_review(scene);scene['artifactStatus']='master and 22-fish 120-second bake complete';scene['motionBakeReport']=report;bpy.ops.wm.save_as_mainfile(filepath=str(blend))
         print(f'MEDAKA_BAKE saved {report}',flush=True)
     return meta

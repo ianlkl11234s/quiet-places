@@ -1,0 +1,57 @@
+- main "雨後天井：即時生成的靜謐空間":
+  - generic "拖曳觀看雨後天井，左右各6度；滾輪拉近拉遠，方向鍵旋轉，Home重設"
+- banner:
+  - link "QUIET PLACES 雨後天井":
+    - /url: ./
+    - text: QUIET PLACES
+    - generic: 雨後天井
+  - text: A QUIET CORNER OF EVERYDAY
+  - text: 在日常的一隅，停留片刻。
+- navigation "空間選單":
+  - button "換個房間"
+  - button "調整此景" [expanded]
+  - button "關於靜隅":
+    - generic: i
+- contentinfo:
+  - generic: 午後的光
+  - generic: 14:00
+- region "調整此景":
+  - generic: 此刻的光
+  - button "關閉設定" [active]: ×
+  - text: 時刻
+  - status: 14:00
+  - slider "時刻": "14"
+  - button "晨曦"
+  - button "正午"
+  - button "暮色"
+  - button "月夜"
+  - checkbox "跟隨本地時間"
+  - text: 跟隨本地時間
+  - button "暫停流動"
+  - button "重設視角"
+  - generic: 天候
+  - combobox "天候":
+    - option "雨後天井 · 雨後"
+    - option "雨後天井 · 太陽雨"
+    - option "雨後天井 · 大雨" [selected]
+  - text: 雨勢
+  - status: 50%
+  - slider "雨勢": "50"
+  - text: 鏡頭遠近
+  - status: 0%
+  - slider "鏡頭遠近": "0"
+  - button "回原位"
+  - text: 光束強度
+  - status: 100%
+  - slider "光束強度": "100"
+  - generic "聲音與共用設定 ＋"
+  - option "標準 · 30 fps" [selected]
+  - option "節能 · 24 fps"
+  - option "沉光漫游" [selected]
+  - option "水線低語"
+  - option "晴光入水"
+  - option "波影流年"
+  - option "晨光迴環 · 晨曦至上午"
+  - option "暮色餘韻 · 傍晚"
+  - option "夜色低迴 · 夜間"
+  - option "靜室微光 · 深夜"

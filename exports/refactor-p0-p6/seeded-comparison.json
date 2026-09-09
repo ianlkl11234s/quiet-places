@@ -1,0 +1,266 @@
+[
+  {
+    "id": "waterlight",
+    "hour": 12,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "waterlight",
+    "hour": 17.5,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "waterlight",
+    "hour": 23,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "waterlight",
+    "hour": 12,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "waterlight",
+    "hour": 17.5,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "waterlight",
+    "hour": 23,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "leaflight",
+    "hour": 12,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "leaflight",
+    "hour": 17.5,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "leaflight",
+    "hour": 23,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "leaflight",
+    "hour": 12,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "leaflight",
+    "hour": 17.5,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "leaflight",
+    "hour": 23,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "oceanlight",
+    "hour": 12,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "oceanlight",
+    "hour": 17.5,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "oceanlight",
+    "hour": 23,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "oceanlight",
+    "hour": 12,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "oceanlight",
+    "hour": 17.5,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "oceanlight",
+    "hour": 23,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "afterlight",
+    "hour": 12,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "afterlight",
+    "hour": 17.5,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "afterlight",
+    "hour": 23,
+    "viewport": [
+      1280,
+      720
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "afterlight",
+    "hour": 12,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "afterlight",
+    "hour": 17.5,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  },
+  {
+    "id": "afterlight",
+    "hour": 23,
+    "viewport": [
+      390,
+      844
+    ],
+    "exact": true,
+    "maxChannelDifference": 0,
+    "changedChannels": 0
+  }
+]

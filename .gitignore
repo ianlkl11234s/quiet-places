@@ -6,6 +6,9 @@ __pycache__/
 *.blend2
 assets/blender/cache/
 
+# A worktree may borrow installed dependencies via a symlink.
+/node_modules
+
 # Private scene references and generated Blender review caches
 assets/references/stairlight/
 node_modules

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Quiet Places asset recipe registry",
+  "type": "object",
+  "required": ["schemaVersion", "recipes"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recipes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "version", "runner", "source", "inputs", "outputs", "contract"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "version": { "type": "string" },
+          "runner": { "enum": ["afterlight-drain", "medaka-master"] },
+          "source": { "type": "object" },
+          "inputs": { "type": "array", "items": { "type": "string" } },
+          "outputs": { "type": "array", "items": { "type": "string" } },
+          "contract": { "type": "object" }
+        }
+      }
+    }
+  }
+}

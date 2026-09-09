@@ -1,0 +1,104 @@
+- banner:
+  - link "QUIET PLACES":
+    - /url: /
+  - generic: 製作室 / 01
+- main:
+  - generic: 雨後天井
+  - generic: 候選 B · 固定時間試片
+  - button "開始流動"
+  - button "保存比較畫面"
+  - button "查看基準 A"
+  - button "恢復基準"
+  - status: 候選已顯示；正式設定保持不變。
+  - complementary:
+    - heading "讓光，慢慢找到位置。" [level=1]
+    - paragraph: 調整一個變因，留下你的選擇。試片不會自動更動正式房間。
+    - group "01 / 時間與光":
+      - generic: 01 / 時間與光
+      - text: 時刻
+      - spinbutton "時刻": "12"
+      - text: 天氣
+      - combobox "天氣":
+        - option "雨後" [selected]
+        - option "太陽雨"
+        - option "大雨"
+      - text: 固定太陽方向
+      - checkbox "固定太陽方向"
+      - text: 方位 °
+      - spinbutton "方位 °": "0"
+      - text: 高度 °
+      - spinbutton "高度 °": "80"
+      - text: 主光倍率
+      - spinbutton "主光倍率": "1"
+      - text: 曝光
+      - spinbutton "曝光": "1.15"
+      - text: 空氣散射
+      - spinbutton "空氣散射": "1"
+      - text: 動畫秒數
+      - spinbutton "動畫秒數": "12"
+      - text: 畫幅
+      - combobox "畫幅":
+        - option "橫式 1280 × 720" [selected]
+        - option "直式 390 × 844"
+      - paragraph: 固定 GI 仍沿用原烘焙；改光是比較試片，並非重新計算全域光照。
+    - group "02 / 開口":
+      - generic: 02 / 開口
+      - text: 沿牆寬度 m
+      - spinbutton "沿牆寬度 m": "1.5"
+      - text: 向內深度 m
+      - spinbutton "向內深度 m": "1.1"
+      - text: 沿牆中心 z m
+      - spinbutton "沿牆中心 z m": "-0.37999999999999995"
+      - paragraph: 開口與正式版本一致
+    - group "03 / 青鱂路徑試片":
+      - generic: 03 / 青鱂路徑試片
+      - text: 顯示獨立路徑試片
+      - checkbox "顯示獨立路徑試片"
+      - text: 速度 m/s
+      - spinbutton "速度 m/s": "0.06"
+      - text: 節奏倍率
+      - spinbutton "節奏倍率": "1"
+      - text: 控制點 [x, y, z]，公尺
+      - textbox "控制點 [x, y, z]，公尺": "[[0.3,0.22,0],[1,0.28,-0.8],[0.8,0.24,-1.5],[0.2,0.3,-0.6]]"
+      - paragraph: 沿用真正青鱂模型與骨架；路徑是美術試片，未做植物碰撞或群游解算。正式群游保持原 cache。
+    - group "04 / 聲音":
+      - generic: 04 / 聲音
+      - region "本地音樂播放器":
+        - paragraph: 空間選曲
+        - combobox "選擇曲目":
+          - option "沉光漫游" [selected]
+          - option "水線低語"
+          - option "晴光入水"
+          - option "波影流年"
+          - option "晨光迴環 · 晨曦至上午"
+          - option "暮色餘韻 · 傍晚"
+          - option "夜色低迴 · 夜間"
+          - option "靜室微光 · 深夜"
+        - button "播放"
+        - status "播放進度": 0:00
+        - text: 音量
+        - slider "音量": "50"
+        - checkbox "循環歌單" [checked]
+        - text: 循環歌單
+        - status: 已選擇：沉光漫游
+      - text: 淡入秒數
+      - spinbutton "淡入秒數": "0"
+      - paragraph: 本機素材，公開散布授權尚待補齊。預設不播放，進入背景會停止。
+    - group "05 / 保存選擇":
+      - generic: 05 / 保存選擇
+      - button "更新候選試片" [active]
+      - button "匯出候選 JSON"
+      - text: 匯入／檢視 preset
+      - textbox "匯入／檢視 preset":
+        - /placeholder: 貼上匯出的 JSON
+      - button "載入候選 JSON"
+      - text: 結論
+      - combobox "結論":
+        - option "待使用者評估" [selected]
+        - option "拒絕"
+        - option "採用候選"
+      - text: 原因
+      - textbox "原因":
+        - /placeholder: 記下你的觀察與取捨
+      - button "匯出實驗紀錄"
+      - paragraph: 匯出「採用候選」只記錄決策。正式回寫須使用 repo 的 study 命令核對版本；幾何變更另需重建與烘焙。

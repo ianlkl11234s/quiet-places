@@ -46,3 +46,8 @@
 改動樹種、材質、光線或本生物的模型／行為時，保留本頁的已確認基準，新增日期段落並記錄：修改原因、受影響資產與程式、參考來源、座標或單位換算、物理與美術近似的分界、驗收命令／視覺條件、以及 commit（如有）。共同光路原則才更新[材質與光照製作筆記](../MATERIALS_AND_LIGHTING.md)。
 
 來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理已由 PR #2 合併至 `main`（`27e597f`）。
+
+
+## 2026-09-09：向海的隧道 adapter
+
+[向海的隧道](../scenes/seaward.md) 以 `src/places/seaward/Stingray.ts` 沿用同一 GLB 與 SLOW_CRUISE clip，單隻 .9 尺度、原生材質與絕對 elapsed；資產、骨架與海光之室 adapter 未修改。路徑與近地 AO 屬此房間的美術近似。新增 factory 資源／缺 clip／暫停測試通過；真 GLB 已在本機 browser 顯示，未宣稱重新驗證生物形態。

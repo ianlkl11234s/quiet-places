@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-09-09T05:38:29.812Z",
+  "decision": "pending",
+  "reason": "P6 獨立接手；曝光 1.25 → 1.15，其他條件固定。技術重現完成，待使用者評估，不採用。",
+  "baseline": {
+    "schemaVersion": 1,
+    "sceneId": "afterlight",
+    "baselineRevision": "f01ea56514a5bd8268b2228ad4bb30afa27cb014",
+    "assets": {
+      "models/afterlight-courtyard.glb": "106e5a6f4789b5eb2855e97da03cfe6c63c4583574a1f0645fb3b6de5113ecc0",
+      "textures/afterlight/room-indirect.exr": "9468796635d633acc3e4b592699eca06e0c04c1d5e460639d96270cf1c4a043d",
+      "models/medaka.glb": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300",
+      "models/medaka-motion.json": "26d34bd707534c60255fb6e6eec49841e5dd2181461ab4c2b87d3712c8682e15",
+      "models/medaka-motion.bin": "46987da6b00ba752f804704053657fbe138a5be459e06c7e4e3acca67e06aafb"
+    },
+    "seed": 1701,
+    "elapsed": 12,
+    "viewport": [
+      1280,
+      720
+    ],
+    "camera": {
+      "position": [
+        0.42500001192092896,
+        0.8174999952316284,
+        2.25
+      ],
+      "target": [
+        1.25,
+        0.72,
+        -0.6
+      ],
+      "fov": 53.1301017798049
+    },
+    "hour": 12,
+    "weather": "dry",
+    "quality": "standard",
+    "light": {
+      "overrideSun": false,
+      "azimuth": 0,
+      "elevation": 80,
+      "intensityScale": 1,
+      "exposure": 1.25,
+      "beam": 1
+    },
+    "opening": {
+      "width": 1.5,
+      "depth": 1.1,
+      "centerZ": -0.37999999999999995
+    },
+    "route": {
+      "enabled": false,
+      "points": [
+        [
+          0.3,
+          0.22,
+          0
+        ],
+        [
+          1,
+          0.28,
+          -0.8
+        ],
+        [
+          0.8,
+          0.24,
+          -1.5
+        ],
+        [
+          0.2,
+          0.3,
+          -0.6
+        ]
+      ],
+      "speed": 0.06,
+      "tempo": 1
+    },
+    "audio": {
+      "track": 0,
+      "volume": 0.5,
+      "loop": true,
+      "fadeSeconds": 0
+    }
+  },
+  "candidate": {
+    "schemaVersion": 1,
+    "sceneId": "afterlight",
+    "baselineRevision": "f01ea56514a5bd8268b2228ad4bb30afa27cb014",
+    "assets": {
+      "models/afterlight-courtyard.glb": "106e5a6f4789b5eb2855e97da03cfe6c63c4583574a1f0645fb3b6de5113ecc0",
+      "textures/afterlight/room-indirect.exr": "9468796635d633acc3e4b592699eca06e0c04c1d5e460639d96270cf1c4a043d",
+      "models/medaka.glb": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300",
+      "models/medaka-motion.json": "26d34bd707534c60255fb6e6eec49841e5dd2181461ab4c2b87d3712c8682e15",
+      "models/medaka-motion.bin": "46987da6b00ba752f804704053657fbe138a5be459e06c7e4e3acca67e06aafb"
+    },
+    "seed": 1701,
+    "elapsed": 12,
+    "viewport": [
+      1280,
+      720
+    ],
+    "camera": {
+      "position": [
+        0.42500001192092896,
+        0.8174999952316284,
+        2.25
+      ],
+      "target": [
+        1.25,
+        0.72,
+        -0.6
+      ],
+      "fov": 53.1301017798049
+    },
+    "hour": 12,
+    "weather": "dry",
+    "quality": "standard",
+    "light": {
+      "overrideSun": false,
+      "azimuth": 0,
+      "elevation": 80,
+      "intensityScale": 1,
+      "exposure": 1.15,
+      "beam": 1
+    },
+    "opening": {
+      "width": 1.5,
+      "depth": 1.1,
+      "centerZ": -0.37999999999999995
+    },
+    "route": {
+      "enabled": false,
+      "points": [
+        [
+          0.3,
+          0.22,
+          0
+        ],
+        [
+          1,
+          0.28,
+          -0.8
+        ],
+        [
+          0.8,
+          0.24,
+          -1.5
+        ],
+        [
+          0.2,
+          0.3,
+          -0.6
+        ]
+      ],
+      "speed": 0.06,
+      "tempo": 1
+    },
+    "audio": {
+      "track": 0,
+      "loop": true,
+      "fadeSeconds": 0,
+      "volume": 0.5
+    }
+  },
+  "captures": [
+    {
+      "name": "B-1",
+      "settings": {
+        "schemaVersion": 1,
+        "sceneId": "afterlight",
+        "baselineRevision": "f01ea56514a5bd8268b2228ad4bb30afa27cb014",
+        "assets": {
+          "models/afterlight-courtyard.glb": "106e5a6f4789b5eb2855e97da03cfe6c63c4583574a1f0645fb3b6de5113ecc0",
+          "textures/afterlight/room-indirect.exr": "9468796635d633acc3e4b592699eca06e0c04c1d5e460639d96270cf1c4a043d",
+          "models/medaka.glb": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300",
+          "models/medaka-motion.json": "26d34bd707534c60255fb6e6eec49841e5dd2181461ab4c2b87d3712c8682e15",
+          "models/medaka-motion.bin": "46987da6b00ba752f804704053657fbe138a5be459e06c7e4e3acca67e06aafb"
+        },
+        "seed": 1701,
+        "elapsed": 12,
+        "viewport": [
+          1280,
+          720
+        ],
+        "camera": {
+          "position": [
+            0.42500001192092896,
+            0.8174999952316284,
+            2.25
+          ],
+          "target": [
+            1.25,
+            0.72,
+            -0.6
+          ],
+          "fov": 53.1301017798049
+        },
+        "hour": 12,
+        "weather": "dry",
+        "quality": "standard",
+        "light": {
+          "overrideSun": false,
+          "azimuth": 0,
+          "elevation": 80,
+          "intensityScale": 1,
+          "exposure": 1.15,
+          "beam": 1
+        },
+        "opening": {
+          "width": 1.5,
+          "depth": 1.1,
+          "centerZ": -0.37999999999999995
+        },
+        "route": {
+          "enabled": false,
+          "points": [
+            [
+              0.3,
+              0.22,
+              0
+            ],
+            [
+              1,
+              0.28,
+              -0.8
+            ],
+            [
+              0.8,
+              0.24,
+              -1.5
+            ],
+            [
+              0.2,
+              0.3,
+              -0.6
+            ]
+          ],
+          "speed": 0.06,
+          "tempo": 1
+        },
+        "audio": {
+          "track": 0,
+          "loop": true,
+          "fadeSeconds": 0,
+          "volume": 0.5
+        }
+      }
+    },
+    {
+      "name": "A-2",
+      "settings": {
+        "schemaVersion": 1,
+        "sceneId": "afterlight",
+        "baselineRevision": "f01ea56514a5bd8268b2228ad4bb30afa27cb014",
+        "assets": {
+          "models/afterlight-courtyard.glb": "106e5a6f4789b5eb2855e97da03cfe6c63c4583574a1f0645fb3b6de5113ecc0",
+          "textures/afterlight/room-indirect.exr": "9468796635d633acc3e4b592699eca06e0c04c1d5e460639d96270cf1c4a043d",
+          "models/medaka.glb": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300",
+          "models/medaka-motion.json": "26d34bd707534c60255fb6e6eec49841e5dd2181461ab4c2b87d3712c8682e15",
+          "models/medaka-motion.bin": "46987da6b00ba752f804704053657fbe138a5be459e06c7e4e3acca67e06aafb"
+        },
+        "seed": 1701,
+        "elapsed": 12,
+        "viewport": [
+          1280,
+          720
+        ],
+        "camera": {
+          "position": [
+            0.42500001192092896,
+            0.8174999952316284,
+            2.25
+          ],
+          "target": [
+            1.25,
+            0.72,
+            -0.6
+          ],
+          "fov": 53.1301017798049
+        },
+        "hour": 12,
+        "weather": "dry",
+        "quality": "standard",
+        "light": {
+          "overrideSun": false,
+          "azimuth": 0,
+          "elevation": 80,
+          "intensityScale": 1,
+          "exposure": 1.25,
+          "beam": 1
+        },
+        "opening": {
+          "width": 1.5,
+          "depth": 1.1,
+          "centerZ": -0.37999999999999995
+        },
+        "route": {
+          "enabled": false,
+          "points": [
+            [
+              0.3,
+              0.22,
+              0
+            ],
+            [
+              1,
+              0.28,
+              -0.8
+            ],
+            [
+              0.8,
+              0.24,
+              -1.5
+            ],
+            [
+              0.2,
+              0.3,
+              -0.6
+            ]
+          ],
+          "speed": 0.06,
+          "tempo": 1
+        },
+        "audio": {
+          "track": 0,
+          "volume": 0.5,
+          "loop": true,
+          "fadeSeconds": 0
+        }
+      }
+    }
+  ],
+  "geometryRebuildRequired": false,
+  "productionApplied": false
+}

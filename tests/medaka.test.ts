@@ -4,6 +4,8 @@ import {readFile} from 'node:fs/promises';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {prepareMedaka} from '../src/places/afterlight/Medaka.ts';
+import {prepareMedaka as prepareSharedMedaka} from '../src/shared/biology/medaka/Medaka.ts';
+import {createMedakaRoute} from '../src/shared/biology/medaka/MedakaMotion.ts';
 import {collectModelResources} from '../src/shared/resources/ModelResources.ts';
 
 async function loadAsset() {
@@ -58,4 +60,44 @@ test('real medaka GLB creates 26 small independently skinned fish with determini
     assert.ok(minLength>.03&&maxLength<.06,`runtime fish retain centimetre scale (${minLength}–${maxLength}m)`);
     shoal.dispose();shoal.dispose();factory.dispose();assert.equal(parent.children.length,0);disposals.forEach(count=>assert.equal(count,1));
   }finally{GLTFLoader.prototype.loadAsync=originalLoad;globalThis.fetch=originalFetch;}
+});
+
+test('shared medaka factory gives a studio route consumer independent rig ownership',async()=>{
+  const gltf=await loadAsset(),originalLoad=GLTFLoader.prototype.loadAsync;
+  GLTFLoader.prototype.loadAsync=async()=>gltf;
+  try {
+    const route=createMedakaRoute([new THREE.Vector3(0,.4,0),new THREE.Vector3(.4,.45,-.2),new THREE.Vector3(0,.5,-.6)],{speed:.1});
+    const factory=await prepareSharedMedaka(),parent=new THREE.Group();
+    const first=factory.create(parent,{route,phaseOffsetSeconds:0,name:'studio-medaka-1'});
+    const second=factory.create(parent,{route,phaseOffsetSeconds:route.duration/2,name:'studio-medaka-2'});
+    first.update(2);second.update(2);
+    assert.notEqual(first.root.getObjectByName('Tail_Tip'),second.root.getObjectByName('Tail_Tip'),'studio agents clone skeletons');
+    assert.ok(first.root.children[0].position.distanceTo(second.root.children[0].position)>.02,'agents update through their own route offsets');
+    first.dispose();second.dispose();factory.dispose();assert.equal(parent.children.length,0);
+  } finally { GLTFLoader.prototype.loadAsync=originalLoad; }
+});
+
+test('Afterlight releases the shared GLB when its motion cache fails to load',async()=>{
+  const gltf=await loadAsset(),originalLoad=GLTFLoader.prototype.loadAsync,originalFetch=globalThis.fetch;
+  const disposals=new Map<THREE.BufferGeometry,number>();
+  collectModelResources(gltf.scene).geometries.forEach(geometry=>{disposals.set(geometry,0);geometry.addEventListener('dispose',()=>disposals.set(geometry,disposals.get(geometry)!+1));});
+  GLTFLoader.prototype.loadAsync=async()=>gltf;
+  globalThis.fetch=(async()=>{throw new Error('motion unavailable');}) as typeof fetch;
+  try {
+    await assert.rejects(prepareMedaka(),/motion unavailable/);
+    disposals.forEach(count=>assert.equal(count,1,'shared source is released after motion load failure'));
+  } finally { GLTFLoader.prototype.loadAsync=originalLoad;globalThis.fetch=originalFetch; }
+});
+
+test('shared factory rejects an invalid agent length before cloning resources',async()=>{
+  const gltf=await loadAsset(),originalLoad=GLTFLoader.prototype.loadAsync;
+  const disposals=new Map<THREE.BufferGeometry,number>();
+  collectModelResources(gltf.scene).geometries.forEach(geometry=>{disposals.set(geometry,0);geometry.addEventListener('dispose',()=>disposals.set(geometry,disposals.get(geometry)!+1));});
+  GLTFLoader.prototype.loadAsync=async()=>gltf;
+  try {
+    const route=createMedakaRoute([new THREE.Vector3(),new THREE.Vector3(.2,0,0),new THREE.Vector3(.1,0,-.2)]),factory=await prepareSharedMedaka(),parent=new THREE.Group();
+    assert.throws(()=>factory.create(parent,{route,length:NaN}),/positive number/);
+    assert.equal(parent.children.length,0);disposals.forEach(count=>assert.equal(count,0,'invalid input did not allocate or dispose a clone'));
+    factory.dispose();disposals.forEach(count=>assert.equal(count,1));
+  } finally { GLTFLoader.prototype.loadAsync=originalLoad; }
 });

@@ -1,6 +1,6 @@
 # Quiet Places／靜隅：現行程式結構
 
-三個場景共用一個播放器，場景的構圖、材質與動態各自維護。本頁描述目前程式；集合首頁、hash router 與完整 SceneHost 的舊規劃保留在 [歷史設計](plans/SCENE_HOST_DESIGN.md)，不代表已實作。
+四個場景共用一個播放器，場景的構圖、材質與動態各自維護。本頁描述目前程式；集合首頁、hash router 與完整 SceneHost 的舊規劃保留在 [歷史設計](plans/SCENE_HOST_DESIGN.md)，不代表已實作。
 
 ## 從哪裡開始
 
@@ -13,6 +13,8 @@
 | 水光之間 | `src/places/waterlight/` |
 | 樹影午後 | `src/places/leaflight/` |
 | 海光之室 | `src/places/oceanlight/` |
+| 雨後天井 | `src/places/afterlight/` |
+| 製作流程與能力索引 | [production](production/README.md) |
 | 可跨場景使用的元素 | `src/shared/` |
 | 音訊、偏好、時間曲線、GPU 波動系統 | `src/systems/` |
 | 原創模型／腳本、網頁資產、人工驗收輸出 | `assets/blender/`、`public/`、`exports/` |
@@ -23,6 +25,8 @@ flowchart TD
   Catalog --> Water[waterlight/index.ts]
   Catalog --> Leaf[leaflight/index.ts]
   Catalog --> Ocean[oceanlight/index.ts]
+  Catalog --> After[afterlight/index.ts]
+  After --> Contract
   Player --> Contract[player/contracts.ts]
   Water --> Contract
   Leaf --> Contract
@@ -77,3 +81,7 @@ npm run dev
 - 舊房間保留到候選第一幀完成才釋放；載入失敗保留原房間並顯示重新整理提示。切換期間鎖定房間選擇與場景控制，音樂維持連續。候選建立短暫增加資源使用，尚未量測實機記憶體峰值。批次圖片匯出略過淡換。
 - Preferences version 1 向後相容增加 rooms，分別儲存時刻／跟隨時間／光束／天候／雨勢／海光水位；音量與畫質共用。原 top-level 偏好用作舊版目前房間的遷移來源。
 - 本機驗收：build、單元測試；21 項單元測試通過；瀏覽器樹影 → 海光 → 水光 → 海光切換，恢復 17:30／半窗；390×844、320×568 右下面板、About 連結與 Escape 焦點返回。初次開發模組載入失敗時原房間仍可使用，重新整理後切換成功。本次為本機驗收，未驗證部署；提交紀錄見對應 PR。
+
+## 製作室與資產契約（2026-09-09）
+
+`src/studio/` 為獨立 authoring 入口，共用 Afterlight factory、Medaka 本體、DrainGeometry、SceneClock 和 MusicPlayer。`assets/config/` 保存幾何與已採用 study；`scripts/asset-pipeline.py` 在新目錄重建兩條 pilot；`scripts/study.mjs` 保存候選與可回退的非幾何採用。詳見 [製作入口](production/README.md) 與 [驗收](production/P0_P6_ACCEPTANCE.md)。一般觀賞 UI 不承擔模型製作與實驗紀錄。

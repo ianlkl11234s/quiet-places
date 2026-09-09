@@ -1,0 +1,10 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {STUDY_ASSET_PATHS} from '../src/shared/production/StudyPreset.ts';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const paths=STUDY_ASSET_PATHS;
+const assets=Object.fromEntries(paths.map(path=>[path,createHash('sha256').update(readFileSync(root+'public/'+path)).digest('hex')]));
+writeFileSync(root+'tools/studio/assets.json',JSON.stringify({revision:JSON.parse(readFileSync(root+'assets/config/afterlight-study.json','utf8')).baselineRevision,sourceRevision:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),assets},null,2)+'\n');
+console.log('Studio asset fingerprints refreshed. No production assets changed.');

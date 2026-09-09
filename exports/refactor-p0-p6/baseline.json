@@ -1,0 +1,61 @@
+{
+  "head": "f01ea56514a5bd8268b2228ad4bb30afa27cb014",
+  "baselineRuntime": "/private/tmp/quiet-places-p0-baseline",
+  "untrackedInputs": [
+    {
+      "path": "docs/plans/PROJECT_REFACTOR_HANDOFF.md",
+      "sha256": "7904dbfa78c68188fc620a6314f57db1a7c7971b8ac6cb00b3b155f43370ea78"
+    },
+    {
+      "path": "docs/production/CAPABILITIES.md",
+      "sha256": "a25bb3f2d006d9ee5d18256680df8a2bcdc6fd290c83d94e1d2a980316fab572"
+    },
+    {
+      "path": "docs/production/PREFERENCES.md",
+      "sha256": "9136d6f5132697536f5514f995956bf580d693bcf3ab1dd8bfec29f92749ede0"
+    },
+    {
+      "path": "docs/production/README.md",
+      "sha256": "b0c3fa8738280c34059d6f6da93da72aad5f1e524495ad53399cddbac26b543e"
+    },
+    {
+      "path": "docs/production/ROADMAP.md",
+      "sha256": "30233a401f44d51eda565c27a36bbd7d5b12571ec1aa11c372a18aeb11ce83fc"
+    },
+    {
+      "path": "docs/production/templates/experiment.md",
+      "sha256": "23396d1337806cfd9886284e98b03cea283291e31ebdeac77b4599fbe2ea665e"
+    },
+    {
+      "path": "docs/production/templates/scene.md",
+      "sha256": "82332989cd41bf7fd01408948c56ef13e1c8a4aafeb66ac5d51345bb00983f62"
+    },
+    {
+      "path": "docs/prompts/quiet-places-master.txt",
+      "sha256": "b42a7b7f4dc62683467ef27b2eb471e4a5485b89840f0a7e6422918e057eb6f3"
+    },
+    {
+      "path": "docs/scenes/stairlight.md",
+      "sha256": "7d786866d65478c52eb466cbd5222d16c73590a84a5b21ef4935ab4c480c8a83"
+    },
+    {
+      "path": "scripts/check-project.mjs",
+      "sha256": "0fce9a274023c70edd16901bf067f9bf2fd81259b05541db6d3fba7be83d9c2f"
+    },
+    {
+      "path": "skills/quiet-places-production/SKILL.md",
+      "sha256": "4f05cf61020d7b38a38f62ff9a175cac0eefe1b32bd0880007d8a0f3f34ec7cf"
+    }
+  ],
+  "protected": [
+    ".local-backups/",
+    "docs/scenes/stairlight.md",
+    "docs/plans/PROJECT_REFACTOR_HANDOFF.md"
+  ],
+  "criteria": {
+    "sameSettings": "No intentional visual or random-sequence changes",
+    "pixelComparison": "Same renderer, camera, viewport, elapsed; exact where deterministic, report all differences",
+    "resources": "No additional retained resources after dispose",
+    "performance": "Report p50/p95; investigate >20% p95 increase under same environment; no device claims"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "afterlight-drain-openings",
+  "units": "metres",
+  "coordinateSystem": {
+    "runtime": "Three.js Y-up: (x, y, z)",
+    "blender": "Blender: (x, -z, y)",
+    "mirrorAxis": "x = corridor.centerX"
+  },
+  "corridor": { "minX": -2.0, "maxX": 1.8, "centerX": -0.1 },
+  "primaryOpening": { "minX": 0.6, "maxX": 1.7, "minZ": -1.13, "maxZ": 0.37, "roofY": 3.0 },
+  "grate": {
+    "frame": 0.04,
+    "slatWidth": 0.022,
+    "braceWidth": 0.018,
+    "slatCount": 9,
+    "braceCount": 2,
+    "centerY": 3.04,
+    "depth": 0.045,
+    "edgeInset": 0.04,
+    "rainInset": 0.005
+  }
+}

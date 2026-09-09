@@ -1,0 +1,789 @@
+{
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "records": [
+    {
+      "id": "waterlight",
+      "hour": 12,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          2.6,
+          2.3,
+          9.5
+        ],
+        "target": [
+          0,
+          3.4,
+          -0.2
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 65,
+        "textures": 26
+      },
+      "image": "before/0-waterlight.png"
+    },
+    {
+      "id": "waterlight",
+      "hour": 17.5,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          2.6,
+          2.3,
+          9.5
+        ],
+        "target": [
+          0,
+          3.4,
+          -0.2
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 65,
+        "textures": 26
+      },
+      "image": "before/1-waterlight.png"
+    },
+    {
+      "id": "waterlight",
+      "hour": 23,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          2.6,
+          2.3,
+          9.5
+        ],
+        "target": [
+          0,
+          3.4,
+          -0.2
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 65,
+        "textures": 26
+      },
+      "image": "before/2-waterlight.png"
+    },
+    {
+      "id": "waterlight",
+      "hour": 12,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          2.6,
+          2.3,
+          9.5
+        ],
+        "target": [
+          0,
+          3.4,
+          -0.2
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 65,
+        "textures": 26
+      },
+      "image": "before/3-waterlight.png"
+    },
+    {
+      "id": "waterlight",
+      "hour": 17.5,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          2.6,
+          2.3,
+          9.5
+        ],
+        "target": [
+          0,
+          3.4,
+          -0.2
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 65,
+        "textures": 26
+      },
+      "image": "before/4-waterlight.png"
+    },
+    {
+      "id": "waterlight",
+      "hour": 23,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          2.6,
+          2.3,
+          9.5
+        ],
+        "target": [
+          0,
+          3.4,
+          -0.2
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 65,
+        "textures": 26
+      },
+      "image": "before/5-waterlight.png"
+    },
+    {
+      "id": "waterlight",
+      "frameIntervalP50": 15.099999964237213,
+      "frameIntervalP95": 17,
+      "afterDispose": {
+        "geometries": 0,
+        "textures": 0
+      },
+      "remainingChildren": 0
+    },
+    {
+      "id": "leaflight",
+      "hour": 12,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          -1.5,
+          2.5,
+          5.300000190734863
+        ],
+        "target": [
+          0.8944287418517551,
+          3.649326773239035,
+          -2.4579479251338023
+        ],
+        "fov": 76.09408569397988
+      },
+      "exposure": 1.7411011265922482,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 38,
+        "textures": 89
+      },
+      "image": "before/7-leaflight.png"
+    },
+    {
+      "id": "leaflight",
+      "hour": 17.5,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          -1.5,
+          2.5,
+          5.300000190734863
+        ],
+        "target": [
+          0.8944287418517551,
+          3.649326773239035,
+          -2.4579479251338023
+        ],
+        "fov": 76.09408569397988
+      },
+      "exposure": 1.7411011265922482,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 38,
+        "textures": 89
+      },
+      "image": "before/8-leaflight.png"
+    },
+    {
+      "id": "leaflight",
+      "hour": 23,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          -1.5,
+          2.5,
+          5.300000190734863
+        ],
+        "target": [
+          0.8944287418517551,
+          3.649326773239035,
+          -2.4579479251338023
+        ],
+        "fov": 76.09408569397988
+      },
+      "exposure": 1.7411011265922482,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 38,
+        "textures": 89
+      },
+      "image": "before/9-leaflight.png"
+    },
+    {
+      "id": "leaflight",
+      "hour": 12,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          -1.5,
+          2.5,
+          5.300000190734863
+        ],
+        "target": [
+          0.8944287418517551,
+          3.649326773239035,
+          -2.4579479251338023
+        ],
+        "fov": 76.09408569397988
+      },
+      "exposure": 1.7411011265922482,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 38,
+        "textures": 89
+      },
+      "image": "before/10-leaflight.png"
+    },
+    {
+      "id": "leaflight",
+      "hour": 17.5,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          -1.5,
+          2.5,
+          5.300000190734863
+        ],
+        "target": [
+          0.8944287418517551,
+          3.649326773239035,
+          -2.4579479251338023
+        ],
+        "fov": 76.09408569397988
+      },
+      "exposure": 1.7411011265922482,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 38,
+        "textures": 89
+      },
+      "image": "before/11-leaflight.png"
+    },
+    {
+      "id": "leaflight",
+      "hour": 23,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          -1.5,
+          2.5,
+          5.300000190734863
+        ],
+        "target": [
+          0.8944287418517551,
+          3.649326773239035,
+          -2.4579479251338023
+        ],
+        "fov": 76.09408569397988
+      },
+      "exposure": 1.7411011265922482,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 38,
+        "textures": 89
+      },
+      "image": "before/12-leaflight.png"
+    },
+    {
+      "id": "leaflight",
+      "frameIntervalP50": 16.400000035762787,
+      "frameIntervalP95": 17,
+      "afterDispose": {
+        "geometries": 0,
+        "textures": 1
+      },
+      "remainingChildren": 0
+    },
+    {
+      "id": "oceanlight",
+      "hour": 12,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          3,
+          1.8,
+          8
+        ],
+        "target": [
+          0,
+          1.65,
+          -1
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 42,
+        "textures": 55
+      },
+      "image": "before/14-oceanlight.png"
+    },
+    {
+      "id": "oceanlight",
+      "hour": 17.5,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          3,
+          1.8,
+          8
+        ],
+        "target": [
+          0,
+          1.65,
+          -1
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 42,
+        "textures": 55
+      },
+      "image": "before/15-oceanlight.png"
+    },
+    {
+      "id": "oceanlight",
+      "hour": 23,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          3,
+          1.8,
+          8
+        ],
+        "target": [
+          0,
+          1.65,
+          -1
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 42,
+        "textures": 55
+      },
+      "image": "before/16-oceanlight.png"
+    },
+    {
+      "id": "oceanlight",
+      "hour": 12,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          3,
+          1.8,
+          8
+        ],
+        "target": [
+          0,
+          1.65,
+          -1
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 42,
+        "textures": 55
+      },
+      "image": "before/17-oceanlight.png"
+    },
+    {
+      "id": "oceanlight",
+      "hour": 17.5,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          3,
+          1.8,
+          8
+        ],
+        "target": [
+          0,
+          1.65,
+          -1
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 42,
+        "textures": 55
+      },
+      "image": "before/18-oceanlight.png"
+    },
+    {
+      "id": "oceanlight",
+      "hour": 23,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          3,
+          1.8,
+          8
+        ],
+        "target": [
+          0,
+          1.65,
+          -1
+        ],
+        "fov": 50
+      },
+      "exposure": 1,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 42,
+        "textures": 55
+      },
+      "image": "before/19-oceanlight.png"
+    },
+    {
+      "id": "oceanlight",
+      "frameIntervalP50": 14.300000011920929,
+      "frameIntervalP95": 16.19999998807907,
+      "afterDispose": {
+        "geometries": 0,
+        "textures": 3
+      },
+      "remainingChildren": 0
+    },
+    {
+      "id": "afterlight",
+      "hour": 12,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          0.42500001192092896,
+          0.8174999952316284,
+          2.25
+        ],
+        "target": [
+          1.25,
+          0.72,
+          -0.6
+        ],
+        "fov": 53.1301017798049
+      },
+      "exposure": 1.25,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 190,
+        "textures": 89
+      },
+      "image": "before/21-afterlight.png"
+    },
+    {
+      "id": "afterlight",
+      "hour": 17.5,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          0.42500001192092896,
+          0.8174999952316284,
+          2.25
+        ],
+        "target": [
+          1.25,
+          0.72,
+          -0.6
+        ],
+        "fov": 53.1301017798049
+      },
+      "exposure": 1.25,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 190,
+        "textures": 89
+      },
+      "image": "before/22-afterlight.png"
+    },
+    {
+      "id": "afterlight",
+      "hour": 23,
+      "viewport": [
+        1280,
+        720
+      ],
+      "camera": {
+        "position": [
+          0.42500001192092896,
+          0.8174999952316284,
+          2.25
+        ],
+        "target": [
+          1.25,
+          0.72,
+          -0.6
+        ],
+        "fov": 53.1301017798049
+      },
+      "exposure": 1.25,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 190,
+        "textures": 89
+      },
+      "image": "before/23-afterlight.png"
+    },
+    {
+      "id": "afterlight",
+      "hour": 12,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          0.42500001192092896,
+          0.8174999952316284,
+          2.25
+        ],
+        "target": [
+          1.25,
+          0.72,
+          -0.6
+        ],
+        "fov": 53.1301017798049
+      },
+      "exposure": 1.25,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 190,
+        "textures": 89
+      },
+      "image": "before/24-afterlight.png"
+    },
+    {
+      "id": "afterlight",
+      "hour": 17.5,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          0.42500001192092896,
+          0.8174999952316284,
+          2.25
+        ],
+        "target": [
+          1.25,
+          0.72,
+          -0.6
+        ],
+        "fov": 53.1301017798049
+      },
+      "exposure": 1.25,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 190,
+        "textures": 89
+      },
+      "image": "before/25-afterlight.png"
+    },
+    {
+      "id": "afterlight",
+      "hour": 23,
+      "viewport": [
+        390,
+        844
+      ],
+      "camera": {
+        "position": [
+          0.42500001192092896,
+          0.8174999952316284,
+          2.25
+        ],
+        "target": [
+          1.25,
+          0.72,
+          -0.6
+        ],
+        "fov": 53.1301017798049
+      },
+      "exposure": 1.25,
+      "elapsed": 12,
+      "rain": 0,
+      "quality": "standard",
+      "pauseChangedChannels": 0,
+      "memory": {
+        "geometries": 190,
+        "textures": 89
+      },
+      "image": "before/26-afterlight.png"
+    },
+    {
+      "id": "afterlight",
+      "frameIntervalP50": 14.800000011920929,
+      "frameIntervalP95": 15.800000011920929,
+      "afterDispose": {
+        "geometries": 0,
+        "textures": 3
+      },
+      "remainingChildren": 0
+    }
+  ]
+}

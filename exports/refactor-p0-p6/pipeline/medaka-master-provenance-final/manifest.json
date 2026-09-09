@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "asset": {
+    "id": "medaka-master",
+    "version": "1.0.0",
+    "source": {
+      "author": "Quiet Places",
+      "license": "original morphology-inspired work; external biological references are documented separately"
+    }
+  },
+  "tooling": {
+    "python": "3.14.6",
+    "platform": "macOS-26.6-arm64-arm-64bit-Mach-O",
+    "blender": "Blender 5.1.2"
+  },
+  "recipeRegistry": {
+    "path": "assets/config/asset-recipes.json",
+    "sha256": "972c69ca9d3e2a49235247afb15b2d823c6252a91ba909442a46ef556ce8b476"
+  },
+  "inputs": [
+    {
+      "path": "assets/blender/scripts/medaka/build_all.py",
+      "sha256": "5d1a4421af66ab04959dd46c7f356f4dfe9f43d27a34970dc7ede0656bdee522"
+    },
+    {
+      "path": "assets/blender/scripts/medaka/config.py",
+      "sha256": "bb1d2fd8db74d9f42b63010038e5e3eabd3a51af131867a03030d95d5d5f7edb"
+    },
+    {
+      "path": "assets/blender/scripts/medaka/medaka_geometry.py",
+      "sha256": "439c48e6ee9516d7e6d6003ef4d39b140037b4f4b12d1cf32e45650beab77729"
+    },
+    {
+      "path": "assets/blender/scripts/medaka/medaka_materials.py",
+      "sha256": "9fa21d1cfcb039c8c58d31b9331708eee7bf3df031da8406a6e8963595ee7de6"
+    },
+    {
+      "path": "assets/blender/scripts/medaka/medaka_rig.py",
+      "sha256": "66469bff517c208eef7d75982009a90daf58157ba73563c445b58065d1d9016e"
+    },
+    {
+      "path": "assets/blender/scripts/medaka/animation_bake.py",
+      "sha256": "80d1c45ad91a88ba68b4763850c107a47c03b8dd9e4df79d2740d199e055ad41"
+    },
+    {
+      "path": "assets/blender/scripts/medaka/swimming.py",
+      "sha256": "9c1abb5d7a2e41347dbc9505b791b41aa3872500f48bdade683b0a3b56a918bc"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "models/medaka.glb",
+      "sha256": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300"
+    },
+    {
+      "path": "models/medaka.metadata.json",
+      "sha256": "cae694d8bd6d3fe46a76a7719bb1485489249075b8c3c2f6c9bec0e3f38885e8"
+    },
+    {
+      "path": "medaka_quiet_rain_shoal.blend",
+      "sha256": "99960119e3c0c3e20d7c05cf760bea3b22320c876830c2a0eb669402cfcba42c"
+    }
+  ],
+  "contract": {
+    "units": "metres",
+    "axes": "Three Y-up; Blender=(x,-z,y)",
+    "rootNode": "Medaka_Rig",
+    "skinnedMesh": "Medaka_Master"
+  },
+  "validation": {
+    "status": "passed",
+    "readback": {
+      "glbNodes": 13,
+      "rootNode": "Medaka_Rig",
+      "skinnedMesh": "Medaka_Master"
+    },
+    "binaryHashPolicy": "SHA-256 records the produced bytes; visual comparison is required for non-deterministic bakes."
+  },
+  "createdAt": "2026-09-09T04:27:53.878984+00:00"
+}

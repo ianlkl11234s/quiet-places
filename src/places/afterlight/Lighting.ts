@@ -25,12 +25,12 @@ const beamFragment=/* glsl */`
   return step(s.z-.0006,unpackRGBAToDepth(texture2D(uShadow,s.xy)));
  }
  float aperture(vec3 p){
-  float t=(p.y-3.)/uSun.y;
+  float t=(p.y-${opening.roofY.toFixed(3)})/uSun.y;
   if(t<0.)return 0.;
   vec3 q=p-uSun*t;
   if(q.x<${corridor.centerX.toFixed(3)})q.x=${(2*corridor.centerX).toFixed(3)}-q.x; // Equal drains mirrored about the widened corridor centre.
-  return smoothstep(${opening.minX.toFixed(3)},${(opening.minX+.04).toFixed(3)},q.x)*(1.-smoothstep(${(opening.maxX-.04).toFixed(3)},${opening.maxX.toFixed(3)},q.x))*
-   smoothstep(${opening.minZ.toFixed(3)},${(opening.minZ+.04).toFixed(3)},q.z)*(1.-smoothstep(${(opening.maxZ-.04).toFixed(3)},${opening.maxZ.toFixed(3)},q.z));
+  return smoothstep(${opening.minX.toFixed(3)},${(opening.minX+opening.frame).toFixed(3)},q.x)*(1.-smoothstep(${(opening.maxX-opening.frame).toFixed(3)},${opening.maxX.toFixed(3)},q.x))*
+   smoothstep(${opening.minZ.toFixed(3)},${(opening.minZ+opening.frame).toFixed(3)},q.z)*(1.-smoothstep(${(opening.maxZ-opening.frame).toFixed(3)},${opening.maxZ.toFixed(3)},q.z));
  }
  void main(){
   vec2 uv=(gl_FragCoord.xy-uViewport.xy)/uViewport.zw;
@@ -44,7 +44,7 @@ const beamFragment=/* glsl */`
   for(int i=0;i<32;i++){
    if(float(i)>=uSteps)break;
    vec3 p=ro+rd*((float(i)+jitter)*stepSize);
-   if(p.y>0.&&p.y<3.&&p.x>${corridor.minX.toFixed(3)}&&p.x<${corridor.maxX.toFixed(3)}&&p.z>-9.&&p.z<4.)light+=aperture(p)*shadowAt(p)*stepSize;
+   if(p.y>0.&&p.y<${opening.roofY.toFixed(3)}&&p.x>${corridor.minX.toFixed(3)}&&p.x<${corridor.maxX.toFixed(3)}&&p.z>-9.&&p.z<4.)light+=aperture(p)*shadowAt(p)*stepSize;
   }
   float alpha=(1.-exp(-light*.025*uBeam))*uDay;
   vec3 color=mix(vec3(.43,.55,.7),vec3(.86,.75,.52),uWarm);
@@ -53,7 +53,8 @@ const beamFragment=/* glsl */`
 `;
 
 /** Scene-owned camera-depth prepass; unchanged model/deformation in all three passes. */
-export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLRenderer,model:THREE.Object3D,weather:THREE.Object3D){
+export interface AfterlightLightStudy { incoming?:[number,number,number]; intensityScale?:number; }
+export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLRenderer,model:THREE.Object3D,weather:THREE.Object3D,study?:AfterlightLightStudy){
  const root=new THREE.Group();root.name='afterlight-lighting';scene.add(root);
  const incoming=new THREE.Vector3(.28,-1,.25).normalize(),center=new THREE.Vector3(0,1,-2);
  const sun=new THREE.DirectionalLight(0xffedc5,6);sun.target.position.copy(center);sun.position.copy(center).addScaledVector(incoming,-15);
@@ -126,8 +127,9 @@ export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLR
    warmth=cycle.warmth*weatherScale;
    const night=cycle.daylight;
    incoming.set(...cycle.incoming);
+   if(study?.incoming)incoming.set(...study.incoming).normalize();
    sun.position.copy(center).addScaledVector(incoming,-15);
-   sun.intensity=(6*clearDay*cycle.sunStrength+1.2*cycle.moonStrength)*weatherScale;
+   sun.intensity=(6*clearDay*cycle.sunStrength+1.2*cycle.moonStrength)*weatherScale*(study?.intensityScale??1);
    sun.color.setRGB(THREE.MathUtils.lerp(.45,1,night),THREE.MathUtils.lerp(.61,.88-warmth*.12,night),THREE.MathUtils.lerp(1,.62-warmth*.22,night));
    fill.intensity=(.10+.08*day)*night+.10*(1-night);
    const shadowSize=low?1024:2048;
