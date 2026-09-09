@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "offsetM": -3.5,
+  "landingLevelsM": [
+    0,
+    -1.75,
+    -3.5,
+    -5.25
+  ],
+  "bakeSeconds": 103.98,
+  "gpu": {
+    "seamRegression": {
+      "legacy": 746,
+      "fixed": 0
+    },
+    "bounceDifference": 66453,
+    "momentTotals": [
+      944306,
+      1896795,
+      1032798,
+      105096
+    ],
+    "afterDispose": {
+      "geometries": 0,
+      "textures": 0
+    }
+  },
+  "build": true
+}

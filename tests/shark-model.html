@@ -1,0 +1,23 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>Blacktip reef shark model review</title><style>body{margin:0;background:#393d3e;color:white}label{display:inline-block;margin:8px}</style>
+<label>時間 <input id="time" type="range" min="0" max="60" step=".1" value="20"></label>
+<label><input id="motion" type="checkbox">巡游變形</label><label><input id="shadows" type="checkbox">自體陰影</label>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {createShark} from '../src/places/stairlight/Shark.ts';
+const r=new THREE.WebGLRenderer({antialias:true});r.setSize(1000,700);r.toneMapping=THREE.AgXToneMapping;r.toneMappingExposure=1.2;document.body.append(r.domElement);
+r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFShadowMap;
+const s=new THREE.Scene();s.background=new THREE.Color('#454b4c');const c=new THREE.PerspectiveCamera(38,1000/700,.01,20);c.position.set(.55,.65,1.55);c.lookAt(0,.01,0);
+s.add(new THREE.HemisphereLight(0xe5edf5,0x514c44,.5));const key=new THREE.DirectionalLight(0xffe4ce,3);key.position.set(1,2,2);s.add(key);
+key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:.1,far:15});key.shadow.bias=-.00001;key.shadow.normalBias=.002;
+const g=await new GLTFLoader().loadAsync('/models/blacktip-shark.glb');const shark=createShark(g.scene,true);s.add(shark.root);
+const time=document.querySelector('#time'),motion=document.querySelector('#motion'),shadows=document.querySelector('#shadows');
+function draw(){
+ shark.update(motion.checked?Number(time.value):0,.4);
+ if(!motion.checked)g.scene.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.pose();});
+ shark.root.position.set(0,0,0);shark.root.quaternion.identity();shark.root.updateMatrixWorld(true);
+ key.castShadow=shadows.checked;r.render(s,c);
+}
+for(const el of [time,motion,shadows])el.addEventListener('input',draw);
+draw();window.addEventListener('pagehide',()=>{shark.dispose();key.shadow.dispose();r.dispose();},{once:true});
+</script></html>

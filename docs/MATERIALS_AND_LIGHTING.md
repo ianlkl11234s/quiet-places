@@ -76,3 +76,10 @@ Afterlight 幾何權威在 `assets/config/afterlight-geometry.json`，runtime �
 ## 共用時刻過渡（2026-09-09）
 
 `src/systems/TimeOfDay.ts` 的 `sampleForwardTime` 沿 metadata 時段循環向前，每相鄰時段2秒；`src/main.ts` 每幀從中間 hour 求 `sampleTime`，讓各場景收到同一時刻的 angle、warmth、intensity 與 activity，取代彼此独立的終點淡入。手動時刻過渡獨立於生物動畫暫停，完成後停止額外重畫；仍是各場景既有美術光路，未升級成天文定位或統一物理光傳輸。
+
+## 可復用實作入口
+
+- [窗光、反射與空氣散射](lighting/window-transport.md)：靜態天空烘焙、動態一次反射、受遮擋的淡散射、接入順序、參數及效能限制。
+- [黑鰭礁鯊](biology/blacktip-reef-shark.md)：Blender來源、骨架契約、尾重游動、路徑／碰撞與陰影驗收；末節提供換場景流程。
+
+文件可復用不表示座標和曝光可直接照搬。優先複用已驗證的演算法與檢查方式，場景參數仍由各場景校準。

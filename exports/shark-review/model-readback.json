@@ -1,0 +1,24 @@
+{
+  "objects": 26,
+  "bones": 19,
+  "spine_bones": [
+    "Spine_00",
+    "Spine_01",
+    "Spine_02",
+    "Spine_03",
+    "Spine_04",
+    "Spine_05",
+    "Spine_06",
+    "Spine_07",
+    "Spine_08",
+    "Spine_09",
+    "Spine_10",
+    "Spine_11",
+    "Spine_12",
+    "Spine_13",
+    "Spine_14",
+    "Spine_15"
+  ],
+  "embedded_textures": 0,
+  "notes": "Vertex colors and PBR materials only; no external textures."
+}

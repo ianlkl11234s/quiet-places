@@ -24,6 +24,9 @@ export interface PlaceInstance {
   /** Keep the viewer in place while turning their head. Default remains orbit. */
   cameraMode?:'fixed-position';
   fov?:number; exposure?:number; toneMapping?:THREE.ToneMapping;
+  /** Optional authored up axis and portrait framing for architectural scenes. */
+  cameraUp?:[number,number,number];
+  framingAspect?:number;
   hasSimulation:boolean; waterMode:string;
   setOceanLevel?(level:OceanLevel):void;
   update(dt:number,elapsed:number,state:SceneState):void;

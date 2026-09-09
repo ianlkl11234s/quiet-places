@@ -1,0 +1,91 @@
+{
+  "windowLayout": "rear",
+  "artifactPhase": "p2-baked-pbr-and-diffuse-indirect",
+  "sourceScene": "Stairlight_Study",
+  "glb": "stairlight-rear.glb",
+  "sha256": "c99e501d1626c5b3b3daf0315dd2c340558a3998d7afad765d67913f59c225e4",
+  "triangles": 75928,
+  "sourceTriangles": 75928,
+  "sourceObjects": 325,
+  "sourceMaterials": 7,
+  "surface": {
+    "name": "StairlightSurface",
+    "worldCoordinates": true,
+    "uv": "UV0"
+  },
+  "camera": {
+    "name": "Camera_Hero",
+    "matrixWorldBlender": [
+      [
+        0.4149543344974518,
+        0.6785529255867004,
+        -0.6061177849769592,
+        -1.600000023841858
+      ],
+      [
+        -0.9072218537330627,
+        0.2580546736717224,
+        -0.33219924569129944,
+        -0.8999999761581421
+      ],
+      [
+        -0.06900325417518616,
+        0.6877308487892151,
+        0.7226789593696594,
+        3.0999999046325684
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "upBlender": [
+      0.6785529255867004,
+      0.2580546736717224,
+      0.6877308487892151
+    ],
+    "targetBlender": [
+      0.47999998927116394,
+      0.23999999463558197,
+      0.6200000047683716
+    ],
+    "lensMm": 25.0,
+    "sensorWidthMm": 36.0,
+    "sensorHeightMm": 36.0,
+    "sensorFit": "VERTICAL"
+  },
+  "textures": {
+    "albedo": "/textures/stairlight-rear/room-albedo.png",
+    "normal": "/textures/stairlight-rear/room-normal.png",
+    "roughness": "/textures/stairlight-rear/room-roughness.png",
+    "diffuseIndirect": "/textures/stairlight-rear/room-indirect.exr",
+    "pbrAtlasSize": 4096,
+    "indirectAtlasSize": 2048,
+    "uv": "UV0",
+    "indirectContainsDirectSun": false,
+    "indirectSource": "direct and bounced sky; no sunlight or solar bounce",
+    "containsDirectSky": true
+  },
+  "bake": {
+    "pbrAtlas": 4096,
+    "indirectAtlas": 2048,
+    "pbrSamples": 64,
+    "indirectSamples": 64,
+    "device": "METAL",
+    "threads": 2,
+    "bakeMarginPx": 16,
+    "indirectContainsDirectSun": false,
+    "indirectSource": "direct and bounced sky; no sunlight or solar bounce",
+    "containsDirectSky": true
+  },
+  "outputs": {
+    "albedo": "/private/tmp/quiet-places-stairlight/public/textures/stairlight-rear/room-albedo.png",
+    "normal": "/private/tmp/quiet-places-stairlight/public/textures/stairlight-rear/room-normal.png",
+    "roughness": "/private/tmp/quiet-places-stairlight/public/textures/stairlight-rear/room-roughness.png",
+    "indirect": "/private/tmp/quiet-places-stairlight/public/textures/stairlight-rear/room-indirect.exr",
+    "indirectRaw": "/private/tmp/quiet-places-stairlight/assets/blender/cache/stairlight-rear-room-indirect-raw.exr"
+  },
+  "seconds": 103.98
+}

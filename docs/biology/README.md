@@ -46,3 +46,5 @@
 - 驗證有限值、速度／邊界、時間步長敏感度、暫停、循環接縫及真正 GLB／browser；程式測試不證明生物學正確。
 
 比較或使用者選擇連到 [實驗模板](../production/templates/experiment.md)，不要只保存最終頻率。
+
+- [黑鰭礁鯊](blacktip-reef-shark.md)：階光之間的自製幼鯊模型、骨架、巡游與復用驗收。
