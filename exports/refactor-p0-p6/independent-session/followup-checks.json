@@ -1,0 +1,11 @@
+{
+  "sourceRevisionInIsolatedBuild": "61524d8a2b1f3ccce4432034c605797403ee9e92",
+  "sourceDirtyInIsolatedBuild": true,
+  "tests": {
+    "pass": 72,
+    "fail": 0
+  },
+  "isolatedBuild": "/private/tmp/quiet-places-p6-check.UbG6vh/dist",
+  "projectCheck": "passed",
+  "diffCheck": "passed"
+}

@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {mkdirSync,readFileSync,renameSync,writeFileSync,existsSync,statSync} from 'node:fs';
-import {dirname,join,relative,resolve,sep} from 'node:path';
+import {dirname,join,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {STUDY_ASSET_PATHS,sameOpening,validateStudy,validateStudyAssets} from '../src/shared/production/StudyPreset.ts';
 
@@ -79,7 +79,7 @@ function extractInput(file){
  if(value&&typeof value==='object'&&'candidate' in value){
   const record=value;
   if(typeof record.decision!=='string'||typeof record.reason!=='string')throw new Error('experiment 需要 decision 與 reason。');
-  return {preset:validateStudy(record.candidate),experiment:{decision:record.decision,reason:record.reason.trim()}};
+  return {preset:validateStudy(record.candidate),experiment:{decision:record.decision,reason:record.reason.trim(),sourceRevision:record.sourceRevision??null,sourceDirty:record.sourceDirty??null}};
  }
  return {preset:validateStudy(value),experiment:undefined};
 }
@@ -129,7 +129,8 @@ function stage(root,input,outputDir){
  writeImmutable(join(stageDir,'preset.json'),presetBytes);
  writeImmutable(join(stageDir,'geometry.override.json'),overrideBytes);
  writeImmutable(join(stageDir,'receipt.json'),jsonBytes(receipt));
- const experimentText=`# Afterlight study candidate\n\n- 狀態：${experiment?.decision==='accepted'?'採用候選待正式套用':'提案'}。\n- 基準：${preset.baselineRevision}\n- 候選 preset SHA-256：${candidateHash}\n- 幾何變更：${geometryChanged?'是；需 recipe 與 bake，CLI 會拒絕 apply。':'否'}\n- 理由：${experiment?.reason||'尚未提供；不可直接採用。'}\n\n## 重現\n\n\`node --experimental-strip-types scripts/study.mjs apply --input ${relative(root,join(stageDir,'receipt.json'))} --root ${root}\`\n`;
+ const quote=value=>"'"+String(value).replaceAll("'","'\\''")+"'";
+ const experimentText=`# Afterlight study candidate\n\n- 狀態：${experiment?.decision==='accepted'?'採用候選待正式套用':'提案'}。\n- 基準：${preset.baselineRevision}\n- 候選 preset SHA-256：${candidateHash}\n- 幾何變更：${geometryChanged?'是；需 recipe 與 bake，CLI 會拒絕 apply。':'否'}\n- 理由：${experiment?.reason||'尚未提供；不可直接採用。'}\n\n## 重現（不採用）\n\n將本目錄 preset.json 貼入製作室「匯入／檢視 preset」，按「載入候選 JSON」。先核對版本：\n\n\`node --experimental-strip-types scripts/study.mjs validate --input ${quote(join(stageDir,'preset.json'))} --root ${quote(root)}\`\n\n## 正式採用（另行選定後）\n\n只有使用者已選定且幾何／資產條件符合時，才依 docs/production/STUDIO.md 執行 apply 並提供實際 --reason。pending 候選重現不需要採用。\n`;
  writeImmutable(join(stageDir,'experiment.md'),Buffer.from(experimentText));
  return {stageDir,receipt};
 }

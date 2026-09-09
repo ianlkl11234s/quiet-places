@@ -19,7 +19,7 @@ npm run dev -- --port 5197
 
 ## 候選與決策
 
-候選 JSON 或包含 candidate 的實驗 JSON 都可重新貼入 preset 欄位再載入。程式 HEAD 另記 sourceRevision，正式 baselineRevision 在一般提交後保持穩定，避免既有候選無故失效。未知版本、錯場景、資產版本不同、非法參數會拒絕。原始 MASTER 与偏好不由工具自行修改。
+候選 JSON 或包含 candidate 的實驗 JSON 都可重新貼入 preset 欄位再載入。正式 baselineRevision 在一般提交後保持穩定，避免既有候選無故失效。完整「實驗紀錄」另外攜帶啟動伺服器／build 當時的 sourceRevision 與 sourceDirty（tracked diff）；stage receipt 保留此來源。提交後應重啟伺服器，未提交版本須連同 patch 保存；HEAD 不能單獨重建 dirty 工作。tools/studio/assets.json 的 sourceRevision 只代表最後一次 prepare，不當成當前程式版本。若绕過 Vite 設定，實驗來源為 null，不能補猜。未知版本、錯場景、資產版本不同、非法參數會拒絕。原始 MASTER 与偏好不由工具自行修改。
 
 點「保存比較畫面」後下載圖，填觀察／原因，再「匯出實驗紀錄」。結論可待評、拒絕或採用；agent 技術試片應記待使用者評估，不冒充使用者已選。
 
@@ -64,3 +64,21 @@ npm run build
 `tests/production-review.html` 執行四景矩陣，輸出 DOM 結果含畫面、相機、時間與資源；它不在 npm test 内自動執行。實機、主觀美術及發布另記。
 
 接手時先讀本頁、目標場景摘要与相關生物資料；依 experiments 模板保存一個比較。遇到問題記錄實際入口與失敗原因，不從聊天補造參數。
+
+## 只讀接手模式
+
+`studio:prepare` 會寫入 repo 的 `tools/studio/assets.json`；一般 build 會寫 dist，Vite 預設也會寫 cache。只讀驗證不執行 prepare，先用 check:project 核對已存在的五項資產 fingerprint；若失敗，回報版本缺口，不自行更新正式設定。
+
+在 repo 根使用以下命令；cache 與 build 均寫到新暫存目錄。`--configLoader runner` 避免在 repo 生成臨時設定 bundle，同時保留正式 Vite 設定及程式版本注入。
+
+```sh
+P6_REVIEW_DIR=$(mktemp -d /private/tmp/quiet-places-p6.XXXXXX)
+npm run check:project
+PYTHONDONTWRITEBYTECODE=1 npm test
+QUIET_PLACES_VITE_CACHE="$P6_REVIEW_DIR/cache" npm run build -- --configLoader runner --outDir "$P6_REVIEW_DIR/dist"
+QUIET_PLACES_VITE_CACHE="$P6_REVIEW_DIR/cache" npm run dev -- --port 5198 --strictPort --configLoader runner
+```
+
+5198 被占用時選另一個埠，不停止他人的伺服器。候選、截圖及 stage 的 output-dir 也放 `$P6_REVIEW_DIR`，結束前保存到自己的交付目錄。
+
+JSON byte hash 識別精確內容，不代表美術參數是否等價。例如 `-0.38` 與計算得到的 `-0.37999999999999995` 會有不同 hash；幾何比較用既有 1e-9 容差。保留原始 receipt，不為讓 hash 一致回改證據；單變因實驗應比較同一個 browser baseline／candidate 的參數差異。

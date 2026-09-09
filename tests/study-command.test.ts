@@ -82,3 +82,15 @@ test('study rejects a subset asset list and preserves the wall-side geometry anc
  assert.equal(geometry.primaryOpening.maxX,1.7,'wall-side x remains fixed');
  assert.ok(Math.abs(geometry.primaryOpening.minX-.9)<1e-12,'room-facing x follows candidate depth');
 });
+
+test('pending experiment retains source provenance and offers validation without adoption', () => {
+ const {root,preset}=fixture();preset.light.exposure=1.15;
+ const input=join(root,'pending.json');writeJson(input,{candidate:preset,decision:'pending',reason:'independent trial',sourceRevision:'abc123',sourceDirty:true});
+ const result=JSON.parse(run(root,['stage','--input',input,'--output-dir',join(root,'stages')]).stdout);
+ const receipt=JSON.parse(readFileSync(join(result.stageDir,'receipt.json'),'utf8'));
+ assert.equal(receipt.experiment.sourceRevision,'abc123');assert.equal(receipt.experiment.sourceDirty,true);
+ const guide=readFileSync(join(result.stageDir,'experiment.md'),'utf8');
+ const command=guide.match(/`(node [^`]*study.mjs validate [^`]*)`/)?.[1];assert.ok(command,'a pending candidate must have a read-only reproduction command');
+ execFileSync('/bin/sh',['-c',command],{cwd:new URL('..',import.meta.url).pathname});
+ assert.equal(JSON.parse(readFileSync(join(root,'assets/config/afterlight-study.json'),'utf8')).light.exposure,1.25);
+});

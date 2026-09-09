@@ -60,3 +60,16 @@
 - P5b GI 自動重烘及資產提升尚未完成；不隱藏在「全部完成」裡。
 - 尚無路徑碰撞／群游決策、物理光傳輸保證、手機實機性能、音樂公開授權結論。
 - P7 新房間、P8 平台選擇、主分支合併與部署待另外確認。
+
+## 獨立新 session P6 複驗與修正（2026-09-09）
+
+新 task「Quiet Places P6 獨立接手驗證」在 HEAD `61524d8` 只靠 repo 入口完成：Afterlight 曝光1.25→1.15、原尺寸 A/B 保存、恢復基準、實驗重新匯入與 CLI stage。71 tests、TypeScript、隔離 build 通過；browser warn/error 捕捉為空。repo tracked hash 與完整 status 前後一致。這次是獨立 session 實際 browser 通過，取代早期僅 CLI 接手的證據限制。
+
+[完整原始報告](../../exports/refactor-p0-p6/independent-session/handoff-report.md) 與同目錄 A-2／B-1、實驗 JSON 保留。它找出四項缺口，主 task 已修正：
+
+1. STUDIO.md 加入只讀啟動與隔離 cache／build 命令，說明 prepare 的寫入副作用。
+2. Vite 在啟動／build 時注入實際 sourceRevision／tracked sourceDirty，Studio 完整實驗攜帶來源，stage 收據保留；不再把舊 prepare HEAD 當成當前版本。
+3. 明說浮點語意等價與 JSON byte hash 不同，不把不同 stage hash 誤稱不同美術變因。
+4. 生成 experiment.md 的重現命令改為 validate＋Studio 匯入，正式採用另段說明；pending 實驗無需 apply。
+
+修正後72 tests、隔離 build、check:project、diff check 通過；新增測試實際執行生成的重現命令，確認未採用，並核對來源欄位留在 receipt。編譯產物也回讀確認程式 HEAD 與 dirty 標記。獨立 session 的原始報告保持原樣，未改寫成它已複驗這次修正。依目前允許人工交接的範圍，P6 接手驗證與缺口回寫已完成；P7 仍待新場景需求。
