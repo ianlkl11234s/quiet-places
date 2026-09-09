@@ -1,6 +1,6 @@
 # 製作室：重現、比較、保存與採用
 
-先確認 `pwd` 在獨立 worktree；本輪實作位於 `/private/tmp/quiet-places-production-p0-p6`。不要在原主工作區修改。
+先確認 `pwd` 是目前要操作的 Quiet Places repo 根。P0–P6 原實作 worktree 為 `/private/tmp/quiet-places-production-p0-p6`；合併後可從主專案預覽。開始新製作改動時另建獨立 worktree，避免影響主工作區。
 
 ## 開啟
 

@@ -46,6 +46,8 @@ Quiet Places 的累積單位是「房間、可重用能力、實驗與偏好」�
 
 ## 新 session 接手試作
 
-目前交付尚未合併主專案，請在 `/private/tmp/quiet-places-production-p0-p6`（`codex/production-p0-p6`）接手，不要從原主目錄或主分支另開未含本輪成果的 checkout。先讀根 AGENTS、本頁、`P0_P6_ACCEPTANCE.md`、`STUDIO.md` 與 `skills/quiet-places-production/SKILL.md`，再按需讀場景頁。
+使用者已授權將 P0–P6 合併回本地主分支。合併後從 `/Users/migu/Desktop/資料庫/gen_ai_try/ichef_工作用/GIS/stillwater` 的 main 接手，不再要求使用舊 `/private/tmp/quiet-places-production-p0-p6`。實際合併版本以 `git log` 為準；未自動推送或發布。
 
-第一個試作可在既有 Afterlight 改一個光照候選，保存固定條件 A/B 與實驗紀錄，保留正式基準。人工烘焙流程已接受；不要為追求全自動化另行擴充。這不是自動開始 P7、合併或發布的授權。不要刪除本 worktree 內未追蹤的生成結果與驗收證據。
+先讀根 AGENTS、本頁、`P0_P6_ACCEPTANCE.md`、`STUDIO.md` 與 `skills/quiet-places-production/SKILL.md`，再按需讀場景頁。開始 P7 新製作時從目前 main 建立自己的獨立 worktree，保留原工作區未追蹤草稿與歷史證據。
+
+第一個試作可在既有 Afterlight 改一個光照候選，保存固定條件 A/B 與實驗紀錄，保留正式基準。人工烘焙流程已接受；不要為追求全自動化另行擴充。新場景仍依使用者提供的參考與描述執行，不自行發布。
