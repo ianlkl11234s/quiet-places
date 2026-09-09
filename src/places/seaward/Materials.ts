@@ -25,7 +25,9 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
  // A single oblique daylight direction is clipped against the real exit rectangle.
  vec3 sun=uSun;float travel=(-11.-p.z)/sun.z;
  vec3 at=p+sun*travel;
- float opening=smoothstep(-3.4,-3.25,at.x)*(1.-smoothstep(3.25,3.4,at.x))*smoothstep(0.,.12,at.y)*(1.-smoothstep(4.05,4.2,at.y));
+ // Approximate finite solar-disc softness; widen continuously with travel.
+ float penumbra=.025+max(travel,0.)*.0047;
+ float opening=smoothstep(-3.4-penumbra,-3.4+penumbra,at.x)*(1.-smoothstep(3.4-penumbra,3.4+penumbra,at.x))*smoothstep(-penumbra,penumbra,at.y)*(1.-smoothstep(4.2-penumbra,4.2+penumbra,at.y));
  float direct=opening*max(dot(n,sun),0.);
  vec3 concrete=vec3(.24,.255,.25)*(.68+mottling*.5)*joints;
  if(uKind==0){
@@ -37,11 +39,15 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
  }
  float ambient=.012+exitLight*(uKind==2?.09:.30);
  vec3 col=concrete*(vec3(.87,.94,1.)*ambient+direct*1.5*uDirect*uTint)*uDay;
- // Animated reflected water light restricted to the exit-facing portion of the wall.
- float a=sin(uv.x*6.+sin(uv.y*5.+uTime*.33)*1.8+uTime*.22);
- float b=sin(uv.y*7.+sin(uv.x*4.-uTime*.27)*1.6);
+ // Project the existing pattern in the light frame, rather than revealing a
+ // fixed wall decal. At grazing incidence its energy must also tend to zero.
+ vec3 lightU=normalize(cross(vec3(0.,1.,0.),sun));
+ vec3 lightV=cross(sun,lightU);
+ vec2 lightUV=vec2(dot(p,lightU),dot(p,lightV));
+ float a=sin(lightUV.x*6.+sin(lightUV.y*5.+uTime*.33)*1.8+uTime*.22);
+ float b=sin(lightUV.y*7.+sin(lightUV.x*4.-uTime*.27)*1.6);
  float caustic=pow(max(0.,1.-abs(a+b)*.85),15.);
- col+=vec3(.65,.72,.69)*caustic*exitLight*opening*(uKind==2?0.:.22)*uDay*uBeam*uDirect*uTint;
+ col+=vec3(.65,.72,.69)*caustic*exitLight*opening*smoothstep(.015,.32,max(dot(n,sun),0.))*(uKind==2?0.:.22)*uDay*uBeam*uDirect*uTint;
  if(uKind==1){
   float wet=smoothstep(.32,.62,noise(uv*.8)*.6+noise(uv*3.)*.4);
   vec3 v=normalize(p-cameraPosition);vec3 normal=normalize(vec3((noise(uv*18.)-.5)*.055,1.,(noise(uv*17.+9.)-.5)*.07));
