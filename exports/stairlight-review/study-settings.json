@@ -1,0 +1,34 @@
+{
+  "stage": "Website source: sealed wall joints, sky-only indirect, no fish",
+  "camera": [
+    -1.600000023841858,
+    -0.8999999761581421,
+    3.0999999046325684
+  ],
+  "target": [
+    0.47999998927116394,
+    0.23999999463558197,
+    0.6200000047683716
+  ],
+  "lens_mm": 25.0,
+  "pitch_degrees": 46.27610385222033,
+  "flight_widths_m": {
+    "upper": 1.2,
+    "lower": 1.389
+  },
+  "resolution": [
+    896,
+    1216
+  ],
+  "sun_direction": [
+    1.0,
+    2.5,
+    -2.4000000953674316
+  ],
+  "sun_energy": 3.5,
+  "exposure": 1.2000000476837158,
+  "objects": 171,
+  "device": [
+    "Apple M3 (GPU - 10 cores)"
+  ]
+}

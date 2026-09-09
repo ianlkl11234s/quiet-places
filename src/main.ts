@@ -46,7 +46,12 @@ async function start(){
  place.setOceanLevel?.(oceanLevel);
  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
  renderer.toneMappingExposure=place.exposure??1.1;
- camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();
+ const placeFov=(aspect=camera.aspect)=>{
+  const base=place.fov??(innerWidth<700?64:53);
+  return place.framingAspect===undefined?base:THREE.MathUtils.radToDeg(2*Math.atan(Math.tan(THREE.MathUtils.degToRad(base)/2)*Math.min(1,place.framingAspect/aspect)));
+ };
+ camera.fov=placeFov();camera.updateProjectionMatrix();
+ camera.up.set(...(place.cameraUp??[0,1,0]));
  camera.position.set(...place.position);
  const controls=new OrbitControls(camera,renderer.domElement);
  // Rotate around the skylight's vertical axis, keeping the room in the composition.
@@ -117,7 +122,7 @@ async function start(){
   el('water-reset').hidden=!isWater;
   el('water-mode').textContent=place.waterMode;
   el<HTMLButtonElement>('water-reset').disabled=!place.hasSimulation;
-  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，靠近牆面時停止。':'拖曳環繞天窗，靠近牆面時停止。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':currentPlace==='afterlight'?'青鱂在植物與陰影間聚散。拖曳微調視角，左右各 6°。':'窗外海面三種水位。拖曳微調視角，左右各 15°。';
+  el('water-hint').textContent=isWater?(place.hasSimulation?'輕點天窗產生漣漪。拖曳環繞，靠近牆面時停止。':'拖曳環繞天窗，靠近牆面時停止。'):currentPlace==='leaflight'?'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。':currentPlace==='stairlight'?'窗光隨時刻變化，紅繩隨風輕擺。拖曳微調視角，左右各 15°。':currentPlace==='afterlight'?'青鱂在植物與陰影間聚散。拖曳微調視角，左右各 6°。':'窗外海面三種水位。拖曳微調視角，左右各 15°。';
   renderer.domElement.setAttribute('aria-label',isWater?'拖曳環繞天窗，靠近牆面時停止；方向鍵旋轉，Home重設':currentPlace==='afterlight'?'拖曳觀看雨後天井，左右各6度；滾輪拉近拉遠，方向鍵旋轉，Home重設':'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設');
   weatherLabels();document.title=`${el('place-title').textContent} · Quiet Places／靜隅`;el('space').setAttribute('aria-label',`${el('place-title').textContent}：即時生成的靜謐空間`);
  }
@@ -126,9 +131,10 @@ async function start(){
   updateAntialiasing();
   renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure=place.exposure??1.1;
-  camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();
+  camera.fov=placeFov();camera.updateProjectionMatrix();
   controls.enableDamping=false;controls.update();
   controls.minAzimuthAngle=-Infinity;controls.maxAzimuthAngle=Infinity;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
+  camera.up.set(...(place.cameraUp??[0,1,0]));
   camera.position.set(...place.position);homePosition.copy(camera.position);controls.target.set(...place.target);controls.update();
   homeAzimuth=controls.getAzimuthalAngle();homePolar=controls.getPolarAngle();
   updateOrbitLimits();
@@ -286,7 +292,7 @@ async function start(){
  document.addEventListener('click',requestRender);
  function resize(){
   updateAntialiasing();
-  camera.aspect=innerWidth/innerHeight;camera.fov=place.fov??(innerWidth<700?64:53);camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
+  camera.aspect=innerWidth/innerHeight;camera.fov=placeFov();camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
   renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();
  }
@@ -332,7 +338,7 @@ async function start(){
    for(const {id} of exportPlaces){
     await switchPlace(id,false);
     renderer.setPixelRatio(1);renderer.setSize(1024,1536,false);composer.setPixelRatio(1);composer.setSize(1024,1536);
-    camera.aspect=1024/1536;camera.fov=place.fov??58;camera.updateProjectionMatrix();
+    camera.aspect=1024/1536;camera.fov=place.framingAspect===undefined?(place.fov??58):placeFov(1024/1536);camera.updateProjectionMatrix();
     for(const moment of moments){
      if(document.hidden||lost)throw new Error('輸出已暫停，請保持頁面在前景後重試。');
      status.hidden=false;status.textContent=`輸出 ${++completed} / ${exportPlaces.length*moments.length} · ${places.find(p=>p.id===id)!.name} · ${moment.name}`;

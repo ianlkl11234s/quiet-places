@@ -1,0 +1,16 @@
+{
+  "count": 22900631,
+  "worst": {
+    "wall": 0.04966517776994128,
+    "floor": 0.15181107186534143,
+    "rail": 0.11704287007628797
+  },
+  "times": {
+    "wall": 256.399999999994,
+    "floor": 506.7999999999798,
+    "rail": 211.59999999999653
+  },
+  "durationSeconds": 600,
+  "sampleStepSeconds": 0.2,
+  "scope": "all skinned vertices; analytic wall/tread/handrail envelopes, not swept-volume collision"
+}

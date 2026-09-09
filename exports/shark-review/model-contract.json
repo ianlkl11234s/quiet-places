@@ -1,0 +1,42 @@
+{
+  "asset": "blacktip-shark.glb",
+  "units": "metres",
+  "length": 0.9,
+  "axes": {
+    "nose": "+X",
+    "tail": "-X",
+    "dorsal": "+Y",
+    "lateral": "Z"
+  },
+  "nose_x": 0.45,
+  "tailtip_x": -0.45,
+  "spine_s": [
+    0,
+    0.06,
+    0.13,
+    0.21,
+    0.3,
+    0.4,
+    0.51,
+    0.61,
+    0.7,
+    0.78,
+    0.84,
+    0.89,
+    0.93,
+    0.96,
+    0.985,
+    1.0
+  ],
+  "rest_local_axes": {
+    "+Y": "world -X tailward",
+    "+Z": "world +Y dorsal",
+    "+X": "world +Z lateral"
+  },
+  "parent": "Root",
+  "spine_chained": false,
+  "optional_pectoral_controls": [
+    "Pectoral_R",
+    "Pectoral_L"
+  ]
+}

@@ -5,3 +5,7 @@ __pycache__/
 *.blend1
 *.blend2
 assets/blender/cache/
+
+# Private scene references and generated Blender review caches
+assets/references/stairlight/
+node_modules

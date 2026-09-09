@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-09",
+  "localOnly": true,
+  "tests": 28,
+  "build": "passed (existing >500 kB bundle warning)",
+  "windowMetres": [
+    2.5,
+    2
+  ],
+  "glbSHA256": "aeba5e7e86ed3efee63aefe5eebad162c3f2ac925e64f5c9cb64050cdbbaef32",
+  "sharkSHA256": "0579506cf174e50a6bc92ccfd4658f3e97dda56ecde508b40d8318fb77fd28a4",
+  "gpu": {
+    "passed": true,
+    "sharkRGBComponentsChanged": 2979,
+    "shadowChangedPixels": 58297,
+    "fourMomentTotals": [
+      904700,
+      1913939,
+      1029253,
+      114338
+    ],
+    "consoleErrorsWarnings": [],
+    "geometryAfterDispose": 0,
+    "texturesAfterDispose": 0
+  },
+  "clearance": {
+    "count": 14227741,
+    "worst": {
+      "wall": 0.04966517776994128,
+      "floor": 0.15181107186534143,
+      "rail": 0.11704287007628797
+    },
+    "times": {
+      "wall": 256.399999999994,
+      "floor": 506.7999999999798,
+      "rail": 211.59999999999653
+    },
+    "durationSeconds": 600,
+    "sampleStepSeconds": 0.2,
+    "scope": "all skinned vertices; analytic wall/tread/handrail envelopes, not swept-volume collision"
+  },
+  "motion": {
+    "durationSeconds": 1200,
+    "speedMps": [
+      0.30621727344404115,
+      0.41475443613081364
+    ],
+    "frequencyHz": [
+      0.5421430485678425,
+      0.7769075114238883
+    ],
+    "maxBankDegrees": 10.179403679490155,
+    "lapSeconds": [
+      56.3000000000128,
+      58.20000000001323
+    ],
+    "lengthMetres": 0.9,
+    "spineBones": 16,
+    "phaseAfterOneHour": 14316.361220578032
+  }
+}

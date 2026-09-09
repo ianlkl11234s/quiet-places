@@ -1,0 +1,125 @@
+{
+  "phase": "website-dynamic-time-horizontal-orbit-red-twine",
+  "branch": "codex/stairlight",
+  "assets": {
+    "assets/blender/scripts/stairlight.py": {
+      "bytes": 13784,
+      "sha256": "94694b2877bc24199d36c07a25f80647f62de9cb5f6fc62750d19f7074e64256"
+    },
+    "assets/blender/scripts/bake_stairlight.py": {
+      "bytes": 14876,
+      "sha256": "311edee7edd43e7098bb2d42174c82f8f6e75fe24c1b3e6798e97637d454acb6"
+    },
+    "assets/blender/stairlight-study.blend": {
+      "bytes": 259045,
+      "sha256": "aef450c32c14af88eb2328cd91800efcc2de044f050f0ae5aa7333a5ab046708"
+    },
+    "assets/blender/stairlight-web.blend": {
+      "bytes": 28632258,
+      "sha256": "8814e04f4530276753890007b6c2a56df08f9431ba320ccb99c675ed60f150d2"
+    },
+    "public/models/stairlight.glb": {
+      "bytes": 29866288,
+      "sha256": "c9a8d701822b91a15c6354eaf5a2f60581e507de33c4de899898e53db847e378"
+    },
+    "public/textures/stairlight/room-indirect.exr": {
+      "bytes": 25199336,
+      "sha256": "c761f4743eb410970bf7c8304c1339d3a37f99840758455a64912ac13ffd1abc"
+    }
+  },
+  "triangles": 38404,
+  "bake": {
+    "pbrAtlas": 4096,
+    "indirectAtlas": 2048,
+    "pbrSamples": 64,
+    "indirectSamples": 64,
+    "device": "METAL",
+    "threads": 2,
+    "bakeMarginPx": 16,
+    "indirectContainsDirectSun": false,
+    "indirectSource": "direct and bounced sky; no sunlight or solar bounce",
+    "containsDirectSky": true
+  },
+  "browser": {
+    "desktop": [
+      1280,
+      720
+    ],
+    "mobileIframeViewport": [
+      390,
+      844
+    ],
+    "consoleErrors": 0,
+    "sceneSwitch": "stairlight-water-stairlight verified; dynamic controls restored",
+    "physicalMobile": "not tested",
+    "timeStates": "dawn, noon, dusk, moonlight visually checked",
+    "horizontalOrbit": "left/right limits checked; Home reset"
+  },
+  "gpu": {
+    "passed": true,
+    "changedShadowPixels": 74346,
+    "totalDifference": 8088139,
+    "momentTotals": [
+      820544,
+      2204077,
+      1862204,
+      139939
+    ],
+    "checks": [
+      "sky/PBR maps",
+      "clear window ray",
+      "blocked wall ray",
+      "sealed joint ray",
+      "four different time renders",
+      "night darker than noon",
+      "world-up horizontal orbit about return center",
+      "orbit endpoints inside walls",
+      "previous iteration 45 degree tangent; latest 165 degree arc covered by updated fixture, not rerun",
+      "low quality shadow resolution",
+      "idempotent disposal",
+      "unused factory disposal"
+    ],
+    "afterRendererDispose": {
+      "geometries": 0,
+      "textures": 0
+    }
+  },
+  "checks": {
+    "unitTests": 22,
+    "build": "passed",
+    "redTwine": "stable anchor, deterministic elapsed, independent rest buffer, disposal"
+  },
+  "publication": "not committed, merged or deployed",
+  "limitations": [
+    "art-directed time states, not astronomical sun",
+    "sky visibility bake with color/intensity interpolation; no dynamic solar GI",
+    "procedural twine wind, not cloth physics",
+    "physical mobile performance not tested"
+  ],
+  "camera": {
+    "position": [
+      -1.15,
+      3.1,
+      1.0
+    ],
+    "pivot": [
+      -0.309,
+      0.88,
+      -0.1
+    ],
+    "worldUp": [
+      0,
+      1,
+      0
+    ],
+    "yawDegrees": 15
+  },
+  "latestTwineAdjustment": {
+    "arcAngleDegrees": 165,
+    "tangentYDegrees": 255,
+    "tailFaceTwistRadians": 1.05,
+    "unitTests": 22,
+    "build": "passed",
+    "browser": "tails visible outside return"
+  }
+}
