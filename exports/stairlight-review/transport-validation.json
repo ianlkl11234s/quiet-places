@@ -1,0 +1,28 @@
+{
+  "tests": 29,
+  "build": true,
+  "gpu": {
+    "passed": true,
+    "bounceDifference": 51175,
+    "momentTotals": [
+      962135,
+      1957429,
+      1058498,
+      112209
+    ],
+    "seamRegression": {
+      "legacy": 1224,
+      "fixed": 0
+    },
+    "afterDispose": {
+      "geometries": 0,
+      "textures": 0
+    }
+  },
+  "limits": [
+    "single solar bounce approximation",
+    "representative receiver albedo",
+    "single isotropic scattering",
+    "no mobile performance acceptance"
+  ]
+}

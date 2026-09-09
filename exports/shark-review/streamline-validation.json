@@ -1,0 +1,40 @@
+{
+  "glb_sha256": "8f356a0741bc50dd0b34eaf81d6c37a67cd8d859043ad30f175d80db2472ee84",
+  "tests": 28,
+  "rigRetest": true,
+  "build": true,
+  "gpu": {
+    "passed": true,
+    "sharkPixels": 2959,
+    "seam": {
+      "legacy": 1299,
+      "fixed": 0
+    },
+    "momentTotals": [
+      909783,
+      1942224,
+      1035010,
+      115102
+    ],
+    "afterDispose": {
+      "geometries": 0,
+      "textures": 0
+    }
+  },
+  "clearance": {
+    "count": 22900631,
+    "worst": {
+      "wall": 0.04966517776994128,
+      "floor": 0.15181107186534143,
+      "rail": 0.11704287007628797
+    },
+    "times": {
+      "wall": 256.399999999994,
+      "floor": 506.7999999999798,
+      "rail": 211.59999999999653
+    },
+    "durationSeconds": 600,
+    "sampleStepSeconds": 0.2,
+    "scope": "all skinned vertices; analytic wall/tread/handrail envelopes, not swept-volume collision"
+  }
+}

@@ -6,6 +6,7 @@ export {places,moments,isPlaceId,type PlaceId} from './metadata.ts';
 export async function preparePlace(id:PlaceId):Promise<PlaceFactory>{
   if(id==='leaflight')return (await import('./leaflight/index.ts')).prepareLeaflight();
   if(id==='waterlight')return (await import('./waterlight/index.ts')).prepareWaterlight();
+  if(id==='stairlight')return (await import('./stairlight/index.ts')).prepareStairlight();
   if(id==='afterlight')return (await import('./afterlight/index.ts')).prepareAfterlight();
   return (await import('./oceanlight/index.ts')).prepareOceanlight();
 }

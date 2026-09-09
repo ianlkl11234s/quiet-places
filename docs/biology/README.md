@@ -34,3 +34,5 @@
 ```
 
 共同材質與光照規則見[材質與光照製作筆記](../MATERIALS_AND_LIGHTING.md)。
+
+- [黑鰭礁鯊](blacktip-reef-shark.md)：階光之間的自製幼鯊模型、骨架、巡游與復用驗收。

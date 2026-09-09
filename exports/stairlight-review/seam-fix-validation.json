@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-09",
+  "build": "passed",
+  "gpuPassed": true,
+  "momentTotals": [
+    902573,
+    1942258,
+    1026479,
+    115110
+  ],
+  "seamRegression": {
+    "legacy": 1299,
+    "fixed": 0
+  },
+  "shadowSide": "DoubleSide",
+  "bias": -1e-05,
+  "normalBiasMetres": 0.002,
+  "packedDepthSlopeFootprint": 1.5,
+  "architectureRebaked": false,
+  "consoleErrorsWarnings": [],
+  "released": {
+    "geometries": 0,
+    "textures": 0
+  },
+  "localOnly": true
+}

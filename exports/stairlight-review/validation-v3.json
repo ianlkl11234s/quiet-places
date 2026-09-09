@@ -1,0 +1,60 @@
+{
+  "status": "P0/P1 revision 3; solid upper-flight side wall; awaiting visual review",
+  "blenderReadback": {
+    "scene": "Stairlight_Study",
+    "camera": "Camera_Hero",
+    "material_override": false,
+    "objects": 166,
+    "missing_images": [],
+    "flight_widths_m": {
+      "upper": 1.2000000476837158,
+      "lower": 1.3890000581741333
+    },
+    "camera_position": [
+      -1.600000023841858,
+      -0.8999999761581421,
+      3.0999999046325684
+    ],
+    "pitch_degrees": 47.584759698917104
+  },
+  "glb": {
+    "triangles": 37744,
+    "nodes": 159,
+    "cameras": 1,
+    "bytes": 1602248,
+    "hashMatches": true
+  },
+  "artifacts": {
+    "assets/blender/stairlight-study.blend": {
+      "sha256": "4c15f8a7f47c1f3fb124cc651ab1e25cf89f859ffe12fea657a0ed8af7d92c55",
+      "bytes": 259863
+    },
+    "public/models/stairlight.glb": {
+      "sha256": "05fc02abd9e45cd60ce4fb3e1358c952df8819876087f7906385d452aa005aed",
+      "bytes": 1602248
+    },
+    "assets/blender/scripts/stairlight.py": {
+      "sha256": "33875a67383443cbec9f4a393bd505463a3e1ca57340557f74f0be24e02d6229",
+      "bytes": 13617
+    },
+    "assets/blender/scripts/export_stairlight.py": {
+      "sha256": "a623b59b9f0f5d19def4f315294ac57f2d28bf0d7b734480af7c06b180bc1eb1",
+      "bytes": 10049
+    },
+    "exports/stairlight-review/stairlight-afternoon.png": {
+      "sha256": "c8d75a19b14be5c5c434361bae4f87bffc1aef0d866d11a30254fc91deafcf7e",
+      "bytes": 1278685
+    },
+    "exports/stairlight-review/stairlight-grey.png": {
+      "sha256": "8627c3e27ae7182335c7b3401a9c1e86dd63052e7805131a78231d01ad5e8c26",
+      "bytes": 1194676
+    }
+  },
+  "notValidated": [
+    "reference matching",
+    "PBR/indirect bake",
+    "website runtime",
+    "mobile",
+    "publication"
+  ]
+}

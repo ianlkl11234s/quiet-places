@@ -1,9 +1,10 @@
-export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight';
+export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'stairlight';
 export const places = [
   {id:'waterlight',name:'水光之間',subtitle:'水面與天光'},
   {id:'leaflight',name:'樹影午後',subtitle:'微風穿過枝葉'},
   {id:'oceanlight',name:'海光之室',subtitle:'緩慢起伏的海'},
   {id:'afterlight',name:'雨後天井',subtitle:'雨後的光與新葉'},
+  {id:'stairlight',name:'階光之間',subtitle:'窗光與紅繩'},
 ] as const;
 export const isPlaceId=(value:unknown):value is PlaceId=>places.some(place=>place.id===value);
 export const moments=[

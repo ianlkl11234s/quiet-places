@@ -1,0 +1,17 @@
+{
+  "scene": "Stairlight_Study",
+  "camera": "Camera_Hero",
+  "material_override": false,
+  "objects": 166,
+  "missing_images": [],
+  "flight_widths_m": {
+    "upper": 1.2000000476837158,
+    "lower": 1.3890000581741333
+  },
+  "camera_position": [
+    -1.600000023841858,
+    -0.8999999761581421,
+    3.0999999046325684
+  ],
+  "pitch_degrees": 47.584759698917104
+}
