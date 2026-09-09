@@ -51,3 +51,7 @@
 ## 2026-09-09：向海的隧道 adapter
 
 [向海的隧道](../scenes/seaward.md) 以 `src/places/seaward/Stingray.ts` 沿用同一 GLB 與 SLOW_CRUISE clip，單隻 .9 尺度、原生材質與絕對 elapsed；資產、骨架與海光之室 adapter 未修改。路徑與近地 AO 屬此房間的美術近似。新增 factory 資源／缺 clip／暫停測試通過；真 GLB 已在本機 browser 顯示，未宣稱重新驗證生物形態。
+
+## 2026-09-09：隧道寫實候選
+
+僅 seaward adapter：平飛升高12cm，保留先升空／翻圈／回平／下降；增加低幅俯仰、bank及尾骨微彎。原GLB與海光adapter不改。真模型完整路徑離地測試持續驗證；仍屬藝術運動學，不宣稱生物學準確。可回退基準ef9bb96，詳見隧道場景最新候選紀錄。
