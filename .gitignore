@@ -5,3 +5,6 @@ __pycache__/
 *.blend1
 *.blend2
 assets/blender/cache/
+
+# A worktree may borrow installed dependencies via a symlink.
+/node_modules

@@ -1,0 +1,23 @@
+import * as THREE from 'three';
+
+export interface MedakaMetadata { duration:number; fps:number; frameCount:number; fishCount:number; stride:number; states:string[]; fish:Array<{length:number;colorVariant:number;motionPhase:number;motionSeed:number}>; events:Array<{time:number;initiator:number;members:number[];target:number[];reactionWindow:number[]}>; }
+export interface MedakaMotionSample { position:THREE.Vector3; quaternion:THREE.Quaternion; speed:number; phase:number; q:number; acceleration:number; state:number; length:number; colorVariant:number; }
+export interface PreparedMedakaMotion { metadata:MedakaMetadata; sample(elapsed:number,index:number):MedakaMotionSample; }
+export interface MedakaRouteOptions { closed?:boolean; speed?:number; tempo?:number; pauseSeconds?:number; }
+export interface MedakaRoute { readonly duration:number; readonly activeDuration:number; readonly controlPoints:readonly THREE.Vector3[]; sample(elapsed:number):MedakaMotionSample; }
+const STRIDE=12,TAU=Math.PI*2,modulo=(value:number,divisor:number)=>((value%divisor)+divisor)%divisor;
+
+export function decodeMedakaMotion(metadata:MedakaMetadata,bytes:ArrayBuffer):PreparedMedakaMotion {
+  if(metadata.stride!==STRIDE||metadata.frameCount<2||metadata.fishCount<1||metadata.fps<=0||metadata.duration<=0)throw new Error('Invalid medaka motion metadata.');
+  const values=new Float32Array(bytes);if(values.length!==metadata.frameCount*metadata.fishCount*metadata.stride)throw new Error('Medaka motion binary length does not match metadata.');
+  return {metadata,sample(elapsed,index){if(!Number.isInteger(index)||index<0||index>=metadata.fishCount)throw new RangeError('Medaka fish index is out of range.');const time=Number.isFinite(elapsed)?modulo(elapsed,metadata.duration):0,exact=time*metadata.fps,lowFrame=Math.min(metadata.frameCount-2,Math.floor(exact)),mix=exact-lowFrame,a=(lowFrame*metadata.fishCount+index)*STRIDE,b=a+metadata.fishCount*STRIDE,position=new THREE.Vector3(values[a],values[a+1],values[a+2]).lerp(new THREE.Vector3(values[b],values[b+1],values[b+2]),mix),quaternion=new THREE.Quaternion(values[a+3],values[a+4],values[a+5],values[a+6]).normalize().slerp(new THREE.Quaternion(values[b+3],values[b+4],values[b+5],values[b+6]).normalize(),mix);return {position,quaternion,speed:THREE.MathUtils.lerp(values[a+7],values[b+7],mix),phase:modulo(THREE.MathUtils.lerp(values[a+8],values[b+8],mix),TAU),q:THREE.MathUtils.lerp(values[a+9],values[b+9],mix),state:mix<.5?Math.round(values[a+10]):Math.round(values[b+10]),acceleration:THREE.MathUtils.lerp(values[a+11],values[b+11],mix),length:metadata.fish[index].length,colorVariant:metadata.fish[index].colorVariant};}};
+}
+
+/** Deterministic studio route in metres/seconds; it is a kinematic art tool, not physics. */
+export function createMedakaRoute(points:readonly THREE.Vector3[],options:MedakaRouteOptions={}):MedakaRoute {
+  const closed=options.closed??true,minimum=closed?3:2;if(points.length<minimum||points.some(p=>![p.x,p.y,p.z].every(Number.isFinite)))throw new RangeError(`A ${closed?'closed':'open'} medaka route requires at least ${minimum} finite control points.`);
+  const speed=options.speed??.08,tempo=options.tempo??1,pause=options.pauseSeconds??0;if(!Number.isFinite(speed)||speed<=0||!Number.isFinite(tempo)||tempo<=0||!Number.isFinite(pause)||pause<0)throw new RangeError('Medaka route speed, tempo, and pauseSeconds must be finite positive values (pause may be zero).');
+  const controlPoints=points.map(p=>p.clone()),curve=new THREE.CatmullRomCurve3(controlPoints,closed,'centripetal'),activeDuration=curve.getLength()/(speed*tempo);if(!Number.isFinite(activeDuration)||activeDuration<=0)throw new RangeError('Medaka route must have non-zero length.');const duration=activeDuration+pause;
+  return {duration,activeDuration,controlPoints,sample(elapsed){const raw=Number.isFinite(elapsed)?Math.max(0,elapsed):0,local=closed?modulo(raw,duration):Math.min(raw,duration),progress=Math.min(1,local/activeDuration),position=curve.getPointAt(progress),tangent=curve.getTangentAt(progress).normalize(),quaternion=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1),tangent);return {position,quaternion,speed:local>=activeDuration?0:speed*tempo,phase:modulo(progress*TAU*2,TAU),q:Math.min(1,speed*tempo/.18),acceleration:0,state:0,length:.04,colorVariant:0};}};
+}
+export async function prepareMedakaMotion(metadataUrl='/models/medaka-motion.json',binaryUrl='/models/medaka-motion.bin'):Promise<PreparedMedakaMotion>{const [meta,binary]=await Promise.all([fetch(metadataUrl),fetch(binaryUrl)]);if(!meta.ok||!binary.ok)throw new Error('Medaka motion cache could not be loaded.');return decodeMedakaMotion(await meta.json() as MedakaMetadata,await binary.arrayBuffer());}

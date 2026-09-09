@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "recipes": [
+    {
+      "id": "afterlight-drain",
+      "version": "1.0.0",
+      "runner": "afterlight-drain",
+      "source": { "author": "Quiet Places", "license": "original work; licence status not separately assigned" },
+      "inputs": ["assets/config/afterlight-geometry.json", "assets/blender/afterlight-web.blend", "assets/blender/scripts/geometry_config.py", "assets/blender/scripts/update_afterlight_drain.py", "public/models/afterlight-courtyard.metadata.json"],
+      "outputs": ["models/afterlight-courtyard.glb", "models/afterlight-courtyard.metadata.json"],
+      "contract": { "units": "metres", "axes": "Three Y-up; Blender=(x,-z,y)", "nodes": ["DrainRoof_Near", "DrainGrate_Frame_West", "DrainGrate_Secondary_Frame_West"] }
+    },
+    {
+      "id": "medaka-master",
+      "version": "1.0.0",
+      "runner": "medaka-master",
+      "source": { "author": "Quiet Places", "license": "original morphology-inspired work; external biological references are documented separately" },
+      "inputs": ["assets/blender/scripts/medaka/build_all.py", "assets/blender/scripts/medaka/config.py", "assets/blender/scripts/medaka/medaka_geometry.py", "assets/blender/scripts/medaka/medaka_materials.py", "assets/blender/scripts/medaka/medaka_rig.py", "assets/blender/scripts/medaka/animation_bake.py", "assets/blender/scripts/medaka/swimming.py"],
+      "outputs": ["models/medaka.glb", "models/medaka.metadata.json", "medaka_quiet_rain_shoal.blend"],
+      "contract": { "units": "metres", "axes": "Three Y-up; Blender=(x,-z,y)", "rootNode": "Medaka_Rig", "skinnedMesh": "Medaka_Master" }
+    }
+  ]
+}

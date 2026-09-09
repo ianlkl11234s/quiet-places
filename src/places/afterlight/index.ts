@@ -5,12 +5,19 @@ import type {PlaceInstance} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 import {installAfterlightFoliage} from './Foliage.ts';
 import {createAfterlightWeather} from './Weather.ts';
-import {createAfterlightLighting} from './Lighting.ts';
+import {createAfterlightLighting,type AfterlightLightStudy} from './Lighting.ts';
 import {installSurfaceMaterials} from './SurfaceMaterials.ts';
 import {installContactShadows} from './ShadowFilter.ts';
 import {prepareMedaka} from './Medaka.ts';
+import studyDefaults from '../../../assets/config/afterlight-study.json';
+import {validateStudy} from '../../shared/production/StudyPreset.ts';
+import {createMedakaRoute,prepareMedaka as prepareRouteMedaka,type SharedMedaka} from '../../shared/biology/medaka/index.ts';
 
-export async function prepareAfterlight(){
+export async function prepareAfterlight(options?:{lightStudy?:AfterlightLightStudy;ignoreStudyDefaults?:boolean}){
+ const study=options?.ignoreStudyDefaults?undefined:validateStudy(studyDefaults);
+ const defaultLight:AfterlightLightStudy={intensityScale:study?.light.intensityScale??1};
+ if(study?.light.overrideSun){const a=THREE.MathUtils.degToRad(study.light.azimuth),e=THREE.MathUtils.degToRad(study.light.elevation);defaultLight.incoming=[Math.cos(a)*Math.cos(e),-Math.sin(e),Math.sin(a)*Math.cos(e)];}
+ const lightStudy=options?.lightStudy??defaultLight;
  const gltf=await new GLTFLoader().loadAsync('/models/afterlight-courtyard.glb');
  const root=gltf.scene;
  const resources=collectModelResources(root);
@@ -60,6 +67,7 @@ export async function prepareAfterlight(){
  if(!surfaces.size){release();throw new Error('雨後天井缺少烘焙建築。');}
  const medakaFactory=await prepareMedaka().catch(error=>{release();throw error;});
  releaseUnusedMedaka=()=>medakaFactory.dispose();
+ const routeFactory=study?.route.enabled?await prepareRouteMedaka().catch(error=>{release();throw error;}):undefined;
  let consumed=false;
  const factory=(scene:THREE.Scene,renderer:THREE.WebGLRenderer):PlaceInstance=>{
   if(consumed)throw new Error('雨後天井資產已使用。');consumed=true;
@@ -69,7 +77,9 @@ export async function prepareAfterlight(){
   scene.add(root);
   const foliage=installAfterlightFoliage(root),weather=createAfterlightWeather(scene);
   const medaka=medakaFactory(root);medaka.update(0,1);
-  const lighting=createAfterlightLighting(scene,renderer,root,weather.root);
+  const routeFish:SharedMedaka[]=[];
+  if(routeFactory&&study){const route=createMedakaRoute(study.route.points.map(v=>new THREE.Vector3(...v)),{closed:true,speed:study.route.speed,tempo:study.route.tempo});medaka.root.visible=false;for(let i=0;i<3;i++)routeFish.push(routeFactory.create(root,{route,phaseOffsetSeconds:i*route.duration/3}));}
+  const lighting=createAfterlightLighting(scene,renderer,root,weather.root,lightStudy);
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   const environment=lighting.captureEnvironment();
   // Fish share the room's local reflection probe, so their muted skin can
@@ -93,19 +103,19 @@ export async function prepareAfterlight(){
   let disposed=false;
   return {
    position:position.toArray(),target:target.toArray(),fov:hero.fov,yawRange:Math.PI/30,
-   exposure:1.25,toneMapping:THREE.AgXToneMapping,hasSimulation:false,waterMode:'',
+   exposure:study?.light.exposure??1.25,toneMapping:THREE.AgXToneMapping,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
     // A previous scene is disposed after our first frame; reassert ownership on update.
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     const heavy=state.heavyRain??false;
-    const light=lighting.update(elapsed,(state.beamStrength??1)*(heavy?.55:1),state.intensity*(heavy?.62:1),state.warmth*(heavy?.55:1),state.angle,state.lowQuality??false,state.hour,state.intensity);
-    shadows.update(light.incoming);farDay.value=light.indirect;medaka.update(elapsed,light.day);
+    const light=lighting.update(elapsed,(state.beamStrength??1)*(study?.light.beam??1)*(heavy?.55:1),state.intensity*(heavy?.62:1),state.warmth*(heavy?.55:1),state.angle,state.lowQuality??false,state.hour,state.intensity);
+    shadows.update(light.incoming);farDay.value=light.indirect;medaka.update(elapsed,light.day);routeFish.forEach(f=>f.update(elapsed));
     for(const m of surfaces){m.lightMapIntensity=Math.PI*.7*light.indirect;m.envMapIntensity=.7*light.indirect;}
     surfacesState.update(elapsed,state.rain??0);foliage.update(elapsed,light.day,state.rain??0,state.angle,heavy);weather.update(elapsed,state.rain??0,light.day,state.lowQuality??false,state.angle,foliage.rainBlocks,heavy);
    },
    disturb(){},resetWater(){},
-   dispose(){if(disposed)return;disposed=true;shadows.dispose();surfacesState.dispose();lighting.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},
+   dispose(){if(disposed)return;disposed=true;shadows.dispose();surfacesState.dispose();lighting.dispose();routeFish.forEach(f=>f.dispose());routeFactory?.dispose();medaka.dispose();weather.dispose();foliage.dispose();environment.dispose();release();renderer.shadowMap.enabled=oldShadow;renderer.shadowMap.type=oldType;},
   };
  };
- return Object.assign(factory,{dispose(){if(!consumed){consumed=true;release();}}});
+ return Object.assign(factory,{dispose(){if(!consumed){consumed=true;routeFactory?.dispose();release();}}});
 }

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Quiet Places reproducible asset manifest",
+  "type": "object",
+  "required": ["schemaVersion", "asset", "tooling", "recipeRegistry", "inputs", "outputs", "contract", "validation"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "asset": { "type": "object", "required": ["id", "version", "source"] },
+    "recipeRegistry": { "type": "object", "required": ["path", "sha256"] },
+    "tooling": { "type": "object", "required": ["python", "blender"] },
+    "inputs": { "type": "array" },
+    "outputs": { "type": "array" },
+    "contract": { "type": "object" },
+    "validation": { "type": "object", "required": ["readback", "status"] }
+  }
+}

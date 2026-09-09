@@ -17,30 +17,28 @@ import sys
 import bmesh
 import bpy
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from geometry_config import derive_afterlight_drain, load_afterlight_geometry
+
 
 ROOT = Path(__file__).resolve().parents[3]
-APERTURE = {
-    'x': [.60, 1.70],
-    'z': [-1.13, .37],
-    'roofY': 3.0,
-    'blenderY': [-.37, 1.13],
-}
-ROOM_X = [-2.00, 1.80]
+GEOMETRY = load_afterlight_geometry()
+DERIVED = derive_afterlight_drain(GEOMETRY)
+def aperture_shape(opening):
+    return {'x': [opening['minX'], opening['maxX']], 'z': [opening['minZ'], opening['maxZ']],
+            'roofY': opening['roofY'], 'blenderY': [-opening['maxZ'], -opening['minZ']]}
+APERTURE = aperture_shape(DERIVED['primary'])
+ROOM_X = [GEOMETRY['corridor']['minX'], GEOMETRY['corridor']['maxX']]
 ROOM_WIDTH_VERSION = '3.8-metre-v4'
-GRATE_Y = 3.04
-GRATE_DEPTH = .045
-FRAME = .04
-SLAT_X = [.64 + (index + 1) * (1.02 / 10) for index in range(9)]
-SLAT_Z = [-1.09, .33]
-BRACE_Z = [-1.09 + (index + 1) * (1.42 / 3) for index in range(2)]
-SECONDARY_APERTURE = {
-    'x': [-1.90, -.80],
-    'z': [-1.13, .37],
-    'roofY': 3.0,
-    'blenderY': [-.37, 1.13],
-}
+GRATE_Y = GEOMETRY['grate']['centerY']
+GRATE_DEPTH = GEOMETRY['grate']['depth']
+FRAME = GEOMETRY['grate']['frame']
+SLAT_X = DERIVED['slats']
+SLAT_Z = [APERTURE['z'][0] + FRAME, APERTURE['z'][1] - FRAME]
+BRACE_Z = DERIVED['braces']
+SECONDARY_APERTURE = aperture_shape(DERIVED['secondary'])
 SECONDARY_FRAME = FRAME
-SECONDARY_SLAT_X = sorted(-.20 - x for x in SLAT_X)
+SECONDARY_SLAT_X = DERIVED['secondarySlats']
 SECONDARY_SLAT_Z = SLAT_Z
 SECONDARY_BRACE_Z = BRACE_Z
 
@@ -277,9 +275,9 @@ def build_grate_at(collection, aperture, slats, prefix):
     for name, z in [('North', z1-FRAME/2), ('South', z0+FRAME/2)]:
         items.append(cube(collection, prefix+'Frame_'+name, (cx, -z, GRATE_Y), (width, FRAME, GRATE_DEPTH), steel, .004))
     for index, x in enumerate(slats):
-        items.append(cube(collection, prefix+f'Slat_{index+1:02d}', (x, cy, GRATE_Y), (.022, length-2*FRAME, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, prefix+f'Slat_{index+1:02d}', (x, cy, GRATE_Y), (GEOMETRY['grate']['slatWidth'], length-2*FRAME, GRATE_DEPTH), steel, .002))
     for index, z in enumerate(BRACE_Z):
-        items.append(cube(collection, prefix+f'Brace_{index+1:02d}', (cx, -z, GRATE_Y), (width-2*FRAME, .018, GRATE_DEPTH), steel, .002))
+        items.append(cube(collection, prefix+f'Brace_{index+1:02d}', (cx, -z, GRATE_Y), (width-2*FRAME, GEOMETRY['grate']['braceWidth'], GRATE_DEPTH), steel, .002))
     return items
 
 
@@ -289,6 +287,16 @@ def build_grate(collection):
 
 def build_secondary_grate(collection):
     return build_grate_at(collection, SECONDARY_APERTURE, SECONDARY_SLAT_X, 'DrainGrate_Secondary_')
+
+
+def output_dir():
+    if '--output-dir' not in sys.argv:
+        return ROOT / 'public/models'
+    index = sys.argv.index('--output-dir') + 1
+    if index >= len(sys.argv): raise RuntimeError('--output-dir requires a path')
+    target = Path(sys.argv[index]).resolve()
+    target.mkdir(parents=True, exist_ok=True)
+    return target
 
 
 def export_web(scene):
@@ -302,13 +310,16 @@ def export_web(scene):
     for obj in bpy.data.objects:
         if obj.type == 'MESH' and (obj.name.startswith('FarCorridor_') or obj.name.startswith(('DrainRoof_', 'DrainGrate_'))):
             obj.select_set(True)
-    output = ROOT / 'public/models/afterlight-courtyard.glb'
+    target_dir = output_dir()
+    output = target_dir / 'afterlight-courtyard.glb'
     bpy.ops.export_scene.gltf(
         filepath=str(output), export_format='GLB', use_selection=True,
         export_cameras=True, export_extras=True, export_attributes=True,
         export_apply=True,
     )
-    metadata_path = ROOT / 'public/models/afterlight-courtyard.metadata.json'
+    metadata_path = target_dir / 'afterlight-courtyard.metadata.json'
+    if not metadata_path.exists():
+        metadata_path.write_text((ROOT / 'public/models/afterlight-courtyard.metadata.json').read_text())
     data = json.loads(metadata_path.read_text())
     data['aperture'] = APERTURE
     data['drainGrate'] = {
@@ -316,12 +327,12 @@ def export_web(scene):
         'centerY': GRATE_Y,
         'verticalExtent': [round(GRATE_Y - GRATE_DEPTH / 2, 4), round(GRATE_Y + GRATE_DEPTH / 2, 4)],
         'frameWidth': FRAME,
-        'slatCount': 9,
-        'slatWidthX': .022,
+        'slatCount': GEOMETRY['grate']['slatCount'],
+        'slatWidthX': GEOMETRY['grate']['slatWidth'],
         'slatZ': SLAT_Z,
         'slatX': SLAT_X,
-        'braceCount': 2,
-        'braceWidthZ': .018,
+        'braceCount': GEOMETRY['grate']['braceCount'],
+        'braceWidthZ': GEOMETRY['grate']['braceWidth'],
         'braceZ': BRACE_Z,
         'material': 'DrainGrate_RoughSteel; nonemissive, rough metal',
     }
@@ -331,24 +342,25 @@ def export_web(scene):
         'centerY': GRATE_Y,
         'verticalExtent': [round(GRATE_Y - GRATE_DEPTH / 2, 4), round(GRATE_Y + GRATE_DEPTH / 2, 4)],
         'frameWidth': SECONDARY_FRAME,
-        'slatCount': 9,
-        'slatWidthX': .022,
+        'slatCount': GEOMETRY['grate']['slatCount'],
+        'slatWidthX': GEOMETRY['grate']['slatWidth'],
         'slatZ': SECONDARY_SLAT_Z,
         'slatX': SECONDARY_SLAT_X,
-        'braceCount': 2,
-        'braceWidthZ': .018,
+        'braceCount': GEOMETRY['grate']['braceCount'],
+        'braceWidthZ': GEOMETRY['grate']['braceWidth'],
         'braceZ': SECONDARY_BRACE_Z,
         'material': 'DrainGrate_RoughSteel; nonemissive, rough metal',
     }
     data['corridorBounds'] = {
         'x': ROOM_X,
-        'centerX': -.10,
+        'centerX': GEOMETRY['corridor']['centerX'],
         'widthMetres': 3.8,
         'widthVersion': ROOM_WIDTH_VERSION,
         'rightEdgeFixed': True,
         'uvPreserved': True,
         'geometryApproximation': 'Joined RoomSurface keeps UV/material data; its left wall moves to x=-2.0m and negative-x floor vertices resize with the wall. Far corridor widens about its fixed right x=1.8 edge.',
     }
+    data['geometryContract'] = {'path': 'assets/config/afterlight-geometry.json', 'schemaVersion': GEOMETRY['schemaVersion']}
     metadata_path.write_text(json.dumps(data, indent=2) + '\n')
 
 

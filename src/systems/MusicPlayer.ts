@@ -2,6 +2,7 @@ export interface MusicPlayerOptions {
   /** 0 到 1；呼叫端可將它保存為使用者偏好。 */
   volume?: number;
   onVolumeChange?: (value: number) => void;
+  fadeSeconds?:number;
 }
 
 export interface MusicPlayer {
@@ -10,6 +11,8 @@ export interface MusicPlayer {
   dispose: () => void;
   getVolume: () => number;
   setVolume: (value: number) => void;
+  getSelection:()=>{track:number;loop:boolean;fadeSeconds:number};
+  setSelection:(track:number,loop:boolean,fadeSeconds?:number)=>void;
 }
 
 interface Track {
@@ -92,6 +95,8 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
   let disposed = false;
   let requestId = 0;
   let wantedPlaying = false;
+  let fadeSeconds=options.fadeSeconds??0,targetVolume=audio.volume,fadeTimer:ReturnType<typeof setInterval>|undefined;
+  const cancelFade=()=>{if(fadeTimer!==undefined)clearInterval(fadeTimer);fadeTimer=undefined;};
 
   const render = () => {
     const isPlaying = wantedPlaying && !audio.paused;
@@ -107,6 +112,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     }
   };
   const stop = () => {
+    cancelFade();
     requestId += 1;
     wantedPlaying = false;
     audio.pause();
@@ -117,6 +123,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     wantedPlaying = true;
     setStatus('');
     loadSelectedTrack();
+    cancelFade();audio.volume=fadeSeconds>0?0:targetVolume;
     try {
       await audio.play();
       if (disposed || !wantedPlaying) {
@@ -124,6 +131,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
         return;
       }
       if (id !== requestId) return;
+      if(fadeSeconds>0){const started=performance.now();fadeTimer=setInterval(()=>{const t=Math.min(1,(performance.now()-started)/(fadeSeconds*1000));audio.volume=targetVolume*t;if(t===1)cancelFade();},25);}
       render();
     } catch {
       if (!disposed && id === requestId) {
@@ -134,6 +142,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     }
   };
   const setTrack = (index: number, continuePlaying: boolean) => {
+    cancelFade();
     requestId += 1;
     audio.pause();
     wantedPlaying = false;
@@ -168,7 +177,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
   play.addEventListener('click', () => { if (wantedPlaying) stop(); else void start(); });
   volume.addEventListener('input', () => {
     const value = clampVolume(Number(volume.value) / 100);
-    audio.volume = value;
+    targetVolume=value;audio.volume = value;
     options.onVolumeChange?.(value);
   });
 
@@ -182,10 +191,12 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
       audio.load();
       root.remove();
     },
-    getVolume: () => audio.volume,
+    getSelection:()=>({track:trackIndex,loop:loop.checked,fadeSeconds}),
+    setSelection(index,shouldLoop,fade=0){if(!Number.isInteger(index)||index<0||index>=tracks.length||!Number.isFinite(fade)||fade<0||fade>5)throw new Error("Invalid music selection");fadeSeconds=fade;loop.checked=shouldLoop;setTrack(index,false);},
+    getVolume: () => targetVolume,
     setVolume(value) {
       const next = clampVolume(value);
-      audio.volume = next;
+      targetVolume=next;audio.volume = next;
       volume.value = String(Math.round(next * 100));
     },
   };

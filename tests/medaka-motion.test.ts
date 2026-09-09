@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from 'three';
-import {decodeMedakaMotion, type MedakaMetadata} from '../src/places/afterlight/MedakaMotion.ts';
+import {createMedakaRoute, decodeMedakaMotion, type MedakaMetadata} from '../src/shared/biology/medaka/MedakaMotion.ts';
 
 const metadata = JSON.parse(await readFile(new URL('../public/models/medaka-motion.json', import.meta.url), 'utf8')) as MedakaMetadata;
 const binary = await readFile(new URL('../public/models/medaka-motion.bin', import.meta.url));
@@ -52,6 +52,25 @@ test('medaka baked headings stay bounded through hover and the loop seam', () =>
       previous=current;
     }
   }
+});
+
+test('studio route keeps continuous closed travel, supports phase offsets, and holds an open endpoint', () => {
+  const points=[new THREE.Vector3(0,.4,0),new THREE.Vector3(.4,.45,-.2),new THREE.Vector3(.1,.5,-.7)];
+  const closed=createMedakaRoute(points,{speed:.1,tempo:1.2,pauseSeconds:.5});
+  const a=closed.sample(.4),b=closed.sample(.41),offset=closed.sample(.4+closed.duration/3);
+  assert.ok(a.position.distanceTo(b.position)<.01,'nearby samples travel continuously');
+  assert.ok(a.quaternion.angleTo(b.quaternion)<.2,'closed curve has no heading snap');
+  assert.ok(a.position.distanceTo(offset.position)>.02,'phase offset separates a second fish');
+  assert.equal(closed.sample(closed.activeDuration+.1).speed,0,'pause is stationary');
+  const beforeSeam=closed.sample(closed.duration-1e-5),atSeam=closed.sample(closed.duration);
+  assert.ok(beforeSeam.position.distanceTo(atSeam.position)<1e-4,'closed route position is continuous at its loop seam');
+  assert.ok(beforeSeam.quaternion.angleTo(atSeam.quaternion)<.01,'closed route orientation is continuous at its loop seam');
+  assert.ok(Math.abs(Math.sin(beforeSeam.phase)-Math.sin(atSeam.phase))<.001,'tail phase closes at the route seam');
+  assert.equal(closed.sample(closed.activeDuration+.1).phase,0,'paused route keeps the tail pose still');
+  const open=createMedakaRoute(points.slice(0,2),{closed:false,speed:.1,pauseSeconds:.2});
+  const endpoint=open.sample(open.duration+100);
+  assert.ok(endpoint.position.distanceTo(points[1])<1e-6);assert.equal(endpoint.speed,0,'open routes do not teleport back to their start');
+  assert.throws(()=>createMedakaRoute(points.slice(0,2)),/at least 3/);
 });
 
 test('plant-side sunlight stays occupied throughout the triangle circuit', () => {
