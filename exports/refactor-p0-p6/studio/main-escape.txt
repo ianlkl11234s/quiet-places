@@ -1,0 +1,18 @@
+- main "雨後天井：即時生成的靜謐空間":
+  - generic "拖曳觀看雨後天井，左右各6度；滾輪拉近拉遠，方向鍵旋轉，Home重設"
+- banner:
+  - link "QUIET PLACES 雨後天井":
+    - /url: ./
+    - text: QUIET PLACES
+    - generic: 雨後天井
+  - text: A QUIET CORNER OF EVERYDAY
+  - text: 在日常的一隅，停留片刻。
+- navigation "空間選單":
+  - button "換個房間"
+  - button "調整此景" [active]
+  - button "關於靜隅":
+    - generic: i
+- contentinfo:
+  - generic: 午後的光
+  - generic: 14:00
+- text: ＋

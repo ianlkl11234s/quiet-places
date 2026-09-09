@@ -1,0 +1,355 @@
+Transform the provided reference image or concept into a scene from
+“Quiet Places / 靜隅”.
+
+Do not simply apply a visual filter.
+Reinterpret the original space according to the following visual language.
+
+CORE CONCEPT
+A quiet corner of everyday life where almost nothing happens,
+but light, air, weather, and one living presence make the space feel alive.
+
+The scene should feel physically believable first,
+and subtly surreal only after looking at it for a while.
+
+────────────────────────
+
+1. PRESERVE THE ORIGINAL SPACE
+
+Preserve the essential architectural identity, spatial proportions,
+camera direction, and recognizable structure of the reference.
+
+Simplify rather than redesign.
+
+Remove unnecessary furniture, decorations, signage, clutter,
+ornamental architecture, and distracting objects.
+
+Do not turn the location into a museum,
+luxury house, fantasy environment, aquarium,
+sci-fi installation, or theatrical stage.
+
+The space should remain ordinary, modest, quiet, and believable.
+
+────────────────────────
+
+2. EMPTY SPACE
+
+Negative space is essential.
+
+Approximately 60–80% of the composition may remain visually quiet.
+
+Avoid filling empty areas with additional objects.
+
+Emptiness itself must be part of the composition.
+
+The viewer should feel that this place existed before they arrived
+and will continue existing after they leave.
+
+────────────────────────
+
+3. ONE MAIN SUBJECT
+
+Introduce or preserve only ONE clear visual protagonist.
+
+Possible protagonists include:
+a plant,
+a small school of fish,
+a ray,
+a jellyfish,
+a tree branch,
+a suspended water surface,
+a simple everyday object,
+or the user-provided subject.
+
+The protagonist should occupy only a small part of the frame.
+
+Do not place it prominently like a product display.
+
+Prefer positioning it near the boundary between light and shadow.
+
+It may occasionally disappear partially into darkness.
+
+────────────────────────
+
+4. ONE IMPOSSIBLE THING
+
+Allow only one subtly impossible or dreamlike phenomenon.
+
+For example:
+fish swimming above a dry floor,
+a ray slowly passing through an empty room,
+jellyfish drifting beside a rainy wall,
+a piece of ocean visible inside architecture,
+or another user-specified surreal element.
+
+Everything else must remain physically convincing.
+
+Do not add glowing magical particles,
+fantasy portals,
+floating crystals,
+neon lights,
+or unrelated surreal objects.
+
+The surrealism should feel discovered rather than announced.
+
+────────────────────────
+
+5. LIGHT IS THE PRIMARY COMPOSITIONAL ELEMENT
+
+Use one dominant natural light source.
+
+Possible sources:
+a skylight,
+a narrow window,
+an opening in a wall,
+sunlight reflected from water,
+overcast daylight,
+late-afternoon sun,
+moonlight,
+or light entering from outside the frame.
+
+The direction of light must be immediately readable.
+
+Most of the room should remain genuinely dark.
+
+Do not use broad ambient illumination to reveal everything.
+
+Light should reveal only selected surfaces.
+
+Strong contrast between illuminated and shadowed regions.
+
+Highlights may be bright,
+but shadows should retain depth.
+
+Avoid HDR-like lifted blacks.
+
+────────────────────────
+
+6. LIGHT MUST INTERACT WITH THE ENVIRONMENT
+
+Light should create visible physical consequences:
+
+soft contact shadows,
+long directional shadows,
+leaf shadows,
+water caustics,
+reflected light,
+light scattering in mist,
+subtle volumetric shafts,
+or moving illumination caused by water or foliage.
+
+Volumetric light must remain subtle.
+
+It should feel like the air becomes visible,
+not like a theatrical spotlight.
+
+────────────────────────
+
+7. NATURAL MOTION
+
+Every Quiet Places scene should contain at least one slow,
+continuous natural motion.
+
+Possible motion systems:
+
+wind moving leaves,
+occasional gusts,
+rainfall,
+water ripples,
+moving caustics,
+drifting fog,
+floating dust,
+slow clouds,
+plant movement,
+or gentle animal movement.
+
+Most motion should be almost imperceptible.
+
+Avoid constant repetitive oscillation.
+
+Use irregular timing.
+
+The environment should remain nearly still most of the time,
+with occasional small events.
+
+Example wind behavior:
+
+80–90% of the time:
+almost no visible wind,
+only tiny leaf tremors.
+
+Occasionally:
+a soft gust passes through,
+branches bend slightly,
+leaves respond at different delays,
+then gradually return to rest.
+
+Never animate all elements synchronously.
+
+────────────────────────
+
+8. PHYSICAL MATERIALS
+
+Use restrained, realistic materials.
+
+Prefer:
+
+aged concrete,
+rough plaster,
+stone,
+matte painted walls,
+slightly damp surfaces,
+weathered masonry,
+subtle dirt accumulation,
+fine surface irregularities.
+
+roughness should generally be high.
+
+Avoid perfectly clean CG surfaces.
+
+Avoid exaggerated texture maps.
+
+Surface variation should mainly become visible
+when grazing light passes across the material.
+
+────────────────────────
+
+9. ATMOSPHERE
+
+Add only extremely subtle atmospheric depth.
+
+Possible elements:
+
+very light haze,
+humidity,
+a few dust particles,
+fine rain mist,
+or subtle suspended moisture.
+
+Particles should only become visible where light reaches them.
+
+Never create a visible particle effect across the entire scene.
+
+────────────────────────
+
+10. COLOR
+
+Use a restrained low-saturation palette.
+
+Let natural light determine most of the color.
+
+Possible tonal families:
+
+cool gray,
+warm concrete,
+muted green,
+faded blue,
+pale gold,
+soft ivory,
+deep charcoal.
+
+Avoid teal-orange cinematic grading,
+strong saturation,
+fantasy blue,
+neon colors,
+and exaggerated bloom.
+
+────────────────────────
+
+11. CAMERA
+
+Use the visual language of quiet architectural photography.
+
+Wide but not excessively distorted lens.
+
+Natural human eye height,
+or slightly lower when appropriate.
+
+Allow walls, ceilings, or foreground architecture
+to occupy large portions of the image.
+
+The camera does not need to face the subject directly.
+
+Prefer observational framing,
+as if the viewer quietly discovered the scene.
+
+Avoid heroic composition.
+
+Avoid symmetrical exhibition-style framing unless required by the space.
+
+────────────────────────
+
+12. PERCEPTUAL REALISM
+
+Prioritize perceptual realism over visual spectacle.
+
+Lighting,
+material response,
+scale,
+shadow,
+weather,
+plant behavior,
+and animal motion
+must appear physically plausible.
+
+The image should initially look like a real photograph.
+
+Only after several seconds should the viewer notice
+that something is slightly impossible.
+
+────────────────────────
+
+13. MOOD
+
+quiet
+solitary
+contemplative
+humid or airy
+restrained
+slightly uncanny
+poetic
+everyday
+slow
+impermanent
+
+Japanese quiet architecture,
+wabi-sabi,
+but without obvious Japanese decorative symbols.
+
+────────────────────────
+
+14. STRICTLY AVOID
+
+no clutter
+no decorative furniture
+no excessive plants
+no fantasy architecture
+no glowing magic
+no neon lighting
+no colorful particles
+no cyberpunk
+no aquarium appearance
+no museum installation appearance
+no luxury interior
+no dramatic cinematic props
+no excessive fog
+no excessive bloom
+no perfectly symmetrical CG composition
+no obvious game environment
+no exaggerated depth of field
+no over-designed scenery
+
+────────────────────────
+
+FINAL IMAGE TARGET
+
+A believable everyday architectural space,
+mostly empty and mostly dark,
+defined by one strong natural light event,
+one quiet protagonist,
+one subtle natural motion system,
+and at most one impossible phenomenon.
+
+The scene should feel like:
+
+“something unusual is quietly happening here,
+but the place itself does not seem to care.”

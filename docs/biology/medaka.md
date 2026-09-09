@@ -77,3 +77,9 @@ Blender正式檔 `assets/blender/medaka_quiet_rain_shoal.blend` 已完成烘焙�
 使用者確認喜歡的基準已先保存於 `f3f2d5a`。本輪22→26尾，前22尾逐幀binary與個體metadata均與該commit完全相同；原場景GLB、母魚GLB、相機與光影設定不變。新增4尾在植物前方x≈1.30、z≈.03、y=.40/.55/.70/1.20 m以24/30/40/30秒小橢圓巡游，長4.56 cm，固定低速尾頻2.2–2.65 Hz；是美術編舞，非新增生態行為模擬。重建須保有上述Git基準commit。26尾Blender骨架已同步，每action54 curves、3601 keys，首尾root與bin誤差0。
 
 驗收：26尾全程capsule最小淨距.02219 m、簡化植物體積穿透0，動畫與runtime測試通過。
+
+## 2026-09-09 P3 共用本體與 studio 路徑契約
+
+`src/shared/biology/medaka/` 現在是母魚 GLB、骨架 clone、尾／胸鰭的時間取樣，以及 motion cache decode 的共用入口。`prepareMedaka()` 載入一份不可變 GLB；每個 `factory.create(parent, { route, phaseOffsetSeconds, ... })` 取得獨立 skeleton 和 material，`dispose()` 只釋放該 instance，factory 在最後釋放來源資源。第二個 studio 消費者直接使用此 API；Afterlight 也以它建立 rig，但仍用原 26 尾 cache 驅動，並在 adapter 保有既有的 bounds、尺度、bounce 和 room-specific lighting。
+
+`createMedakaRoute(controlPoints, options)` 的 control points 是 Three 世界座標、單位 metre。`speed` 是 m/s，`tempo` 是無量綱倍率，`pauseSeconds` 是秒；個體以 `phaseOffsetSeconds` 錯開同一條路徑。closed 路徑至少 3 點並沿 Catmull-Rom 切線取向；open 路徑至少 2 點，抵達終點後停住，絕不循環瞬移。路徑、停駐、姿態和尾鰭皆由 absolute elapsed 決定，暫停／seek 可重現。這是用於預覽與編舞的運動學近似，不是避碰、群游或流體物理解算。

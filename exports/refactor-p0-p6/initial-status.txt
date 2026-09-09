@@ -1,0 +1,16 @@
+ M AGENTS.md
+ M README.md
+ M docs/ARCHITECTURE.md
+ M docs/SCENES.md
+ M docs/VALIDATION.md
+ M docs/biology/README.md
+ M docs/scenes/afterlight.md
+ M package.json
+?? .local-backups/
+?? docs/plans/PROJECT_REFACTOR_HANDOFF.md
+?? docs/production/
+?? docs/prompts/
+?? docs/scenes/stairlight.md
+?? exports/refactor-p0-p6/
+?? scripts/
+?? skills/

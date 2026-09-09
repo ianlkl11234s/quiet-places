@@ -64,3 +64,11 @@
 ## 生物製作資料
 
 生物模型、形態參考、骨架／動作、來源授權與驗收狀態集中在 [biology/README.md](biology/README.md)，每個生物一頁。場景筆記保留其光影與空間接入差異；生物頁記錄可重用的本體資料。原始任務書是需求來源，與已實作、使用者確認和本機驗證分開記錄。
+
+## 2026-09-09：參數試片與正式設定
+
+Afterlight 幾何權威在 `assets/config/afterlight-geometry.json`，runtime 與 Blender 同讀；製作室線框也使用相同 helper。修改開口會使舊 GLB／間接光失效，線框只是草稿邊界，不證明陰影已符合候選。
+
+固定光方向與倍率可由 `afterlight-study.json` 試片／採用；直接光與散射仍沿用正式 Lighting，曝光由 renderer 處理。舊 GI 與 reflection capture 不因光方向滑桿自动重解；工具明确顯示限制。參數、資產 fingerprint 與採用／回退流程見 [製作室](production/STUDIO.md)。
+
+像素驗收需固定「建構」亂數與 elapsed；只固定動畫時間無法重現使用 Math.random 建立的浮塵。測試可固定 constructor 的亂數，不因此改正式房間既有分布。
