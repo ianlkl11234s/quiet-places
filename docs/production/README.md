@@ -43,3 +43,9 @@ Quiet Places 的累積單位是「房間、可重用能力、實驗與偏好」�
 - 已完成：本頁及能力／偏好／演進文件、兩份製作模板、MASTER 原文保留、根 AGENTS 與 `skills/quiet-places-production/SKILL.md`、`check:project`；修正文檔房間數、舊魚群說明與 Afterlight 目前摘要。
 - 驗證：`npm run check:project` 通過；暫存隔離案例缺少場景頁時正確失敗；production 文件相對連結通過；skill quick_validate 通過；`npm test` 50／50；`npm run build` 通過（仍有大於 500 kB chunk 提示）；`git diff --check` 通過。
 - 本次未改 `src/`、模型、貼圖或烘焙，未重做 browser、美術、實機或發布驗收。原交接的幾何契約、GPU 共用框架、資產 runner 與 UI 重構仍為候選，未宣稱完成。
+
+## 新 session 接手試作
+
+目前交付尚未合併主專案，請在 `/private/tmp/quiet-places-production-p0-p6`（`codex/production-p0-p6`）接手，不要從原主目錄或主分支另開未含本輪成果的 checkout。先讀根 AGENTS、本頁、`P0_P6_ACCEPTANCE.md`、`STUDIO.md` 與 `skills/quiet-places-production/SKILL.md`，再按需讀場景頁。
+
+第一個試作可在既有 Afterlight 改一個光照候選，保存固定條件 A/B 與實驗紀錄，保留正式基準。人工烘焙流程已接受；不要為追求全自動化另行擴充。這不是自動開始 P7、合併或發布的授權。不要刪除本 worktree 內未追蹤的生成結果與驗收證據。
