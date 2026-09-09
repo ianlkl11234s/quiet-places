@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {oceanWaveGLSL} from '../../shared/water/Optics.ts';
 
 // Procedural concrete and reflected opening. These are art-directed transport
 // approximations, not baked GI or a water/caustic solver. World coordinates: metres.
@@ -44,7 +45,23 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
 export function seaMaterial(time:{value:number},day:{value:number}){
  return new THREE.ShaderMaterial({uniforms:{uTime:time,uDay:day},side:THREE.DoubleSide,
  vertexShader:`varying vec3 p;void main(){p=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`,
- fragmentShader:`varying vec3 p;uniform float uTime,uDay;void main(){float waves=sin(p.z*5.+sin(p.x*.7+uTime*.19)+uTime*.45)*sin(p.x*3.2-p.z*1.4+uTime*.2);float sparkle=pow(max(waves,0.),16.);float far=smoothstep(18.,180.,-p.z);vec3 col=mix(vec3(.15,.23,.27),vec3(.39,.48,.51),far);col+=sparkle*vec3(.6,.64,.63)*(.4+.6*sin(p.x*.18)*sin(p.x*.18));gl_FragColor=vec4(col*uDay,1.);
+ fragmentShader:`varying vec3 p;uniform float uTime,uDay;
+ ${oceanWaveGLSL}
+ void main(){
+ vec2 slope=oceanSlope(p.xz,uTime);
+ float distanceToEye=length(cameraPosition-p);
+ float detail=1.-smoothstep(40.,260.,distanceToEye);
+ slope+=vec2(sin(p.x*4.7+p.z*3.1-uTime*1.8),sin(p.x*3.9-p.z*6.4+uTime*1.6))*.012*detail;
+ vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
+ vec3 view=normalize(cameraPosition-p),reflected=reflect(-view,normal);
+ float fresnel=.025+.975*pow(1.-max(dot(normal,view),0.),5.);
+ vec3 sky=mix(vec3(.49,.56,.58),vec3(.28,.39,.45),sqrt(max(reflected.y,0.)));
+ vec3 col=mix(vec3(.075,.14,.16),sky,fresnel);
+ vec3 light=normalize(vec3(.46,.55,-1.));
+ float sparkle=pow(max(dot(normal,normalize(view+light)),0.),180.);
+ col+=vec3(.55,.56,.52)*sparkle*.7;
+ col=mix(col,vec3(.40,.48,.50),smoothstep(150.,650.,distanceToEye)*.75);
+ gl_FragColor=vec4(col*uDay,1.);
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`});

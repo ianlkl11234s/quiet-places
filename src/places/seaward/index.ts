@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type {PlaceFactory} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
-import {seededRandom} from '../../shared/math/seededRandom.ts';
+import {createGrass} from './Grass.ts';
 import {prepareTunnelRay} from './Stingray.ts';
 import {tunnelMaterial,seaMaterial} from './Materials.ts';
 
@@ -30,13 +30,7 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   const pipe=(a:THREE.Vector3,b:THREE.Vector3,r:number)=>{const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,a.distanceTo(b),8),metal);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());root.add(mesh);};
   pipe(new THREE.Vector3(3.22,1.05,7),new THREE.Vector3(3.22,1.05,-10.8),.035);
   for(let z=-10;z<8;z+=2)pipe(new THREE.Vector3(3.22,1.05,z),new THREE.Vector3(3.4,.90,z),.022);
-  // Sparse dry grass: original procedural silhouettes, no asserted botanical species.
-  const random=seededRandom(91),grassMaterial=new THREE.MeshStandardMaterial({color:'#756e50',roughness:1,side:THREE.DoubleSide});
-  const grass=new THREE.Group();root.add(grass);
-  for(let i=0;i<62;i++){
-   const x=(i<31?-1:1)*(2.7+random()*.6),z=-11.7+random()*.7,h=.2+random()*.65,lean=(random()-.5)*.45;
-   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([x-.012,0,z,x+.012,0,z,x+lean*.5,h*.65,z,x+lean,h,z-.08],3));geometry.setIndex([0,1,2,1,3,2]);geometry.computeVertexNormals();grass.add(new THREE.Mesh(geometry,grassMaterial));
-  }
+  const grass=createGrass(day);root.add(grass.group);
   const sky=new THREE.HemisphereLight('#b7cbd6','#292623',.14);root.add(sky);
   const opening=new THREE.PointLight('#e3e7df',65,35,2);opening.position.set(1.7,3.1,-12);root.add(opening);
   const ray=createRay(root);
@@ -48,7 +42,7 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   const background=new THREE.Color('#c0ccd0');scene.background=background;
   let disposed=false;
   return {position:[2.6,1.35,2.8],target:[-1.6,1.5,-11],cameraMode:'fixed-position',yawRange:Math.PI/12,get fov(){return typeof window!=='undefined'&&window.innerWidth<700?90:53;},exposure:1.15,hasSimulation:false,waterMode:'',
-   update(_dt,elapsed,state){time.value=elapsed;beam.value=state.beamStrength??1;day.value=.10+.90*Math.min(1,Math.max(0,state.intensity));background.set('#c0ccd0').multiplyScalar(day.value);opening.intensity=65*day.value;sky.intensity=.14*day.value;mountainMaterial.color.set('#abb9bb').multiplyScalar(day.value);grass.rotation.z=Math.sin(elapsed*.31)*.001;ray.update(elapsed);shadow.position.set(visitor.position.x,.012,visitor.position.z);},
+   update(_dt,elapsed,state){time.value=elapsed;beam.value=state.beamStrength??1;day.value=.10+.90*Math.min(1,Math.max(0,state.intensity));background.set('#c0ccd0').multiplyScalar(day.value);opening.intensity=65*day.value;sky.intensity=.14*day.value;mountainMaterial.color.set('#abb9bb').multiplyScalar(day.value);grass.update(elapsed);ray.update(elapsed);shadow.position.set(visitor.position.x,.012,visitor.position.z);},
    disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
   };
  };
