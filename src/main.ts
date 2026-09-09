@@ -7,7 +7,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {waterOrbitLimits,waterCameraClearance} from './places/waterlight/Room.ts';
 import {preparePlace,places,moments,isPlaceId,type PlaceId} from './places/catalog.ts';
 import {getPlaceMetadata,placeSupports} from './places/metadata.ts';
-import {sampleTime,localHour,formatHour,momentName} from './systems/TimeOfDay.ts';
+import {sampleTime,sampleForwardTime,localHour,formatHour,momentName} from './systems/TimeOfDay.ts';
 import {createAudioSystem} from './systems/AudioSystem.ts';
 import {createMusicPlayer} from './systems/MusicPlayer.ts';
 import afterlightStudy from '../assets/config/afterlight-study.json';
@@ -107,6 +107,7 @@ async function start(){
  const sceneClock=createSceneClock({paused});
  let beamStrength=preferences.beamStrength;
  let hour=preferences.live?localHour():preferences.hour,live=preferences.live;let state=sampleTime(hour);
+ let timeTravel:{from:number;to:number;started:number}|undefined;
  const panel=el('settings'),toggle=el<HTMLButtonElement>('settings-toggle'),pause=el<HTMLButtonElement>('pause');
  let switching=false,exporting=false;
  const transition=el('room-transition');
@@ -163,7 +164,7 @@ async function start(){
    const room=save?getRoomPreferences(preferences,id):undefined;
    if(room){hour=room.live?localHour():room.hour;live=room.live;beamStrength=room.beamStrength;oceanLevel=room.oceanLevel;preferences.weather=room.weather;preferences.rainIntensity=room.rainIntensity;}
    place=candidate;scene=nextScene;renderPass.scene=scene;currentPlace=id;place.setOceanLevel?.(oceanLevel);
-   homeCamera();sceneClock.reset();state=sampleTime(hour);
+   homeCamera();sceneClock.reset();timeTravel=undefined;state=sampleTime(hour);
    const weatherProfile=getPlaceMetadata(id).weatherProfile;
    const waterRain=weatherProfile==='water'&&preferences.weather==='rain';
    const afterlightHeavyRain=weatherProfile==='afterlight'&&preferences.weather==='heavy-rain';
@@ -270,9 +271,14 @@ async function start(){
  document.addEventListener('pointerdown',event=>{if(activeToggle&&event.target instanceof Node&&!panels.some(entry=>entry.panel.contains(event.target as Node)||entry.toggle.contains(event.target as Node)))setPanel(false);});
  document.addEventListener('keydown',e=>{wake();if(e.key==='Escape'&&activeToggle)setPanel(false)});
  el<HTMLInputElement>('beam-strength').addEventListener('input',e=>{const value=Number((e.target as HTMLInputElement).value);beamStrength=value/100;preferences.beamStrength=beamStrength;persist();el('beam-value').textContent=`${value}%`;requestRender();});
- range.addEventListener('input',()=>{hour=+range.value;live=false;liveInput.checked=false;preferences.hour=hour;preferences.live=false;persist();updateLabels();requestRender();});
- document.querySelectorAll<HTMLButtonElement>('[data-hour]').forEach(button=>button.addEventListener('click',()=>{hour=+button.dataset.hour!;live=false;liveInput.checked=false;preferences.hour=hour;preferences.live=false;persist();updateLabels();requestRender();}));
- liveInput.addEventListener('change',()=>{live=liveInput.checked;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
+ function selectHour(next:number){
+  timeTravel={from:state.hour??hour,to:next,started:performance.now()};
+  hour=next;live=false;liveInput.checked=false;preferences.hour=hour;preferences.live=false;
+  persist();updateLabels();requestRender();
+ }
+ range.addEventListener('input',()=>selectHour(+range.value));
+ document.querySelectorAll<HTMLButtonElement>('[data-hour]').forEach(button=>button.addEventListener('click',()=>selectHour(+button.dataset.hour!)));
+ liveInput.addEventListener('change',()=>{live=liveInput.checked;timeTravel=undefined;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
  pause.addEventListener('click',()=>{paused=!paused;sceneClock.setPaused(paused);updateLabels();requestRender();});
  reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);updateLabels();requestRender();});
  el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
@@ -321,9 +327,12 @@ async function start(){
   // Preserve the target cadence after a late RAF; simulation uses actual time.
   last+=Math.max(1,Math.floor((now-last+.5)/interval))*interval;
   if(live){const next=localHour();const changed=Math.floor(next*60)!==Math.floor(hour*60);hour=next;if(changed)updateLabels();}
-  const target=sampleTime(hour),ease=paused?1:1-Math.exp(-dt*1.5);
-  for(const key of ['intensity','warmth','angle','activity'] as const)state[key]+=(target[key]-state[key])*ease;
-  state.hour=((state.hour??hour)+(((hour-(state.hour??hour)+36)%24)-12)*ease+24)%24;
+  if(timeTravel){
+   const current=sampleForwardTime(timeTravel.from,timeTravel.to,(now-timeTravel.started)/1000);
+   state=sampleTime(current.hour);
+   if(current.done)timeTravel=undefined;
+   el('time-label').textContent=formatHour(current.hour);el('hour-value').textContent=formatHour(current.hour);el('moment-label').textContent=momentName(current.hour);
+  }else state=sampleTime(hour);
   const weatherProfile=getPlaceMetadata(currentPlace).weatherProfile;
   const waterRain=weatherProfile==='water'&&preferences.weather==='rain';
   const afterlightHeavyRain=weatherProfile==='afterlight'&&preferences.weather==='heavy-rain';
@@ -332,7 +341,7 @@ async function start(){
   const sceneDt=switching?0:sceneClock.advance(dt);
   place.update(sceneDt,sceneClock.elapsed,{...lighting,beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
   controls.enableDamping=!reduce.matches;controls.update();composer.render();rendering=false;
-  if(!paused||now<dirtyUntil)raf=requestAnimationFrame(frame);
+  if(!paused||timeTravel||now<dirtyUntil)raf=requestAnimationFrame(frame);
  }
  const exportButton=el<HTMLButtonElement>('export-series');
  const exportCount=places.filter(place=>place.id!=='waterlight').length*moments.length;
