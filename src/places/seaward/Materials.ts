@@ -14,50 +14,27 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
  float grain=noise(uv*180.);float mottling=noise(uv*2.7)*.5+noise(uv*12.)*.3+grain*.2;
  float seam=min(abs(fract(uv.x/2.7)-.5)*2.7,abs(fract(uv.y/1.4)-.5)*1.4);
  float joints=mix(.65,1.,smoothstep(.002,.018,seam));
- float depth=max(p.z+11.,0.);
- float exitLight=exp(-depth*.16);
- float coastal=exp(-depth*.24);
- float baseDamp=(1.-smoothstep(.04,.70,p.y))*coastal;
- float seams=1.-smoothstep(.01,.075,seam);
- float streak=noise(vec2(floor(uv.x*13.)*.71,uv.y*.15));
- float runoff=smoothstep(.67,.88,streak)*coastal;
- float salt=smoothstep(.64,.81,noise(uv*8.+19.))*baseDamp*(1.-smoothstep(.15,.4,p.y));
+ float exitLight=exp(-max(p.z+11.,0.)*.16);
  // A single oblique daylight direction is clipped against the real exit rectangle.
  vec3 sun=uSun;float travel=(-11.-p.z)/sun.z;
  vec3 at=p+sun*travel;
  float opening=smoothstep(-3.4,-3.25,at.x)*(1.-smoothstep(3.25,3.4,at.x))*smoothstep(0.,.12,at.y)*(1.-smoothstep(4.05,4.2,at.y));
  float direct=opening*max(dot(n,sun),0.);
- vec3 concrete=vec3(.24,.255,.25)*(.86+mottling*.20)*joints;
- if(uKind==0){
-  concrete*=1.-baseDamp*.26-runoff*.14-seams*coastal*.07;
-  concrete=mix(concrete,vec3(.34,.345,.31),salt*.12);
-  concrete=mix(concrete,concrete*vec3(.82,.91,.76),baseDamp*smoothstep(.65,.85,noise(uv*3.))* .22);
-  float crack=1.-smoothstep(.002,.009,abs(uv.x-2.2-sin(uv.y*4.)*.018));
-  concrete*=1.-crack*smoothstep(.9,1.3,uv.y)*(1.-smoothstep(1.5,1.8,uv.y))*.15;
- }
+ vec3 concrete=vec3(.24,.255,.25)*(.68+mottling*.5)*joints;
  float ambient=.012+exitLight*(uKind==2?.09:.30);
- vec3 col=concrete*(vec3(.87,.94,1.)*ambient+direct*1.5*uDirect*uTint)*uDay;
- // Broad fragmented sea reflections, not underwater cellular refraction.
- vec2 seaUV=uv*vec2(.73,.94)+vec2(uTime*.031,-uTime*.023);
- float seaPatch=noise(seaUV+vec2(noise(seaUV*.6),noise(seaUV*.8+12.)));
- float ribbon=noise(vec2(seaUV.x*.62,seaUV.y*3.2)+seaPatch*1.8);
- float alignment=.45+.55*pow(.5+.5*sin(uTime*.39+uv.x*.7),5.);
- float reflected=smoothstep(.48,.70,seaPatch)*smoothstep(.48,.77,ribbon);
- float reach=exp(-depth*.48)*(1.-smoothstep(2.6,4.1,p.y));
- col+=uTint*vec3(.44,.48,.47)*reflected*alignment*reach*(uKind==2?0.:.25)*uDay*uBeam*uDirect;
+ vec3 col=concrete*(vec3(ambient)+direct*1.5*uDirect*uTint)*uDay;
+ // Animated reflected water light restricted to the exit-facing portion of the wall.
+ float a=sin(uv.x*6.+sin(uv.y*5.+uTime*.33)*1.8+uTime*.22);
+ float b=sin(uv.y*7.+sin(uv.x*4.-uTime*.27)*1.6);
+ float caustic=pow(max(0.,1.-abs(a+b)*.85),15.);
+ col+=vec3(.65,.72,.69)*caustic*exitLight*opening*(uKind==2?0.:.22)*uDay*uBeam*uDirect*uTint;
  if(uKind==1){
-  float lowArea=noise(uv*.56+vec2(7.,21.))*.63+noise(uv*2.4)*.25+noise(uv*12.)*.12;
-  float damp=smoothstep(.28,.63,lowArea)*(.25+.75*coastal);
-  float film=smoothstep(.57,.78,lowArea)*(.35+.65*coastal);
-  float puddle=smoothstep(.73,.83,lowArea);
-  float wet=film*.16+puddle*.68;
-  col*=1.-damp*.27;
-  col*=.96+.04*noise(uv*55.);
-  vec3 v=normalize(p-cameraPosition);vec3 normal=normalize(vec3((noise(uv*18.)-.5)*mix(.22,.045,puddle),1.,(noise(uv*17.+9.)-.5)*mix(.24,.06,puddle)));
+  float wet=smoothstep(.32,.62,noise(uv*.8)*.6+noise(uv*3.)*.4);
+  vec3 v=normalize(p-cameraPosition);vec3 normal=normalize(vec3((noise(uv*18.)-.5)*.055,1.,(noise(uv*17.+9.)-.5)*.07));
   vec3 r=reflect(v,normal);float d=(-11.-p.z)/r.z;vec3 q=p+r*d;
   float mask=step(0.,d)*smoothstep(-3.6,-3.25,q.x)*(1.-smoothstep(3.25,3.6,q.x))*smoothstep(0.,.3,q.y)*(1.-smoothstep(3.9,4.3,q.y));
-  float fresnel=.025+.42*pow(1.-max(dot(-v,normal),0.),5.);
-  col+=mix(vec3(.48,.59,.65),uTint*.58,.2)*mask*fresnel*wet*uDay;
+  float fresnel=.045+.50*pow(1.-max(dot(-v,normal),0.),5.);
+  col=mix(col,col*.65,wet);col+=vec3(.48,.59,.65)*mask*fresnel*wet*uDay;
  }
  gl_FragColor=vec4(col,1.);
  #include <tonemapping_fragment>
@@ -78,7 +55,7 @@ export function seaMaterial(time:{value:number},day:{value:number},sun:{value:TH
  vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
  vec3 view=normalize(cameraPosition-p),reflected=reflect(-view,normal);
  float fresnel=.025+.975*pow(1.-max(dot(normal,view),0.),5.);
- vec3 sky=mix(mix(vec3(.49,.56,.58),uTint*.60,.28*uDirect),vec3(.28,.39,.45),sqrt(max(reflected.y,0.)));
+ vec3 sky=mix(vec3(.49,.56,.58),vec3(.28,.39,.45),sqrt(max(reflected.y,0.)));
  vec3 col=mix(vec3(.075,.14,.16),sky,fresnel);
  vec3 light=uSun;
  float sparkle=pow(max(dot(normal,normalize(view+light)),0.),180.);

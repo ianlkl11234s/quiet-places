@@ -17,7 +17,7 @@ export function sampleTunnelFlight(elapsed:number){
  const time=Number.isFinite(elapsed)?elapsed:0;
  const cycle=((time%CYCLE)+CYCLE)%CYCLE;
  const lift=ease((cycle-10)/5)*(1-ease((cycle-27)/6));
- return {height:.545+.555*lift,roll:Math.PI*2*ease((cycle-16)/8)};
+ return {height:.425+.675*lift,roll:Math.PI*2*ease((cycle-16)/8)};
 }
 
 function tunnelPose(elapsed:number,carrier:THREE.Group):void {
@@ -27,10 +27,7 @@ function tunnelPose(elapsed:number,carrier:THREE.Group):void {
  // Separate heading from roll. Shortest-arc +Z alignment can introduce an
  // unintended bank near reverse headings; the authored roll has its own phase.
  const yaw=Math.atan2(.45*Math.cos(phase),1.5*Math.sin(phase));
- const cruising=1-THREE.MathUtils.smoothstep(flight.height,.55,.85);
- carrier.quaternion.setFromAxisAngle(UP,yaw)
-  .multiply(ROLL.setFromAxisAngle(FORWARD,flight.roll+Math.sin(time*.23)*.035*cruising))
-  .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.sin(time*.19)*.022*cruising));
+ carrier.quaternion.setFromAxisAngle(UP,yaw).multiply(ROLL.setFromAxisAngle(FORWARD,flight.roll));
 }
 
 /** One low, slow visitor for the dry Seaward tunnel; scene lights shade its native materials. */
@@ -62,9 +59,6 @@ export async function prepareTunnelRay():Promise<TunnelRayFactory> {
     });
     carrier.add(model);
     group.add(carrier);
-    const tails:THREE.Bone[]=[];
-    model.traverse(node=>{if(node instanceof THREE.Bone&&/^tail_\d+$/.test(node.name))tails.push(node);});
-    tails.sort((a,b)=>a.name.localeCompare(b.name));
     const skeletons=collectModelResources(model).skeletons;
     const mixer=new THREE.AnimationMixer(model);
     const action=mixer.clipAction(clip);
@@ -75,7 +69,6 @@ export async function prepareTunnelRay():Promise<TunnelRayFactory> {
       tunnelPose(elapsed,carrier);
       action.time=((Number.isFinite(elapsed)?elapsed:0)%clip.duration+clip.duration)%clip.duration;
       mixer.update(0);
-      tails.forEach((bone,i)=>{if(i>0)bone.rotation.z+=Math.sin(elapsed*.38-i*.3)*.012*i/9;});
       // Height follows the flight phrase, never the instantaneous soft fin tip.
       // Full-asset clearance is checked across the entire phrase in tests.
       group.updateWorldMatrix(true,false);carrier.updateMatrixWorld(true);
