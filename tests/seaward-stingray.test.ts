@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -7,6 +8,8 @@ import {prepareTunnelRay} from '../src/places/seaward/Stingray.ts';
 function fixture(){
   const root=new THREE.Group(),bone=new THREE.Bone();bone.name='fin';
   const geometry=new THREE.PlaneGeometry(1,1,1,1),material=new THREE.MeshStandardMaterial();
+  geometry.setAttribute('skinIndex',new THREE.Uint16BufferAttribute(new Uint16Array(16),4));
+  geometry.setAttribute('skinWeight',new THREE.Float32BufferAttribute([1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],4));
   const mesh=new THREE.SkinnedMesh(geometry,material);
   mesh.add(bone);mesh.bind(new THREE.Skeleton([bone]));root.add(mesh);
   const clip=new THREE.AnimationClip('SRAY_ACT_SLOW_CRUISE',2,[new THREE.VectorKeyframeTrack('fin.position',[0,1,2],[0,0,0,0,.1,0,0,0,0])]);
@@ -23,7 +26,7 @@ test('tunnel ray follows a deterministic low ellipse and releases GLB resources 
     for(let elapsed=0;elapsed<180;elapsed+=.25){
       ray.update(elapsed);const carrier=group.getObjectByName('tunnel-stingray')!;
       assert.ok(carrier.position.x>=-1.600001&&carrier.position.x<=1.600001);
-      assert.ok(carrier.position.y>=.299999&&carrier.position.y<=.550001);
+      assert.ok(carrier.position.y>=.299999&&carrier.position.y<=1.2);
       assert.ok(carrier.position.z>=-8.000001&&carrier.position.z<=-2.999999);
     }
     ray.update(17.25);const carrier=group.getObjectByName('tunnel-stingray')!,position=carrier.position.clone(),rotation=carrier.quaternion.clone();
@@ -57,4 +60,23 @@ test('missing slow cruise is rejected and releases the loaded template',async()=
     await assert.rejects(prepareTunnelRay(),/SRAY_ACT_SLOW_CRUISE/);
     assert.equal(geometryDisposals,1);assert.equal(materialDisposals,1);
   }finally{GLTFLoader.prototype.loadAsync=old;}
+});
+
+
+test('actual stingray skin stays above the floor through a full turning route',async()=>{
+ const bytes=await readFile(new URL('../public/models/stingray.glb',import.meta.url));
+ const gltf=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
+ const old=GLTFLoader.prototype.loadAsync;GLTFLoader.prototype.loadAsync=async()=>gltf;
+ try{
+  const factory=await prepareTunnelRay(),group=new THREE.Group(),ray=factory(group),bounds=new THREE.Box3();
+  let maximumLift=0;
+  for(let t=0;t<46;t+=.125){
+   ray.update(t);group.updateMatrixWorld(true);
+   const model=group.getObjectByName('tunnel-stingray-model')!;
+   bounds.setFromObject(model,true);assert.ok(bounds.min.y>=.0799,`floor clearance at ${t}: ${bounds.min.y}`);
+   maximumLift=Math.max(maximumLift,group.getObjectByName('tunnel-stingray')!.position.y);
+  }
+  assert.ok(maximumLift>.55,'turning poses lift above the previous route');
+  ray.dispose();
+ }finally{GLTFLoader.prototype.loadAsync=old;}
 });

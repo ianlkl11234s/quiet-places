@@ -52,12 +52,23 @@ export async function prepareTunnelRay():Promise<TunnelRayFactory> {
     const mixer=new THREE.AnimationMixer(model);
     const action=mixer.clipAction(clip);
     action.play();
+    const bounds=new THREE.Box3();
     let disposed=false;
     const update=(elapsed:number)=>{
       if(disposed)return;
       tunnelPose(elapsed,carrier);
       action.time=((Number.isFinite(elapsed)?elapsed:0)%clip.duration+clip.duration)%clip.duration;
       mixer.update(0);
+      // Measure the deformed skin, including the lowered fin and tail, rather
+      // than assuming the carrier height is enough during a roll.
+      group.updateWorldMatrix(true,false);carrier.updateMatrixWorld(true);
+      skeletons.forEach(skeleton=>skeleton.update());
+      bounds.setFromObject(model,true);
+      const deficit=.08-bounds.min.y;
+      // Smooth positive part: lift starts gently before the 8 cm floor margin.
+      carrier.position.y+=(deficit+Math.sqrt(deficit*deficit+.0025))*.5;
+      group.updateWorldMatrix(true,false);carrier.updateMatrixWorld(true);
+      skeletons.forEach(skeleton=>skeleton.update());
     };
     update(0);
     return {update,dispose(){
