@@ -34,3 +34,10 @@ Blender → 網站僅沿用原魟魚骨架 GLB。建築與材質由 TypeScript �
 首版相機位在右側，右牆過重；改到左側後保留暗牆並把出口移右。單隻路徑縮至 x=-.9±.45 m、z=-6.2±1.5 m，y=.3–.55 m，尺度 .9；相位速度 .14 rad/s，美術值。近地陰影是淡橢圓 AO，不是 shadow map。窄螢幕最初裁掉魟魚，擴大垂直 FOV 後驗收。第一版仍有程序表面與海波重複感，尚未重建參考照片的細緻材質、粗糙反射與完整間接光。
 
 本輪補充驗收：390×844 直式已見海景與魟魚，證據 `exports/seaward-review/portrait.png`；隧道 → 海光之室 → 隧道已操作。原 viewport 已恢復。測試涵蓋缺 clip、未使用 factory 及重複 dispose；路徑調整後 3/3 focused tests 再通過。此次新增內容保存於同名分支的 `feat: add seaward tunnel with a single stingray` commit（hash 由 git log 取得），未合併主工作區。
+
+
+## 2026-09-09：依使用者截圖修正站位與穿牆
+
+使用者指出轉向後左側露出牆外天空，要求靠右牆站立、往左轉。前版把站位移左是錯誤解讀，且 OrbitControls 繞遠方注視點移動眼睛，可能使相機越過左牆。改為右側 [2.6,1.35,2.8] m、初始注視 [-1.6,1.5,-11]，左右 15°；cameraMode=fixed-position 在拖曳與鍵盤改變方向後，同步平移 pivot，把眼睛保持在原站位。其餘場景維持原 orbit。距右牆 .8 m，相機 near=.1 m；此修正不改材質、魟魚或光。頂部先前相機數字屬首版歷史，以本段與程式為最新權威。
+
+驗收：check:project、build 與 75/75 測試通過；1280×720 實際操作左右極限，未見穿牆。固定站位模式另校正方向鍵：左鍵向左看、右鍵向右看。圖 `camera-left.png`／`camera-right.png` 是兩端證據（依實際觀看方向命名）。保持原 shader 與資產；未發布。

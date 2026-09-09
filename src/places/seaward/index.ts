@@ -47,7 +47,7 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   const visitor=root.getObjectByName('tunnel-stingray')!;
   const background=new THREE.Color('#c0ccd0');scene.background=background;
   let disposed=false;
-  return {position:[-2,1.25,1.8],target:[-4.1,1.5,-11],yawRange:Math.PI/30,get fov(){return typeof window!=='undefined'&&window.innerWidth<700?90:53;},exposure:1.15,hasSimulation:false,waterMode:'',
+  return {position:[2.6,1.35,2.8],target:[-1.6,1.5,-11],cameraMode:'fixed-position',yawRange:Math.PI/12,get fov(){return typeof window!=='undefined'&&window.innerWidth<700?90:53;},exposure:1.15,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){time.value=elapsed;beam.value=state.beamStrength??1;day.value=.10+.90*Math.min(1,Math.max(0,state.intensity));background.set('#c0ccd0').multiplyScalar(day.value);opening.intensity=65*day.value;sky.intensity=.14*day.value;mountainMaterial.color.set('#abb9bb').multiplyScalar(day.value);grass.rotation.z=Math.sin(elapsed*.31)*.001;ray.update(elapsed);shadow.position.set(visitor.position.x,.012,visitor.position.z);},
    disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
   };

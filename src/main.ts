@@ -79,7 +79,7 @@ async function start(){
  renderer.domElement.addEventListener('keydown',e=>{
   if(exporting||switching||!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
   if(e.key==='Home'){resetView();return;}
-  const angle=THREE.MathUtils.clamp(controls.getAzimuthalAngle()+(e.key==='ArrowLeft'?-.08:.08),controls.minAzimuthAngle,controls.maxAzimuthAngle);
+  const angle=THREE.MathUtils.clamp(controls.getAzimuthalAngle()+(e.key==='ArrowLeft'?-.08:.08)*(place.cameraMode==='fixed-position'?-1:1),controls.minAzimuthAngle,controls.maxAzimuthAngle);
   const offset=camera.position.clone().sub(controls.target),radius=Math.hypot(offset.x,offset.z);
   camera.position.set(controls.target.x+Math.sin(angle)*radius,camera.position.y,controls.target.z+Math.cos(angle)*radius);controls.update();
  });
@@ -294,7 +294,15 @@ async function start(){
   if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
  }
  // Paused scenes redraw only after input; a short tail lets orbit damping settle.
- controls.addEventListener('change',requestRender);
+ controls.addEventListener('change',()=>{
+  if(place.cameraMode==='fixed-position'){
+   // OrbitControls supplies the look direction; translate its pivot back with
+   // the eye so dragging never moves this viewer through a nearby wall.
+   const correction=homePosition.clone().sub(camera.position);
+   controls.target.add(correction);camera.position.copy(homePosition);
+  }
+  requestRender();
+ });
  document.addEventListener('input',requestRender);
  document.addEventListener('click',requestRender);
  function resize(){
