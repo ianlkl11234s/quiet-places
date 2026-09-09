@@ -5,9 +5,10 @@ import {mkdtempSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
+import {fileURLToPath} from 'node:url';
 import {defaultStudy,STUDY_ASSET_PATHS,type StudyPreset} from '../src/shared/production/StudyPreset.ts';
 
-const script=new URL('../scripts/study.mjs',import.meta.url).pathname;
+const script=fileURLToPath(new URL('../scripts/study.mjs',import.meta.url));
 const hash=(value:Buffer|string)=>createHash('sha256').update(value).digest('hex');
 const writeJson=(file:string,value:unknown)=>writeFileSync(file,`${JSON.stringify(value,null,2)}\n`);
 
@@ -91,6 +92,6 @@ test('pending experiment retains source provenance and offers validation without
  assert.equal(receipt.experiment.sourceRevision,'abc123');assert.equal(receipt.experiment.sourceDirty,true);
  const guide=readFileSync(join(result.stageDir,'experiment.md'),'utf8');
  const command=guide.match(/`(node [^`]*study.mjs validate [^`]*)`/)?.[1];assert.ok(command,'a pending candidate must have a read-only reproduction command');
- execFileSync('/bin/sh',['-c',command],{cwd:new URL('..',import.meta.url).pathname});
+ execFileSync('/bin/sh',['-c',command],{cwd:fileURLToPath(new URL('..',import.meta.url))});
  assert.equal(JSON.parse(readFileSync(join(root,'assets/config/afterlight-study.json'),'utf8')).light.exposure,1.25);
 });
