@@ -17,7 +17,7 @@ export function sampleTunnelFlight(elapsed:number){
  const time=Number.isFinite(elapsed)?elapsed:0;
  const cycle=((time%CYCLE)+CYCLE)%CYCLE;
  const lift=ease((cycle-10)/5)*(1-ease((cycle-27)/6));
- return {height:.425+.675*lift,roll:Math.PI*2*ease((cycle-16)/8)};
+ return {height:.545+.555*lift,roll:Math.PI*2*ease((cycle-16)/8)};
 }
 
 function tunnelPose(elapsed:number,carrier:THREE.Group):void {

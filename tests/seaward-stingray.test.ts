@@ -89,7 +89,7 @@ test('flight rises before rolling and stays level until the roll has settled',()
  for(const t of [16,18,20,22,24,26])assert.ok(Math.abs(sampleTunnelFlight(t).height-1.1)<1e-9);
  assert.equal(sampleTunnelFlight(24).roll,Math.PI*2);
  assert.ok(sampleTunnelFlight(29).height<sampleTunnelFlight(27).height);
- assert.ok(Math.abs(sampleTunnelFlight(33).height-.425)<1e-9);
+ assert.ok(Math.abs(sampleTunnelFlight(33).height-.545)<1e-9);
  const period=2*Math.PI/.14;
  assert.ok(Math.abs(sampleTunnelFlight(period-.001).height-sampleTunnelFlight(period+.001).height)<1e-8);
 });
