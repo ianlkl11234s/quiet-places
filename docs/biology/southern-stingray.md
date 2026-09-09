@@ -51,3 +51,11 @@
 ## 2026-09-09：向海的隧道 adapter
 
 [向海的隧道](../scenes/seaward.md) 以 `src/places/seaward/Stingray.ts` 沿用同一 GLB 與 SLOW_CRUISE clip，單隻 .9 尺度、原生材質與絕對 elapsed；資產、骨架與海光之室 adapter 未修改。路徑與近地 AO 屬此房間的美術近似。新增 factory 資源／缺 clip／暫停測試通過；真 GLB 已在本機 browser 顯示，未宣稱重新驗證生物形態。
+
+## 隧道動作偏好與防穿透（2026-09-09）
+
+來源：使用者明確否定「撐竿跳」，要求先飛上去、轉圈、變回平面再降落。這是隧道的美術行為，不是水中魟魚生物學運動規則，也不改海光之室動作。
+
+權威為 `src/places/seaward/Stingray.ts` 的 `sampleTunnelFlight`：10–15秒抬升、16–24秒翻圈、24–27秒回平保持、27–33秒下降；週期約44.88秒，平飛root .545 m、高點1.1 m。yaw與roll分開，保留GLB的柔鰭clip。不要恢復已撤掉的逐幀鰭尖最低點驅動root升降。
+
+`tests/seaward-stingray.test.ts`用實際GLB變形頂點覆蓋完整46秒、每.125秒取樣，檢查至少約8cm離地，另檢查動作順序、暫停與釋放。是取樣保證，不是任意連續姿態碰撞解算；换模型、尺度或clip需重驗。採用／拒絕版本見[場景目前摘要](../scenes/seaward.md#目前狀態)。
