@@ -66,3 +66,9 @@ Blender → 網站僅沿用原魟魚骨架 GLB。建築與材質由 TypeScript �
 建築裁切直射、波光範圍與海面高光使用同一 uSun／uTint／uDirect。魟魚、草與扶手仍用出口點光源近似：位置隨方向投影且限制在開口附近，強度依原 day；這不是完整一致的 directional shadow/GI pipeline。濕地反射仍是出口冷色近似，未加入完整天空色傳輸。
 
 check:project、方向／高度／暮色／夜間與24小時接縫 focused test、build 通過。browser 暫停同畫面切晨曦／暮色可見兩側受光改變，證據 `exports/seaward-review/daylight-dawn.png`、`daylight-sunset.png`；時刻控制即使暫停仍可重畫。未發布，使用者美術確認待定。
+
+## 2026-09-09：先升空、翻身、回平、下降
+
+使用者否定逐幀依鰭尖抬升造成的「撐竿跳」，明確要求先升高、完整翻圈、恢復平面再降落。此版本取代前節 runtime 最低點抬升：`sampleTunnelFlight` 以獨立五次平滑曲線安排 10–15 s 抬升、16–24 s 翻圈、24–27 s 回平保持、27–33 s 下降；週期沿用路徑約44.88 s。平飛高度 .425 m、空中高度1.1 m，翻圈期间固定高度。yaw 與 roll 分離，避免 shortest-arc 對齊在反向航向時自行產生側翻。原 GLB slow cruise 柔鰭不變。
+
+不再逐幀 CPU 掃頂點，也不讓柔鰭最低點驅動升降。完整真 GLB 46秒／.125秒取樣檢查維持8cm離地要求；另驗證先升後翻、翻圈高度不變、回平後才降、暫停及資源釋放，5/5 通過。固定高度只適用目前資產與動作，換模型／尺度需重驗，不宣稱通用碰撞解算。check:project、build通過，本機browser載入，未發布。

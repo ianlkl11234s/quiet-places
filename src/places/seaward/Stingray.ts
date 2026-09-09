@@ -6,17 +6,28 @@ import {collectModelResources,disposeModelResources} from '../../shared/resource
 export interface TunnelRay { update(elapsed:number):void; dispose():void; }
 export type TunnelRayFactory=((group:THREE.Group)=>TunnelRay)&{dispose():void};
 
+const UP=new THREE.Vector3(0,1,0);
 const FORWARD=new THREE.Vector3(0,0,1);
-const TANGENT=new THREE.Vector3();
+const ROLL=new THREE.Quaternion();
+const CYCLE=2*Math.PI/.14;
+const ease=(t:number)=>{const x=THREE.MathUtils.clamp(t,0,1);return THREE.MathUtils.clamp(x*x*x*(x*(x*6-15)+10),0,1);};
+
+/** Seconds: rise 10–15, roll 16–24, settle upright 24–27, descend 27–33. */
+export function sampleTunnelFlight(elapsed:number){
+ const time=Number.isFinite(elapsed)?elapsed:0;
+ const cycle=((time%CYCLE)+CYCLE)%CYCLE;
+ const lift=ease((cycle-10)/5)*(1-ease((cycle-27)/6));
+ return {height:.425+.675*lift,roll:Math.PI*2*ease((cycle-16)/8)};
+}
 
 function tunnelPose(elapsed:number,carrier:THREE.Group):void {
-  const time=Number.isFinite(elapsed)?elapsed:0;
-  const phase=time*.14;
-  carrier.position.set(-.9+.45*Math.sin(phase),.425+.125*Math.sin(phase-.6),-6.2-1.5*Math.cos(phase));
-  // The GLB root faces +Z.  This tangent keeps the animal travelling forward
-  // around an ellipse wholly inside the tunnel, independent of frame delta.
-  TANGENT.set(.45*Math.cos(phase),.125*Math.cos(phase-.6),1.5*Math.sin(phase)).normalize();
-  carrier.quaternion.setFromUnitVectors(FORWARD,TANGENT);
+ const time=Number.isFinite(elapsed)?elapsed:0,phase=time*.14;
+ const flight=sampleTunnelFlight(time);
+ carrier.position.set(-.9+.45*Math.sin(phase),flight.height,-6.2-1.5*Math.cos(phase));
+ // Separate heading from roll. Shortest-arc +Z alignment can introduce an
+ // unintended bank near reverse headings; the authored roll has its own phase.
+ const yaw=Math.atan2(.45*Math.cos(phase),1.5*Math.sin(phase));
+ carrier.quaternion.setFromAxisAngle(UP,yaw).multiply(ROLL.setFromAxisAngle(FORWARD,flight.roll));
 }
 
 /** One low, slow visitor for the dry Seaward tunnel; scene lights shade its native materials. */
@@ -52,21 +63,14 @@ export async function prepareTunnelRay():Promise<TunnelRayFactory> {
     const mixer=new THREE.AnimationMixer(model);
     const action=mixer.clipAction(clip);
     action.play();
-    const bounds=new THREE.Box3();
     let disposed=false;
     const update=(elapsed:number)=>{
       if(disposed)return;
       tunnelPose(elapsed,carrier);
       action.time=((Number.isFinite(elapsed)?elapsed:0)%clip.duration+clip.duration)%clip.duration;
       mixer.update(0);
-      // Measure the deformed skin, including the lowered fin and tail, rather
-      // than assuming the carrier height is enough during a roll.
-      group.updateWorldMatrix(true,false);carrier.updateMatrixWorld(true);
-      skeletons.forEach(skeleton=>skeleton.update());
-      bounds.setFromObject(model,true);
-      const deficit=.08-bounds.min.y;
-      // Smooth positive part: lift starts gently before the 8 cm floor margin.
-      carrier.position.y+=(deficit+Math.sqrt(deficit*deficit+.0025))*.5;
+      // Height follows the flight phrase, never the instantaneous soft fin tip.
+      // Full-asset clearance is checked across the entire phrase in tests.
       group.updateWorldMatrix(true,false);carrier.updateMatrixWorld(true);
       skeletons.forEach(skeleton=>skeleton.update());
     };

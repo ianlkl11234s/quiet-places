@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {prepareTunnelRay} from '../src/places/seaward/Stingray.ts';
+import {prepareTunnelRay,sampleTunnelFlight} from '../src/places/seaward/Stingray.ts';
 
 function fixture(){
   const root=new THREE.Group(),bone=new THREE.Bone();bone.name='fin';
@@ -79,4 +79,17 @@ test('actual stingray skin stays above the floor through a full turning route',a
   assert.ok(maximumLift>.55,'turning poses lift above the previous route');
   ray.dispose();
  }finally{GLTFLoader.prototype.loadAsync=old;}
+});
+
+
+test('flight rises before rolling and stays level until the roll has settled',()=>{
+ assert.equal(sampleTunnelFlight(10).roll,0);
+ assert.ok(sampleTunnelFlight(14).height>sampleTunnelFlight(11).height);
+ assert.equal(sampleTunnelFlight(15).roll,0);
+ for(const t of [16,18,20,22,24,26])assert.ok(Math.abs(sampleTunnelFlight(t).height-1.1)<1e-9);
+ assert.equal(sampleTunnelFlight(24).roll,Math.PI*2);
+ assert.ok(sampleTunnelFlight(29).height<sampleTunnelFlight(27).height);
+ assert.ok(Math.abs(sampleTunnelFlight(33).height-.425)<1e-9);
+ const period=2*Math.PI/.14;
+ assert.ok(Math.abs(sampleTunnelFlight(period-.001).height-sampleTunnelFlight(period+.001).height)<1e-8);
 });
