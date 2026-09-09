@@ -1,7 +1,7 @@
-export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight';
+export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'seaward';
 
 export type PlaceCapability = 'weather' | 'ocean-level' | 'water-interaction' | 'camera-distance';
-export type WeatherProfile = 'water' | 'afterlight';
+export type WeatherProfile = 'water' | 'afterlight' | 'seaward';
 
 export interface PlaceMetadata {
   id: PlaceId;
@@ -18,6 +18,7 @@ export const places = [
   {id:'leaflight',name:'樹影午後',subtitle:'微風穿過枝葉',capabilities:[],cameraHint:'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。',cameraAriaLabel:'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設'},
   {id:'oceanlight',name:'海光之室',subtitle:'緩慢起伏的海',capabilities:['ocean-level'],cameraHint:'窗外海面三種水位。拖曳微調視角，左右各 15°。',cameraAriaLabel:'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設'},
   {id:'afterlight',name:'雨後天井',subtitle:'雨後的光與新葉',capabilities:['weather','camera-distance'],weatherProfile:'afterlight',cameraHint:'青鱂在植物與陰影間聚散。拖曳微調視角，左右各 6°。',cameraAriaLabel:'拖曳觀看雨後天井，左右各6度；滾輪拉近拉遠，方向鍵旋轉，Home重設'},
+  {id:'seaward',name:'向海的隧道',subtitle:'海風與一隻魟魚',capabilities:[],cameraHint:'魟魚緩緩穿過明暗交界。拖曳微調視角。',cameraAriaLabel:'拖曳觀看海邊隧道；方向鍵旋轉，Home重設'},
 ] as const satisfies readonly PlaceMetadata[];
 export const isPlaceId=(value:unknown):value is PlaceId=>places.some(place=>place.id===value);
 export const getPlaceMetadata=(id:PlaceId):PlaceMetadata=>places.find(place=>place.id===id)!;
