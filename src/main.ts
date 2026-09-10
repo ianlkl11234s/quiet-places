@@ -148,7 +148,7 @@ async function start(){
   document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>{
    const id=button.dataset.place as PlaceId,position=layout.get(id),active=id===currentPlace;
    button.toggleAttribute('aria-current',active);if(active)button.setAttribute('aria-current','location');
-   if(position){button.style.setProperty('--bubble-x',`${position.x}%`);button.style.setProperty('--bubble-y',`${position.y}%`);button.style.setProperty('--bubble-scale',String(position.scale));button.style.setProperty('--bubble-delay',`${position.delay}ms`);}
+   if(position){button.style.setProperty('--bubble-x',`${position.x}%`);button.style.setProperty('--bubble-y',`${position.y}%`);button.style.setProperty('--bubble-scale',String(position.scale));button.style.setProperty('--bubble-copy-scale',String(1/position.scale));button.style.setProperty('--bubble-delay',`${position.delay}ms`);}
   });
   bubbleMotion.setAnchors([...layout].map(([id,position])=>({id,x:position.x,y:position.y,scale:position.scale})));
   el('water-options').hidden=!hasWeather;
