@@ -1,7 +1,8 @@
 :root{
   font-family:"Avenir Next","PingFang TC","Noto Sans TC",sans-serif;
   color:#e1e2d8;background:#080e11;color-scheme:dark;font-synthesis:none;
-  --glass:#0c1214a8;--glass-strong:#0c1214dc;--hairline:#eef5ef1f;--muted:#c8cec6a6;
+  --font-display:"Iowan Old Style","Songti TC",serif;--font-ui:"Avenir Next","PingFang TC","Noto Sans TC",sans-serif;
+  --chrome-inset:34px;--glass:#0c1214a8;--glass-strong:#0c1214dc;--hairline:#eef5ef1f;--muted:#c8cec6a6;--ivory:#f4f3e9;
 }
 *{box-sizing:border-box}
 body{margin:0;overflow:hidden}
@@ -15,15 +16,15 @@ button:disabled{opacity:.4;cursor:wait}
 .grain{position:fixed;inset:0;pointer-events:none;opacity:.055;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.94' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.7' d='M0 0h180v180H0z'/%3E%3C/svg%3E")}
 .visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
-.chrome{position:fixed;left:44px;right:44px;z-index:2;display:flex;align-items:center;justify-content:space-between;transition:opacity 1.4s ease}
-header.chrome{top:36px;align-items:flex-start}
-.wordmark{font-family:"Iowan Old Style","Songti TC",serif;font-size:13px;line-height:1.9;letter-spacing:.36em;color:inherit;text-decoration:none;text-shadow:0 1px 16px #0008}
-.wordmark span{display:block;font-family:"Avenir Next","PingFang TC",sans-serif;font-size:9px;letter-spacing:.4em;opacity:.48}
+.chrome{position:fixed;left:var(--chrome-inset);right:var(--chrome-inset);z-index:2;display:flex;align-items:center;justify-content:space-between;transition:opacity 1.4s ease}
+header.chrome{top:30px;align-items:flex-start}
+.wordmark{font-family:var(--font-display);font-size:12px;line-height:1.9;letter-spacing:.32em;color:inherit;text-decoration:none;text-shadow:0 1px 16px #0008}
+.wordmark span{display:block;font-family:var(--font-ui);font-size:9px;letter-spacing:.3em;opacity:.5}
 .caption{font-size:8px;line-height:2.1;text-align:right;letter-spacing:.18em;opacity:.42;text-shadow:0 1px 14px #000}
 footer.chrome{bottom:28px;justify-content:flex-start;font-size:10px}
-.moment{display:flex;align-items:center;gap:10px;letter-spacing:.13em;text-shadow:0 1px 12px #000}
+.moment{display:flex;align-items:center;gap:9px;padding-left:10px;border-left:1px solid #f3f1e73b;font-family:var(--font-ui);font-size:9px;letter-spacing:.13em;text-shadow:0 1px 12px #000}
 #time-label{opacity:.42;font-variant-numeric:tabular-nums}
-.dot{width:4px;height:4px;border-radius:50%;background:#dde2ca;box-shadow:0 0 9px #d9e1c87d}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--ivory);box-shadow:0 0 9px #d9e1c87d}
 body.resting .chrome{opacity:0;pointer-events:none}
 body.resting:has(:focus-visible) .chrome{opacity:1;pointer-events:auto}
 
@@ -31,17 +32,17 @@ body.resting:has(:focus-visible) .chrome{opacity:1;pointer-events:auto}
 .entry-dock{
   position:fixed;right:34px;bottom:22px;z-index:7;display:flex;align-items:center;gap:2px;
   min-height:40px;padding:4px;border:1px solid var(--hairline);border-radius:22px;
-  background:linear-gradient(110deg,#ffffff0b,#ffffff02),#09101299;
-  box-shadow:inset 0 1px 0 #ffffff12,0 10px 32px #0004;
+  background:linear-gradient(110deg,#ffffff08,#ffffff01),#0910128c;
+  box-shadow:inset 0 1px 0 #ffffff0f,0 10px 32px #0003;
   backdrop-filter:blur(15px) saturate(.7);-webkit-backdrop-filter:blur(15px) saturate(.7);
   transition:opacity .8s ease,transform .8s ease,background .3s ease;
 }
 body.resting .entry-dock{opacity:.36;transform:translateY(3px)}
 body.resting .entry-dock:hover,body.resting .entry-dock:focus-within{opacity:1;transform:none}
-.dock-button{display:flex;align-items:center;justify-content:center;gap:7px;height:32px;min-width:36px;padding:0 10px;border-radius:17px;color:#d9ddd6;letter-spacing:.08em;font-size:9px;transition:background .25s ease,color .25s ease}
+.dock-button{display:flex;align-items:center;justify-content:center;gap:7px;height:32px;min-width:36px;padding:0 10px;border-radius:17px;color:#d9ddd6;font-family:var(--font-ui);letter-spacing:.08em;font-size:9px;transition:background .25s ease,color .25s ease}
 .dock-button:hover,.dock-button[aria-expanded=true],.dock-button[aria-pressed=true]{background:#ffffff10;color:#fff}
 .dock-button--compact{width:32px;min-width:32px;padding:0}
-.dock-button--about{font-family:"Iowan Old Style",serif;font-size:13px;font-style:italic;opacity:.66}
+.dock-button--about{font-family:var(--font-display);font-size:12px;font-style:italic;opacity:.58}
 .dock-icon{position:relative;display:block;width:14px;height:14px;flex:0 0 auto;opacity:.86}
 .dock-icon--rooms::before,.dock-icon--rooms::after{content:"";position:absolute;border:1px solid currentColor;border-radius:50%}
 .dock-icon--rooms::before{width:7px;height:7px;left:0;top:1px;box-shadow:5px 5px 0 -1px #0d1416,5px 5px 0 0 currentColor}
@@ -56,26 +57,28 @@ body.resting .entry-dock:hover,body.resting .entry-dock:focus-within{opacity:1;t
 
 .dock-music{display:flex;align-items:center;height:32px;margin:0 2px;border-left:1px solid #ffffff12;border-right:1px solid #ffffff12}
 .dock-music button{height:32px;min-height:32px;color:#dfe3dc}
-.dock-music__play{display:flex;align-items:center;gap:7px;max-width:138px;padding:0 6px 0 10px;border-radius:16px 4px 4px 16px;font-size:9px;letter-spacing:.05em}
+.dock-music__play{display:flex;align-items:center;gap:7px;max-width:124px;padding:0 6px 0 10px;border-radius:16px 4px 4px 16px;font-family:var(--font-ui);font-size:9px;letter-spacing:.05em}
 .dock-music__play:hover,.dock-music__play[aria-pressed=true]{background:#ffffff0c}
-#music-play-icon{display:grid;place-items:center;width:14px;height:14px;font-family:"Iowan Old Style",serif;font-size:13px}
-#music-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:92px}
+#music-play-icon{display:grid;place-items:center;width:14px;height:14px;font-family:var(--font-display);font-size:13px}
+#music-track-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:78px}
 .dock-music__more{width:25px;padding:0;border-radius:4px 14px 14px 4px;font-size:10px;opacity:.55;transition:transform .25s ease,opacity .25s ease}
 .dock-music__more:hover,.dock-music__more[aria-expanded=true]{opacity:1;background:#ffffff0c}
 .dock-music__more[aria-expanded=true]{transform:rotate(180deg)}
 
-.dock-moments{display:grid;grid-template-columns:repeat(4,1fr);align-items:center;width:clamp(280px,24vw,340px);height:32px;margin:0 2px;padding:0 4px;border-left:1px solid #ffffff12;border-right:1px solid #ffffff12}
-.dock-moments button{position:relative;min-width:0;height:32px;padding:0 7px;color:#99a29d;font-family:"Iowan Old Style","Songti TC",serif;font-size:13px;font-weight:400;letter-spacing:.1em;white-space:nowrap;transition:color .35s ease,font-weight .35s ease,text-shadow .35s ease}
+.dock-moments{display:grid;grid-template-columns:repeat(4,1fr);align-items:center;width:clamp(264px,22vw,310px);height:32px;margin:0 2px;padding:0 4px;border-left:1px solid #ffffff12;border-right:1px solid #ffffff12}
+.dock-moments button{position:relative;min-width:0;height:32px;padding:0 7px;color:#99a29d;font-family:var(--font-display);font-size:13px;font-weight:400;letter-spacing:.1em;white-space:nowrap;transition:color .35s ease,font-weight .35s ease,text-shadow .35s ease}
 .dock-moments button:hover,.dock-moments button:focus-visible{color:#d9ded8}
 .dock-moments button[aria-checked=true]{color:#f5f6f0;font-weight:600;text-shadow:0 0 15px #f2f4e64a}
 .dock-moments button[aria-checked=true]::after{content:"";position:absolute;left:31%;right:31%;bottom:3px;height:1px;background:#f2f4e6;box-shadow:0 0 8px #f2f4e6b0}
 
-.dock-range{display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;color:#ced3cc;font-size:8px;letter-spacing:.04em}
-.dock-range input[type=range]{width:76px;height:18px;margin:0;accent-color:#d9ddd3;cursor:pointer}
+.dock-range{display:flex;align-items:center;gap:6px;height:32px;padding:0 8px;color:#aeb6b0;font-family:var(--font-ui);font-size:8px;letter-spacing:.04em;transition:color .25s ease}
+.dock-range:hover,.dock-range:focus-within{color:#e2e5df}
+.dock-range input[type=range]{width:76px;height:18px;margin:0;accent-color:#c8cec5;cursor:pointer;opacity:.68;transition:opacity .25s ease}
+.dock-range:hover input,.dock-range:focus-within input{opacity:1}
 .dock-range output{min-width:34px;color:#b9c0ba;font-variant-numeric:tabular-nums;text-align:right}
 .dock-range--light{border-left:1px solid #ffffff12}
 .dock-range--light input[type=range]{width:58px}
-.dock-range__icon{width:12px;text-align:center;font-size:13px;opacity:.75}
+.dock-range__icon{width:12px;text-align:center;font-size:13px;opacity:.62}
 .dock-range__icon--light{position:relative;height:12px;border:1px solid currentColor;border-radius:50%}
 .dock-range__icon--light::after{content:"";position:absolute;inset:-3px;border:1px dotted currentColor;border-radius:50%;opacity:.45}
 
@@ -127,7 +130,7 @@ body.resting .entry-dock:hover,body.resting .entry-dock:focus-within{opacity:1;t
 .room-browser{position:fixed;inset:0;z-index:10;overflow:hidden;color:#eef0e8;background:linear-gradient(90deg,#0610128f 0%,#06101255 31%,#06101224 68%,#0610125e 100%);backdrop-filter:blur(6px) brightness(.58) saturate(.72);-webkit-backdrop-filter:blur(6px) brightness(.58) saturate(.72)}
 .room-browser[hidden]{display:none}
 .room-browser__wash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 67% 43%,#b8d8d416 0,transparent 29%),linear-gradient(100deg,#03090bd9 0%,transparent 45%)}
-.room-browser__head{position:absolute;top:34px;left:44px;right:44px;z-index:3;display:flex;align-items:center;justify-content:space-between;font-family:"Iowan Old Style","Songti TC",serif;font-size:11px;letter-spacing:.38em}
+.room-browser__head{position:absolute;top:34px;left:var(--chrome-inset);right:var(--chrome-inset);z-index:3;display:flex;align-items:center;justify-content:space-between;font-family:var(--font-display);font-size:11px;letter-spacing:.38em}
 .room-browser__head button{display:grid;place-items:center;width:38px;height:38px;padding:0;border-radius:50%;font-family:"Avenir Next",sans-serif;font-size:24px;font-weight:200;opacity:.6}
 .room-browser__head button:hover{background:#ffffff0a;opacity:1}
 .room-browser__intro{position:absolute;left:6vw;top:34%;z-index:3;width:min(270px,25vw);text-shadow:0 2px 20px #000}
@@ -171,6 +174,17 @@ body.room-browser-open .entry-dock,body.room-browser-open .chrome{opacity:.15;po
 #series-images{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px 16px;max-width:1040px;margin:auto}#series-images figure{margin:0}#series-images img{display:block;width:100%;height:auto;aspect-ratio:2/3;border:1px solid #ffffff12}#series-images figcaption{margin-top:10px}
 
 @keyframes bubble-arrive{from{opacity:0;filter:blur(8px)}to{opacity:.88;filter:blur(0)}}
+
+/* Mid-size screens keep the lower-left observation tick clear of the controls. */
+@media(min-width:761px) and (max-width:1039px){
+  .caption{display:none}
+  .entry-dock{right:28px;bottom:22px;width:min(536px,calc(100vw - 225px));display:grid;grid-template-columns:auto auto minmax(96px,1fr) auto auto auto;grid-template-areas:"rooms pause music light settings about" "moments moments moments moments moments moments";gap:2px 3px;min-height:78px;padding:4px 5px;border-radius:21px}
+  #rooms-toggle{grid-area:rooms}#pause{grid-area:pause}.dock-music{grid-area:music}.dock-range--light{grid-area:light}#settings-toggle{grid-area:settings}#about-toggle{grid-area:about}.dock-moments{grid-area:moments}
+  .dock-button{min-width:32px;padding:0 8px}.dock-music{margin:0}.dock-music__play{max-width:112px;padding-left:8px}#music-track-label{max-width:66px}
+  .dock-moments{width:100%;height:34px;margin:0;padding:1px 20px 0;border:0;border-top:1px solid #ffffff10}.dock-moments button{height:33px;min-height:33px}
+  .dock-range{gap:5px;padding:0 6px}.dock-range--light input[type=range]{width:54px}.dock-range output{display:none}
+  .side-panel{right:28px;bottom:108px}
+}
 
 @media(max-width:760px){
   .chrome{left:22px;right:22px}header.chrome{top:24px}.caption{display:none}footer.chrome{bottom:104px}.wordmark{font-size:11px}
