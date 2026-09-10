@@ -1,0 +1,21 @@
+- banner:
+  - link "← 雪落海窗":
+    - /url: /?place=snowwindow
+  - text: 檢查視角
+  - combobox "檢查視角":
+    - option "海月水母近看"
+    - option "裸海蝶近看"
+    - option "全部生物" [selected]
+  - checkbox "灰色輪廓"
+  - text: 灰色輪廓
+  - checkbox "固定位置"
+  - text: 固定位置
+  - checkbox "停止翼足"
+  - text: 停止翼足
+  - button "播放" [active]
+  - text: 秒數
+  - slider "秒數": "60"
+  - status: "60.00"
+- main
+- status: "{ \"elapsed\": 60, \"population\": { \"aurelia\": 3, \"clione\": 5 }, \"name\": \"JELLY_A\", \"speed\": 0.008792173637826261, \"Re\": 2574.8508510776905, \"phase\": 143.68701886354197, \"behavior\": \"J_GLIDE\", \"distance\": 0.39946982191329766, \"position\": [ 0.9351124968373298, 2.4702644128459514, -3.459546576501195 ], \"verticalSpeed\": 0.00823881863322047 }"
+- contentinfo: 獨立生物檢查畫面；沿用雪景模型與動態。近看僅移動相機，沒有放大模型。固定位置保留局部動作；停止翼足可觀察負浮力下沉。此處光照為形態檢查用，並非雪景室內燈光。

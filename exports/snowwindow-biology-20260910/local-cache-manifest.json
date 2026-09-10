@@ -1,0 +1,655 @@
+{
+  "status": "local archive, not committed binaries; prior 3 Aurelia / 5 Clione bake",
+  "files": [
+    {
+      "path": "public/models/snow-creatures-preview.glb",
+      "bytes": 163014028,
+      "sha256": "6f7be439a7e825f9074900a8d9106b901d3292d8adf403392946db97d59909cc"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_5_material_0.pc2",
+      "bytes": 14191232,
+      "sha256": "d44a60c63fb159ecd3be454b2cf700a4582466d31df53d3f0672201016549855"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_2_material_3.pc2",
+      "bytes": 1663232,
+      "sha256": "dcc4b37fea425a6541785557251864855f2992f895d331b2a093b48823b51a79"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_4_material_4.pc2",
+      "bytes": 1663232,
+      "sha256": "79237e6ae8113da07d437502c7e99e299459085645e20c3f8ae01a3d1f506192"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_2_material_2.pc2",
+      "bytes": 1263632,
+      "sha256": "ca0dc072d7ad4f380951f337f6c6c32735159b13cbc218c520f98b8930b46d00"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_5_material_1.pc2",
+      "bytes": 1782032,
+      "sha256": "94bfefe51c74f3f23d8df9dff3a9dace87f9ca8c1d064c79319f756ba8758840"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_5_material_3.pc2",
+      "bytes": 1663232,
+      "sha256": "5c4e9131b8788a2a772682451a80687233eddf96bbe3591c23868d3e6c225364"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_2_material_0.pc2",
+      "bytes": 14191232,
+      "sha256": "2ec7bedeeb966c4c59f236a3607e0c634b2994db9517858ca8f02cd27c38da2a"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_A_material_5.pc2",
+      "bytes": 3024032,
+      "sha256": "ab3e00570245729caa412c4a2bc430d800207b48126fc877d72361f927ad82ef"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_3_material_4.pc2",
+      "bytes": 1663232,
+      "sha256": "024dc79ebeb0d17b3f437b9581d5df86059515c50d24ed1cc49f8c38d1646d31"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_A_material_4.pc2",
+      "bytes": 24883232,
+      "sha256": "8a716e1b9e37a22e485c0774628c1d37fe2f7e8c32951ead3eebba7db863ebf1"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_2_material_1.pc2",
+      "bytes": 1782032,
+      "sha256": "d58a41da9c0d6d40da76515e5b884148b5e14df833d889f9df5b8e95043c0606"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_5_material_2.pc2",
+      "bytes": 1263632,
+      "sha256": "8cf04294c1c0865ca26b8ed2b7568696487683b6cddf244009a3747ba7cacb82"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_A_material_0.pc2",
+      "bytes": 33112832,
+      "sha256": "fa9008c68653eaae80b1b46fb8110be1e6e981a2f6d36dc0f47138b6ca39fb91"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_4_material_2.pc2",
+      "bytes": 1263632,
+      "sha256": "4678a6ae055a83eee6290c091e2191f447890ba2c81d01d1058be90d11c4c560"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_3_material_1.pc2",
+      "bytes": 1782032,
+      "sha256": "393f7d8fc05d2addfc8652db05d75b5a3ab3e885027b90d5537ed13b78949109"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_3_material_0.pc2",
+      "bytes": 14191232,
+      "sha256": "e9d0701fa692179eee89d955b629066f1f3d77fb4ff9573626f816b2428fc556"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_4_material_3.pc2",
+      "bytes": 1663232,
+      "sha256": "63cb6261ee6e1702d143acb57455258bca71a9fd7ebaf430100e25f57b80bb8b"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_A_material_1.pc2",
+      "bytes": 19353632,
+      "sha256": "d918f29f0a742974fa663ffc015acdf0095a961b9a62e8fab73a7f4e864d1d61"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_2_material_4.pc2",
+      "bytes": 1663232,
+      "sha256": "cbf5206c3fd5d631c4672c5cb88e98e6a922591cd14a1182d3b64679678f589b"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_A_material_3.pc2",
+      "bytes": 5443232,
+      "sha256": "44e4be2e61ca1613bc1078da920ec3bc12434ed73fb78fbe103d32a9fd9e4230"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_4_material_1.pc2",
+      "bytes": 1782032,
+      "sha256": "3a5a17b25bb610f3f5b211c2b2898f4fa2bae2e5534c99e9ade746767fbcd796"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_3_material_2.pc2",
+      "bytes": 1263632,
+      "sha256": "023ca9b0da1043f1ffc0c22abde79f591316eae82e4925d62392ff4f00a86f3f"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_3_material_3.pc2",
+      "bytes": 1663232,
+      "sha256": "99ec8b2c3243a3dd549e5249ca2bd9ad4a1bc95a57a4976c34f34c0f52b1828b"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_4_material_0.pc2",
+      "bytes": 14191232,
+      "sha256": "c642c588cd9de3909485fdaa465fce7aa22ccc2b66e00a00f2df425f4e3075c3"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_A_material_2.pc2",
+      "bytes": 68040032,
+      "sha256": "65f50521a401a35dd6a81055f80cd478a27000f722188f3b0db0b2b367e7ffb8"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_5_material_4.pc2",
+      "bytes": 1663232,
+      "sha256": "1d70c7ec978b1c3828aba597f7c6fe3045f1890110ee3982ae46c58b490d6055"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_1_material_2.pc2",
+      "bytes": 1263632,
+      "sha256": "63ed062a9a0e9ff1abf9043dbb8d8b2df9621b0b81900161b0c3e9b1eb899e4c"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_C_material_3.pc2",
+      "bytes": 5443232,
+      "sha256": "5c653361e6b5d7f03f6ef19c6cd985fc30a8c838a62899996ea23a24f82ac899"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_C_material_2.pc2",
+      "bytes": 68040032,
+      "sha256": "918c0a62a81feb6fd95c7fae5e4a9d0973ba108808061e320129e154c2f13102"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_1_material_3.pc2",
+      "bytes": 1663232,
+      "sha256": "983ce5c3aff8965db81a61f167187642f1cbbb8f3f5a047c888fad62643ace75"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_B_material_4.pc2",
+      "bytes": 24883232,
+      "sha256": "ccf811dd749f705a20209424b109a044a0e2a878208ddeb29557fd6b15da592e"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_1_material_1.pc2",
+      "bytes": 1782032,
+      "sha256": "e1e43a51f6e208ef16852a66aa24471613186d64c972ebd1b0f1b8907570b8d1"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_C_material_0.pc2",
+      "bytes": 33112832,
+      "sha256": "0c96db034636a715cc4f945e0e5dc82efd68d1efdba395c8d49f6704257957ea"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_C_material_1.pc2",
+      "bytes": 19353632,
+      "sha256": "f4bce2fcefa379e7be17c1d551c02e19fe2eb2e670d834e2df035e966e0119ab"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_1_material_0.pc2",
+      "bytes": 14191232,
+      "sha256": "c158efdf29d22fb2ca5e33618b3faa6e4847c8f6bf9c3bbd7b72cd2ddc4ae763"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_B_material_5.pc2",
+      "bytes": 3024032,
+      "sha256": "b17109b29d5c02a5d8a9a820c5ef97aa2b7c8f5261e25362e3b1083b0043002a"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_B_material_1.pc2",
+      "bytes": 19353632,
+      "sha256": "0b297e72113074a0df11a77cda5367b0ce2226701ba523dd62ddaba7d5b9e84a"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/CLIONE_1_material_4.pc2",
+      "bytes": 1663232,
+      "sha256": "4c09ddd83e0bc0b77cd50f0315a51b6fe38e26485bc0bdd9d85a2f36e9eda5ed"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_C_material_5.pc2",
+      "bytes": 3024032,
+      "sha256": "2472c0adec8e878ecf990bfb13d609d607497d8b19fe4e712d2661ec69765737"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_C_material_4.pc2",
+      "bytes": 24883232,
+      "sha256": "14566c82899059bb7cd0dde1c33dc9de1c875b9db01c7a83710ab707463449ba"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_B_material_0.pc2",
+      "bytes": 33112832,
+      "sha256": "aca6e701c71f5e00d1c4622a579ef65e0c5e3b0f70b973ec77c6bb8454e85038"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_B_material_2.pc2",
+      "bytes": 68040032,
+      "sha256": "024117d0d29b79cf6694e4ca513fc40f0a6f38f1e7541d848788a3147d37c4e5"
+    },
+    {
+      "path": "assets/blender/snow-creatures_pc2/JELLY_B_material_3.pc2",
+      "bytes": 5443232,
+      "sha256": "4f9b5b17c1a6f411931692a87aa59e53814c5b480379605599f061f452c58347"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_2.f32le",
+      "bytes": 1263600,
+      "sha256": "326e97d9c57d5dc9916e5604d905d89d75ee4ac180f7f36a198424916473726d"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_1.f32le",
+      "bytes": 1782000,
+      "sha256": "dae698e7628992f6ec849d9c5c7900f5a091207f093711611b64ade451e7f5ba"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "da4e2bf7a9e6eed93997c688258154f13033f0abba35244dc780aa177d078a90"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "4a85758ea317547d4cd70e420ebb558b7d77c8c438e6eb636bc26523ef5cc7de"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_3.f32le",
+      "bytes": 5443200,
+      "sha256": "c120639c72a7fa6369226b51925f1c03a5994959155083d4cf4d1ee39f54eeac"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_0.f32le",
+      "bytes": 33112800,
+      "sha256": "294e7ad3bf2427bccd47b3c7a3cc608dfbf3cbb1d9ef58a2f835e252af61b8bb"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_5.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69f7211eab9a3778232eb9489732e0fbb576a18259332ad64461d4ec3c68018c"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "ef020bb5308a36a71eefbdf59b698301c3a5907cc795c880e9a37ff3b7209407"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "efa3d11360f9d4bf376b99e3498a37d640aef1ccf1de359ddf88a8b7cfdc37c8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_2.f32le",
+      "bytes": 68040000,
+      "sha256": "3d634b249b8473ad6bd67d4470779b2f53c0a0eb853c65613743fca3ab6a50ad"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_1.f32le",
+      "bytes": 19353600,
+      "sha256": "d6012ec37bdde1c1d50bfe701dece67d9de5b90f75d49ece0cbd96800e031217"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "d309074b98fbae42cf28006e108111817445c4004d0a44a21aae3731e9ee0f68"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_3.f32le",
+      "bytes": 1663200,
+      "sha256": "4ed0dfbf47cc7353ab1fdde9b696c39f8b9433ded0f4b337e13eccbad947aa68"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_0.f32le",
+      "bytes": 14191200,
+      "sha256": "80b2180dbceeeb14f7b2544e84c0cbd75d66ef3ef096273572e5fadb78d4caab"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "d309074b98fbae42cf28006e108111817445c4004d0a44a21aae3731e9ee0f68"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69324947370f0cb03c41895c08f0cc33957e1f18a66b768b8b4d2d413a6d32aa"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_3.f32le",
+      "bytes": 1663200,
+      "sha256": "9d810c0f683c5c4f80d0b437729d304e30a64192dd57575f8c89fef6466647bb"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_4.f32le",
+      "bytes": 1663200,
+      "sha256": "055ac3fd7cd50b8ee7eba88aa2beba3ee0308fa063d3ebc3c6702ee9fc9f7d23"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_5.f32le",
+      "bytes": 3024000,
+      "sha256": "88b8722f44afac4d70ce9649039e629b00aaca3efff0403a24b8baad0823fa50"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "4a85758ea317547d4cd70e420ebb558b7d77c8c438e6eb636bc26523ef5cc7de"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "da4e2bf7a9e6eed93997c688258154f13033f0abba35244dc780aa177d078a90"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "17d7d396677128b47b9bd7249892a2f955b4d4b17b2fc729c17370daeae01ac4"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_4.f32le",
+      "bytes": 24883200,
+      "sha256": "98c616717549f7fdf9b86890d4e2f7e0f4a47f5f9c9963791889ee825712b486"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_5.roots.f32le",
+      "bytes": 25200,
+      "sha256": "ef020bb5308a36a71eefbdf59b698301c3a5907cc795c880e9a37ff3b7209407"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69f7211eab9a3778232eb9489732e0fbb576a18259332ad64461d4ec3c68018c"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_1.f32le",
+      "bytes": 1782000,
+      "sha256": "d6e42a38670d728156b072edf3a36d7f2ee300581c748ff7bbb80d01ab7df6a9"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_0.f32le",
+      "bytes": 33112800,
+      "sha256": "229fac631153a14cedd41f7ce2d5c92b3a529661775d8e7a35fea58c88a06612"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69f7211eab9a3778232eb9489732e0fbb576a18259332ad64461d4ec3c68018c"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_5.roots.f32le",
+      "bytes": 25200,
+      "sha256": "efa3d11360f9d4bf376b99e3498a37d640aef1ccf1de359ddf88a8b7cfdc37c8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_3.f32le",
+      "bytes": 5443200,
+      "sha256": "c6ca94976bef3b3df8fffc151b3b41e1d3aee03e1a862a368f1536c9d93236ac"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_1.f32le",
+      "bytes": 1782000,
+      "sha256": "1e06f95f89a8a6ab1093d73d0719e84aeac9750320178b438692367a9747f6bd"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "17d7d396677128b47b9bd7249892a2f955b4d4b17b2fc729c17370daeae01ac4"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "da4e2bf7a9e6eed93997c688258154f13033f0abba35244dc780aa177d078a90"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_2.f32le",
+      "bytes": 1263600,
+      "sha256": "77f8772d0bcccdf137d3e452e14a605b8bed1558138cc2540b8c7977706ee0d7"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_4.f32le",
+      "bytes": 1663200,
+      "sha256": "1b75fd95686aab1c8f3014c3480e1e2138cc199961cb951acb90c9f942dfed52"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_0.f32le",
+      "bytes": 14191200,
+      "sha256": "9f01db79d5658f1f8177986a6d980697d4d3161bacc2125e9e424fb557104f02"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_3.f32le",
+      "bytes": 1663200,
+      "sha256": "d64f6c54ef5c11a1ee885f136bc347ba1e9f2021d8c3064ec99ee1fcf5de3d69"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_1.f32le",
+      "bytes": 19353600,
+      "sha256": "d59a75c9464a6c2b4f569777f4d092f20f0a74af09f9a479f1fa1f064ce8a7c2"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69324947370f0cb03c41895c08f0cc33957e1f18a66b768b8b4d2d413a6d32aa"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "d309074b98fbae42cf28006e108111817445c4004d0a44a21aae3731e9ee0f68"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_2.f32le",
+      "bytes": 68040000,
+      "sha256": "700b57c7763cdc0ee091f8a3dabd5502226e10ff7f7059c2d3617b221cef116e"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_5.f32le",
+      "bytes": 3024000,
+      "sha256": "56b14ba5100ca29448930e2972274db08ef75b1b774b4ae7964d67a76e013a9d"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_0.f32le",
+      "bytes": 14191200,
+      "sha256": "c17599cc4e6a02038740edf86cc1c076eafaeec070516ba45b09e255d6206dc6"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_4.f32le",
+      "bytes": 1663200,
+      "sha256": "23334f4782299a67fb301f21147b806da6726d03c9ce10587ae04990fc089a0a"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69324947370f0cb03c41895c08f0cc33957e1f18a66b768b8b4d2d413a6d32aa"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "efa3d11360f9d4bf376b99e3498a37d640aef1ccf1de359ddf88a8b7cfdc37c8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "ef020bb5308a36a71eefbdf59b698301c3a5907cc795c880e9a37ff3b7209407"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_2.f32le",
+      "bytes": 1263600,
+      "sha256": "c865a78e389c58663a82f8b7c92c4005c56337f98747cd5728f7326fb53530d2"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_4.f32le",
+      "bytes": 24883200,
+      "sha256": "d7d395f4a64f9df92b27d2f13d785b6f554d745de3c5b5d3a4766810007f8557"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "4a85758ea317547d4cd70e420ebb558b7d77c8c438e6eb636bc26523ef5cc7de"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "17d7d396677128b47b9bd7249892a2f955b4d4b17b2fc729c17370daeae01ac4"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_4.f32le",
+      "bytes": 1663200,
+      "sha256": "5f24163f56b1fbf24d44f7613030fbd3d9a305cc0ae7476efd29c4a937238c91"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69f7211eab9a3778232eb9489732e0fbb576a18259332ad64461d4ec3c68018c"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "ef020bb5308a36a71eefbdf59b698301c3a5907cc795c880e9a37ff3b7209407"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_1.f32le",
+      "bytes": 19353600,
+      "sha256": "a7653fc1e23a77e26d61072997aeee790dca91e04ffd83eb3ad7cee0afb9bd41"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "17d7d396677128b47b9bd7249892a2f955b4d4b17b2fc729c17370daeae01ac4"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "da4e2bf7a9e6eed93997c688258154f13033f0abba35244dc780aa177d078a90"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_3.f32le",
+      "bytes": 5443200,
+      "sha256": "1f9c84c91cbafa9276b0b353e046163a3fe1e66a748dcb5556d87bb58eec362f"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69324947370f0cb03c41895c08f0cc33957e1f18a66b768b8b4d2d413a6d32aa"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "d309074b98fbae42cf28006e108111817445c4004d0a44a21aae3731e9ee0f68"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_1.f32le",
+      "bytes": 1782000,
+      "sha256": "345429547580a21a0c1f6df3b5c4c7dea82944a3b5cbf6ee2d3223824389ddc3"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_2.f32le",
+      "bytes": 1263600,
+      "sha256": "6b6a4272881cb2ed706595345b00b31a535cfa87c44133142ec4011317b6fa9a"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_5.f32le",
+      "bytes": 3024000,
+      "sha256": "2b6b8c68f732319d97b5a5b4e497aa1180856277f23a3b56ae4f43ad56db6c9c"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "efa3d11360f9d4bf376b99e3498a37d640aef1ccf1de359ddf88a8b7cfdc37c8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "ef020bb5308a36a71eefbdf59b698301c3a5907cc795c880e9a37ff3b7209407"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69f7211eab9a3778232eb9489732e0fbb576a18259332ad64461d4ec3c68018c"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_0.f32le",
+      "bytes": 14191200,
+      "sha256": "e5ceeb66cff9eeb145bd975a437a0022afce1731e8f82b07cb3afd6f07bd93b8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "4a85758ea317547d4cd70e420ebb558b7d77c8c438e6eb636bc26523ef5cc7de"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_3.f32le",
+      "bytes": 1663200,
+      "sha256": "75565e5efffb206d9161b23741a48f2f65aec408054e46f3ae824c72689c3fb3"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_1_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "4a85758ea317547d4cd70e420ebb558b7d77c8c438e6eb636bc26523ef5cc7de"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_2.f32le",
+      "bytes": 68040000,
+      "sha256": "4f5604638f044013f942d35047a08207ac906cbc6f7dd6ed069b1555693f26c7"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_B_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "ef020bb5308a36a71eefbdf59b698301c3a5907cc795c880e9a37ff3b7209407"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_1.roots.f32le",
+      "bytes": 25200,
+      "sha256": "efa3d11360f9d4bf376b99e3498a37d640aef1ccf1de359ddf88a8b7cfdc37c8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_4.f32le",
+      "bytes": 1663200,
+      "sha256": "e64af1fa0f768d1648a02e262c53116de6342dec82b21210a8fc428c382b4107"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_0.f32le",
+      "bytes": 33112800,
+      "sha256": "f9846f0abb823838b5a7c97079a2960ac7a10c6b7fb003372549ce45f9b852cd"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_4.f32le",
+      "bytes": 24883200,
+      "sha256": "82e8f3cc68b3ab5003f860b0c2612cd8971d76889d2d472ad39be780ad8a599a"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_5_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "d309074b98fbae42cf28006e108111817445c4004d0a44a21aae3731e9ee0f68"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_4_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69324947370f0cb03c41895c08f0cc33957e1f18a66b768b8b4d2d413a6d32aa"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_2.f32le",
+      "bytes": 1263600,
+      "sha256": "a630b24ba5527aa46dded5b0bde0908fbf2fe2347d56718a2e969f16932f22f1"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_1.f32le",
+      "bytes": 1782000,
+      "sha256": "189f080dc406274751103b2e70db90ae9c99cb54492f346903cb27b7a5aa1e23"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_3.f32le",
+      "bytes": 1663200,
+      "sha256": "6b856478227b9efe5f98d0f38bac55b2b4d2303ffd62252e0d750668e8c0c74d"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_0.f32le",
+      "bytes": 14191200,
+      "sha256": "a3d0b9e28d59277a18550e8c1d8d1ffac2c81516f6700efc5159b2cdf7651ed9"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_2_material_3.roots.f32le",
+      "bytes": 25200,
+      "sha256": "da4e2bf7a9e6eed93997c688258154f13033f0abba35244dc780aa177d078a90"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/CLIONE_3_material_0.roots.f32le",
+      "bytes": 25200,
+      "sha256": "17d7d396677128b47b9bd7249892a2f955b4d4b17b2fc729c17370daeae01ac4"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_C_material_4.roots.f32le",
+      "bytes": 25200,
+      "sha256": "efa3d11360f9d4bf376b99e3498a37d640aef1ccf1de359ddf88a8b7cfdc37c8"
+    },
+    {
+      "path": "exports/snowwindow-biology-20260910/bake-input-final/frames/JELLY_A_material_2.roots.f32le",
+      "bytes": 25200,
+      "sha256": "69f7211eab9a3778232eb9489732e0fbb576a18259332ad64461d4ec3c68018c"
+    }
+  ]
+}

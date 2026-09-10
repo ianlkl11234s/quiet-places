@@ -85,3 +85,5 @@ footer.chrome{justify-content:flex-start}
 #status{z-index:21;pointer-events:none}
 @media(max-width:360px){footer .moment #moment-label{display:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.side-panel,#settings{background:#111719ed}}
+
+.camera-tool-link{display:block;margin:12px 0;padding:10px 12px;border:1px solid rgba(255,255,255,.2);border-radius:6px;color:inherit;text-decoration:none;font-size:12px;text-align:center}.camera-tool-link:hover,.camera-tool-link:focus-visible{background:rgba(255,255,255,.08)}

@@ -1,0 +1,46 @@
+
+> quiet-places@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+Module "src/places/afterlight/DrainOpening.ts" tried to import "assets/config/afterlight-geometry.json" with "type": "json" attributes, but it was already imported elsewhere with no attributes. Please ensure that import attributes for the same module are always consistent.
+✓ 113 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/tools/snowwindow-biology/index.html            1.85 kB │ gzip:   1.12 kB
+dist/tools/snowwindow-camera/index.html             4.47 kB │ gzip:   1.59 kB
+dist/tools/studio/index.html                        5.28 kB │ gzip:   2.28 kB
+dist/index.html                                     6.86 kB │ gzip:   2.57 kB
+dist/assets/studio-Dt8Qkdun.css                     2.63 kB │ gzip:   1.09 kB
+dist/assets/snowwindowCamera-D2qk8SQY.css           3.59 kB │ gzip:   1.39 kB
+dist/assets/app-D-0WezdV.css                       14.72 kB │ gzip:   4.00 kB
+dist/assets/seededRandom-SFh7AJ1p.js                0.11 kB │ gzip:   0.12 kB
+dist/assets/SkeletonUtils-BCVmgslc.js               0.45 kB │ gzip:   0.27 kB
+dist/assets/ModelResources-_2_0hG4r.js              0.64 kB │ gzip:   0.36 kB
+dist/assets/Optics-DB0Ghu-i.js                      1.11 kB │ gzip:   0.64 kB
+dist/assets/snowCreatureReview-CgyrWDIc.js          2.16 kB │ gzip:   1.15 kB
+dist/assets/SceneClock-CM7yZTop.js                  4.02 kB │ gzip:   1.91 kB
+dist/assets/afterlight-study-B7ObkvZ4.js            5.38 kB │ gzip:   2.68 kB
+dist/assets/snowwindowCamera-eofQWBqV.js            6.12 kB │ gzip:   2.93 kB
+dist/assets/studio-BENNcCBI.js                      9.94 kB │ gzip:   4.57 kB
+dist/assets/index-eaNBd251.js                      12.94 kB │ gzip:   5.73 kB
+dist/assets/index-DtMhRfvq.js                      17.55 kB │ gzip:   7.11 kB
+dist/assets/index-B7H_aEa7.js                      18.39 kB │ gzip:   7.32 kB
+dist/assets/index-BO6rJ5sP.js                      21.81 kB │ gzip:   8.48 kB
+dist/assets/EXRLoader-CSh3q3uV.js                  23.26 kB │ gzip:   8.00 kB
+dist/assets/Creatures-C1XtB5eu.js                  26.58 kB │ gzip:  10.49 kB
+dist/assets/index-AJnkFVHh.js                      31.16 kB │ gzip:  12.12 kB
+dist/assets/fflate.module-CXh1ITwj.js              31.80 kB │ gzip:  12.15 kB
+dist/assets/index-CaHu2dZo.js                      33.12 kB │ gzip:  12.37 kB
+dist/assets/GLTFLoader-E79oFZ9I.js                 44.83 kB │ gzip:  13.22 kB
+dist/assets/index-Bvx0Z428.js                      53.46 kB │ gzip:  20.88 kB
+dist/assets/app-BIqFWZoc.js                        65.45 kB │ gzip:  18.59 kB
+dist/assets/RectAreaLightUniformsLib-BzYoqp2J.js  247.26 kB │ gzip: 103.14 kB
+dist/assets/three.module-DVK3Blmx.js              576.99 kB │ gzip: 147.30 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.05s

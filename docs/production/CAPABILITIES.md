@@ -1,10 +1,10 @@
 # 可沿用能力與製作入口
 
-2026-09-09：依目前 repo 入口盤點；本頁是導覽，不複製參數或宣稱重新驗收資產。正式房間由 `src/places/metadata.ts` 與 `catalog.ts` 決定，目前五個（含向海的隧道本機候選）；stairlight 為工作區既有草稿，未註冊。
+2026-09-10：依目前 repo 入口盤點；本頁是導覽，不複製參數或宣稱重新驗收資產。正式房間由 `src/places/metadata.ts` 與 `catalog.ts` 決定，目前七個；雪落海窗為本機第一版，尚待使用者美術確認。
 
 | 能力 | 權威入口 | 消費／沿用方式與限制 |
 | --- | --- | --- |
-| 房間生命週期 | `src/player/contracts.ts`、`src/places/catalog.ts` | 五房間共用 update／dispose；播放器供時間，不另開 RAF |
+| 房間生命週期 | `src/player/contracts.ts`、`src/places/catalog.ts` | 七房間共用 update／dispose；播放器供時間，不另開 RAF |
 | 波場、折射 | `src/shared/water/Optics.ts` | waterlight／oceanlight；各自水體校準，不當通用海水常數 |
 | 模型資源釋放 | `src/shared/resources/ModelResources.ts` | shared 所有权契約；借用貼圖不自行釋放 |
 | 可重現亂數 | `src/shared/math/seededRandom.ts` | 使用者各持 seed／序列；抽取不得改變生成順序 |
@@ -49,3 +49,4 @@
 上述是本輪實作新增，當前驗收以 [P0–P6 報告](P0_P6_ACCEPTANCE.md) 為準。
 
 - 向海的隧道：`src/places/seaward/` 沿用魟魚 GLB，新增單隻 adapter；程序建築、濕反射與波光屬場景專用近似，見 [場景筆記](../scenes/seaward.md)。
+- 雪落海窗：`src/places/snowwindow/` 程序 3D 海景、窗角、積雪、玻璃水氣與收攏亞麻；窗前加入可重用 Aurelia／Clione 本體，沿用共用 elapsed 與生命週期，見 [場景筆記](../scenes/snowwindow.md)。

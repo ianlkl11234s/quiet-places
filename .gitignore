@@ -12,3 +12,9 @@ assets/blender/cache/
 # Private scene references and generated Blender review caches
 assets/references/stairlight/
 node_modules
+
+# Reproducible snow creature caches: local archive manifest tracks hashes.
+/assets/blender/snow-creatures_pc2/
+/public/models/snow-creatures-preview.glb
+/exports/snowwindow-biology-20260910/bake-input-final/**/*.f32le
+/exports/snowwindow-biology-20260910/bake-input-final/**/*.bin
