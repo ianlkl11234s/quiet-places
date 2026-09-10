@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>雪落海窗 · 鏡頭試片</title>
+</head>
+<body>
+  <header class="tool-header"><a href="/?place=snowwindow">← Quiet Places</a><span>雪落海窗 / 鏡頭試片</span><button id="panel-toggle" type="button" aria-expanded="true">收起控制</button></header>
+  <main>
+    <section class="preview" aria-label="雪落海窗即時預覽">
+      <div class="preview__meta"><span>預覽畫幅 <b id="viewport-readout">—</b></span><span id="flow-readout">流動中</span></div>
+      <div id="stage"><p id="loading">正在準備雪與海。</p></div>
+      <div class="preview__actions">
+        <button id="pause" type="button" aria-pressed="false">暫停流動</button>
+        <button id="reset" type="button">恢復基準</button>
+        <button id="copy" type="button">複製 JSON</button>
+      </div>
+      <p id="status" role="status">預覽參數不會寫入正式設定。</p>
+      <textarea id="json-fallback" rows="7" aria-label="可選取的鏡頭 JSON" readonly placeholder="複製失敗時，JSON 會顯示在這裡。"></textarea>
+    </section>
+    <aside id="controls" aria-label="鏡頭控制">
+      <h1>找一個舒服的角度。</h1>
+      <p class="intro">調整位置、注視點與視角。找到喜歡的構圖後，複製參數交給我採用。</p><p class="note">X：左右 · Y：高度 · Z：前後</p>
+      <fieldset>
+        <legend>位置 / m</legend>
+        <div class="axis-grid">
+          <label>X <input data-group="position" data-axis="x" type="range" min="-8" max="8" step=".01"><output></output><input class="numeric" type="number" step=".01"></label>
+          <label>Y <input data-group="position" data-axis="y" type="range" min="-2" max="8" step=".01"><output></output><input class="numeric" type="number" step=".01"></label>
+          <label>Z <input data-group="position" data-axis="z" type="range" min="-10" max="5" step=".01"><output></output><input class="numeric" type="number" step=".01"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>注視點 / m</legend>
+        <div class="axis-grid">
+          <label>X <input data-group="target" data-axis="x" type="range" min="-8" max="12" step=".01"><output></output><input class="numeric" type="number" step=".01"></label>
+          <label>Y <input data-group="target" data-axis="y" type="range" min="-2" max="8" step=".01"><output></output><input class="numeric" type="number" step=".01"></label>
+          <label>Z <input data-group="target" data-axis="z" type="range" min="-10" max="5" step=".01"><output></output><input class="numeric" type="number" step=".01"></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>視角</legend>
+        <label class="fov-row">FOV / ° <input id="fov-range" type="range" min="20" max="100" step=".1"><output id="fov-value"></output><input id="fov-number" class="numeric" type="number" min="20" max="100" step=".1"></label>
+      </fieldset>
+      <fieldset>
+        <legend>時間</legend>
+        <label class="fov-row">時刻 <input id="hour" type="range" min="0" max="24" step=".25" value="12"><output id="hour-value"></output></label>
+        <p class="note">比較不同時刻的自然光。</p>
+      </fieldset>
+      <fieldset class="draft">
+        <legend>草稿</legend>
+        <button id="save-draft" type="button">儲存本機草稿</button>
+        <button id="restore-draft" type="button">還原本機草稿</button>
+        <p class="note">草稿保存在這個瀏覽器，正式場景會維持原來的視角。</p>
+      </fieldset>
+    </aside>
+  </main>
+  <script type="module" src="/src/studio/SnowwindowCamera.ts"></script>
+</body>
+</html>

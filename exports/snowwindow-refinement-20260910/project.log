@@ -1,0 +1,8 @@
+
+> quiet-places@0.1.0 check:project
+> node --experimental-strip-types scripts/check-project.mjs
+
+製作入口通過：waterlight, leaflight, oceanlight, afterlight, seaward, stairlight, snowwindow；25 個必要路徑。未驗證內容、資產或畫面。
+(node:22275) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+recipe 輸入、幾何契約、正式 preset 與 studio 資產版本通過。

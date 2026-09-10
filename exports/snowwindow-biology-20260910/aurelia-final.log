@@ -1,0 +1,16 @@
+(node:77292) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Aurelia builds a closed shallow bell with the required named anatomy (27.18775ms)
+✔ Aurelia pulse uses fast contraction, slower relaxation, and activity changes amplitude without phase jumps (0.087417ms)
+✔ fixed-step flexible margin has a real hysteretic rollout and sector turn asymmetry (2.50475ms)
+✔ Aurelia updates stable topology and leaves its root trajectory untouched (22.069709ms)
+✔ Aurelia fixed-step appendage simulation is repeat-safe and frame-partition invariant (86.412292ms)
+✔ Aurelia margin QA measures a nonzero loop from actual geometry and a larger outer response (223.427625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 572.950625

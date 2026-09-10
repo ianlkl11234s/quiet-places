@@ -1,0 +1,7 @@
+{
+  "scope": "Procedural Clione limacina morphology and both-wing gait deformation only; trajectory, negative-buoyancy integration, Blender baking, and scene attachment remain owned by the main integration path.",
+  "coordinates": "+Z head, -Z tapered posterior, +/-X parapodia, +Y dorsal",
+  "model": "0.036 m default, monotone-Hermite shell-less capped body profile, translucent non-emissive body, orange/red anterior visceral mass, 10 x 6 x 2 thick deforming wing grids",
+  "gaits": ["slowhover", "slowswim", "glidesink", "softturn", "fastescape", "fasthunt"],
+  "status": "local module QA passed: 6 dedicated tests"
+}

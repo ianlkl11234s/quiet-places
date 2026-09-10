@@ -1,0 +1,9 @@
+(node:77304) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+sample 0/900
+sample 150/900
+sample 300/900
+sample 450/900
+sample 600/900
+sample 750/900
+{"output":"/private/tmp/quiet-places-snow-window-20260909/exports/snowwindow-biology-20260910/bake-input","meshes":43,"vertices":52258,"frames":900}

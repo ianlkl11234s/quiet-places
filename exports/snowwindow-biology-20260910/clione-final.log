@@ -1,0 +1,18 @@
+(node:82889) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Clione preserves the centimetre morphology, named multi-control rig, and finite stable topology (35.801125ms)
+✔ slow gait stays in range; fast gait changes frequency, sweep, flex and force (2.034875ms)
+✔ trailing edge has phase lag on both half-strokes and wings retain chordwise deformation (1.444834ms)
+✔ zero frequency produces no wing lift proxy and release cannot grow geometry (0.72375ms)
+✔ geometry-free sampler matches the visible rig with an integrated phase override (1.31275ms)
+✔ full sweep draws tips inward and steering creates bounded wing asymmetry (1.381625ms)
+✔ main-owned gait blend gives force and mesh a continuous shared parameter transition (1.374667ms)
+✔ closed Clione body faces point outward for opaque silhouette and glTF rendering (1.065792ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 251.613625

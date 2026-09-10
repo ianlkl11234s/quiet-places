@@ -5,5 +5,5 @@ const sourceDirty=Boolean(execFileSync('git',['diff','HEAD','--name-only'],{enco
 export default defineConfig({
  cacheDir:process.env.QUIET_PLACES_VITE_CACHE,
  define:{__QUIET_PLACES_SOURCE__:JSON.stringify({sourceRevision,sourceDirty})},
- build:{rollupOptions:{input:{app:'index.html',studio:'tools/studio/index.html'}}},
+ build:{rollupOptions:{input:{app:'index.html',studio:'tools/studio/index.html',snowwindowCamera:'tools/snowwindow-camera/index.html',snowCreatureReview:'tools/snowwindow-biology/index.html'}}},
 });

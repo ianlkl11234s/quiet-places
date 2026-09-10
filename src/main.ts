@@ -34,6 +34,10 @@ async function start(){
  afterlightCameraOptions.id='afterlight-camera-options';afterlightCameraOptions.hidden=true;
  afterlightCameraOptions.innerHTML='<label for="afterlight-camera-distance">鏡頭遠近 <output id="afterlight-camera-distance-value">0%</output></label><input id="afterlight-camera-distance" type="range" min="0" max="30" step="1" value="0"><div class="actions"><button id="afterlight-camera-reset">回原位</button></div>';
  document.querySelector('label[for="beam-strength"]')?.before(afterlightCameraOptions);
+ const snowCameraOptions=document.createElement('div');snowCameraOptions.id='snowwindow-camera-options';snowCameraOptions.hidden=true;
+ snowCameraOptions.innerHTML='<a class="camera-tool-link" href="/tools/snowwindow-camera/">開啟相機調整工具 ↗</a>';
+ afterlightCameraOptions.after(snowCameraOptions);
+
  const persist=()=>{
   saveRoomPreferences(preferences,currentPlace,{hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,oceanLevel});
   savePreferences(preferences);
@@ -131,6 +135,7 @@ async function start(){
   el('water-options').hidden=!hasWeather;
   el('ocean-options').hidden=!placeSupports(currentPlace,'ocean-level');
   el('afterlight-camera-options').hidden=!placeSupports(currentPlace,'camera-distance');
+  snowCameraOptions.hidden=currentPlace!=='snowwindow';
   document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.oceanLevel===oceanLevel)));
   el('water-reset').hidden=!isWater;
   el('water-mode').textContent=place.waterMode;
