@@ -37,8 +37,8 @@ body.resting:has(:focus-visible) .chrome{opacity:1;pointer-events:auto}
   backdrop-filter:blur(15px) saturate(.7);-webkit-backdrop-filter:blur(15px) saturate(.7);
   transition:opacity .8s ease,transform .8s ease,background .3s ease;
 }
-body.resting .entry-dock{opacity:.36;transform:translateY(3px)}
-body.resting .entry-dock:hover,body.resting .entry-dock:focus-within{opacity:1;transform:none}
+body.resting .entry-dock{opacity:0;transform:translateY(5px);pointer-events:none}
+body.resting .entry-dock:focus-within{opacity:1;transform:none;pointer-events:auto}
 .dock-button{display:flex;align-items:center;justify-content:center;gap:7px;height:32px;min-width:36px;padding:0 10px;border-radius:17px;color:#d9ddd6;font-family:var(--font-ui);letter-spacing:.08em;font-size:9px;transition:background .25s ease,color .25s ease}
 .dock-button:hover,.dock-button[aria-expanded=true],.dock-button[aria-pressed=true]{background:#ffffff10;color:#fff}
 .dock-button--compact{width:32px;min-width:32px;padding:0}
