@@ -29,6 +29,7 @@ export interface BubbleBody extends BubbleAnchor {
   shapeVelocity: number;
   shapeFrequency: number;
   shapePhase: number;
+  angle: number;
   filmThickness: number;
   filmPhase: number;
   filmSpeed: number;
@@ -46,6 +47,15 @@ export interface BubblePresentation {
   stretchX: number;
   stretchY: number;
   angle: number;
+}
+
+export interface BubblePointer {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  active: boolean;
+  pressed: boolean;
 }
 
 const TAU=Math.PI*2;
@@ -80,12 +90,13 @@ export function createBubbleMotionModel(anchors:readonly BubbleAnchor[],seed:num
     vx:0,
     vy:0,
     radius:.047*anchor.scale,
-    maxSpeed:.011+random()*.007,
-    flowStrength:.0022+random()*.0017,
+    maxSpeed:.022+random()*.014,
+    flowStrength:.014+random()*.01,
     shape:1,
     shapeVelocity:0,
     shapeFrequency:.52+random()*.48,
     shapePhase:random()*TAU,
+    angle:random()*TAU,
     filmThickness:330+random()*310,
     filmPhase:random()*TAU,
     filmSpeed:.028+random()*.035,
@@ -104,18 +115,30 @@ function curlVelocity(model:BubbleMotionModel,x:number,y:number){
 }
 
 /** Fixed-step, damped motion. It is a UI approximation, not a fluid or soap-film solve. */
-export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:ReadonlySet<string>=new Set()):void {
+export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:ReadonlySet<string>=new Set(),pointer?:Readonly<BubblePointer>):void {
   const step=clamp(dt,0,1/30);
   if(step===0)return;
   model.time+=step;
   const accelerations=model.bodies.map(body=>{
     const held=pinned.has(body.id),flow=curlVelocity(model,body.x,body.y);
-    const spring=held ? .72 : .105,damping=held ? 5.2 : .82,flowGain=held ? 0 : body.flowStrength;
+    const spring=held ? .72 : .065,damping=held ? 5.2 : .72,flowGain=held ? 0 : body.flowStrength;
     return {
       x:(body.anchorX-body.x)*spring+flow.x*flowGain-body.vx*damping,
       y:(body.anchorY-body.y)*spring+flow.y*flowGain-body.vy*damping-.00018,
       contact:0,
     };
+  });
+
+  if(pointer?.active)model.bodies.forEach((body,index)=>{
+    if(pinned.has(body.id))return;
+    const dx=body.x-pointer.x,dy=body.y-pointer.y,distance=Math.hypot(dx,dy)||.0001;
+    const radius=body.radius+.15;
+    if(distance>=radius)return;
+    const influence=(1-distance/radius)**2;
+    const pressure=influence*(pointer.pressed?.18:.1);
+    accelerations[index].x+=dx/distance*pressure+pointer.vx*influence*.08;
+    accelerations[index].y+=dy/distance*pressure+pointer.vy*influence*.08;
+    accelerations[index].contact=Math.max(accelerations[index].contact,influence*.025);
   });
 
   for(let i=0;i<model.bodies.length;i++)for(let j=i+1;j<model.bodies.length;j++){
@@ -148,6 +171,10 @@ export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:Readon
     const target=1+normalizedSpeed*.035+mode+Math.min(.025,acceleration.contact*.6);
     body.shapeVelocity+=(target-body.shape)*9.5*step-body.shapeVelocity*4.1*step;
     body.shape=clamp(body.shape+body.shapeVelocity*step,.955,1.065);
+    if(speed>body.maxSpeed*.035){
+      const targetAngle=Math.atan2(body.vy,body.vx),delta=Math.atan2(Math.sin(targetAngle-body.angle),Math.cos(targetAngle-body.angle));
+      body.angle+=delta*(1-Math.exp(-2.2*step));
+    }
   });
 }
 
@@ -158,7 +185,7 @@ export function bubblePresentation(body:BubbleBody):BubblePresentation {
     dy:(body.y-body.anchorY)*100,
     stretchX,
     stretchY,
-    angle:Math.atan2(body.vy,body.vx)*180/Math.PI,
+    angle:body.angle*180/Math.PI,
   };
 }
 
@@ -200,6 +227,23 @@ export interface RoomBubbleMotionController {
 export function createRoomBubbleMotionController(root:HTMLElement,buttons:readonly HTMLButtonElement[],seed:number,reduced=false):RoomBubbleMotionController {
   const byId=new Map(buttons.map(button=>[button.dataset.place??'',button]));
   let model=createBubbleMotionModel([],seed),raf=0,last=0,accumulator=0,isRunning=false,isReduced=reduced,filmFrame=0;
+  const pointer:BubblePointer={x:0,y:0,vx:0,vy:0,active:false,pressed:false};
+  let pointerX=0,pointerY=0,pointerTime=0;
+  const updatePointer=(event:PointerEvent)=>{
+    if(event.pointerType==='touch')return;
+    const rect=root.getBoundingClientRect(),now=performance.now(),x=(event.clientX-rect.left)/rect.width,y=(event.clientY-rect.top)/rect.height;
+    if(pointer.active&&pointerTime){
+      const elapsed=Math.max(.016,(now-pointerTime)/1000),rawX=clamp((x-pointerX)/elapsed,-.45,.45),rawY=clamp((y-pointerY)/elapsed,-.45,.45);
+      pointer.vx+=(rawX-pointer.vx)*.32;pointer.vy+=(rawY-pointer.vy)*.32;
+    }
+    pointer.x=x;pointer.y=y;pointer.active=true;pointer.pressed=event.buttons===1;pointerX=x;pointerY=y;pointerTime=now;
+  };
+  const clearPointer=()=>{pointer.active=false;pointer.pressed=false;pointer.vx=0;pointer.vy=0;pointerTime=0;};
+  root.addEventListener('pointermove',updatePointer,{passive:true});
+  root.addEventListener('pointerdown',updatePointer,{passive:true});
+  root.addEventListener('pointerup',updatePointer,{passive:true});
+  root.addEventListener('pointerleave',clearPointer,{passive:true});
+  root.addEventListener('pointercancel',clearPointer,{passive:true});
   const resetPresentation=()=>buttons.forEach(button=>{
     button.style.setProperty('--bubble-motion-x','0px');button.style.setProperty('--bubble-motion-y','0px');
     button.style.setProperty('--bubble-stretch-x','1');button.style.setProperty('--bubble-stretch-y','1');button.style.setProperty('--bubble-tilt','0deg');button.style.setProperty('--bubble-copy-tilt','0deg');
@@ -221,7 +265,7 @@ export function createRoomBubbleMotionController(root:HTMLElement,buttons:readon
     if(last===0)last=now;
     accumulator+=Math.min((now-last)/1000,.05);last=now;
     const pinned=new Set(buttons.filter(button=>button.matches(':hover,:focus-visible')).map(button=>button.dataset.place??''));
-    let steps=0;while(accumulator>=1/60&&steps<4){stepBubbleMotion(model,1/60,pinned);accumulator-=1/60;steps++;}
+    let steps=0;while(accumulator>=1/60&&steps<4){stepBubbleMotion(model,1/60,pinned,pointer);accumulator-=1/60;steps++;}
     render();raf=requestAnimationFrame(frame);
   };
   const controller:RoomBubbleMotionController={
@@ -229,7 +273,7 @@ export function createRoomBubbleMotionController(root:HTMLElement,buttons:readon
     setReduced(value){isReduced=value;if(value){controller.stop();resetPresentation();}},
     start(){if(isRunning||isReduced)return;isRunning=true;last=0;raf=requestAnimationFrame(frame);},
     stop(){isRunning=false;if(raf)cancelAnimationFrame(raf);raf=0;last=0;accumulator=0;},
-    dispose(){controller.stop();resetPresentation();},
+    dispose(){controller.stop();root.removeEventListener('pointermove',updatePointer);root.removeEventListener('pointerdown',updatePointer);root.removeEventListener('pointerup',updatePointer);root.removeEventListener('pointerleave',clearPointer);root.removeEventListener('pointercancel',clearPointer);resetPresentation();},
   };
   return controller;
 }

@@ -91,10 +91,10 @@ npm run dev
 
 - 未指定 `?place=` 且沒有既有偏好時，首次載入從正式 catalog 隨機選一個房間；有既有偏好時回到上次房間。每個 tab 第一次進入會顯示全畫面記憶泡泡，指定房間連結不被隨機覆蓋。
 - 泡泡與隱藏 fallback select 全部由 `places` 產生，不再在 HTML 維護部分房間。`src/ui/RoomBrowser.ts` 負責初始選擇與布局錨點；`src/ui/RoomBubbleMotion.ts` 在面板開啟期間，以 session seed 的連續 curl-like 流場、錨點彈簧、阻尼、軟邊界與泡泡間排斥更新位置，不載入或複製場景。
-- 泡泡形狀依速度／接觸做小幅、面積近似守恆的伸縮；外緣用三波長薄膜干涉近似產生低彩度色變。這是 UI 美術近似，不是 Navier–Stokes、肥皂膜厚度場或光譜渲染。文字以反向旋轉維持水平；hover／focus 增加阻尼，reduced-motion 停止漂移。
+- 泡泡形狀依速度／接觸做小幅、面積近似守恆的伸縮；外緣用三波長薄膜干涉近似產生低彩度色變。這是 UI 美術近似，不是 Navier–Stokes、肥皂膜厚度場或光譜渲染。方向沿速度漸進收斂，文字以反向旋轉維持水平；桌面 pointer 產生有界的柔和排斥與少量方向動量，hover／focus 增加阻尼，reduced-motion 停止漂移。
 - 時刻、光束、自然流動暫停與音樂播放移至低存在感底列。主要時刻改為可鍵盤操作的 `radiogroup`，直接顯示晨曦／正午／暮色／月夜；連續小時滑桿放在設定面板。選曲／音量、天候、畫質、環境聲、重設與輸出仍在各自次要面板；音樂在換房時連續，不自動播放。
 - 桌面泡泡使用可重現星群錨點與每次 session 不同的連續漂移；390×844 改成可橫向滑動且支援 scroll snap，漂移幅度降低。所有預覽目前是 CSS 氛圍意象，不是場景截圖；未啟動多個 WebGL canvas。
-- 本機驗收：96 個單元測試、build、`check:project`、`git diff --check`；瀏覽器驗證首次隨機、泡泡選擇、階光 → 水光、音樂連續、四段時刻選擇、直接 `?place=leaflight`、桌面與 390×844，並確認 dialog focus trap、背景 inert、漂移／薄膜色持續變化及 console 無 warning/error。未驗證部署、實體手機、長時間記憶體或使用者最終視覺確認。
+- 本機驗收：97 個單元測試、build、`check:project`、`git diff --check`；瀏覽器驗證首次隨機、泡泡選擇、階光 → 水光、音樂連續、四段時刻選擇、直接 `?place=leaflight`、桌面與 390×844，並確認 dialog focus trap、背景 inert、放大的房名、漂移／薄膜色持續變化及 console 無 warning/error。pointer 壓力另以固定模型測試位移與速度上限。未驗證部署、實體手機、長時間記憶體或使用者最終視覺確認。
 
 ## 製作室與資產契約（2026-09-09）
 

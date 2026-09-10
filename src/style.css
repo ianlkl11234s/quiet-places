@@ -146,7 +146,8 @@ body.resting .entry-dock:hover,body.resting .entry-dock:focus-within{opacity:1;t
 .room-card--afterlight .room-card__glow{background:radial-gradient(circle at 48% 36%,#b6c9ae4d,#49604b2c 52%,transparent 72%)}
 .room-card--stairlight .room-card__glow{background:radial-gradient(circle at 52% 38%,#e0c49759,#70583d2b 52%,transparent 72%)}
 .room-card__copy{position:relative;z-index:2;display:grid;gap:8px;padding:20px;transform:rotate(var(--bubble-copy-tilt));will-change:transform}
-.room-card__name{font-family:"Iowan Old Style","Songti TC",serif;font-size:clamp(15px,1.28vw,20px);letter-spacing:.12em;text-shadow:0 2px 12px #000}
+.room-card__name{font-family:"Iowan Old Style","Songti TC",serif;font-size:clamp(21px,1.8vw,25px);letter-spacing:.1em;white-space:nowrap;text-shadow:0 2px 12px #000}
+.room-card[aria-current="location"] .room-card__name{font-size:clamp(24px,2.05vw,28px);font-weight:600}
 .room-card__subtitle{font-size:9px;letter-spacing:.13em;color:#cbd2cc;opacity:0;transform:translateY(3px);transition:opacity .3s ease,transform .3s ease}
 .room-card:hover .room-card__subtitle,.room-card:focus-visible .room-card__subtitle,.room-card[aria-current="location"] .room-card__subtitle{opacity:.72;transform:none}
 .room-browser__stay{position:absolute;left:6vw;top:57%;z-index:3;display:flex;align-items:center;gap:13px}
@@ -183,7 +184,7 @@ body.room-browser-open .entry-dock,body.room-browser-open .chrome{opacity:.15;po
   .room-browser__head{top:22px;left:22px;right:18px}.room-browser__intro{left:22px;top:13%;width:calc(100vw - 44px)}.room-browser__intro h2{font-size:27px}.room-browser__intro span{margin-top:11px}
   .room-cards{top:27%;bottom:24%;display:flex;align-items:center;gap:4px;overflow-x:auto;overflow-y:hidden;padding:18px 21vw 26px;scroll-snap-type:x mandatory;scrollbar-width:none}.room-cards::-webkit-scrollbar{display:none}
   .room-card{position:relative;left:auto;top:auto;flex:0 0 52vw;max-width:204px;width:52vw;transform:translate3d(var(--bubble-motion-x),var(--bubble-motion-y),0) rotate(var(--bubble-tilt)) scaleX(var(--bubble-stretch-x)) scaleY(var(--bubble-stretch-y))!important;background:radial-gradient(circle at 35% 22%,#ffffff32,transparent 18%),radial-gradient(circle at 50% 65%,#9bb8b64a,#101b1de8 70%);box-shadow:inset 7px 10px 22px #ffffff14,inset -14px -18px 28px #0005,0 16px 38px #0007;animation:mobile-bubble-arrive .7s ease var(--bubble-delay) both;scroll-snap-align:center}
-  .room-card[aria-current="location"]{order:-1;background:radial-gradient(circle at 35% 22%,#ffffff3d,transparent 18%),radial-gradient(circle at 50% 60%,#a9c4c25c,#132124f2 72%);border-color:#f2f6e8a8}.room-card__name{font-size:17px;color:#f5f6ef}.room-card__subtitle{font-size:10px;color:#d8ded8}
+  .room-card[aria-current="location"]{order:-1;background:radial-gradient(circle at 35% 22%,#ffffff3d,transparent 18%),radial-gradient(circle at 50% 60%,#a9c4c25c,#132124f2 72%);border-color:#f2f6e8a8}.room-card__name{font-size:21px;color:#f5f6ef}.room-card[aria-current="location"] .room-card__name{font-size:23px}.room-card__subtitle{font-size:10px;color:#d8ded8}
   .room-browser__stay{left:22px;top:auto;bottom:14%;right:22px;justify-content:center}.room-browser__stay span{display:none}
   #series-images{grid-template-columns:repeat(2,minmax(0,1fr))}.series-head{flex-wrap:wrap;gap:10px}.series-head h2{width:100%;margin-top:0}
 }

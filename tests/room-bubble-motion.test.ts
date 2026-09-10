@@ -34,6 +34,15 @@ test('focus damping pulls a moving bubble back toward its anchor',()=>{
   assert.ok(after<before);
 });
 
+test('pointer pressure gently displaces a nearby unpinned bubble',()=>{
+  const anchor=[{id:'nearby',x:60,y:50,scale:1}];
+  const baseline=createBubbleMotionModel(anchor,77),interacted=createBubbleMotionModel(anchor,77);
+  const pointer={x:.52,y:.5,vx:.08,vy:0,active:true,pressed:false};
+  for(let frame=0;frame<90;frame++){stepBubbleMotion(baseline,1/60);stepBubbleMotion(interacted,1/60,new Set(),pointer);}
+  assert.ok(interacted.bodies[0].x>baseline.bodies[0].x+.002);
+  assert.ok(Math.hypot(interacted.bodies[0].vx,interacted.bodies[0].vy)<=interacted.bodies[0].maxSpeed+1e-12);
+});
+
 test('thin-film lookup stays bounded and responds to thickness and angle',()=>{
   const normal=thinFilmRgb(420,1),thicker=thinFilmRgb(560,1),grazing=thinFilmRgb(420,.2);
   for(const sample of [normal,thicker,grazing])for(const channel of sample)assert.ok(Number.isFinite(channel)&&channel>=0&&channel<=1);
