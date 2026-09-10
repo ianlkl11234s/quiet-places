@@ -213,3 +213,5 @@ body.room-browser-open .entry-dock,body.room-browser-open .chrome{opacity:.15;po
 }
 @media(prefers-reduced-transparency:reduce){.entry-dock,.side-panel{background:#101719f2;backdrop-filter:none;-webkit-backdrop-filter:none}.room-browser{background:#071012f5;backdrop-filter:none;-webkit-backdrop-filter:none}.room-card{background:#132023f2;backdrop-filter:none;-webkit-backdrop-filter:none}.room-card::after{opacity:.12}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.entry-dock,.side-panel{background:#101719ed}.room-browser{background:#071012f2}.room-card{background:#132023ef}}
+
+.camera-tool-link{display:block;margin:12px 0;padding:10px 12px;border:1px solid rgba(255,255,255,.2);border-radius:6px;color:inherit;text-decoration:none;font-size:12px;text-align:center}.camera-tool-link:hover,.camera-tool-link:focus-visible{background:rgba(255,255,255,.08)}

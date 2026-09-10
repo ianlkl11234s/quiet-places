@@ -82,3 +82,7 @@ QUIET_PLACES_VITE_CACHE="$P6_REVIEW_DIR/cache" npm run dev -- --port 5198 --stri
 5198 被占用時選另一個埠，不停止他人的伺服器。候選、截圖及 stage 的 output-dir 也放 `$P6_REVIEW_DIR`，結束前保存到自己的交付目錄。
 
 JSON byte hash 識別精確內容，不代表美術參數是否等價。例如 `-0.38` 與計算得到的 `-0.37999999999999995` 會有不同 hash；幾何比較用既有 1e-9 容差。保留原始 receipt，不為讓 hash 一致回改證據；單變因實驗應比較同一個 browser baseline／candidate 的參數差異。
+
+## 雪景相機試片
+
+`/tools/snowwindow-camera/` 使用雪景工廠，提供位置／注視點 XYZ、FOV、時刻、暫停、基準還原與本機草稿。複製 JSON 後交由製作時採用，不走 Afterlight study apply；參數不會自動寫回場景。JSON 包含畫幅與響應式場景平移，對照時一起保留。入口與物理近似見 [雪景筆記](../scenes/snowwindow.md)。

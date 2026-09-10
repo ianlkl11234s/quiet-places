@@ -1,0 +1,783 @@
+{
+  "schema": "snow-creatures-bake/v1",
+  "status": "PASS",
+  "fps": 15,
+  "durationSeconds": 60.0,
+  "counts": {
+    "aurelia": 3,
+    "clione": 5
+  },
+  "records": [
+    {
+      "name": "JELLY_A_material_0",
+      "creature": "JELLY_A",
+      "type": "aurelia",
+      "vertices": 3066,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_A_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_A_material_1",
+      "creature": "JELLY_A",
+      "type": "aurelia",
+      "vertices": 1792,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_A_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_A_material_2",
+      "creature": "JELLY_A",
+      "type": "aurelia",
+      "vertices": 6300,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_A_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_A_material_3",
+      "creature": "JELLY_A",
+      "type": "aurelia",
+      "vertices": 504,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_A_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_A_material_4",
+      "creature": "JELLY_A",
+      "type": "aurelia",
+      "vertices": 2304,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_A_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_A_material_5",
+      "creature": "JELLY_A",
+      "type": "aurelia",
+      "vertices": 280,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_A_material_5.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_B_material_0",
+      "creature": "JELLY_B",
+      "type": "aurelia",
+      "vertices": 3066,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_B_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_B_material_1",
+      "creature": "JELLY_B",
+      "type": "aurelia",
+      "vertices": 1792,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_B_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_B_material_2",
+      "creature": "JELLY_B",
+      "type": "aurelia",
+      "vertices": 6300,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_B_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_B_material_3",
+      "creature": "JELLY_B",
+      "type": "aurelia",
+      "vertices": 504,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_B_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_B_material_4",
+      "creature": "JELLY_B",
+      "type": "aurelia",
+      "vertices": 2304,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_B_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_B_material_5",
+      "creature": "JELLY_B",
+      "type": "aurelia",
+      "vertices": 280,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_B_material_5.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_C_material_0",
+      "creature": "JELLY_C",
+      "type": "aurelia",
+      "vertices": 3066,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_C_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_C_material_1",
+      "creature": "JELLY_C",
+      "type": "aurelia",
+      "vertices": 1792,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_C_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_C_material_2",
+      "creature": "JELLY_C",
+      "type": "aurelia",
+      "vertices": 6300,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_C_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_C_material_3",
+      "creature": "JELLY_C",
+      "type": "aurelia",
+      "vertices": 504,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_C_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_C_material_4",
+      "creature": "JELLY_C",
+      "type": "aurelia",
+      "vertices": 2304,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_C_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "JELLY_C_material_5",
+      "creature": "JELLY_C",
+      "type": "aurelia",
+      "vertices": 280,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/JELLY_C_material_5.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_1_material_0",
+      "creature": "CLIONE_1",
+      "type": "clione",
+      "vertices": 1314,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_1_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_1_material_1",
+      "creature": "CLIONE_1",
+      "type": "clione",
+      "vertices": 165,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_1_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_1_material_2",
+      "creature": "CLIONE_1",
+      "type": "clione",
+      "vertices": 117,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_1_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_1_material_3",
+      "creature": "CLIONE_1",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_1_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_1_material_4",
+      "creature": "CLIONE_1",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_1_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_2_material_0",
+      "creature": "CLIONE_2",
+      "type": "clione",
+      "vertices": 1314,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_2_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_2_material_1",
+      "creature": "CLIONE_2",
+      "type": "clione",
+      "vertices": 165,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_2_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_2_material_2",
+      "creature": "CLIONE_2",
+      "type": "clione",
+      "vertices": 117,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_2_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_2_material_3",
+      "creature": "CLIONE_2",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_2_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_2_material_4",
+      "creature": "CLIONE_2",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_2_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_3_material_0",
+      "creature": "CLIONE_3",
+      "type": "clione",
+      "vertices": 1314,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_3_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_3_material_1",
+      "creature": "CLIONE_3",
+      "type": "clione",
+      "vertices": 165,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_3_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_3_material_2",
+      "creature": "CLIONE_3",
+      "type": "clione",
+      "vertices": 117,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_3_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_3_material_3",
+      "creature": "CLIONE_3",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_3_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_3_material_4",
+      "creature": "CLIONE_3",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_3_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_4_material_0",
+      "creature": "CLIONE_4",
+      "type": "clione",
+      "vertices": 1314,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_4_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_4_material_1",
+      "creature": "CLIONE_4",
+      "type": "clione",
+      "vertices": 165,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_4_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_4_material_2",
+      "creature": "CLIONE_4",
+      "type": "clione",
+      "vertices": 117,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_4_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_4_material_3",
+      "creature": "CLIONE_4",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_4_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_4_material_4",
+      "creature": "CLIONE_4",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_4_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_5_material_0",
+      "creature": "CLIONE_5",
+      "type": "clione",
+      "vertices": 1314,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_5_material_0.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_5_material_1",
+      "creature": "CLIONE_5",
+      "type": "clione",
+      "vertices": 165,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_5_material_1.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_5_material_2",
+      "creature": "CLIONE_5",
+      "type": "clione",
+      "vertices": 117,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_5_material_2.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_5_material_3",
+      "creature": "CLIONE_5",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_5_material_3.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    },
+    {
+      "name": "CLIONE_5_material_4",
+      "creature": "CLIONE_5",
+      "type": "clione",
+      "vertices": 154,
+      "frames": 900,
+      "cache": "/private/tmp/quiet-places-snow-window-20260909/assets/blender/snow-creatures_pc2/CLIONE_5_material_4.pc2",
+      "positionsDtype": "float32le",
+      "rootPosesDtype": "float32le",
+      "materialClamped": {},
+      "rootScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "windingRepair": false
+    }
+  ],
+  "coordinateConversion": "[x,y,z]\u2192[x,-z,y]",
+  "finiteGeometry": true,
+  "stableTopology": true,
+  "pc2Midframe": {
+    "aurelia": {
+      "record": "JELLY_A_material_0",
+      "timelineFrame": 899,
+      "sourceFrame": 449.5,
+      "vertex0DeltaMetres": 0.0008316924833881432
+    },
+    "clione": {
+      "record": "CLIONE_1_material_0",
+      "timelineFrame": 899,
+      "sourceFrame": 449.5,
+      "vertex0DeltaMetres": 0.0003504948639344935
+    }
+  },
+  "silhouetteCloseups": [
+    {
+      "creature": "JELLY_A",
+      "timelineFrame": 899,
+      "cameraScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "output": "/private/tmp/quiet-places-snow-window-20260909/exports/snowwindow-biology-20260910/blender-qa/aurelia-silhouette-mid.png"
+    },
+    {
+      "creature": "CLIONE_1",
+      "timelineFrame": 899,
+      "cameraScale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "output": "/private/tmp/quiet-places-snow-window-20260909/exports/snowwindow-biology-20260910/blender-qa/clione-silhouette-mid.png"
+    }
+  ],
+  "note": "PC2 local mesh deformation and root poses originate in runtime input."
+}

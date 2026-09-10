@@ -1,0 +1,193 @@
+
+> quiet-places@0.1.0 test
+> node --experimental-strip-types --test tests/*.test.ts
+
+(node:83328) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Afterlight traverses dawn, high noon, dusk and moon across the full wrapped day (9.155834ms)
+✔ twilight lasts four hours (0.143792ms)
+(node:83329) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ editable drain export and runtime share aperture and metal-bar locations (19.938667ms)
+(node:83330) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Afterlight runtime derives opening and grate positions from the versioned geometry contract (0.865792ms)
+✔ rain sampling remains inside a derived open grate cell (0.202667ms)
+✔ shared drain helper validates a studio candidate before it can be previewed (0.378208ms)
+(node:83331) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ plant physics freezes, is frame-partition invariant, and stays finite (1366.522208ms)
+✔ sunshower only wets aperture-reachable leaf geometry and produces bounded drops (2768.618834ms)
+✔ heavy rain shares extra leaf contacts and remains pausable with bounded drops (1478.759833ms)
+✔ main plant moves visibly at the hero camera while leaves stay clear of the wall (1507.270709ms)
+(node:83332) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ a swept deterministic rain path contacts a curved leaf triangle (1.663916ms)
+✔ the nearest leaf shelters the lower leaf (0.402958ms)
+✔ rain outside a triangle does not create a contact (0.53825ms)
+✔ a cycle cannot hit twice and reset permits the deterministic contact again (0.323666ms)
+(node:83333) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ sunshower stays in the aperture and freezes exactly with the player clock (19.894417ms)
+✔ a leaf-intercepted rain drop disappears below the actual hit until its next cycle (1.411833ms)
+✔ rain enters through open grate cells across repeated cycles (11.766ms)
+✔ heavy rain triples the active field and switching back preserves sunshower visuals (3.260584ms)
+(node:83334) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ asset recipe registry names both isolated pilot contracts (5.502583ms)
+✔ pipeline rejects an unknown recipe before it creates an output (445.422917ms)
+✔ GLB accessor and node-transform readback rejects a corrupted frame location (413.531208ms)
+(node:83339) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ koi routes preserve floor clearance, separation and nose-forward motion through many laps (125.789084ms)
+✔ absolute koi clock repeats exactly and non-finite input resets safely (1.392167ms)
+(node:83340) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Koi skinned body QA: head=0.00223m tail=0.04615m ratio=0.0483
+✔ shipped koi has weighted body, complete rig and nine usable Actions with a seamless hero loop (469.482709ms)
+Koi runtime deformed bounds: floor=0.0873m ceiling=0.4913m
+✔ real koi clones animate, freeze without accumulated steering, stay above floor and dispose once (1378.616375ms)
+(node:83341) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"longFinMotion":{"minimumSpacing":0.6265196989084819,"maximumSpeed":0.307999049987288,"maximumBeamRadius":2.56264485265515,"maxActiveBursts":2,"mixedPaceFrames":6421,"darkFrames":27825,"returningVisitors":4,"seconds":1200}}
+✔ sixteen long-fin koi use deterministic fixed-step loose-shoal steering for a long run (3914.811666ms)
+✔ fixed steps, pause and reduced-motion preserve the controller contract (94.014416ms)
+(node:83342) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ long-fin GLB has seven independent rig subtrees, weighted meshes and eight 7-rig Actions (420.430458ms)
+✔ adapter binds each rig, freezes at dt=0, blends Actions and releases shared resources once (417.819834ms)
+{"longFinSkinnedBody":{"headExcursion":0.0012043947781563541,"tailExcursion":0.021772336991422954,"ratio":0.05531766197771127}}
+✔ actual skinned long-fin body keeps the head stable and all exported clips close their loops (321.163333ms)
+(node:83343) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ medaka cache preserves its 120-second, 26-fish binary contract (8.785959ms)
+✔ medaka sampler is bounded, nose-forward, separated, and contains every behavioural state (118.342375ms)
+✔ medaka loop has a continuous return and phase interpolation survives wrapping (0.317792ms)
+✔ medaka baked headings stay bounded through hover and the loop seam (64.3945ms)
+✔ studio route keeps continuous closed travel, supports phase offsets, and holds an open endpoint (4.204042ms)
+✔ plant-side sunlight stays occupied throughout the triangle circuit (13.344083ms)
+(node:83380) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ real medaka GLB creates 26 small independently skinned fish with deterministic bone poses and one-time release (128.782916ms)
+✔ shared medaka factory gives a studio route consumer independent rig ownership (7.109542ms)
+✔ Afterlight releases the shared GLB when its motion cache fails to load (30.757417ms)
+✔ shared factory rejects an invalid agent length before cloning resources (6.716458ms)
+(node:83423) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ model resources deduplicate shared GLTF assets, retain skinned ownership, and ignore borrowed shader uniforms (3.685708ms)
+(node:83424) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ music playlist advances through distinct tracks, wraps, and respects stop controls (1.141708ms)
+(node:83426) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ wave slope equals finite-difference derivative of the rendered height (2.710459ms)
+✔ Snell angle and Fresnel transmission at normal incidence and critical boundary (0.301834ms)
+✔ shared sun gives noon total reflection but permits low-evening window transmission (0.153542ms)
+(node:83432) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS ocean photon aperture, pane refraction, TIR and nearest receiver
+✔ tests/ocean-photons.test.ts (581.365375ms)
+(node:83433) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ afterlight plant opens into short, upward, multi-directional branch clusters (48.057625ms)
+✔ afterlight plant has finite normals and disposes owned resources only once (14.922834ms)
+(node:83434) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ scene clock clamps late frames and freezes elapsed while paused or disposed (2.30275ms)
+✔ place host only retires the old place after a candidate is constructed (1.840292ms)
+✔ place host restores renderer state after a failed candidate and preserves the candidate after retirement (0.332625ms)
+✔ disposing during preparation releases the unused factory without reviving a place (0.189792ms)
+✔ metadata exposes controls only for rooms that support them (0.074541ms)
+(node:83438) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tests/preferences.test.ts (268.724042ms)
+(node:83456) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ red twine is anchored, deforms its two film tails deterministically, and releases resources (7.364208ms)
+(node:83457) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ seaward light crosses the opening and uses weaker cool moonlight at night (2.153667ms)
+(node:83463) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ coastal grass keeps roots anchored and pauses deterministically (22.286166ms)
+(node:83464) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tunnel ray follows a deterministic low ellipse and releases GLB resources once (34.681583ms)
+✔ factory releases unused resources once (0.298458ms)
+✔ missing slow cruise is rejected and releases the loaded template (3.413625ms)
+✔ actual stingray skin stays above the floor through a full turning route (1229.092459ms)
+✔ flight rises before rolling and stays level until the roll has settled (1.50275ms)
+(node:83470) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shared random keeps the established sequence and independent scene streams (9.251ms)
+(node:83471) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shared optics retains the calibrated water field (0.6965ms)
+✔ shared interactive slopes retain Waterlight sampling orientation and gain (0.112584ms)
+(node:83472) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ shark patrol stays in the stairwell envelope with an always-moving, continuous pose (558.637ms)
+✔ shark sampler is deterministic, phase-integrated, and continuous through route laps (40.800708ms)
+✔ turn bias slows the patrol while increasing tail amplitude and Strouhal-derived cadence (23.105875ms)
+✔ reported speed matches world displacement and the wave keeps moving after an hour (812.073ms)
+✔ out-and-back patrol crosses flights only at the shared landing (20.363042ms)
+(node:83473) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Shark head excursion 0.0165m, rear body 0.1246m
+✔ shipped shark body actually uses the spine and deforms more at the tail (135.080625ms)
+(node:83474) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ snow window uses daylight by day and restrained cool moonlight at night (1.182583ms)
+✔ linen remains mostly still and occasionally receives an irregular gust (0.086958ms)
+✔ snow is deterministic and wraps below the window without accumulating drift (0.104125ms)
+✔ glass has independent droplet relief and stronger edge frost, without a scene image (214.725083ms)
+✔ winter exterior has upward sea, closed positive-thickness snow, and deterministic animation (71.618958ms)
+(node:83477) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS min separation=1.898m peak speed=0.480m/s
+✔ tests/stingray-motion.test.ts (391.036041ms)
+(node:83496) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two skeletal rays animate independently, freeze and release shared model resources once (12.908ms)
+✔ shipped GLB contains weighted body and genuinely animated seamless swim clips (92.966167ms)
+(node:83509) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ portable study rejects incompatible scene/assets and nonfinite parameters (0.884375ms)
+✔ studio candidate opening shares the production geometry validator and keeps roundoff neutral (3.587791ms)
+(node:83510) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:83611) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ study validates current assets, stages immutable evidence, then applies and rolls back a non-geometry candidate (1235.059417ms)
+✔ study refuses applying an opening change and refuses rollback over a different installed file (746.43675ms)
+✔ an accepted experiment supplies the required adoption reason (314.295333ms)
+✔ study rejects a subset asset list and preserves the wall-side geometry anchor in a staged override (320.800042ms)
+✔ pending experiment retains source provenance and offers validation without adoption (323.364708ms)
+(node:83511) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ named moments move forward at two seconds per interval, including midnight (0.744166ms)
+✔ intermediate lighting follows sampled hours and never runs backwards (0.971125ms)
+✔ retargeting starts from displayed time, same selection stays still, completion clamps (0.083791ms)
+(node:83513) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS aspect=1.778 fov=53: -21.31..21.31 degrees
+PASS aspect=0.462 fov=64: -21.31..21.31 degrees
+PASS aspect=8.000 fov=53: -20.01..20.01 degrees
+✔ tests/water-room.test.ts (424.191667ms)
+(node:83516) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ the leaf window place releases its scene objects and resources (30.709459ms)
+✔ the ocean window place releases its scene objects and resources (109.048333ms)
+✔ FloorKoi keeps fish low, bounded, pausable, and safely disposable (53.75125ms)
+✔ ocean window eases water level while surface, pane, and ray lighting stay in lockstep (92.046208ms)
+(node:83517) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ window bounce follows first geometry hit, fades with sun and releases shadow resources (7.146458ms)
+ℹ tests 95
+ℹ suites 0
+ℹ pass 95
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7864.669125

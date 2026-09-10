@@ -1,0 +1,105 @@
+{
+  "JELLY_A": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.010748995478838426,
+    "distanceM": 0.3988863000014793,
+    "gaits": [
+      "J_ACTIVE_CRUISE",
+      "J_ASCEND",
+      "J_DESCEND",
+      "J_DRIFT_IDLE",
+      "J_GLIDE",
+      "J_PAUSE_OPEN",
+      "J_PULSE_CRUISE",
+      "J_SOFT_TURN"
+    ]
+  },
+  "JELLY_B": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.012341156677855345,
+    "distanceM": 0.5015041793179433,
+    "gaits": [
+      "J_ACTIVE_CRUISE",
+      "J_ASCEND",
+      "J_DESCEND",
+      "J_DRIFT_IDLE",
+      "J_GLIDE",
+      "J_PAUSE_OPEN",
+      "J_PULSE_CRUISE",
+      "J_SOFT_TURN"
+    ]
+  },
+  "JELLY_C": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.008023065574911043,
+    "distanceM": 0.2947724305191689,
+    "gaits": [
+      "J_ACTIVE_CRUISE",
+      "J_ASCEND",
+      "J_DESCEND",
+      "J_DRIFT_IDLE",
+      "J_GLIDE",
+      "J_PAUSE_OPEN",
+      "J_PULSE_CRUISE",
+      "J_SOFT_TURN"
+    ]
+  },
+  "CLIONE_1": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.0036985054877389854,
+    "distanceM": 0.11168202778800927,
+    "gaits": [
+      "slowhover",
+      "slowswim"
+    ]
+  },
+  "CLIONE_2": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.00438182445285723,
+    "distanceM": 0.1256038892738767,
+    "gaits": [
+      "slowhover",
+      "slowswim"
+    ]
+  },
+  "CLIONE_3": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.00481597343869158,
+    "distanceM": 0.16730204554699055,
+    "gaits": [
+      "glidesink",
+      "slowhover",
+      "slowswim"
+    ]
+  },
+  "CLIONE_4": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.005550679331976377,
+    "distanceM": 0.18420406180660095,
+    "gaits": [
+      "glidesink",
+      "slowhover",
+      "slowswim",
+      "softturn"
+    ]
+  },
+  "CLIONE_5": {
+    "samples": 900,
+    "minSpeed": 0.0,
+    "maxSpeed": 0.006389636767709689,
+    "distanceM": 0.17645303298138543,
+    "gaits": [
+      "glidesink",
+      "slowhover",
+      "slowswim",
+      "softturn"
+    ]
+  }
+}
