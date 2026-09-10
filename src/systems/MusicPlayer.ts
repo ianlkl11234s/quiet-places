@@ -2,6 +2,7 @@ export interface MusicPlayerOptions {
   /** 0 到 1；呼叫端可將它保存為使用者偏好。 */
   volume?: number;
   onVolumeChange?: (value: number) => void;
+  onPlaybackChange?: (state: {playing: boolean; title: string}) => void;
   fadeSeconds?:number;
 }
 
@@ -11,6 +12,7 @@ export interface MusicPlayer {
   dispose: () => void;
   getVolume: () => number;
   setVolume: (value: number) => void;
+  toggle:()=>Promise<boolean>;
   getSelection:()=>{track:number;loop:boolean;fadeSeconds:number};
   setSelection:(track:number,loop:boolean,fadeSeconds?:number)=>void;
 }
@@ -102,6 +104,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     const isPlaying = wantedPlaying && !audio.paused;
     play.textContent = isPlaying ? '暫停' : '播放';
     play.setAttribute('aria-pressed', String(isPlaying));
+    options.onPlaybackChange?.({playing:isPlaying,title:tracks[trackIndex].title});
   };
   const setStatus = (message: string) => { status.textContent = message; };
   const selectedSource = () => new URL(tracks[trackIndex].source, document.baseURI).href;
@@ -181,6 +184,13 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     options.onVolumeChange?.(value);
   });
 
+  const toggle=async()=>{
+    if(wantedPlaying){stop();return false;}
+    await start();
+    return wantedPlaying&&!audio.paused;
+  };
+  render();
+
   return {
     visibility(hidden) { if (hidden) stop(); },
     dispose() {
@@ -191,6 +201,7 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
       audio.load();
       root.remove();
     },
+    toggle,
     getSelection:()=>({track:trackIndex,loop:loop.checked,fadeSeconds}),
     setSelection(index,shouldLoop,fade=0){if(!Number.isInteger(index)||index<0||index>=tracks.length||!Number.isFinite(fade)||fade<0||fade>5)throw new Error("Invalid music selection");fadeSeconds=fade;loop.checked=shouldLoop;setTrack(index,false);},
     getVolume: () => targetVolume,
