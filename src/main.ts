@@ -11,33 +11,35 @@ import {sampleTime,sampleForwardTime,localHour,formatHour,momentName} from './sy
 import {createAudioSystem} from './systems/AudioSystem.ts';
 import {createMusicPlayer} from './systems/MusicPlayer.ts';
 import afterlightStudy from '../assets/config/afterlight-study.json';
-import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences} from './systems/Preferences.ts';
+import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences,PREFERENCES_STORAGE_KEY,LEGACY_PREFERENCES_STORAGE_KEY} from './systems/Preferences.ts';
 import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
 import {createSceneClock} from './player/SceneClock.ts';
+import {chooseInitialPlace,layoutMemoryBubbles,ROOM_ENTRY_SESSION_KEY} from './ui/RoomBrowser.ts';
+import {createRoomBubbleMotionController,ROOM_BUBBLE_SEED_KEY} from './ui/RoomBubbleMotion.ts';
 import './style.css';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
 async function start(){
+ const hadStoredPreference=(()=>{try{return localStorage.getItem(PREFERENCES_STORAGE_KEY)!==null||localStorage.getItem(LEGACY_PREFERENCES_STORAGE_KEY)!==null;}catch{return true;}})();
  const preferences=loadPreferences();
- const roomCards=document.querySelector('.room-cards');
+ const roomCards=document.querySelector<HTMLElement>('.room-cards')!;
  const placeSelectElement=el<HTMLSelectElement>('place-select');
+ const momentSelector=el('moment-selector');
  for(const metadata of places){
-  if(!roomCards?.querySelector(`[data-place="${metadata.id}"]`)){
-   const card=document.createElement('button');card.className=`room-card room-card--${metadata.id}`;card.dataset.place=metadata.id;card.setAttribute('aria-pressed','false');
-   card.innerHTML=`<span class="room-card__name">${metadata.name}</span>`;roomCards?.append(card);
-  }
-  if(!placeSelectElement.querySelector(`option[value="${metadata.id}"]`)){
-   const option=document.createElement('option');option.value=metadata.id;option.textContent=`${metadata.name} · ${metadata.subtitle}`;placeSelectElement.append(option);
-  }
+  const card=document.createElement('button');card.className=`room-card room-card--${metadata.id}`;card.dataset.place=metadata.id;
+  card.innerHTML=`<span class="room-card__glow" aria-hidden="true"></span><span class="room-card__copy"><span class="room-card__name">${metadata.name}</span><span class="room-card__subtitle">${metadata.subtitle}</span></span>`;roomCards.append(card);
+  const option=document.createElement('option');option.value=metadata.id;option.textContent=`${metadata.name} · ${metadata.subtitle}`;placeSelectElement.append(option);
+ }
+ for(const moment of moments){
+  const button=document.createElement('button');button.type='button';button.dataset.hour=String(moment.hour);button.dataset.moment=moment.id;button.setAttribute('role','radio');button.setAttribute('aria-checked','false');button.tabIndex=-1;button.textContent=moment.name;momentSelector.append(button);
  }
  const afterlightCameraOptions=document.createElement('div');
  afterlightCameraOptions.id='afterlight-camera-options';afterlightCameraOptions.hidden=true;
  afterlightCameraOptions.innerHTML='<label for="afterlight-camera-distance">鏡頭遠近 <output id="afterlight-camera-distance-value">0%</output></label><input id="afterlight-camera-distance" type="range" min="0" max="30" step="1" value="0"><div class="actions"><button id="afterlight-camera-reset">回原位</button></div>';
- document.querySelector('label[for="beam-strength"]')?.before(afterlightCameraOptions);
+ el('scene-options').append(afterlightCameraOptions);
  const snowCameraOptions=document.createElement('div');snowCameraOptions.id='snowwindow-camera-options';snowCameraOptions.hidden=true;
  snowCameraOptions.innerHTML='<a class="camera-tool-link" href="/tools/snowwindow-camera/">開啟相機調整工具 ↗</a>';
  afterlightCameraOptions.after(snowCameraOptions);
-
  const persist=()=>{
   saveRoomPreferences(preferences,currentPlace,{hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,oceanLevel});
   savePreferences(preferences);
@@ -50,7 +52,9 @@ async function start(){
  let scene=new THREE.Scene();scene.background=new THREE.Color('#080e11');
  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,700);
  const requestedPlace=new URLSearchParams(location.search).get('place');
- let currentPlace:PlaceId=isPlaceId(requestedPlace)?requestedPlace:preferences.place;
+ const linkedPlace=isPlaceId(requestedPlace)?requestedPlace:undefined;
+ let currentPlace:PlaceId=chooseInitialPlace({requested:linkedPlace,preferred:preferences.place,places,hasStoredPreference:hadStoredPreference});
+ if(!linkedPlace&&!hadStoredPreference){preferences.place=currentPlace;savePreferences(preferences);}
  const requestedSea=new URLSearchParams(location.search).get('sea');
  const initialRoom=getRoomPreferences(preferences,currentPlace);
  Object.assign(preferences,initialRoom);
@@ -94,7 +98,16 @@ async function start(){
  });
 
  const audio=createAudioSystem();
- const music=createMusicPlayer(el('music'),{volume:preferences.volume,onVolumeChange:value=>{preferences.volume=value;persist();}});
+ const quickMusicPlay=el<HTMLButtonElement>('music-play'),quickMusicLabel=el('music-track-label'),quickMusicIcon=el('music-play-icon');
+ const music=createMusicPlayer(el('music'),{
+  volume:preferences.volume,
+  onVolumeChange:value=>{preferences.volume=value;persist();},
+  onPlaybackChange:state=>{
+   quickMusicPlay.setAttribute('aria-pressed',String(state.playing));quickMusicPlay.setAttribute('aria-label',state.playing?`暫停音樂：${state.title}`:`播放音樂：${state.title}`);
+   quickMusicLabel.textContent=state.playing?state.title:'播放音樂';quickMusicIcon.textContent=state.playing?'Ⅱ':'♪';
+  },
+ });
+ quickMusicPlay.addEventListener('click',()=>{void music.toggle();});
  if(currentPlace==='afterlight')music.setSelection(afterlightStudy.audio.track,afterlightStudy.audio.loop,afterlightStudy.audio.fadeSeconds);
  const raycaster=new THREE.Raycaster(),waterPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-6.985),hit=new THREE.Vector3();
  let waterDown: {x:number;y:number;id:number}|undefined;
@@ -113,6 +126,9 @@ async function start(){
  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,last=performance.now(),lastPresented=last,raf=0,lost=false;
+ const bubbleSeed=(()=>{try{const stored=Number(sessionStorage.getItem(ROOM_BUBBLE_SEED_KEY));if(Number.isInteger(stored)&&stored>=0)return stored>>>0;const value=crypto.getRandomValues(new Uint32Array(1))[0];sessionStorage.setItem(ROOM_BUBBLE_SEED_KEY,String(value));return value;}catch{return Date.now()>>>0;}})();
+ const roomButtons=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-place]'));
+ const bubbleMotion=createRoomBubbleMotionController(roomCards,roomButtons,bubbleSeed,reduce.matches);
  const sceneClock=createSceneClock({paused});
  let beamStrength=preferences.beamStrength;
  let hour=preferences.live?localHour():preferences.hour,live=preferences.live;let state=sampleTime(hour);
@@ -131,7 +147,13 @@ async function start(){
   document.body.dataset.place=currentPlace;
   const isWater=placeSupports(currentPlace,'water-interaction');
   const hasWeather=placeSupports(currentPlace,'weather');
-  document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.place===currentPlace)));
+  const layout=layoutMemoryBubbles(places.map(place=>place.id),currentPlace);
+  document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>{
+   const id=button.dataset.place as PlaceId,position=layout.get(id),active=id===currentPlace;
+   button.toggleAttribute('aria-current',active);if(active)button.setAttribute('aria-current','location');
+   if(position){button.style.setProperty('--bubble-x',`${position.x}%`);button.style.setProperty('--bubble-y',`${position.y}%`);button.style.setProperty('--bubble-scale',String(position.scale));button.style.setProperty('--bubble-copy-scale',String(1/position.scale));button.style.setProperty('--bubble-delay',`${position.delay}ms`);}
+  });
+  bubbleMotion.setAnchors([...layout].map(([id,position])=>({id,x:position.x,y:position.y,scale:position.scale})));
   el('water-options').hidden=!hasWeather;
   el('ocean-options').hidden=!placeSupports(currentPlace,'ocean-level');
   el('afterlight-camera-options').hidden=!placeSupports(currentPlace,'camera-distance');
@@ -245,14 +267,23 @@ async function start(){
  weather.addEventListener('change',()=>{const profile=getPlaceMetadata(currentPlace).weatherProfile;preferences.weather=profile==='afterlight'&&weather.value==='heavy-rain'?'heavy-rain':weather.value==='rain'?'rain':'clear';if(placeSupports(currentPlace,'water-interaction'))place.resetWater();weatherLabels();persist();requestRender();});
  quality.addEventListener('change',()=>{preferences.quality=quality.value==='low'?'low':'standard';resize();persist();});
  rainInput.addEventListener('input',()=>{preferences.rainIntensity=Number(rainInput.value)/100;weatherLabels();persist();requestRender();});
- function updateLabels(){el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);pause.textContent=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-pressed',String(paused));}
- const panels=[{panel,toggle},{panel:el('rooms-panel'),toggle:el<HTMLButtonElement>('rooms-toggle')},{panel:el('about-panel'),toggle:el<HTMLButtonElement>('about-toggle')}];
+ function updateLabels(){
+  el('time-label').textContent=formatHour(hour);el('hour-value').textContent=formatHour(hour);el('moment-label').textContent=momentName(hour);range.value=String(hour);
+  const active=moments.reduce((best,moment)=>{const distance=Math.abs(((hour-moment.hour+12)%24+24)%24-12);const bestDistance=Math.abs(((hour-best.hour+12)%24+24)%24-12);return distance<bestDistance?moment:best;},moments[0]);
+  momentSelector.querySelectorAll<HTMLButtonElement>('[data-moment]').forEach(button=>{const checked=button.dataset.moment===active.id;button.setAttribute('aria-checked',String(checked));button.tabIndex=checked?0:-1;});
+  const pauseLabel=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-label',pauseLabel);pause.title=pauseLabel;pause.setAttribute('aria-pressed',String(paused));
+ }
+ const roomsPanel=el('rooms-panel');
+ const panels=[{panel,toggle},{panel:roomsPanel,toggle:el<HTMLButtonElement>('rooms-toggle')},{panel:el('music-panel'),toggle:el<HTMLButtonElement>('music-toggle')},{panel:el('about-panel'),toggle:el<HTMLButtonElement>('about-toggle')}];
+ const roomBrowserBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,.entry-dock,#settings,#music-panel,#about-panel,#status'));
+ const roomBrowserInert=(value:boolean)=>roomBrowserBackground.forEach(element=>{element.inert=value;});
  let activeToggle:HTMLButtonElement|undefined;
  function setPanel(open:boolean,target=panel){
   const previous=activeToggle;
   for(const entry of panels){const visible=open&&entry.panel===target;entry.panel.hidden=!visible;entry.toggle.setAttribute('aria-expanded',String(visible));if(visible)activeToggle=entry.toggle;}
+  const roomBrowserVisible=open&&target===roomsPanel;roomBrowserInert(roomBrowserVisible);document.body.classList.toggle('room-browser-open',roomBrowserVisible);if(roomBrowserVisible)bubbleMotion.start();else bubbleMotion.stop();
   document.body.classList.remove('resting');
-  if(open)target.querySelector<HTMLButtonElement>('button')?.focus();else{activeToggle=undefined;previous?.focus();}
+  if(open)(target===roomsPanel?target.querySelector<HTMLButtonElement>('[aria-current="location"]'):target.querySelector<HTMLButtonElement>('button'))?.focus();else{activeToggle=undefined;previous?.focus();}
  }
  function syncRoomInputs(){
   liveInput.checked=live;beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
@@ -278,9 +309,17 @@ async function start(){
   applyAfterlightCameraDistance();syncAfterlightCameraDistance();requestRender();
  },{passive:false});
  panels.forEach(entry=>entry.toggle.addEventListener('click',()=>setPanel(entry.panel.hidden,entry.panel)));
- ['close-settings','close-rooms','close-about'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
+ ['close-settings','close-rooms','close-music','close-about','stay-room'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
  document.addEventListener('pointerdown',event=>{if(activeToggle&&event.target instanceof Node&&!panels.some(entry=>entry.panel.contains(event.target as Node)||entry.toggle.contains(event.target as Node)))setPanel(false);});
- document.addEventListener('keydown',e=>{wake();if(e.key==='Escape'&&activeToggle)setPanel(false)});
+ document.addEventListener('keydown',e=>{
+  wake();
+  if(e.key==='Escape'&&activeToggle){setPanel(false);return;}
+  if(e.key==='Tab'&&!roomsPanel.hidden){
+   const focusable=Array.from(roomsPanel.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled):not([tabindex="-1"])'));
+   const first=focusable[0],last=focusable.at(-1);if(!first||!last)return;
+   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  }
+ });
  el<HTMLInputElement>('beam-strength').addEventListener('input',e=>{const value=Number((e.target as HTMLInputElement).value);beamStrength=value/100;preferences.beamStrength=beamStrength;persist();el('beam-value').textContent=`${value}%`;requestRender();});
  function selectHour(next:number){
   timeTravel={from:state.hour??hour,to:next,started:performance.now()};
@@ -289,9 +328,14 @@ async function start(){
  }
  range.addEventListener('input',()=>selectHour(+range.value));
  document.querySelectorAll<HTMLButtonElement>('[data-hour]').forEach(button=>button.addEventListener('click',()=>selectHour(+button.dataset.hour!)));
+ momentSelector.addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;event.preventDefault();
+  const buttons=Array.from(momentSelector.querySelectorAll<HTMLButtonElement>('[role="radio"]'));const current=Math.max(0,buttons.indexOf(document.activeElement as HTMLButtonElement));
+  const direction=event.key==='ArrowRight'||event.key==='ArrowDown'?1:-1;const next=buttons[(current+direction+buttons.length)%buttons.length];next.focus();next.click();
+ });
  liveInput.addEventListener('change',()=>{live=liveInput.checked;timeTravel=undefined;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
  pause.addEventListener('click',()=>{paused=!paused;sceneClock.setPaused(paused);updateLabels();requestRender();});
- reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);updateLabels();requestRender();});
+ reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);bubbleMotion.setReduced(e.matches);if(!e.matches&&!roomsPanel.hidden)bubbleMotion.start();updateLabels();requestRender();});
  el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
  document.addEventListener('fullscreenchange',()=>{el('fullscreen').textContent=document.fullscreenElement?'離開全螢幕':'全螢幕'});
@@ -300,7 +344,7 @@ async function start(){
  const gallery=el('series-gallery');
  const galleryImages=el('series-images');
  const imageUrls:string[]=[];
- const galleryBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,.entry-dock,#settings,#rooms-panel,#about-panel'));
+ const galleryBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,.entry-dock,#settings,#rooms-panel,#music-panel,#about-panel'));
  function galleryInert(value:boolean){galleryBackground.forEach(element=>{element.inert=value;});}
  function closeGallery(){gallery.hidden=true;galleryInert(false);audio.visibility(document.hidden);music.visibility(document.hidden);requestRender();el('export-series').focus();}
  el('close-gallery').addEventListener('click',closeGallery);
@@ -402,10 +446,13 @@ async function start(){
  });
  document.addEventListener('visibilitychange',()=>{
   cancelAnimationFrame(raf);raf=0;audio.visibility(document.hidden||!gallery.hidden);music.visibility(document.hidden||!gallery.hidden);
+  if(document.hidden)bubbleMotion.stop();else if(!roomsPanel.hidden)bubbleMotion.start();
   if(!document.hidden&&!lost)requestRender();
  });
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent='繪圖連線暫時中斷，請重新整理此頁。'});
- window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
+ window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
  updateLabels();wake();status.hidden=true;requestRender();
+ const showRoomEntry=!linkedPlace&&(()=>{try{if(sessionStorage.getItem(ROOM_ENTRY_SESSION_KEY))return false;sessionStorage.setItem(ROOM_ENTRY_SESSION_KEY,'1');return true;}catch{return !hadStoredPreference;}})();
+ if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel));
 }
 void start().catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';});

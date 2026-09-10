@@ -1,1 +1,120 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="UTF-8"><style>html,body{margin:0;background:#080e11;color:#d9d9cb;color-scheme:dark}#space{background:#080e11}</style><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="theme-color" content="#080e11"><meta name="description" content="Quiet Places／靜隅：收集日常裡可以安靜停留的角落。從水光、樹影到窗外的海，讓時間慢下來。"><title>Quiet Places — 靜隅</title></head><body><main id="space" aria-label="水光之間：即時生成的靜謐空間"></main><div class="grain" aria-hidden="true"></div><div id="room-transition" aria-hidden="true"></div><header class="chrome"><a class="wordmark" href="./">QUIET PLACES<span id="place-title">水光之間</span></a><div class="caption">A QUIET CORNER OF EVERYDAY<br>在日常的一隅，停留片刻。</div></header><nav class="entry-dock" aria-label="空間選單"><button id="rooms-toggle" class="dock-button" title="換個房間" aria-label="換個房間" aria-expanded="false" aria-controls="rooms-panel"><span class="dock-icon dock-icon--rooms" aria-hidden="true"></span></button><button id="settings-toggle" class="dock-button" title="調整此景" aria-label="調整此景" aria-expanded="false" aria-controls="settings"><span class="dock-icon dock-icon--settings" aria-hidden="true"></span></button><button id="about-toggle" class="dock-button" title="關於靜隅" aria-label="關於靜隅" aria-expanded="false" aria-controls="about-panel"><span class="dock-icon dock-icon--about" aria-hidden="true">i</span></button></nav><footer class="chrome"><div class="moment"><span class="dot"></span><span id="moment-label">午後的光</span><span id="time-label">14:00</span></div></footer><section id="rooms-panel" class="side-panel" aria-label="房間" hidden><div class="panel-head"><span>選一處安靜</span><button id="close-rooms" aria-label="關閉房間選單">×</button></div><div class="room-cards" role="group" aria-label="選擇場景"><button class="room-card" data-place="waterlight" aria-pressed="true"><span class="room-card__name">水光之間</span></button><button class="room-card" data-place="leaflight" aria-pressed="false"><span class="room-card__name">樹影午後</span></button><button class="room-card" data-place="oceanlight" aria-pressed="false"><span class="room-card__name">海光之室</span></button><button class="room-card" data-place="stairlight" aria-pressed="false"><span class="room-card__name">階光之間</span></button></div><label class="visually-hidden" for="place-select">選擇房間</label><select id="place-select"><option value="waterlight">水光之間 · 水與天光</option><option value="leaflight">樹影午後 · 微風與枝葉</option><option value="oceanlight">海光之室 · 緩緩潮聲</option><option value="stairlight">階光之間</option></select></section><section id="settings" class="side-panel" aria-label="調整此景" hidden><div class="panel-head"><span>此刻的光</span><button id="close-settings" aria-label="關閉設定">×</button></div><div id="ocean-options" hidden><span id="ocean-level-label">窗外水位</span><div class="ocean-levels" role="group" aria-labelledby="ocean-level-label"><button data-ocean-level="below" aria-pressed="true">窗下</button><button data-ocean-level="half" aria-pressed="false">半窗</button><button data-ocean-level="submerged" aria-pressed="false">全淹</button></div></div><label for="hour">時刻 <output id="hour-value">14:00</output></label><input id="hour" type="range" min="0" max="23.99" step="0.05" value="14"><div class="presets"><button data-hour="6.5">晨曦</button><button data-hour="12">正午</button><button data-hour="17.5">暮色</button><button data-hour="23">月夜</button></div><label class="check"><input id="live" type="checkbox">跟隨本地時間</label><div class="actions"><button id="pause" aria-pressed="false">暫停流動</button><button id="reset-view">重設視角</button></div><div id="water-options"><label for="weather">天候</label><select id="weather"><option value="clear">水光之間 · 晴日</option><option value="rain">雨落水面 · 雨日</option></select><div id="rain-controls" hidden><label for="rain-intensity">雨勢 <output id="rain-value">50%</output></label><input id="rain-intensity" type="range" min="0" max="100" step="5" value="50" aria-label="雨勢"></div></div><label for="beam-strength">光束強度 <output id="beam-value">100%</output></label><input id="beam-strength" type="range" min="0" max="250" step="5" value="100" aria-label="光束強度"><details class="settings-more"><summary>聲音與共用設定</summary><div class="settings-more__body"><label for="quality">畫質</label><select id="quality"><option value="standard">標準 · 30 fps</option><option value="low">節能 · 24 fps</option></select><div class="actions"><button id="audio" aria-pressed="false">開啟環境聲</button><button id="water-reset">重設水面</button><button id="fullscreen">全螢幕</button></div><div id="music"></div><button id="export-series">輸出樹影與海光 · 八張圖片</button><p id="export-message" role="status"></p><p id="water-mode" role="status"></p><p id="water-hint">輕點天窗產生漣漪。拖曳畫面，環繞天窗。左右各 45°。</p></div></details></section><section id="about-panel" class="side-panel" aria-label="關於靜隅" hidden><div class="panel-head"><span>關於靜隅</span><button id="close-about" aria-label="關閉關於靜隅">×</button></div><p class="about-lede">在水光、樹影與海景之間，<br>留一處可以安靜停留的即時空間。</p><div class="about-footer"><p class="about-credit">由 <a href="https://github.com/ianlkl11234s" target="_blank" rel="noopener noreferrer">Migu</a> 製作</p><a class="about-source" href="https://github.com/ianlkl11234s/quiet-places" target="_blank" rel="noopener noreferrer" aria-label="在新分頁查看 GitHub 專案">GitHub <span aria-hidden="true">↗</span></a></div></section><section id="series-gallery" role="dialog" aria-modal="true" aria-label="八種安靜的時刻" hidden><div class="series-head"><h2>八種安靜的時刻</h2><a id="download-series">下載全部 ZIP</a><button id="close-gallery">回到空間</button></div><div id="series-images"></div></section><p id="status" role="status">光正在進來。</p><script type="module" src="/src/main.ts"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <style>html,body{margin:0;background:#080e11;color:#d9d9cb;color-scheme:dark}#space{background:#080e11}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="theme-color" content="#080e11">
+    <meta name="description" content="Quiet Places／靜隅：收集日常裡可以安靜停留的角落。從水光、樹影到窗外的海，讓時間慢下來。">
+    <title>Quiet Places — 靜隅</title>
+  </head>
+  <body>
+    <main id="space" aria-label="水光之間：即時生成的靜謐空間"></main>
+    <div class="grain" aria-hidden="true"></div>
+    <div id="room-transition" aria-hidden="true"></div>
+
+    <header class="chrome">
+      <a class="wordmark" href="./">QUIET PLACES<span id="place-title">水光之間</span></a>
+      <div class="caption">A QUIET CORNER OF EVERYDAY<br>在日常的一隅，停留片刻。</div>
+    </header>
+
+    <nav class="entry-dock" aria-label="空間控制列">
+      <button id="rooms-toggle" class="dock-button" title="換個房間" aria-label="換個房間" aria-expanded="false" aria-controls="rooms-panel">
+        <span class="dock-icon dock-icon--rooms" aria-hidden="true"></span><span class="dock-button__label">房間</span>
+      </button>
+      <button id="pause" class="dock-button dock-button--compact" title="暫停流動" aria-label="暫停流動" aria-pressed="false">
+        <span class="dock-icon dock-icon--pause" aria-hidden="true"></span>
+      </button>
+      <div class="dock-music">
+        <button id="music-play" class="dock-music__play" aria-label="播放音樂" aria-pressed="false">
+          <span id="music-play-icon" aria-hidden="true">♪</span><span id="music-track-label">播放音樂</span>
+        </button>
+        <button id="music-toggle" class="dock-music__more" title="選擇音樂" aria-label="選擇音樂" aria-expanded="false" aria-controls="music-panel">⌃</button>
+      </div>
+      <div id="moment-selector" class="dock-moments" role="radiogroup" aria-label="光線時刻"></div>
+      <label class="dock-range dock-range--light" for="beam-strength">
+        <span class="dock-range__icon dock-range__icon--light" aria-hidden="true"></span><span class="visually-hidden">光束強度</span>
+        <input id="beam-strength" type="range" min="0" max="250" step="5" value="100" aria-label="光束強度"><output id="beam-value">100%</output>
+      </label>
+      <button id="settings-toggle" class="dock-button dock-button--compact" title="更多設定" aria-label="更多設定" aria-expanded="false" aria-controls="settings">
+        <span class="dock-icon dock-icon--settings" aria-hidden="true"></span>
+      </button>
+      <button id="about-toggle" class="dock-button dock-button--compact dock-button--about" title="關於靜隅" aria-label="關於靜隅" aria-expanded="false" aria-controls="about-panel"><span aria-hidden="true">i</span></button>
+    </nav>
+
+    <footer class="chrome">
+      <div class="moment"><span class="dot"></span><span id="moment-label">午後的光</span><span id="time-label">14:00</span></div>
+    </footer>
+
+    <section id="rooms-panel" class="room-browser" role="dialog" aria-modal="true" aria-label="選擇房間" hidden>
+      <div class="room-browser__wash" aria-hidden="true"></div>
+      <div class="room-browser__head"><span>QUIET PLACES</span><button id="close-rooms" aria-label="關閉房間選單">×</button></div>
+      <div class="room-browser__intro">
+        <p>ROOMS / 記憶中的角落</p><h2>選一處安靜</h2><span>每一個地方，都有自己的光。</span>
+      </div>
+      <div class="room-cards" role="group" aria-label="選擇場景"></div>
+      <div class="room-browser__stay"><button id="stay-room">留在這裡</button><span>回到眼前的光</span></div>
+      <label class="visually-hidden" for="place-select">選擇房間</label>
+      <select id="place-select" class="visually-hidden" tabindex="-1" aria-hidden="true"></select>
+    </section>
+
+    <section id="settings" class="side-panel" aria-label="更多設定" hidden>
+      <div class="panel-head"><span>空間細節</span><button id="close-settings" aria-label="關閉設定">×</button></div>
+      <div id="scene-options">
+        <div id="ocean-options" hidden>
+          <span id="ocean-level-label">窗外水位</span>
+          <div class="ocean-levels" role="group" aria-labelledby="ocean-level-label">
+            <button data-ocean-level="below" aria-pressed="true">窗下</button><button data-ocean-level="half" aria-pressed="false">半窗</button><button data-ocean-level="submerged" aria-pressed="false">全淹</button>
+          </div>
+        </div>
+        <div id="water-options">
+          <label for="weather">天候</label>
+          <select id="weather"><option value="clear">水光之間 · 晴日</option><option value="rain">雨落水面 · 雨日</option></select>
+          <div id="rain-controls" hidden>
+            <label for="rain-intensity">雨勢 <output id="rain-value">50%</output></label>
+            <input id="rain-intensity" type="range" min="0" max="100" step="5" value="50" aria-label="雨勢">
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-section__label">光線時刻</span>
+        <label class="settings-hour" for="hour"><span>精細調整</span><output id="hour-value">14:00</output></label>
+        <input id="hour" type="range" min="0" max="23.99" step="0.05" value="14" aria-label="精細調整光線時刻">
+        <label class="check"><input id="live" type="checkbox">跟隨本地時間</label>
+      </div>
+      <div class="settings-section">
+        <label for="quality">畫質</label>
+        <select id="quality"><option value="standard">標準 · 30 fps</option><option value="low">節能 · 24 fps</option></select>
+      </div>
+      <div class="actions">
+        <button id="reset-view">重設視角</button><button id="audio" aria-pressed="false">開啟環境聲</button><button id="water-reset">重設水面</button><button id="fullscreen">全螢幕</button>
+      </div>
+      <details class="settings-more">
+        <summary>製作與輸出</summary>
+        <div class="settings-more__body">
+          <button id="export-series">輸出場景時刻</button><p id="export-message" role="status"></p><p id="water-mode" role="status"></p><p id="water-hint">輕點天窗產生漣漪。拖曳畫面，環繞天窗。</p>
+        </div>
+      </details>
+    </section>
+
+    <section id="music-panel" class="side-panel music-panel" aria-label="選擇音樂" hidden>
+      <div class="panel-head"><span>空間選曲</span><button id="close-music" aria-label="關閉音樂選單">×</button></div><div id="music"></div>
+    </section>
+
+    <section id="about-panel" class="side-panel" aria-label="關於靜隅" hidden>
+      <div class="panel-head"><span>關於靜隅</span><button id="close-about" aria-label="關閉關於靜隅">×</button></div>
+      <p class="about-lede">在水光、樹影與海景之間，<br>留一處可以安靜停留的即時空間。</p>
+      <div class="about-footer">
+        <p class="about-credit">由 <a href="https://github.com/ianlkl11234s" target="_blank" rel="noopener noreferrer">Migu</a> 製作</p>
+        <a class="about-source" href="https://github.com/ianlkl11234s/quiet-places" target="_blank" rel="noopener noreferrer" aria-label="在新分頁查看 GitHub 專案">GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section id="series-gallery" role="dialog" aria-modal="true" aria-label="場景時刻" hidden>
+      <div class="series-head"><h2>安靜的時刻</h2><a id="download-series">下載全部 ZIP</a><button id="close-gallery">回到空間</button></div><div id="series-images"></div>
+    </section>
+    <p id="status" role="status">光正在進來。</p>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
