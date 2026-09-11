@@ -5,6 +5,7 @@ export interface BubbleAnchor {
   x: number;
   y: number;
   scale: number;
+  delay?: number;
 }
 
 export const ROOM_BUBBLE_SEED_KEY='quiet-places.room-bubbles.seed';
@@ -33,6 +34,15 @@ export interface BubbleBody extends BubbleAnchor {
   filmThickness: number;
   filmPhase: number;
   filmSpeed: number;
+  arrivalState: 'settled'|'waiting'|'rising'|'capturing';
+  arrivalElapsed: number;
+  arrivalOpacity: number;
+  arrivalDelay: number;
+  arrivalOffsetX: number;
+  arrivalOffsetY: number;
+  terminalRiseSpeed: number;
+  riseTimeConstant: number;
+  captureFrequency: number;
 }
 
 export interface BubbleMotionModel {
@@ -47,6 +57,8 @@ export interface BubblePresentation {
   stretchX: number;
   stretchY: number;
   angle: number;
+  opacity: number;
+  arriving: boolean;
 }
 
 export interface BubblePointer {
@@ -100,8 +112,37 @@ export function createBubbleMotionModel(anchors:readonly BubbleAnchor[],seed:num
     filmThickness:330+random()*310,
     filmPhase:random()*TAU,
     filmSpeed:.028+random()*.035,
+    arrivalState:'settled' as const,
+    arrivalElapsed:0,
+    arrivalOpacity:.88,
+    arrivalDelay:(anchor.delay??0)/1000+random()*.06,
+    arrivalOffsetX:(random()-.5)*.15,
+    arrivalOffsetY:.78+random()*.08,
+    terminalRiseSpeed:.165+random()*.025,
+    riseTimeConstant:.6+random()*.18,
+    captureFrequency:1.7+random()*.25,
   }));
   return {time:0,bodies,waves};
+}
+
+export type BubbleArrivalOffsets=ReadonlyMap<string,{x?:number;y:number}>;
+
+/** Starts beneath each anchor; quadratic drag shapes the rise before critical damping captures it. */
+export function startBubbleArrival(model:BubbleMotionModel,offsets?:BubbleArrivalOffsets):void {
+  for(const body of model.bodies){
+    const offset=offsets?.get(body.id);
+    body.arrivalState='waiting';body.arrivalElapsed=0;body.arrivalOpacity=0;
+    body.x=body.anchorX+(offset?.x??body.arrivalOffsetX);
+    body.y=body.anchorY+(offset?.y??body.arrivalOffsetY);
+    body.vx=0;body.vy=-body.terminalRiseSpeed*.42;body.shape=1;body.shapeVelocity=0;
+  }
+}
+
+export function settleBubbleArrival(model:BubbleMotionModel):void {
+  for(const body of model.bodies){
+    body.arrivalState='settled';body.arrivalElapsed=0;body.arrivalOpacity=.88;
+    body.x=body.anchorX;body.y=body.anchorY;body.vx=0;body.vy=0;body.shape=1;body.shapeVelocity=0;
+  }
 }
 
 function curlVelocity(model:BubbleMotionModel,x:number,y:number){
@@ -120,6 +161,25 @@ export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:Readon
   if(step===0)return;
   model.time+=step;
   const accelerations=model.bodies.map(body=>{
+    body.arrivalElapsed+=step;
+    if(body.arrivalState==='waiting'){
+      if(body.arrivalElapsed>=body.arrivalDelay){body.arrivalState='rising';body.arrivalElapsed=0;}
+      return {x:0,y:0,contact:0};
+    }
+    if(body.arrivalState==='rising'){
+      const flow=curlVelocity(model,body.x,body.y);
+      const upwardSpeed=Math.max(0,-body.vy),ratio=upwardSpeed/body.terminalRiseSpeed;
+      const upwardAcceleration=body.terminalRiseSpeed/body.riseTimeConstant*Math.max(0,1-ratio*ratio);
+      return {x:flow.x*body.flowStrength*.7-body.vx*.82,y:-upwardAcceleration,contact:0};
+    }
+    if(body.arrivalState==='capturing'){
+      const flow=curlVelocity(model,body.x,body.y),frequency=body.captureFrequency;
+      return {
+        x:(body.anchorX-body.x)*frequency*frequency-body.vx*2*frequency+flow.x*body.flowStrength*.12,
+        y:(body.anchorY-body.y)*frequency*frequency-body.vy*2*frequency,
+        contact:0,
+      };
+    }
     const held=pinned.has(body.id),flow=curlVelocity(model,body.x,body.y);
     const spring=held ? .72 : .065,damping=held ? 5.2 : .72,flowGain=held ? 0 : body.flowStrength;
     return {
@@ -130,12 +190,13 @@ export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:Readon
   });
 
   if(pointer?.active)model.bodies.forEach((body,index)=>{
-    if(pinned.has(body.id))return;
+    if(pinned.has(body.id)||body.arrivalState==='waiting')return;
     const dx=body.x-pointer.x,dy=body.y-pointer.y,distance=Math.hypot(dx,dy)||.0001;
     const radius=body.radius+.15;
     if(distance>=radius)return;
     const influence=(1-distance/radius)**2;
-    const pressure=influence*(pointer.pressed?.18:.1);
+    const arrivalGain=body.arrivalState==='settled'?1:.32;
+    const pressure=influence*(pointer.pressed?.18:.1)*arrivalGain;
     accelerations[index].x+=dx/distance*pressure+pointer.vx*influence*.08;
     accelerations[index].y+=dy/distance*pressure+pointer.vy*influence*.08;
     accelerations[index].contact=Math.max(accelerations[index].contact,influence*.025);
@@ -143,6 +204,7 @@ export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:Readon
 
   for(let i=0;i<model.bodies.length;i++)for(let j=i+1;j<model.bodies.length;j++){
     const a=model.bodies[i],b=model.bodies[j];
+    if(a.arrivalState==='waiting'||b.arrivalState==='waiting')continue;
     const dx=b.x-a.x,dy=b.y-a.y,distance=Math.hypot(dx,dy)||.0001;
     const overlap=a.radius+b.radius+.008-distance;
     if(overlap<=0)continue;
@@ -155,19 +217,34 @@ export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:Readon
 
   model.bodies.forEach((body,index)=>{
     const acceleration=accelerations[index];
+    if(body.arrivalState==='waiting')return;
     const minX=.30+body.radius,maxX=.98-body.radius,minY=.035+body.radius,maxY=.96-body.radius;
-    if(body.x<minX)acceleration.x+=(minX-body.x)*1.4;
-    if(body.x>maxX)acceleration.x-=(body.x-maxX)*1.4;
-    if(body.y<minY)acceleration.y+=(minY-body.y)*1.4;
-    if(body.y>maxY)acceleration.y-=(body.y-maxY)*1.4;
+    const settled=body.arrivalState==='settled';
+    if(settled&&body.x<minX)acceleration.x+=(minX-body.x)*1.4;
+    if(settled&&body.x>maxX)acceleration.x-=(body.x-maxX)*1.4;
+    if(settled&&body.y<minY)acceleration.y+=(minY-body.y)*1.4;
+    if(settled&&body.y>maxY)acceleration.y-=(body.y-maxY)*1.4;
     body.vx+=acceleration.x*step;body.vy+=acceleration.y*step;
     const speed=Math.hypot(body.vx,body.vy);
-    if(speed>body.maxSpeed){const factor=body.maxSpeed/speed;body.vx*=factor;body.vy*=factor;}
+    const speedLimit=settled?body.maxSpeed:body.terminalRiseSpeed*1.08;
+    if(speed>speedLimit){const factor=speedLimit/speed;body.vx*=factor;body.vy*=factor;}
     body.x+=body.vx*step;body.y+=body.vy*step;
-    if(body.x<minX||body.x>maxX){body.x=clamp(body.x,minX,maxX);body.vx*=-.18;}
-    if(body.y<minY||body.y>maxY){body.y=clamp(body.y,minY,maxY);body.vy*=-.18;}
-    const normalizedSpeed=Math.min(1,Math.hypot(body.vx,body.vy)/body.maxSpeed);
-    const mode=Math.sin(model.time*body.shapeFrequency+body.shapePhase)*.012;
+    if(settled&&(body.x<minX||body.x>maxX)){body.x=clamp(body.x,minX,maxX);body.vx*=-.18;}
+    if(settled&&(body.y<minY||body.y>maxY)){body.y=clamp(body.y,minY,maxY);body.vy*=-.18;}
+    if(body.arrivalState==='rising'){
+      const remaining=body.y-body.anchorY;
+      const captureDistance=Math.max(.125,body.terminalRiseSpeed/body.captureFrequency*1.45);
+      if(remaining<=captureDistance)body.arrivalState='capturing';
+    }else if(body.arrivalState==='capturing'){
+      if(body.y<body.anchorY){body.y=body.anchorY;body.vy=Math.max(0,body.vy);}
+      if(Math.hypot(body.x-body.anchorX,body.y-body.anchorY)<.002&&Math.hypot(body.vx,body.vy)<.004){
+        body.arrivalState='settled';body.x=body.anchorX;body.y=body.anchorY;body.vx=0;body.vy=0;
+      }
+    }
+    if(body.arrivalState!=='settled')body.arrivalOpacity=.88*(1-Math.exp(-body.arrivalElapsed/.42));
+    else body.arrivalOpacity=.88;
+    const normalizedSpeed=Math.min(1,Math.hypot(body.vx,body.vy)/(settled?body.maxSpeed:body.terminalRiseSpeed));
+    const mode=settled?Math.sin(model.time*body.shapeFrequency+body.shapePhase)*.012:0;
     const target=1+normalizedSpeed*.035+mode+Math.min(.025,acceleration.contact*.6);
     body.shapeVelocity+=(target-body.shape)*9.5*step-body.shapeVelocity*4.1*step;
     body.shape=clamp(body.shape+body.shapeVelocity*step,.955,1.065);
@@ -180,12 +257,16 @@ export function stepBubbleMotion(model:BubbleMotionModel,dt:number,pinned:Readon
 
 export function bubblePresentation(body:BubbleBody):BubblePresentation {
   const stretchX=Math.sqrt(body.shape),stretchY=1/stretchX;
+  // A rising bubble broadens across its travel direction; settled drift keeps the existing flow-aligned response.
+  const presentationAngle=body.angle+(body.arrivalState==='settled'?0:Math.PI/2);
   return {
     dx:(body.x-body.anchorX)*100,
     dy:(body.y-body.anchorY)*100,
     stretchX,
     stretchY,
-    angle:body.angle*180/Math.PI,
+    angle:presentationAngle*180/Math.PI,
+    opacity:body.arrivalOpacity,
+    arriving:body.arrivalState!=='settled',
   };
 }
 
@@ -219,6 +300,7 @@ function filmGradient(body:BubbleBody,time:number){
 export interface RoomBubbleMotionController {
   setAnchors(anchors:readonly BubbleAnchor[]):void;
   setReduced(reduced:boolean):void;
+  startArrival():void;
   start():void;
   stop():void;
   dispose():void;
@@ -247,15 +329,17 @@ export function createRoomBubbleMotionController(root:HTMLElement,buttons:readon
   const resetPresentation=()=>buttons.forEach(button=>{
     button.style.setProperty('--bubble-motion-x','0px');button.style.setProperty('--bubble-motion-y','0px');
     button.style.setProperty('--bubble-stretch-x','1');button.style.setProperty('--bubble-stretch-y','1');button.style.setProperty('--bubble-tilt','0deg');button.style.setProperty('--bubble-copy-tilt','0deg');
+    button.style.setProperty('--bubble-opacity','.88');
   });
   const render=()=>{
     const rect=root.getBoundingClientRect(),mobile=rect.width<=760;
     for(const body of model.bodies){
       const button=byId.get(body.id);if(!button)continue;
-      const pose=bubblePresentation(body),mobileFactor=mobile ? .16 : 1;
+      const pose=bubblePresentation(body),mobileFactor=mobile&&!pose.arriving ? .16 : 1;
       button.style.setProperty('--bubble-motion-x',`${pose.dx/100*rect.width*mobileFactor}px`);
       button.style.setProperty('--bubble-motion-y',`${pose.dy/100*rect.height*mobileFactor}px`);
       button.style.setProperty('--bubble-stretch-x',String(pose.stretchX));button.style.setProperty('--bubble-stretch-y',String(pose.stretchY));button.style.setProperty('--bubble-tilt',`${pose.angle}deg`);button.style.setProperty('--bubble-copy-tilt',`${-pose.angle}deg`);
+      button.style.setProperty('--bubble-opacity',String(pose.opacity));
       if(filmFrame%8===0)button.style.setProperty('--film-gradient',filmGradient(body,model.time));
     }
     filmFrame++;
@@ -270,7 +354,18 @@ export function createRoomBubbleMotionController(root:HTMLElement,buttons:readon
   };
   const controller:RoomBubbleMotionController={
     setAnchors(anchors){model=createBubbleMotionModel(anchors,seed);last=0;accumulator=0;filmFrame=0;resetPresentation();render();},
-    setReduced(value){isReduced=value;if(value){controller.stop();resetPresentation();}},
+    setReduced(value){isReduced=value;if(value){controller.stop();settleBubbleArrival(model);render();}},
+    startArrival(){
+      if(isReduced){settleBubbleArrival(model);render();return;}
+      const rootRect=root.getBoundingClientRect(),offsets=new Map<string,{x:number;y:number}>();
+      for(const body of model.bodies){
+        const button=byId.get(body.id),rect=button?.getBoundingClientRect();
+        const targetY=rect&&rootRect.height>0?(rect.top+rect.height/2-rootRect.top)/rootRect.height:body.anchorY;
+        const riseDistance=Math.max(.1,Math.min(.34+body.arrivalOffsetY*.04,.955-targetY));
+        offsets.set(body.id,{x:body.arrivalOffsetX,y:riseDistance});
+      }
+      startBubbleArrival(model,offsets);last=0;accumulator=0;render();controller.start();
+    },
     start(){if(isRunning||isReduced)return;isRunning=true;last=0;raf=requestAnimationFrame(frame);},
     stop(){isRunning=false;if(raf)cancelAnimationFrame(raf);raf=0;last=0;accumulator=0;},
     dispose(){controller.stop();root.removeEventListener('pointermove',updatePointer);root.removeEventListener('pointerdown',updatePointer);root.removeEventListener('pointerup',updatePointer);root.removeEventListener('pointerleave',clearPointer);root.removeEventListener('pointercancel',clearPointer);resetPresentation();},

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {places} from '../src/places/metadata.ts';
 import {layoutMemoryBubbles} from '../src/ui/RoomBrowser.ts';
-import {bubblePresentation,createBubbleMotionModel,hashBubbleSeed,stepBubbleMotion,thinFilmRgb} from '../src/ui/RoomBubbleMotion.ts';
+import {bubblePresentation,createBubbleMotionModel,hashBubbleSeed,startBubbleArrival,stepBubbleMotion,thinFilmRgb} from '../src/ui/RoomBubbleMotion.ts';
 
 const anchors=()=>{
   const layout=layoutMemoryBubbles(places.map(place=>place.id),'waterlight');
@@ -32,6 +32,32 @@ test('focus damping pulls a moving bubble back toward its anchor',()=>{
   for(let frame=0;frame<360;frame++)stepBubbleMotion(model,1/60,new Set([body.id]));
   const after=Math.hypot(body.x-body.anchorX,body.y-body.anchorY);
   assert.ok(after<before);
+});
+
+test('bubble arrival begins with lift, accelerates, and captures without overshoot',()=>{
+  const model=createBubbleMotionModel([{id:'waterlight',x:66,y:43,scale:.85,delay:0}],91);
+  startBubbleArrival(model,new Map([['waterlight',{x:.025,y:.82}]]));
+  const body=model.bodies[0],anchorY=body.anchorY;
+  assert.ok(body.vy<0,'arrival should already have upward momentum at release');
+  assert.ok(body.arrivalDelay<.06,'the first bubble should not dwell below the viewport');
+  let earlySpeed=0,cruiseSpeed=0,captureCondition=false,settledAt=Infinity;
+  for(let frame=0;frame<720;frame++){
+    const previousState=body.arrivalState;
+    stepBubbleMotion(model,1/60);
+    if(frame===15)earlySpeed=-body.vy;
+    if(frame===120)cruiseSpeed=-body.vy;
+    if(previousState==='rising'&&body.arrivalState==='capturing'){
+      captureCondition=-body.vy<=body.captureFrequency*(body.y-body.anchorY)+1e-6;
+    }
+    if(body.arrivalState!=='settled')assert.ok(body.y>=anchorY-1e-9,'arrival must not rise past its anchor');
+    if(body.arrivalState==='settled'){settledAt=frame/60;break;}
+  }
+  assert.ok(earlySpeed>0&&cruiseSpeed>earlySpeed,'rise should build from partial lift instead of starting at full speed');
+  assert.ok(cruiseSpeed<=body.terminalRiseSpeed*1.01,'quadratic drag should bound the cruising speed');
+  assert.ok(captureCondition,'critical capture must begin with enough distance to absorb upward velocity');
+  assert.ok(settledAt>=6&&settledAt<=11,`arrival settled outside the intended slow window: ${settledAt}s`);
+  assert.equal(body.y,anchorY);
+  assert.equal(body.arrivalOpacity,.88);
 });
 
 test('pointer pressure gently displaces a nearby unpinned bubble',()=>{

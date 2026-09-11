@@ -20,8 +20,8 @@
     </header>
 
     <nav class="entry-dock" aria-label="空間控制列">
-      <button id="rooms-toggle" class="dock-button" title="換個房間" aria-label="換個房間" aria-expanded="false" aria-controls="rooms-panel">
-        <span class="dock-icon dock-icon--rooms" aria-hidden="true"></span><span class="dock-button__label">房間</span>
+      <button id="rooms-toggle" class="dock-button" title="查看其他房間" aria-label="查看其他房間" aria-expanded="false" aria-controls="rooms-panel">
+        <span class="dock-icon dock-icon--rooms" aria-hidden="true"></span><span class="dock-button__label">其他房間</span>
       </button>
       <button id="pause" class="dock-button dock-button--compact" title="暫停流動" aria-label="暫停流動" aria-pressed="false">
         <span class="dock-icon dock-icon--pause" aria-hidden="true"></span>
@@ -53,8 +53,12 @@
       <div class="room-browser__intro">
         <p>ROOMS / 記憶中的角落</p><h2>選一處安靜</h2><span>每一個地方，都有自己的光。</span>
       </div>
-      <div class="room-cards" role="group" aria-label="選擇場景"></div>
-      <div class="room-browser__stay"><button id="stay-room">留在這裡</button><span>回到眼前的光</span></div>
+      <div id="room-cards" class="room-cards" role="group" aria-label="選擇場景"></div>
+      <div class="room-browser__actions">
+        <button id="stay-room">留在這裡</button>
+        <button id="explore-rooms" aria-controls="room-cards" aria-expanded="false">想去其他房間</button>
+        <span>回到眼前的光</span>
+      </div>
       <label class="visually-hidden" for="place-select">選擇房間</label>
       <select id="place-select" class="visually-hidden" tabindex="-1" aria-hidden="true"></select>
     </section>
