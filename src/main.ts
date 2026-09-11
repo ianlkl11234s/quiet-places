@@ -153,7 +153,7 @@ async function start(){
    button.toggleAttribute('aria-current',active);if(active)button.setAttribute('aria-current','location');
    if(position){button.style.setProperty('--bubble-x',`${position.x}%`);button.style.setProperty('--bubble-y',`${position.y}%`);button.style.setProperty('--bubble-scale',String(position.scale));button.style.setProperty('--bubble-copy-scale',String(1/position.scale));button.style.setProperty('--bubble-delay',`${position.delay}ms`);}
   });
-  bubbleMotion.setAnchors([...layout].map(([id,position])=>({id,x:position.x,y:position.y,scale:position.scale})));
+  bubbleMotion.setAnchors([...layout].map(([id,position])=>({id,x:position.x,y:position.y,scale:position.scale,delay:position.delay})));
   el('water-options').hidden=!hasWeather;
   el('ocean-options').hidden=!placeSupports(currentPlace,'ocean-level');
   el('afterlight-camera-options').hidden=!placeSupports(currentPlace,'camera-distance');
@@ -274,16 +274,23 @@ async function start(){
   const pauseLabel=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-label',pauseLabel);pause.title=pauseLabel;pause.setAttribute('aria-pressed',String(paused));
  }
  const roomsPanel=el('rooms-panel');
+ const exploreRooms=el<HTMLButtonElement>('explore-rooms');
+ type RoomBrowserView='landing'|'choosing';
  const panels=[{panel,toggle},{panel:roomsPanel,toggle:el<HTMLButtonElement>('rooms-toggle')},{panel:el('music-panel'),toggle:el<HTMLButtonElement>('music-toggle')},{panel:el('about-panel'),toggle:el<HTMLButtonElement>('about-toggle')}];
  const roomBrowserBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,.entry-dock,#settings,#music-panel,#about-panel,#status'));
  const roomBrowserInert=(value:boolean)=>roomBrowserBackground.forEach(element=>{element.inert=value;});
  let activeToggle:HTMLButtonElement|undefined;
- function setPanel(open:boolean,target=panel){
+ function setRoomBrowserView(view:RoomBrowserView){
+  if(view==='choosing'){roomsPanel.removeAttribute('data-view');void roomCards.offsetWidth;}
+  roomsPanel.dataset.view=view;exploreRooms.setAttribute('aria-expanded',String(view==='choosing'));
+  if(view==='choosing')bubbleMotion.startArrival();else bubbleMotion.stop();
+ }
+ function setPanel(open:boolean,target=panel,roomView:RoomBrowserView='choosing'){
   const previous=activeToggle;
   for(const entry of panels){const visible=open&&entry.panel===target;entry.panel.hidden=!visible;entry.toggle.setAttribute('aria-expanded',String(visible));if(visible)activeToggle=entry.toggle;}
-  const roomBrowserVisible=open&&target===roomsPanel;roomBrowserInert(roomBrowserVisible);document.body.classList.toggle('room-browser-open',roomBrowserVisible);if(roomBrowserVisible)bubbleMotion.start();else bubbleMotion.stop();
+  const roomBrowserVisible=open&&target===roomsPanel;roomBrowserInert(roomBrowserVisible);document.body.classList.toggle('room-browser-open',roomBrowserVisible);if(roomBrowserVisible)setRoomBrowserView(roomView);else{roomsPanel.removeAttribute('data-view');exploreRooms.setAttribute('aria-expanded','false');bubbleMotion.stop();}
   document.body.classList.remove('resting');
-  if(open)(target===roomsPanel?target.querySelector<HTMLButtonElement>('[aria-current="location"]'):target.querySelector<HTMLButtonElement>('button'))?.focus();else{activeToggle=undefined;previous?.focus();}
+  if(open)(target===roomsPanel?(roomView==='landing'?el<HTMLButtonElement>('stay-room'):target.querySelector<HTMLButtonElement>('[aria-current="location"]')):target.querySelector<HTMLButtonElement>('button'))?.focus();else{activeToggle=undefined;previous?.focus();}
  }
  function syncRoomInputs(){
   liveInput.checked=live;beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
@@ -308,7 +315,9 @@ async function start(){
   afterlightCameraDistance=THREE.MathUtils.clamp(afterlightCameraDistance-step,0,.30);
   applyAfterlightCameraDistance();syncAfterlightCameraDistance();requestRender();
  },{passive:false});
- panels.forEach(entry=>entry.toggle.addEventListener('click',()=>setPanel(entry.panel.hidden,entry.panel)));
+ panels.filter(entry=>entry.panel!==roomsPanel).forEach(entry=>entry.toggle.addEventListener('click',()=>setPanel(entry.panel.hidden,entry.panel)));
+ el<HTMLButtonElement>('rooms-toggle').addEventListener('click',()=>setPanel(roomsPanel.hidden,roomsPanel,'choosing'));
+ exploreRooms.addEventListener('click',()=>{if(roomsPanel.dataset.view==='choosing')return;setRoomBrowserView('choosing');requestAnimationFrame(()=>roomsPanel.querySelector<HTMLButtonElement>('[aria-current="location"]')?.focus());});
  ['close-settings','close-rooms','close-music','close-about','stay-room'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
  document.addEventListener('pointerdown',event=>{if(activeToggle&&event.target instanceof Node&&!panels.some(entry=>entry.panel.contains(event.target as Node)||entry.toggle.contains(event.target as Node)))setPanel(false);});
  document.addEventListener('keydown',e=>{
@@ -335,7 +344,7 @@ async function start(){
  });
  liveInput.addEventListener('change',()=>{live=liveInput.checked;timeTravel=undefined;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
  pause.addEventListener('click',()=>{paused=!paused;sceneClock.setPaused(paused);updateLabels();requestRender();});
- reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);bubbleMotion.setReduced(e.matches);if(!e.matches&&!roomsPanel.hidden)bubbleMotion.start();updateLabels();requestRender();});
+ reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);bubbleMotion.setReduced(e.matches);if(!e.matches&&!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.startArrival();updateLabels();requestRender();});
  el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
  document.addEventListener('fullscreenchange',()=>{el('fullscreen').textContent=document.fullscreenElement?'離開全螢幕':'全螢幕'});
@@ -446,13 +455,13 @@ async function start(){
  });
  document.addEventListener('visibilitychange',()=>{
   cancelAnimationFrame(raf);raf=0;audio.visibility(document.hidden||!gallery.hidden);music.visibility(document.hidden||!gallery.hidden);
-  if(document.hidden)bubbleMotion.stop();else if(!roomsPanel.hidden)bubbleMotion.start();
+  if(document.hidden)bubbleMotion.stop();else if(!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.start();
   if(!document.hidden&&!lost)requestRender();
  });
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent='繪圖連線暫時中斷，請重新整理此頁。'});
  window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
  updateLabels();wake();status.hidden=true;requestRender();
  const showRoomEntry=!linkedPlace&&(()=>{try{if(sessionStorage.getItem(ROOM_ENTRY_SESSION_KEY))return false;sessionStorage.setItem(ROOM_ENTRY_SESSION_KEY,'1');return true;}catch{return !hadStoredPreference;}})();
- if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel));
+ if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel,'landing'));
 }
 void start().catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';});

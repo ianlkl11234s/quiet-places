@@ -11,12 +11,14 @@ test('initial room respects direct links and returning preferences before random
   assert.equal(chooseInitialPlace({preferred:'waterlight',places,hasStoredPreference:false,random:()=>.999}), places.at(-1)?.id);
 });
 
-test('memory bubble layout centers the current room and remains deterministic', () => {
+test('memory bubble layout centers the current room with equal, reduced bubble sizes', () => {
   const ids = places.map(place => place.id);
   const first = layoutMemoryBubbles(ids, 'afterlight');
   const second = layoutMemoryBubbles(ids, 'afterlight');
   assert.deepEqual(first, second);
-  assert.deepEqual(first.get('afterlight'), {x:66,y:43,scale:1.18,delay:0});
+  assert.deepEqual(first.get('afterlight'), {x:66,y:43,scale:.85,delay:0});
+  assert.deepEqual(new Set([...first.values()].map(position => position.scale)), new Set([.85]));
+  assert.equal(Math.max(...[...first.values()].map(position => position.delay)), (ids.length - 1) * 45);
   assert.equal(first.size, ids.length);
 });
 
@@ -31,6 +33,6 @@ test('larger room catalogs use bounded non-overlapping memory-bubble rings', () 
   for (const position of positions) {
     assert.ok(position.x >= 35 && position.x <= 94);
     assert.ok(position.y >= 11 && position.y <= 84);
-    assert.ok(position.scale >= .46);
+    assert.equal(position.scale, .85);
   }
 });
