@@ -10,8 +10,8 @@ export function snowHallDaylight(state:SceneState){
  const sky=new THREE.Color('#89979f').lerp(new THREE.Color('#182635'),night*.94);
  return {
   day,night,tint,sky,
-  windowIntensity:(.12+3.38*day+.23*night)*(state.beamStrength??1),
-  fillIntensity:.012+.030*day+.008*night,
+  windowIntensity:(.12+3.38*day+.60*night)*(state.beamStrength??1),
+  fillIntensity:.012+.030*day+.015*night,
   snowVisibility:.08+.92*Math.max(day,night*.28),
  };
 }

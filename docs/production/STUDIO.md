@@ -86,3 +86,9 @@ JSON byte hash 識別精確內容，不代表美術參數是否等價。例如 `
 ## 雪景相機試片
 
 `/tools/snowwindow-camera/` 使用雪景工廠，提供位置／注視點 XYZ、FOV、時刻、暫停、基準還原與本機草稿。複製 JSON 後交由製作時採用，不走 Afterlight study apply；參數不會自動寫回場景。JSON 包含畫幅與響應式場景平移，對照時一起保留。入口與物理近似見 [雪景筆記](../scenes/snowwindow.md)。
+
+## 雪光長廊場景試片
+
+`/tools/snowhall-studio/` 使用正式 `prepareSnowhall()` 與 `Layout.ts` 幾何計算，提供走廊淨寬、窗戶位置／大小、相機位置／注視點／FOV，以及窗外雪粒徑倍率。調整時牆、門、端牆、窗框、玻璃、窗台積雪與窗面光同步更新；不複製第二套場景或 shader。
+
+工具只保存瀏覽器本機草稿或複製 `previewOnly` JSON，不直接寫入正式設定。雪粒倍率只改 shader point size，不改 760 粒的密度、降速或風偏；畫面變大不代表物理雪片直徑。選定候選後仍需由製作修改 `SNOW_HALL_BASELINE`，再跑測試、build 與正式房間 browser 驗收。

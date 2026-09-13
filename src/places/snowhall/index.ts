@@ -6,10 +6,11 @@ import {snowHallDaylight} from './Daylight.ts';
 import {createHallMaterials} from './Materials.ts';
 import {createSnowHallField} from './Snow.ts';
 import {prepareHallRay} from './Stingray.ts';
-import {SNOW_HALL_DOORS} from './Layout.ts';
+import {applySnowhallLayout,SNOW_HALL_BASELINE,SNOW_HALL_DOORS,validateSnowhallDraft,type SnowhallDraft} from './Layout.ts';
 
-export async function prepareSnowhall():Promise<PlaceFactory>{
+export async function prepareSnowhall(options?:{layout?:SnowhallDraft}):Promise<PlaceFactory>{
  RectAreaLightUniformsLib.init();
+ const layout=validateSnowhallDraft(options?.layout??SNOW_HALL_BASELINE);
  const createRay=await prepareHallRay();
  const factory:PlaceFactory=(scene,renderer)=>{
   const root=new THREE.Group();root.name='snowhall-corridor';scene.add(root);
@@ -40,10 +41,10 @@ export async function prepareSnowhall():Promise<PlaceFactory>{
   // window shares one cross-corridor position like a compact residential hall.
   for(const {side,z,width} of SNOW_HALL_DOORS){
    const sign=side==='right'?1:-1,x=sign*1.972,jambX=sign*1.94;
-   box(`snowhall-${side}-door`,[.035,2.45,width],[x,1.225,z],materials.frame,false);
-   box(`snowhall-${side}-door-jamb`,[.05,2.55,.055],[jambX,1.275,z-width/2],materials.plaster,false);
-   box(`snowhall-${side}-door-jamb`,[.05,2.55,.055],[jambX,1.275,z+width/2],materials.plaster,false);
-   box(`snowhall-${side}-door-lintel`,[.05,.055,width],[jambX,2.485,z],materials.plaster,false);
+   const door=box(`snowhall-${side}-door`,[.035,2.45,width],[x,1.225,z],materials.frame,false);door.userData={doorSide:side,doorPart:'door'};
+   const jambA=box(`snowhall-${side}-door-jamb`,[.05,2.55,.055],[jambX,1.275,z-width/2],materials.plaster,false);jambA.userData={doorSide:side,doorPart:'jamb'};
+   const jambB=box(`snowhall-${side}-door-jamb`,[.05,2.55,.055],[jambX,1.275,z+width/2],materials.plaster,false);jambB.userData={doorSide:side,doorPart:'jamb'};
+   const lintel=box(`snowhall-${side}-door-lintel`,[.05,.055,width],[jambX,2.485,z],materials.plaster,false);lintel.userData={doorSide:side,doorPart:'jamb'};
   }
   const outsideGround=box('snowhall-outside-snow',[22,.14,45],[0,-.22,-34],materials.snow,false);outsideGround.receiveShadow=false;
   const ray=createRay(root);
@@ -57,15 +58,16 @@ export async function prepareSnowhall():Promise<PlaceFactory>{
   const windowFill=new THREE.RectAreaLight('#d3dde1',0,1.70,1.96);windowFill.name='snowhall-window-area-light';windowFill.position.set(0,1.70,-11.46);windowFill.lookAt(0,1.70,-10.46);root.add(windowFill);
   const fill=new THREE.HemisphereLight('#aebbc2','#222425',.04);root.add(fill);
   const background=new THREE.Color('#aebbc2'),fog=new THREE.FogExp2(background,.017);scene.background=background;scene.fog=fog;
+  applySnowhallLayout(root,layout);
   let disposed=false;
   return {
-   position:[.34,1.03,6.15],target:[-.06,1.31,-10.85],cameraMode:'fixed-position',yawRange:Math.PI/30,
-   get fov(){return typeof window!=='undefined'&&window.innerWidth<700?68:50;},exposure:1.15,toneMapping:THREE.AgXToneMapping,
+   position:[...layout.camera.position],target:[...layout.camera.target],cameraMode:'fixed-position',yawRange:Math.PI/30,
+   get fov(){return typeof window!=='undefined'&&window.innerWidth<700?68:layout.camera.fov;},exposure:1.15,toneMapping:THREE.AgXToneMapping,
    hasSimulation:false,waterMode:'雪落在盡端窗外，一尾小魟魚緩慢穿過走廊暗面',
    update(_dt,elapsed,state){
     const light=snowHallDaylight(state);background.copy(light.sky);fog.color.copy(light.sky);
     windowFill.intensity=light.windowIntensity;windowFill.color.copy(light.tint);fill.intensity=light.fillIntensity;fill.color.copy(light.sky);
-    snow.update(elapsed,light.snowVisibility,!!state.lowQuality);ray.update(elapsed);
+    snow.update(elapsed,light.snowVisibility,!!state.lowQuality,root.userData.snowScale??1);ray.update(elapsed);
     rayShadow.position.x=ray.carrier.position.x;rayShadow.position.z=ray.carrier.position.z;shadowMaterial.uniforms.uOpacity.value=.11/(1+ray.carrier.position.y*.7);
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
    },

@@ -22,8 +22,8 @@ export function createSnowHallField(){
   fragmentShader:'uniform float uOpacity;void main(){float d=length(gl_PointCoord-.5);float a=1.-smoothstep(.22,.5,d);if(a<.01)discard;gl_FragColor=vec4(.95,.98,1.,a*uOpacity);}'
  });
  const points=new THREE.Points(geometry,material);points.name='snowhall-window-snow';points.frustumCulled=false;points.renderOrder=6;
- return {points,update(elapsed:number,visibility:number,lowQuality=false){
-  material.uniforms.uOpacity.value=.18+.54*visibility;material.uniforms.uSize.value=lowQuality?4.2:5.4;
+ return {points,update(elapsed:number,visibility:number,lowQuality=false,sizeScale=1){
+  material.uniforms.uOpacity.value=.18+.54*visibility;material.uniforms.uSize.value=(lowQuality?4.2:5.4)*sizeScale;
   const visible=lowQuality?Math.floor(count*.58):count;geometry.setDrawRange(0,visible);
   const attribute=geometry.getAttribute('position') as THREE.BufferAttribute;
   for(let i=0;i<visible;i++){const p=snowHallParticle(base[i],speed[i],phase[i],elapsed);attribute.setXYZ(i,p.x,p.y,p.z);}

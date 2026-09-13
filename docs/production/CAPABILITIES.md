@@ -13,6 +13,7 @@
 | 光與材質 | [共同原則](../MATERIALS_AND_LIGHTING.md) | 知識可沿用；烘焙 GI、光子投影、散射分場景校準 |
 | 生物本體 | [biology 索引](../biology/README.md) | 查模型、rig／clips、動態策略及來源；場景尺度、路徑及受光仍須 adapter |
 | 空間、植物與雨 | `src/places/afterlight/`、`src/places/leaflight/` | 目前場景專用；第二個實際需求成立後才抽 helper |
+| 雪光長廊參數試片 | `src/places/snowhall/Layout.ts`、`src/studio/SnowhallStudio.ts` | 正式場景與 `/tools/snowhall-studio/` 共用幾何權威；預覽 JSON 不自動採用 |
 
 ## 生成入口（先讀 recipe 再執行）
 
@@ -51,3 +52,4 @@
 
 - 向海的隧道：`src/places/seaward/` 沿用魟魚 GLB，新增單隻 adapter；程序建築、濕反射與波光屬場景專用近似，見 [場景筆記](../scenes/seaward.md)。
 - 雪落海窗：`src/places/snowwindow/` 程序 3D 海景、窗角、積雪、玻璃水氣與收攏亞麻；窗前加入可重用 Aurelia／Clione 本體，沿用共用 elapsed 與生命週期，見 [場景筆記](../scenes/snowwindow.md)。
+- 雪光長廊：`src/places/snowhall/` 的正式場景與 `/tools/snowhall-studio/` 共用走廊／窗戶幾何及雪粒倍率；工具只產出候選，見 [場景筆記](../scenes/snowhall.md)。
