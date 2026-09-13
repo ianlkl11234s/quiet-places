@@ -5,7 +5,7 @@ import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {waterOrbitLimits,waterCameraClearance} from './places/waterlight/Room.ts';
-import {preparePlace,places,moments,isPlaceId,type PlaceId} from './places/catalog.ts';
+import {preparePlace,places as catalogPlaces,moments,isPlaceId,type PlaceId} from './places/catalog.ts';
 import {getPlaceMetadata,placeSupports} from './places/metadata.ts';
 import {sampleTime,sampleForwardTime,localHour,formatHour,momentName} from './systems/TimeOfDay.ts';
 import {createAudioSystem} from './systems/AudioSystem.ts';
@@ -19,7 +19,11 @@ import {createRoomBubbleMotionController,ROOM_BUBBLE_SEED_KEY} from './ui/RoomBu
 import './style.css';
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
+declare const __QUIET_PLACES_MOBILE__:boolean;
+const mobile=typeof __QUIET_PLACES_MOBILE__!=='undefined'&&__QUIET_PLACES_MOBILE__;
+const places=mobile?catalogPlaces.filter(place=>place.id==='seaward'):catalogPlaces;
 async function start(){
+ let nativeInactive=false;
  const hadStoredPreference=(()=>{try{return localStorage.getItem(PREFERENCES_STORAGE_KEY)!==null||localStorage.getItem(LEGACY_PREFERENCES_STORAGE_KEY)!==null;}catch{return true;}})();
  const preferences=loadPreferences();
  const roomCards=document.querySelector<HTMLElement>('.room-cards')!;
@@ -53,7 +57,7 @@ async function start(){
  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,700);
  const requestedPlace=new URLSearchParams(location.search).get('place');
  const linkedPlace=isPlaceId(requestedPlace)?requestedPlace:undefined;
- let currentPlace:PlaceId=chooseInitialPlace({requested:linkedPlace,preferred:preferences.place,places,hasStoredPreference:hadStoredPreference});
+ let currentPlace:PlaceId=mobile?'seaward':chooseInitialPlace({requested:linkedPlace,preferred:preferences.place,places,hasStoredPreference:hadStoredPreference});
  if(!linkedPlace&&!hadStoredPreference){preferences.place=currentPlace;savePreferences(preferences);}
  const requestedSea=new URLSearchParams(location.search).get('sea');
  const initialRoom=getRoomPreferences(preferences,currentPlace);
@@ -181,6 +185,7 @@ async function start(){
   controls.minPolarAngle=homePolar;controls.maxPolarAngle=homePolar;controls.saveState();controls.enableDamping=!reduce.matches;
  }
  async function switchPlace(id:PlaceId,save=true){
+  if(mobile&&id!=='seaward')throw new Error('此房間尚未內建於 iPhone 試作。');
   if(switching||(!exporting&&id===currentPlace))return;
   switching=true;
    const old={place,scene,id:currentPlace,oceanLevel,hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,elapsed:sceneClock.elapsed,afterlightCameraDistance,position:camera.position.clone(),target:controls.target.clone()};
@@ -361,7 +366,7 @@ async function start(){
  let dirtyUntil=0,rendering=false;
  function requestRender(){
   dirtyUntil=performance.now()+650;
-  if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
+  if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!nativeInactive&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
  }
  // Paused scenes redraw only after input; a short tail lets orbit damping settle.
  controls.addEventListener('change',()=>{
@@ -383,7 +388,7 @@ async function start(){
  }
  window.addEventListener('resize',resize);resize();
  function frame(now:number){
-  raf=0;if(document.hidden||lost||exporting||!gallery.hidden)return;
+  raf=0;if(document.hidden||nativeInactive||lost||exporting||!gallery.hidden)return;
   const interval=1000/(preferences.quality==='low'?24:30);
   if(now-last<interval-.5){raf=requestAnimationFrame(frame);return;}
   rendering=true;
@@ -453,15 +458,30 @@ async function start(){
    finally{exporting=false;inputStates.forEach(({input,disabled})=>{input.disabled=disabled;});controls.enabled=true;exportButton.disabled=false;placeSelect.disabled=false;status.hidden=true;if(gallery.hidden){audio.visibility(document.hidden);music.visibility(document.hidden);}resize();updateLabels();requestRender();}
   }
  });
+ let disposeNative=()=>{};
+ if(mobile){
+  const [{App},{createMobileLifecycle}]=await Promise.all([import('@capacitor/app'),import('./mobile/Lifecycle.ts')]);
+  const lifecycle=createMobileLifecycle(()=>{
+   nativeInactive=true;cancelAnimationFrame(raf);raf=0;paused=true;sceneClock.setPaused(true);
+   timeTravel=undefined;audio.stop();music.visibility(true);bubbleMotion.stop();
+   el('audio').textContent='開啟環境聲';el('audio').setAttribute('aria-pressed','false');updateLabels();
+  },()=>{nativeInactive=false;wake();requestRender();});
+  const visibility=()=>lifecycle.document(!document.hidden);
+  document.addEventListener('visibilitychange',visibility);visibility();
+  const listener=await App.addListener('appStateChange',state=>lifecycle.native(state.isActive));
+  lifecycle.native((await App.getState()).isActive);
+  disposeNative=()=>{lifecycle.dispose();document.removeEventListener('visibilitychange',visibility);void listener.remove();};
+ }
  document.addEventListener('visibilitychange',()=>{
+  if(mobile)return;
   cancelAnimationFrame(raf);raf=0;audio.visibility(document.hidden||!gallery.hidden);music.visibility(document.hidden||!gallery.hidden);
   if(document.hidden)bubbleMotion.stop();else if(!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.start();
   if(!document.hidden&&!lost)requestRender();
  });
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent='繪圖連線暫時中斷，請重新整理此頁。'});
- window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
+ window.addEventListener('pagehide',(event)=>{if(event.persisted)return;disposeNative();cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
  updateLabels();wake();status.hidden=true;requestRender();
  const showRoomEntry=!linkedPlace&&(()=>{try{if(sessionStorage.getItem(ROOM_ENTRY_SESSION_KEY))return false;sessionStorage.setItem(ROOM_ENTRY_SESSION_KEY,'1');return true;}catch{return !hadStoredPreference;}})();
  if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel,'landing'));
 }
-void start().catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';});
+export const ready=start().then(()=>true).catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';return false;});

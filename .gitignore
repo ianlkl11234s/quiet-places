@@ -18,3 +18,7 @@ node_modules
 /public/models/snow-creatures-preview.glb
 /exports/snowwindow-biology-20260910/bake-input-final/**/*.f32le
 /exports/snowwindow-biology-20260910/bake-input-final/**/*.bin
+
+# Native pilot generated assets
+.mobile-public/
+dist-mobile/
