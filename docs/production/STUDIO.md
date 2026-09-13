@@ -81,6 +81,8 @@ QUIET_PLACES_VITE_CACHE="$P6_REVIEW_DIR/cache" npm run dev -- --port 5198 --stri
 
 5198 被占用時選另一個埠，不停止他人的伺服器。候選、截圖及 stage 的 output-dir 也放 `$P6_REVIEW_DIR`，結束前保存到自己的交付目錄。
 
+本機服務不視為跨回合常駐。提供預覽 URL 前確認當次 dev server 輸出及 HTTP readback；若 npm script 已帶 `--host`，只追加 `--port <PORT> --strictPort`。zsh 下含 `?`／`&` 的 URL 必須完整引用。Browser 停在 network error／`data:` 頁或舊 HMR 狀態時，以乾淨分頁重新進入正式入口並重讀 console；試片頁成功、舊分頁仍開著或 build 通過，都不能單獨證明正式房間目前可用。持久文件使用相對工具路徑，實際 port 只寫入日期化驗收證據。
+
 JSON byte hash 識別精確內容，不代表美術參數是否等價。例如 `-0.38` 與計算得到的 `-0.37999999999999995` 會有不同 hash；幾何比較用既有 1e-9 容差。保留原始 receipt，不為讓 hash 一致回改證據；單變因實驗應比較同一個 browser baseline／candidate 的參數差異。
 
 ## 雪景相機試片
