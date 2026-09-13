@@ -50,3 +50,5 @@
 比較或使用者選擇連到 [實驗模板](../production/templates/experiment.md)，不要只保存最終頻率。
 
 - [黑鰭礁鯊](blacktip-reef-shark.md)：階光之間的自製幼鯊模型、骨架、巡游與復用驗收。
+
+- [南極玻璃魷魚與銀魚](antarctic-models.md)：雪光長廊的原創程序本體與可重現行為；[規格入口](references/antarctic/03-antarctic-behavior-system.md)保留來源的 A/B/C 分級，實作與驗收以本體／場景頁為準。

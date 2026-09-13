@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>雪光長廊 · 場景試片</title>
+</head>
+<body>
+  <header class="tool-header"><a href="/?place=snowhall">← 雪光長廊</a><span>SNOW HALL / 場景試片</span><button id="panel-toggle" type="button" aria-expanded="true">收起控制</button></header>
+  <main>
+    <section class="preview" aria-label="雪光長廊即時預覽">
+      <div class="preview__meta"><span>預覽畫幅 <b id="viewport-readout">—</b></span><span id="flow-readout">流動中</span></div>
+      <div id="stage"><p id="loading">正在準備長廊與雪。</p></div>
+      <div class="preview__actions">
+        <button id="pause" type="button" aria-pressed="false">暫停流動</button>
+        <button id="reset" type="button">恢復基準</button>
+        <button id="copy" type="button">複製 JSON</button>
+      </div>
+      <p id="status" role="status">預覽參數不會寫入正式場景。</p>
+      <textarea id="json-fallback" rows="7" aria-label="可選取的場景 JSON" readonly></textarea>
+    </section>
+    <aside id="controls" aria-label="場景控制">
+      <h1>調整空間的呼吸。</h1>
+      <p class="intro">所有尺寸以公尺計。拖曳會即時改變預覽，正式房間維持基準。</p>
+      <fieldset>
+        <legend>走廊</legend>
+        <label class="control-row"><span>淨寬</span><input data-path="corridorWidth" type="range" min="2.8" max="6.5" step=".01"><input class="numeric" type="number" min="2.8" max="6.5" step=".01"><small>m</small></label>
+      </fieldset>
+      <fieldset class="window-controls">
+        <legend>窗戶</legend>
+        <label class="control-row"><span>位置 X</span><input data-path="window.x" type="range" min="-2" max="2" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+        <label class="control-row"><span>位置 Y</span><input data-path="window.y" type="range" min=".7" max="2.5" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+        <label class="control-row"><span>寬度</span><input data-path="window.width" type="range" min=".8" max="3" step=".01"><input class="numeric" type="number" min=".8" max="3" step=".01"><small>m</small></label>
+        <label class="control-row"><span>高度</span><input data-path="window.height" type="range" min=".8" max="2.6" step=".01"><input class="numeric" type="number" min=".8" max="2.6" step=".01"><small>m</small></label>
+      </fieldset>
+      <fieldset>
+        <legend>相機位置</legend>
+        <div class="axis-grid">
+          <label class="control-row"><span>X</span><input data-path="camera.position.0" type="range" min="-3" max="3" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+          <label class="control-row"><span>Y</span><input data-path="camera.position.1" type="range" min=".2" max="3" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+          <label class="control-row"><span>Z</span><input data-path="camera.position.2" type="range" min="-8" max="8" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>相機注視點</legend>
+        <div class="axis-grid">
+          <label class="control-row"><span>X</span><input data-path="camera.target.0" type="range" min="-3" max="3" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+          <label class="control-row"><span>Y</span><input data-path="camera.target.1" type="range" min=".1" max="3" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+          <label class="control-row"><span>Z</span><input data-path="camera.target.2" type="range" min="-12" max="4" step=".01"><input class="numeric" type="number" step=".01"><small>m</small></label>
+        </div>
+        <label class="control-row"><span>FOV</span><input data-path="camera.fov" type="range" min="20" max="100" step=".1"><input class="numeric" type="number" min="20" max="100" step=".1"><small>°</small></label>
+      </fieldset>
+      <fieldset class="snow-controls">
+        <legend>窗外雪</legend>
+        <label class="control-row"><span>粒徑倍率</span><input data-path="snowScale" type="range" min=".35" max="2.5" step=".01"><input class="numeric" type="number" min=".35" max="2.5" step=".01"><small>×</small></label>
+        <p class="note">只改畫面中的雪粒大小，不改粒子數量或降雪速度。</p>
+      </fieldset>
+      <fieldset class="draft-actions">
+        <legend>本機草稿</legend>
+        <button id="save-draft" type="button">儲存草稿</button><button id="restore-draft" type="button">還原草稿</button>
+      </fieldset>
+    </aside>
+  </main>
+  <script type="module" src="/src/studio/SnowhallStudio.ts"></script>
+</body>
+</html>

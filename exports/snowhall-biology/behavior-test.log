@@ -1,0 +1,13 @@
+(node:59315) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ten full 600-second simulations keep whole-body bounds, speed caps, quiet phases and shadow-only fish release (7949.999041ms)
+✔ absolute time, 30/60/144 FPS, pause and fractional rewind reproduce the same poses and scheduler (439.473792ms)
+✔ light geometry and moved study camera preserve field and camera exclusion (105.006584ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9110.234542

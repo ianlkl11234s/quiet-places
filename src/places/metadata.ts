@@ -1,4 +1,4 @@
-export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'seaward' | 'stairlight' | 'snowwindow';
+export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'seaward' | 'stairlight' | 'snowwindow' | 'snowhall';
 
 export type PlaceCapability = 'weather' | 'ocean-level' | 'water-interaction' | 'camera-distance';
 export type WeatherProfile = 'water' | 'afterlight' | 'seaward';
@@ -21,6 +21,7 @@ export const places = [
   {id:'seaward',name:'向海的隧道',subtitle:'海風與一隻魟魚',capabilities:[],cameraHint:'魟魚緩緩穿過明暗交界。拖曳微調視角。',cameraAriaLabel:'拖曳觀看海邊隧道；方向鍵旋轉，Home重設'},
   {id:'stairlight',name:'階光之間',subtitle:'窗光與紅繩',capabilities:[],cameraHint:'窗光隨時刻變化，紅繩隨風輕擺。拖曳微調視角，左右各 15°。',cameraAriaLabel:'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設'},
   {id:'snowwindow',name:'雪落海窗',subtitle:'海雪與白色亞麻',capabilities:[],cameraHint:'窗邊可左右微轉共約 15°；雪與亞麻隨時間緩慢變化。',cameraAriaLabel:'雪落海窗左右拖曳或方向鍵微轉；Home重設'},
+  {id:'snowhall',name:'雪光長廊',subtitle:'銀魚巡游的雪光長廊',capabilities:[],cameraHint:'銀魚在走廊中巡游、緩停與繞圈；可左右微轉約 6°。',cameraAriaLabel:'雪光長廊左右拖曳或方向鍵微轉；Home重設'},
 ] as const satisfies readonly PlaceMetadata[];
 export const isPlaceId=(value:unknown):value is PlaceId=>places.some(place=>place.id===value);
 export const getPlaceMetadata=(id:PlaceId):PlaceMetadata=>places.find(place=>place.id===id)!;
