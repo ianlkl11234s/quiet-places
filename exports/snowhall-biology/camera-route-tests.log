@@ -1,0 +1,17 @@
+(node:10117) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ ten full 600-second simulations keep whole-body bounds, speed caps, quiet phases and behind-camera fish release (12337.491667ms)
+✔ absolute time, 30/60/144 FPS, pause and fractional rewind reproduce the same poses and scheduler (1590.721875ms)
+✔ light geometry and moved study camera preserve field and camera exclusion (166.872417ms)
+(node:10118) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ room adapter poses real creatures and releases every allocated model resource once (1067.8925ms)
+✔ deformed meshes stay inside the real walls, floor and window at representative event times (403.590042ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14549.299834

@@ -15,6 +15,10 @@
 | 空間、植物與雨 | `src/places/afterlight/`、`src/places/leaflight/` | 目前場景專用；第二個實際需求成立後才抽 helper |
 | 雪光長廊參數試片 | `src/places/snowhall/Layout.ts`、`src/studio/SnowhallStudio.ts` | 正式場景與 `/tools/snowhall-studio/` 共用幾何權威；預覽 JSON 不自動採用 |
 
+## 南極生物與銀魚群游
+
+[復用模組索引](../biology/antarctic-models.md#復用模組索引與責任)列出模型 factory、時間與尺度契約、場景 adapter、行為、debug 與測試。`src/shared/biology/antarctic/AntarcticModels.ts` 的銀魚／玻璃魷魚本體可直接復用；`src/places/snowhall/AntarcticBehavior.ts` 仍為走廊專用，不宣稱已抽成通用引擎。正式場景只啟用銀魚，魷魚資料保留。
+
 ## 生成入口（先讀 recipe 再執行）
 
 以下是入口定位，不是可直接串起執行的全自動流程。部分腳本依賴目前 Blender 檔案、物件名稱與 Metal；命令及輸出以對應製作頁／腳本為準。

@@ -1,0 +1,1125 @@
+{
+  "scope": "10 seeds x 600 seconds, fixed 60 Hz simulation, assertions at every 30 Hz output sample; not real-time browser observation or device evidence",
+  "rows": [
+    {
+      "seed": 0,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 18,
+      "minSpacing": 0.03976166046230096,
+      "maxSpeedBL": 1.1252811592248229,
+      "quietRatio": 0.5338888888888889,
+      "majorRatio": 0.9076388888888889,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 16.11698450536353,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3979013282784498,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.14176266367413026,
+      "visibleFishSeconds": 279.63333333334015,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 1.5666666666666667,
+          "end": 101.56666666666666,
+          "duration": 100,
+          "lightPeak": 0.1637678969637524,
+          "state": "DONE",
+          "count": 15,
+          "routeSeed": 2216415506,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.0080594240454956,
+          "routeCenter": [
+            0,
+            1.75331709664315,
+            -4.792161646997556
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 111.58333333333333,
+          "end": 223.75,
+          "duration": 112.16666666666667,
+          "lightPeak": 0.35361633272301923,
+          "state": "DONE",
+          "count": 14,
+          "routeSeed": 1911012681,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.3578942947671748,
+          "routeCenter": [
+            0,
+            1.6819307227153333,
+            -5.734973445069045
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 241.75,
+          "end": 360.43333333333334,
+          "duration": 118.68333333333334,
+          "lightPeak": 0.2469551596727083,
+          "state": "DONE",
+          "count": 18,
+          "routeSeed": 3602884116,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.496082297805697,
+          "routeCenter": [
+            0,
+            1.2778685235418379,
+            -5.343158389860764
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 363.5833333333333,
+          "end": 370.15,
+          "duration": 6.566666666666663,
+          "lightPeak": 0,
+          "state": "DONE"
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 371.3,
+          "end": 477.6166666666667,
+          "duration": 106.31666666666666,
+          "lightPeak": 0.18353167386477257,
+          "state": "DONE",
+          "count": 28,
+          "routeSeed": 3091880547,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.3818399933981709,
+          "routeCenter": [
+            0,
+            1.445789261488244,
+            -5.188387826457619
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 1,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 39,
+      "minSpacing": 0.03779597892221693,
+      "maxSpeedBL": 1.3425934715269727,
+      "quietRatio": 0.5116111111111111,
+      "majorRatio": 0.9123333333333333,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 19.08633830053464,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3954968410102533,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.09608382854961744,
+      "visibleFishSeconds": 293.00000000001745,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 2.533333333333333,
+          "end": 116.06666666666666,
+          "duration": 113.53333333333333,
+          "lightPeak": 0.3533089702862289,
+          "state": "DONE",
+          "count": 17,
+          "routeSeed": 583587,
+          "routeMode": "MEANDER",
+          "entrySide": -1,
+          "entryHeight": 2.122248983930331,
+          "routeCenter": [
+            0,
+            1.7400603223126383,
+            -4.867510801926255
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 127.45,
+          "end": 237.18333333333334,
+          "duration": 109.73333333333333,
+          "lightPeak": 0.19491858025187472,
+          "state": "DONE",
+          "count": 18,
+          "routeSeed": 1746446502,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.4850615998031573,
+          "routeCenter": [
+            0,
+            1.6496382277458908,
+            -4.48708113799803
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 250.43333333333334,
+          "end": 357.3833333333333,
+          "duration": 106.94999999999999,
+          "lightPeak": 0.1838071572365764,
+          "state": "DONE",
+          "count": 14,
+          "routeSeed": 3507988429,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 2.154497316211928,
+          "routeCenter": [
+            0,
+            1.8126795122865589,
+            -5.200731008220464
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 357.3833333333333,
+          "end": 367.18333333333334,
+          "duration": 9.800000000000011,
+          "lightPeak": 0,
+          "state": "DONE"
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 370.98333333333335,
+          "end": 486.81666666666666,
+          "duration": 115.83333333333331,
+          "lightPeak": 0.35849928195882313,
+          "state": "DONE",
+          "count": 25,
+          "routeSeed": 2860721864,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 2.140352624980733,
+          "routeCenter": [
+            0,
+            1.5068295679055155,
+            -4.450963005842642
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 2,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 22,
+      "minSpacing": 0.09973774268200117,
+      "maxSpeedBL": 1.0972415670219362,
+      "quietRatio": 0.49855555555555553,
+      "majorRatio": 0.9310555555555555,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 19.86594283181919,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3971561760349462,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.11154566579240455,
+      "visibleFishSeconds": 300.8666666666904,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 1.6333333333333333,
+          "end": 115.66666666666667,
+          "duration": 114.03333333333333,
+          "lightPeak": 0.20204051545375182,
+          "state": "DONE",
+          "count": 27,
+          "routeSeed": 2353112048,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.2796803042758256,
+          "routeCenter": [
+            0,
+            1.7798306453041732,
+            -4.641463337140158
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 123.66666666666667,
+          "end": 230.28333333333333,
+          "duration": 106.61666666666666,
+          "lightPeak": 0.19447772657364454,
+          "state": "DONE",
+          "count": 20,
+          "routeSeed": 2240145039,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 1.1035596846952103,
+          "routeCenter": [
+            0,
+            1.7465157126542181,
+            -5.430758059211075
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 243.03333333333333,
+          "end": 358.3333333333333,
+          "duration": 115.29999999999998,
+          "lightPeak": 0.3497951619944819,
+          "state": "DONE",
+          "count": 26,
+          "routeSeed": 3792675490,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.429252260993235,
+          "routeCenter": [
+            0,
+            1.4082465460523963,
+            -5.628013153141365
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 366.3333333333333,
+          "end": 485.3,
+          "duration": 118.9666666666667,
+          "lightPeak": 0.24472654752838965,
+          "state": "DONE",
+          "count": 21,
+          "routeSeed": 3554197913,
+          "routeMode": "CIRCLE",
+          "entrySide": -1,
+          "entryHeight": 1.1148147302330471,
+          "routeCenter": [
+            0,
+            1.3237086486537009,
+            -5.263237467687577
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 485.3,
+          "end": 492.8333333333333,
+          "duration": 7.533333333333303,
+          "lightPeak": 0,
+          "state": "DONE"
+        }
+      ]
+    },
+    {
+      "seed": 3,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 28,
+      "minSpacing": 0.05187308686966559,
+      "maxSpeedBL": 1.0801041568446774,
+      "quietRatio": 0.5198333333333334,
+      "majorRatio": 0.9073611111111111,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 18.334606039569593,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3968651446673688,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.1378541116062133,
+      "visibleFishSeconds": 288.03333333334683,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 2.6,
+          "end": 107.89999999999999,
+          "duration": 105.3,
+          "lightPeak": 0.16219475383716747,
+          "state": "DONE",
+          "count": 14,
+          "routeSeed": 137280129,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.1438698641606606,
+          "routeCenter": [
+            0,
+            1.7665738709736616,
+            -4.716812492068858
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 123.48333333333333,
+          "end": 239.25,
+          "duration": 115.76666666666667,
+          "lightPeak": 0.35749180938582703,
+          "state": "DONE",
+          "count": 25,
+          "routeSeed": 2075578860,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.2307269897311925,
+          "routeCenter": [
+            0,
+            1.7142232176847756,
+            -5.58286575214006
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 256.15,
+          "end": 377.95,
+          "duration": 121.80000000000001,
+          "lightPeak": 0.2614135565626761,
+          "state": "DONE",
+          "count": 22,
+          "routeSeed": 3697779803,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 2.087667279399466,
+          "routeCenter": [
+            0,
+            1.3430575347971172,
+            -5.485585771501064
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 377.95,
+          "end": 385.2833333333333,
+          "duration": 7.333333333333314,
+          "lightPeak": 0,
+          "state": "DONE"
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 390.43333333333334,
+          "end": 490.5833333333333,
+          "duration": 100.14999999999998,
+          "lightPeak": 0.15464999933495926,
+          "state": "DONE",
+          "count": 15,
+          "routeSeed": 3323039230,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.8733273618156092,
+          "routeCenter": [
+            0,
+            1.3847489550709724,
+            -4.525812647072598
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 4,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 16,
+      "minSpacing": 0.015094391404609947,
+      "maxSpeedBL": 1.2885048603527325,
+      "quietRatio": 0.5102222222222222,
+      "majorRatio": 0.9374722222222223,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 24.215347096188747,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3955132505145604,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.11324775881983085,
+      "visibleFishSeconds": 293.83333333335145,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 1.7,
+          "end": 116.61666666666666,
+          "duration": 114.91666666666666,
+          "lightPeak": 0.35795383223997174,
+          "state": "DONE",
+          "count": 24,
+          "routeSeed": 1943022422,
+          "routeMode": "MEANDER",
+          "entrySide": -1,
+          "entryHeight": 1.714817663584836,
+          "routeCenter": [
+            0,
+            1.7002899993211031,
+            -5.0935582667123525
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 127.23333333333333,
+          "end": 243.38333333333333,
+          "duration": 116.14999999999999,
+          "lightPeak": 0.2207978199376161,
+          "state": "DONE",
+          "count": 26,
+          "routeSeed": 1252747965,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.8665635149111042,
+          "routeCenter": [
+            0,
+            1.5527607428375632,
+            -4.943404216784984
+          ]
+        },
+        {
+          "type": "SILVERFISH_MAIN_TRANSIT",
+          "start": 251.38333333333333,
+          "end": 356.0333333333333,
+          "duration": 104.64999999999998,
+          "lightPeak": 0.16627929749409498,
+          "state": "DONE",
+          "count": 35,
+          "routeSeed": 3223301368,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 1.6297423714306207,
+          "routeCenter": [
+            0,
+            1.6171124785207214,
+            -4.7734488632995635
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 364.0333333333333,
+          "end": 477.3666666666667,
+          "duration": 113.33333333333337,
+          "lightPeak": 0.35932314710970426,
+          "state": "DONE",
+          "count": 21,
+          "routeSeed": 2167245815,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.9158905197284186,
+          "routeCenter": [
+            0,
+            1.68995048715733,
+            -5.038688543997705
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 477.3666666666667,
+          "end": 486.25,
+          "duration": 8.883333333333326,
+          "lightPeak": 0,
+          "state": "DONE"
+        }
+      ]
+    },
+    {
+      "seed": 5,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 16,
+      "minSpacing": 0.15327769025109445,
+      "maxSpeedBL": 0.994226099852938,
+      "quietRatio": 0.5105277777777778,
+      "majorRatio": 0.8958888888888888,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 19.045173372680324,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3981391871040156,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.17052490953703567,
+      "visibleFishSeconds": 293.700000000018,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 2.6666666666666665,
+          "end": 122.01666666666667,
+          "duration": 119.35,
+          "lightPeak": 0.2382323266528737,
+          "state": "DONE",
+          "count": 26,
+          "routeSeed": 4022157799,
+          "routeMode": "CIRCLE",
+          "entrySide": -1,
+          "entryHeight": 1.579007223469671,
+          "routeCenter": [
+            0,
+            1.6870332249905915,
+            -5.168907421641052
+          ]
+        },
+        {
+          "type": "SILVERFISH_MAIN_TRANSIT",
+          "start": 140.01666666666665,
+          "end": 247.98333333333332,
+          "duration": 107.96666666666667,
+          "lightPeak": 0.17940078854240785,
+          "state": "DONE",
+          "count": 33,
+          "routeSeed": 1088181786,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 1.9937308199470865,
+          "routeCenter": [
+            0,
+            1.5204682478681208,
+            -5.095511909713968
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 259.65,
+          "end": 372.1166666666667,
+          "duration": 112.4666666666667,
+          "lightPeak": 0.3507380498899713,
+          "state": "DONE",
+          "count": 15,
+          "routeSeed": 3128405681,
+          "routeMode": "MEANDER",
+          "entrySide": -1,
+          "entryHeight": 1.0381573898368515,
+          "routeCenter": [
+            0,
+            1.551923467265442,
+            -4.631021481659264
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 382.95,
+          "end": 391.8,
+          "duration": 8.850000000000023,
+          "lightPeak": 0,
+          "state": "DONE"
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 391.8,
+          "end": 514.6833333333333,
+          "duration": 122.88333333333327,
+          "lightPeak": 0.27959356721283357,
+          "state": "DONE",
+          "count": 21,
+          "routeSeed": 1936087132,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.4244031513109805,
+          "routeCenter": [
+            0,
+            1.7509907935746014,
+            -5.701263723382726
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 6,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 28,
+      "minSpacing": 0.09899315626848505,
+      "maxSpeedBL": 1.0619909951854638,
+      "quietRatio": 0.5064722222222222,
+      "majorRatio": 0.9114444444444444,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 21.437890471098104,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3945146276797395,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.11088051546811364,
+      "visibleFishSeconds": 296.1000000000199,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_MAIN_TRANSIT",
+          "start": 1.75,
+          "end": 110.5,
+          "duration": 108.75,
+          "lightPeak": 0.17599372955059975,
+          "state": "DONE",
+          "count": 37,
+          "routeSeed": 2079718964,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.986438543815166,
+          "routeCenter": [
+            0,
+            1.7268035479821267,
+            -4.942859956854955
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 125.11666666666666,
+          "end": 239.51666666666665,
+          "duration": 114.39999999999999,
+          "lightPeak": 0.35081881002277415,
+          "state": "DONE",
+          "count": 17,
+          "routeSeed": 1581880323,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.6122289048391396,
+          "routeCenter": [
+            0,
+            1.6173457327764482,
+            -4.639188830927015
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 249.91666666666666,
+          "end": 367.1333333333333,
+          "duration": 117.21666666666667,
+          "lightPeak": 0.22839059716154406,
+          "state": "DONE",
+          "count": 26,
+          "routeSeed": 3413092742,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.5629123346181588,
+          "routeCenter": [
+            0,
+            1.7474905010312796,
+            -5.058303626580164
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 375.51666666666665,
+          "end": 484.59999999999997,
+          "duration": 109.08333333333331,
+          "lightPeak": 0.17869208809493173,
+          "state": "DONE",
+          "count": 22,
+          "routeSeed": 2629563181,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 1.6488652565632949,
+          "routeCenter": [
+            0,
+            1.567869874322787,
+            -5.113538185227663
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 484.59999999999997,
+          "end": 490.8333333333333,
+          "duration": 6.2333333333333485,
+          "lightPeak": 0,
+          "state": "DONE"
+        }
+      ]
+    },
+    {
+      "seed": 7,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 19,
+      "minSpacing": 0.1424791551564253,
+      "maxSpeedBL": 1.1313288484767876,
+      "quietRatio": 0.49916666666666665,
+      "majorRatio": 0.9111666666666667,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 21.24070992789795,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.398252156646288,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.12477162455012691,
+      "visibleFishSeconds": 300.5000000000234,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 2.716666666666667,
+          "end": 117.3,
+          "duration": 114.58333333333333,
+          "lightPeak": 0.35908732210309036,
+          "state": "DONE",
+          "count": 23,
+          "routeSeed": 4158854341,
+          "routeMode": "MEANDER",
+          "entrySide": -1,
+          "entryHeight": 1.850628103700001,
+          "routeCenter": [
+            0,
+            1.7135467736516148,
+            -5.018209111783653
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 129.23333333333332,
+          "end": 242.73333333333332,
+          "duration": 113.5,
+          "lightPeak": 0.2125969361694745,
+          "state": "DONE",
+          "count": 22,
+          "routeSeed": 1417314144,
+          "routeMode": "CIRCLE",
+          "entrySide": 1,
+          "entryHeight": 1.739396209875122,
+          "routeCenter": [
+            0,
+            1.5850532378070057,
+            -4.7912965238559995
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 250.85,
+          "end": 357.46666666666664,
+          "duration": 106.61666666666665,
+          "lightPeak": 0.17249060267690036,
+          "state": "DONE",
+          "count": 22,
+          "routeSeed": 3318197055,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 0.9713273530243896,
+          "routeCenter": [
+            0,
+            1.6823014897760005,
+            -4.915876244939864
+          ]
+        },
+        {
+          "type": "SILVERFISH_MAIN_TRANSIT",
+          "start": 375.3333333333333,
+          "end": 494.48333333333335,
+          "duration": 119.15000000000003,
+          "lightPeak": 0.36184626932136665,
+          "state": "DONE",
+          "count": 37,
+          "routeSeed": 2398404498,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.1573778881458565,
+          "routeCenter": [
+            0,
+            1.6289101807400586,
+            -5.776113364612684
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 494.48333333333335,
+          "end": 504.05,
+          "duration": 9.566666666666663,
+          "lightPeak": 0,
+          "state": "DONE"
+        }
+      ]
+    },
+    {
+      "seed": 8,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 20,
+      "minSpacing": 0.15004360660643976,
+      "maxSpeedBL": 1.1133469207394866,
+      "quietRatio": 0.4986111111111111,
+      "majorRatio": 0.9066388888888889,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 18.356232686980608,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3966270632068927,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.12437711702719131,
+      "visibleFishSeconds": 300.833333333357,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 1.3166666666666667,
+          "end": 122.13333333333333,
+          "duration": 120.81666666666666,
+          "lightPeak": 0.25478628094801287,
+          "state": "DONE",
+          "count": 27,
+          "routeSeed": 1669629338,
+          "routeMode": "CIRCLE",
+          "entrySide": -1,
+          "entryHeight": 1.171575903124176,
+          "routeCenter": [
+            0,
+            1.6472629019990563,
+            -5.394954886427149
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 130.13333333333333,
+          "end": 237.78333333333333,
+          "duration": 107.65,
+          "lightPeak": 0.20292408098415868,
+          "state": "DONE",
+          "count": 19,
+          "routeSeed": 594483249,
+          "routeMode": "MID_HOVER",
+          "entrySide": 1,
+          "entryHeight": 1.125232735055033,
+          "routeCenter": [
+            0,
+            1.4235907629597933,
+            -5.551834988500923
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 255.78333333333333,
+          "end": 369.5,
+          "duration": 113.71666666666667,
+          "lightPeak": 0.3512514811715758,
+          "state": "DONE",
+          "count": 16,
+          "routeSeed": 2843718620,
+          "routeMode": "MEANDER",
+          "entrySide": -1,
+          "entryHeight": 1.7634024450555446,
+          "routeCenter": [
+            0,
+            1.3563564334996046,
+            -5.6037393367383626
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 369.5,
+          "end": 377.93333333333334,
+          "duration": 8.433333333333337,
+          "lightPeak": 0,
+          "state": "DONE"
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 382.18333333333334,
+          "end": 497.1666666666667,
+          "duration": 114.98333333333335,
+          "lightPeak": 0.21664465311015357,
+          "state": "DONE",
+          "count": 23,
+          "routeSeed": 1242611083,
+          "routeMode": "CIRCLE",
+          "entrySide": -1,
+          "entryHeight": 1.199941046058666,
+          "routeCenter": [
+            0,
+            1.334111712826416,
+            -4.88898926153779
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 9,
+      "time": 600,
+      "events": 5,
+      "empty": false,
+      "visibleSquids": 0,
+      "visibleFish": 26,
+      "minSpacing": 0.13909287181039023,
+      "maxSpeedBL": 1.1413628042407762,
+      "quietRatio": 0.4990833333333333,
+      "majorRatio": 0.9076388888888889,
+      "brightSquidOccupancy": 0,
+      "meanVisibleSchoolSize": 19.427438584816723,
+      "bounds": {
+        "min": {
+          "x": -1.375,
+          "y": 0.08,
+          "z": -11.3
+        },
+        "max": {
+          "x": 1.375,
+          "y": 3.12,
+          "z": 6.9
+        }
+      },
+      "maxFishSpeed": 1.3957626528145504,
+      "maxSquidSpeed": 0,
+      "minClearance": 0.11395981842209837,
+      "visibleFishSeconds": 300.56666666669014,
+      "eventLog": [
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 2.283333333333333,
+          "end": 108.71666666666667,
+          "duration": 106.43333333333334,
+          "lightPeak": 0.1991454870214897,
+          "state": "DONE",
+          "count": 14,
+          "routeSeed": 3748764715,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.035765463009011,
+          "routeCenter": [
+            0,
+            1.6340061276685447,
+            -5.470304041355848
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 124.89999999999999,
+          "end": 239.9,
+          "duration": 115.00000000000001,
+          "lightPeak": 0.35729645041806024,
+          "state": "DONE",
+          "count": 24,
+          "routeSeed": 429917070,
+          "routeMode": "MEANDER",
+          "entrySide": 1,
+          "entryHeight": 1.2524000400910154,
+          "routeCenter": [
+            0,
+            1.3912982679903507,
+            -5.703942681429908
+          ]
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 254.71666666666667,
+          "end": 376.48333333333335,
+          "duration": 121.76666666666668,
+          "lightPeak": 0.2581418566047296,
+          "state": "DONE",
+          "count": 27,
+          "routeSeed": 2748822933,
+          "routeMode": "CIRCLE",
+          "entrySide": -1,
+          "entryHeight": 1.1718174634617753,
+          "routeCenter": [
+            0,
+            1.2911674222443252,
+            -5.461311955098063
+          ]
+        },
+        {
+          "type": "LONG_EMPTY_PHASE",
+          "start": 376.48333333333335,
+          "end": 384.15,
+          "duration": 7.666666666666629,
+          "lightPeak": 0,
+          "state": "DONE"
+        },
+        {
+          "type": "SILVERFISH_SMALL_TRANSIT",
+          "start": 388.26666666666665,
+          "end": 501.18333333333334,
+          "duration": 112.91666666666669,
+          "lightPeak": 0.2036183546126646,
+          "state": "DONE",
+          "count": 20,
+          "routeSeed": 1011452400,
+          "routeMode": "MID_HOVER",
+          "entrySide": -1,
+          "entryHeight": 1.958453677641228,
+          "routeCenter": [
+            0,
+            1.3951520192436875,
+            -5.551564440922812
+          ]
+        }
+      ]
+    }
+  ]
+}

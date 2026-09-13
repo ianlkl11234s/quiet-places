@@ -82,4 +82,5 @@ export function applySnowhallLayout(root:THREE.Group,input:SnowhallDraft){
  resizeBox(root,'snowhall-snow-on-sill',[w.width+.02,.055,.32],[w.x,w.y-w.height/2+.035,-11.63]);
  root.traverse(object=>{const side=object.userData.doorSide as 'left'|'right'|undefined;if(!side)return;const sign=side==='right'?1:-1;object.position.x=sign*(object.userData.doorPart==='door'?g.doorX:g.jambX);});
  const light=root.getObjectByName('snowhall-window-area-light') as THREE.RectAreaLight|undefined;if(light){light.position.x=w.x;light.position.y=w.y;light.width=w.width;light.height=w.height;light.lookAt(w.x,w.y,-10.46);}
+ root.userData.onSnowhallLayoutChange?.(g.draft);
 }

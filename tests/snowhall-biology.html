@@ -1,0 +1,14 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>雪光長廊 · 生物驗收</title>
+<style>body{margin:0;background:#101416;color:#cbd4d7;font:12px system-ui}canvas{display:block;width:100%;height:100vh}aside{position:fixed;top:12px;left:12px;width:260px;padding:12px;background:#13191be8;border:1px solid #364146;border-radius:4px}label{display:block;margin:8px 0}input,select,button{background:#232d31;border:1px solid #53646d;color:#dde5e9;padding:4px;font:inherit}input[type=number]{width:90px}button{cursor:pointer}details{margin-top:12px}pre{white-space:pre-wrap;max-height:240px;overflow:auto;font-size:10px}a{color:#beced5}body.clean aside{display:none}</style>
+<canvas aria-label="雪光長廊生物驗收畫面"></canvas><aside><a href="/?place=snowhall">雪光長廊</a> · 本機生物驗收
+<label>畫面 <select id="view"><option value="room">正式場景</option><option value="squid">魷魚形態近看</option><option value="fish">銀魚形態近看</option></select></label>
+<label>驗收畫幅 <select id="format"><option value="native">視窗大小</option><option value="desktop">1280 × 720</option><option value="phone">390 × 844</option></select></label>
+<label>Seed <input id="seed" type="number" value="20260913"><button id="reload">重建</button></label>
+<label>Elapsed（秒） <input id="time" type="number" value="0" min="0" max="3600" step="0.1"> <button id="seek">跳至</button></label>
+<label>時刻 <select id="hour"><option value="12">正午</option><option value="23">月夜</option><option value="6.5">晨曦</option><option value="17.5">暮色</option></select></label>
+<label><input id="play" type="checkbox">播放流動</label>
+<button id="next">下一個銀魚事件</button> <button id="clean">隱藏面板（H）</button>
+<p><button id="capture">擷取畫面</button> <a id="capture-link" download="snowhall-biology.png">PNG 尚未擷取</a></p>
+<details><summary>Debug（預設關閉）</summary><div id="debug"></div></details>
+<details open><summary>Runtime readback</summary><pre id="readback">準備中</pre></details>
+</aside><script type="module" src="./snowhall-biology.ts"></script></html>

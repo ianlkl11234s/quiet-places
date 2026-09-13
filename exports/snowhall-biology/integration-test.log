@@ -1,0 +1,18 @@
+(node:84335) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ room adapter poses real creatures and releases every allocated model resource once (896.119584ms)
+✔ deformed meshes stay inside the real walls, floor and window at representative event times (145.361417ms)
+(node:84336) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Antarctic procedural creatures have stable deformation, finite unit normals, and nonemissive materials (14.073958ms)
+✔ same elapsed and rewind are deterministic, including flexible squid arms (8.911375ms)
+✔ local +Z puts squid head and arms forward, fins aft, and the fish tail behind its body (4.633833ms)
+✔ safe radii conservatively bound every local vertex across motion and owned resources dispose once (21.360584ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1309.077167

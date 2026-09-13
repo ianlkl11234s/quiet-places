@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "evidence": "All movement and event values are engineering/art-direction approximations; they are not species-specific kinematic measurements.",
+  "simulation": {
+    "fixedStepSeconds": 0.016666666666666666,
+    "seedStreams": [
+      "events",
+      "squid-0",
+      "squid-1",
+      "squid-2",
+      "school"
+    ]
+  },
+  "squid": {
+    "countMin": 0,
+    "countMax": 0,
+    "mantleLengthMetres": [
+      0.3,
+      0.36
+    ],
+    "totalLengthMetres": 0.8,
+    "safeRadiusMantleUnits": 1.7,
+    "speedBLPerSecond": [
+      0.1,
+      0.2
+    ],
+    "yawMaxDegreesPerSecond": 22,
+    "wallMarginBodyLengths": 0.28,
+    "jetMinimumSeconds": 4,
+    "jetHazardPerSecond": 0.045,
+    "pitchMaxDegreesPerSecond": 12,
+    "speedResponseSeconds": 1.4,
+    "foregroundBounds": {
+      "minZ": -4.8,
+      "maxZ": -1.4,
+      "maxY": 1.7
+    }
+  },
+  "fish": {
+    "maxCount": 50,
+    "bodyLengthMetres": [
+      0.15,
+      0.22
+    ],
+    "safeRadiusBodyUnits": 0.74,
+    "transitCount": [
+      14,
+      28
+    ],
+    "mainTransitCount": [
+      32,
+      42
+    ],
+    "speedBLPerSecond": [
+      1.0,
+      1.25
+    ],
+    "wallMarginBodyLengths": 0.22,
+    "separationBL": 0.8,
+    "alignmentBL": 1.45,
+    "cohesionBL": 2.8,
+    "squidAvoidanceBL": [
+      1,
+      3
+    ],
+    "launchStaggerSeconds": 0.22,
+    "maxSpeedBL": 1.4,
+    "speedResponseSeconds": 0.65,
+    "yawMaxDegreesPerSecond": 48,
+    "routeGain": 1.6,
+    "weights": {
+      "separation": 1.8,
+      "alignment": 0.3,
+      "cohesion": 0.12,
+      "noise": 0.008,
+      "avoidance": 0.1
+    },
+    "lingerSeconds": [
+      14,
+      24
+    ],
+    "schoolSpeedMetresPerSecond": 0.17
+  },
+  "scheduler": {
+    "fishIntervalSeconds": [
+      8,
+      18
+    ],
+    "majorCooldownSeconds": [
+      4,
+      8
+    ],
+    "emptyPhaseSeconds": [
+      6,
+      10
+    ],
+    "firstFishSeconds": [
+      1,
+      3
+    ],
+    "approachIntervalSeconds": [
+      180,
+      260
+    ],
+    "crossIntervalSeconds": [
+      300,
+      420
+    ],
+    "emptyIntervalSeconds": [
+      300,
+      420
+    ],
+    "interactionCooldownSeconds": 240,
+    "largeSchoolProbability": 0.1
+  },
+  "light": {
+    "distanceFalloff": 0.12,
+    "hiddenThreshold": 0.055
+  },
+  "navigation": {
+    "wallGain": 1.4,
+    "cameraMargin": 0.45
+  }
+}

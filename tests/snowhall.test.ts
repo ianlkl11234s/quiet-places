@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {snowHallDaylight} from '../src/places/snowhall/Daylight.ts';
 import {createSnowHallField,snowHallParticle} from '../src/places/snowhall/Snow.ts';
-import {sampleHallRay} from '../src/places/snowhall/Stingray.ts';
-import {SNOW_HALL_BASELINE,SNOW_HALL_DOORS,snowhallGeometry,validateSnowhallDraft} from '../src/places/snowhall/Layout.ts';
+import {applySnowhallLayout,SNOW_HALL_BASELINE,SNOW_HALL_DOORS,snowhallGeometry,validateSnowhallDraft} from '../src/places/snowhall/Layout.ts';
+
+import {prepareSnowhall} from '../src/places/snowhall/index.ts';
 
 const state=(hour:number)=>({hour,intensity:1,warmth:0,angle:0,activity:0});
 
@@ -39,13 +40,27 @@ test('snow particle size is a live preview multiplier independent of density',()
  field.dispose();
 });
 
-test('snow and ray paths are deterministic, bounded, and continuous at their loops',()=>{
+test('snow particles remain deterministic',()=>{
  const base:[number,number,number]=[1,4,-18];
  assert.deepEqual(snowHallParticle(base,.4,2,8),snowHallParticle(base,.4,2,8));
- for(let elapsed=0;elapsed<176;elapsed+=.25){
-  const ray=sampleHallRay(elapsed);assert.ok(ray.position.x>=-1.140001&&ray.position.x<=-.299999);assert.ok(ray.position.y>.34&&ray.position.y<.42);assert.ok(ray.position.z>=-1.870001&&ray.position.z<=-.429999);
- }
- const start=sampleHallRay(0),loop=sampleHallRay(88);
- assert.ok(start.position.distanceTo(loop.position)<1e-9);assert.ok(Math.abs(start.heading-loop.heading)<1e-9);
- const direction=new THREE.Vector3(Math.sin(start.heading),0,Math.cos(start.heading));assert.ok(Math.abs(direction.length()-1)<1e-9);
+});
+
+
+test('target-only studio changes rebuild the camera-relative biology and dispose the old models',async()=>{
+ const oldDocument=globalThis.document;
+ const context={fillStyle:'',strokeStyle:'',lineWidth:1,fillRect(){},beginPath(){},moveTo(){},bezierCurveTo(){},stroke(){}};
+ Object.assign(globalThis,{document:{createElement:()=>({width:0,height:0,getContext:()=>context})}});
+ let place:Awaited<ReturnType<typeof prepareSnowhall>> extends (...args:any[])=>infer T?T:never;
+ try{
+  const factory=await prepareSnowhall(),scene=new THREE.Scene(),renderer={shadowMap:{enabled:false,type:THREE.PCFShadowMap}} as THREE.WebGLRenderer;
+  place=factory(scene,renderer);place.update(0,30,state(12));
+  const root=scene.getObjectByName('snowhall-corridor')!,before=root.userData.biology,oldLife=root.getObjectByName('snowhall-antarctic-life')!;
+  const changed=structuredClone(SNOW_HALL_BASELINE);changed.camera.target=[.34,1.03,5];
+  const probe=new THREE.Vector3(.34,1.03,-3);assert.equal(before.isBehindCamera(probe,.2),false);
+  applySnowhallLayout(root,changed);
+  assert.notEqual(root.userData.biology,before);assert.equal(oldLife.parent,null);
+  assert.equal(root.userData.biology.isBehindCamera(probe,.2),true,'uses the new view direction');
+  const after=root.userData.biology;applySnowhallLayout(root,structuredClone(changed));assert.equal(root.userData.biology,after,'unchanged layout does not recreate biology');
+  place.dispose();
+ }finally{Object.assign(globalThis,{document:oldDocument});}
 });
