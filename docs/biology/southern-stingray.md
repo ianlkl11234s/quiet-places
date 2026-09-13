@@ -59,3 +59,7 @@
 權威為 `src/places/seaward/Stingray.ts` 的 `sampleTunnelFlight`：10–15秒抬升、16–24秒翻圈、24–27秒回平保持、27–33秒下降；週期約44.88秒，平飛root .545 m、高點1.1 m。yaw與roll分開，保留GLB的柔鰭clip。不要恢復已撤掉的逐幀鰭尖最低點驅動root升降。
 
 `tests/seaward-stingray.test.ts`用實際GLB變形頂點覆蓋完整46秒、每.125秒取樣，檢查至少約8cm離地，另檢查動作順序、暫停與釋放。是取樣保證，不是任意連續姿態碰撞解算；换模型、尺度或clip需重驗。採用／拒絕版本見[場景目前摘要](../scenes/seaward.md#目前狀態)。
+
+## 雪光長廊 adapter（2026-09-12）
+
+[雪光長廊](../scenes/snowhall.md) 再次沿用同一 GLB 與 `SRAY_ACT_SLOW_CRUISE` clip，但不沿用向海隧道的翻圈編舞。`src/places/snowhall/Stingray.ts` 以 `.43` 尺度和 88 秒低幅橢圓路徑讓單隻魟魚停留在暗面近地區域；root 約 .35–.42 m，clip 以 `.58` 倍時間取樣。這是乾燥走廊中的美術近似，沒有室內水體、浮力或生物速度量測；目前待本機與使用者視覺確認。
