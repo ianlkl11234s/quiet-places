@@ -22,3 +22,5 @@ node_modules
 # Native pilot generated assets
 .mobile-public/
 dist-mobile/
+
+.mobile-downloads/

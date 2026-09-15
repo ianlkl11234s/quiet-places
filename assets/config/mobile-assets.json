@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md",
   "pilot": {
     "sceneId": "seaward",
     "status": "bundled-for-iphone-pilot-only",
