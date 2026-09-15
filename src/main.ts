@@ -157,7 +157,8 @@ async function start(){
   el('water-options').hidden=!hasWeather;
   el('ocean-options').hidden=!placeSupports(currentPlace,'ocean-level');
   el('afterlight-camera-options').hidden=!placeSupports(currentPlace,'camera-distance');
-  snowCameraOptions.hidden=currentPlace!=='snowwindow';
+  snowCameraOptions.hidden=currentPlace!=='snowwindow'&&currentPlace!=='last-arcade';
+  snowCameraOptions.querySelector<HTMLAnchorElement>('a')!.href=currentPlace==='last-arcade'?'/tools/snowwindow-camera/?place=last-arcade':'/tools/snowwindow-camera/';
   document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.oceanLevel===oceanLevel)));
   el('water-reset').hidden=!isWater;
   el('water-mode').textContent=place.waterMode;

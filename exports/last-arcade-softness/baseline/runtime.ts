@@ -1,0 +1,192 @@
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import type {PlaceInstance} from '../../player/contracts.ts';
+import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
+import arcadeConfig from '../../../assets/config/last-arcade.json' with {type:'json'};
+
+type FoliageMesh = THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
+
+interface WindBinding {
+  mesh: FoliageMesh;
+  uniforms: {uArcadeWindTime: THREE.IUniform<number>; uArcadeWindStrength: THREE.IUniform<number>; uArcadeWindWorldToLocal: THREE.IUniform<THREE.Matrix4>};
+}
+
+function windShader(material: THREE.Material, binding: WindBinding): void {
+  const previous = material.onBeforeCompile;
+  material.onBeforeCompile = (shader, renderer) => {
+    previous?.(shader, renderer);
+    Object.assign(shader.uniforms, binding.uniforms);
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>
+uniform float uArcadeWindTime;
+uniform float uArcadeWindStrength;
+uniform mat4 uArcadeWindWorldToLocal;
+attribute float arcadeWindWeight;
+`).replace('#include <begin_vertex>', `#include <begin_vertex>
+float arcadeTip = clamp(arcadeWindWeight,0.,1.);
+vec3 arcadeWorldBase = (modelMatrix*vec4(transformed,1.)).xyz;
+float arcadePhase = dot(arcadeWorldBase.xz,vec2(.83,1.17))+arcadeWorldBase.y*.61;
+vec2 arcadeBreeze = vec2(sin(uArcadeWindTime*.58+arcadePhase),cos(uArcadeWindTime*.43+arcadePhase*.71));
+// A 0.6–1.6 cm local breeze. The world vector is converted back to the mesh's
+// local axes, so an exporter-preserved node rotation cannot tilt the wind plane.
+float arcadeAmplitude=.006+.010*(.5+.5*sin(uArcadeWindTime*.13+arcadePhase*.2));
+transformed += (uArcadeWindWorldToLocal*vec4(vec3(arcadeBreeze.x,0.,arcadeBreeze.y)*arcadeAmplitude*arcadeTip*arcadeTip*uArcadeWindStrength,0.)).xyz;
+`);
+  };
+  material.customProgramCacheKey = () => `${material.type}-last-arcade-foliage-wind-v1`;
+  material.needsUpdate = true;
+}
+
+/** Installs a conservative local-space breeze on explicitly tagged GLB foliage only. */
+function installFoliageWind(root: THREE.Object3D) {
+  const restores: Array<() => void> = [];
+  const bindings: WindBinding[] = [];
+  root.traverse(object => {
+    if (!(object instanceof THREE.Mesh) || object.userData.arcade_role !== 'foliage') return;
+    const mesh = object as FoliageMesh;
+    const position = mesh.geometry.getAttribute('position');
+    if (!position) return;
+    // Blender's opaque glTF exporter strips vertex-colour alpha. The builder
+    // exports this explicit scalar instead; a local-height fallback would move
+    // attached leaf roots, so a missing attribute is an asset-contract error.
+    const weight = mesh.geometry.getAttribute('_arcade_wind');
+    if (!weight || weight.itemSize !== 1) throw new Error(`潮風商店街植被 ${mesh.name} 缺少 _arcade_wind 根到梢權重。`);
+    if (!mesh.geometry.getAttribute('arcadeWindWeight')) mesh.geometry.setAttribute('arcadeWindWeight', weight);
+    const uniforms: WindBinding['uniforms'] = {
+      uArcadeWindTime: {value: 0}, uArcadeWindStrength: {value: 1},
+      uArcadeWindWorldToLocal: {value: new THREE.Matrix4()},
+    };
+    const binding: WindBinding = {mesh, uniforms};
+    const originalMaterial = mesh.material;
+    const originals = Array.isArray(originalMaterial) ? originalMaterial : [originalMaterial];
+    const copies = originals.map(source => source.clone());
+    copies.forEach(material => windShader(material, binding));
+    const originalDepth = mesh.customDepthMaterial, originalDistance = mesh.customDistanceMaterial;
+    const source = copies.find((material): material is THREE.MeshStandardMaterial => material instanceof THREE.MeshStandardMaterial);
+    if (!source) { copies.forEach(material => material.dispose()); return; }
+    const depth = new THREE.MeshDepthMaterial({depthPacking: THREE.RGBADepthPacking, alphaTest: source.alphaTest, map: source.map, alphaMap: source.alphaMap, side: source.side});
+    const distance = new THREE.MeshDistanceMaterial({alphaTest: source.alphaTest, map: source.map, alphaMap: source.alphaMap, side: source.side});
+    windShader(depth, binding); windShader(distance, binding);
+    mesh.material = Array.isArray(originalMaterial) ? copies : copies[0];
+    mesh.customDepthMaterial = depth; mesh.customDistanceMaterial = distance;
+    bindings.push(binding);
+    restores.push(() => { mesh.material = originalMaterial; mesh.customDepthMaterial = originalDepth; mesh.customDistanceMaterial = originalDistance; copies.forEach(material => material.dispose()); depth.dispose(); distance.dispose(); });
+  });
+  return {
+    update(elapsed: number, activity: number) {
+      for (const {mesh, uniforms} of bindings) {
+        mesh.updateWorldMatrix(true, false);
+        uniforms.uArcadeWindTime.value = Number.isFinite(elapsed) ? elapsed : 0;
+        uniforms.uArcadeWindStrength.value = THREE.MathUtils.clamp(.72 + activity*.28, .5, 1);
+        uniforms.uArcadeWindWorldToLocal.value.copy(mesh.matrixWorld).invert();
+      }
+    },
+    dispose() { restores.splice(0).forEach(restore => restore()); },
+  };
+}
+
+/** A material-only distant-water cue; it does not alter the exported sea mesh or water level. */
+function installSeaRipples(root: THREE.Object3D) {
+  const time = {value: 0};
+  const restores: Array<() => void> = [];
+  root.traverse(object => {
+    if (!(object instanceof THREE.Mesh)) return;
+    const original = object.material;
+    const originals = Array.isArray(original) ? original : [original];
+    if (!originals.some(material => material.name === 'arcade-sea')) return;
+    const copies = originals.map(source => {
+      if (source.name !== 'arcade-sea' || !(source instanceof THREE.MeshStandardMaterial)) return source;
+      const material = source.clone();
+      const previous = material.onBeforeCompile;
+      material.onBeforeCompile = (shader, renderer) => {
+        previous?.(shader, renderer); shader.uniforms.uArcadeSeaTime = time;
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 arcadeSeaWorld;')
+          .replace('#include <project_vertex>', '#include <project_vertex>\narcadeSeaWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
+        shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uArcadeSeaTime;\nvarying vec3 arcadeSeaWorld;')
+          .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+float arcadeRippleA=sin(arcadeSeaWorld.x*.18+arcadeSeaWorld.z*.11+uArcadeSeaTime*.28);
+float arcadeRippleB=cos(arcadeSeaWorld.x*.09-arcadeSeaWorld.z*.16+uArcadeSeaTime*.19);
+normal=normalize(normal+mat3(viewMatrix)*vec3(arcadeRippleA*.018,0.,arcadeRippleB*.018));`);
+      };
+      material.customProgramCacheKey = () => 'last-arcade-sea-ripple-v1'; material.needsUpdate = true;
+      return material;
+    });
+    object.material = Array.isArray(original) ? copies : copies[0];
+    restores.push(() => { object.material = original; copies.forEach((material, index) => { if (material !== originals[index]) material.dispose(); }); });
+  });
+  return {update(elapsed: number) { time.value = Number.isFinite(elapsed) ? elapsed : 0; }, dispose() { restores.splice(0).forEach(restore => restore()); }};
+}
+
+export async function prepareLastArcade() {
+  let gltf: Awaited<ReturnType<GLTFLoader['loadAsync']>>;
+  try { gltf = await new GLTFLoader().loadAsync('/models/last-arcade.glb'); }
+  catch (cause) { throw new Error('無法載入潮風商店街模型 /models/last-arcade.glb。', {cause}); }
+  const root = gltf.scene;
+  const resources = collectModelResources(root);
+  const release = () => { root.removeFromParent(); disposeModelResources(resources, ['textures', 'materials', 'geometries', 'skeletons']); };
+  // Validate before installing shaders, so a rejected asset still releases its resources.
+  try { root.traverse(object => {
+    if (!(object instanceof THREE.Mesh) || object.userData.arcade_role !== 'foliage') return;
+    const weight=object.geometry.getAttribute('_arcade_wind');
+    if (!weight || weight.itemSize!==1) throw new Error(`潮風商店街植被 ${object.name} 缺少 _arcade_wind 根到梢權重。`);
+  }); } catch (error) { release(); throw error; }
+  let consumed = false;
+  const factory = (scene: THREE.Scene, renderer: THREE.WebGLRenderer): PlaceInstance => {
+    if (consumed) throw new Error('潮風商店街資源已使用。');
+    consumed = true;
+    const oldShadow = {enabled: renderer.shadowMap.enabled, type: renderer.shadowMap.type};
+    const background = new THREE.Color('#b7cddd');
+    root.traverse(object => { if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; } });
+    const foliage = installFoliageWind(root);
+    const sky = new THREE.HemisphereLight(new THREE.Color('#b9d3e2'), new THREE.Color('#59605b'), 1.4);
+    const sun = new THREE.DirectionalLight(new THREE.Color('#ffe0b2'), arcadeConfig.sun.energy);
+    const sunTarget = new THREE.Vector3(0, 0, -9);
+    const blenderSun = new THREE.Vector3(...arcadeConfig.sun.directionToLight);
+    const afternoonSunDirection = new THREE.Vector3(blenderSun.x, blenderSun.z, -blenderSun.y).normalize();
+    sun.position.copy(sunTarget).addScaledVector(afternoonSunDirection, 15); sun.target.position.copy(sunTarget); sun.castShadow = true;
+    sun.shadow.mapSize.set(4096, 4096); sun.shadow.camera.near = .1; sun.shadow.camera.far = 46;
+    Object.assign(sun.shadow.camera, {left: -12, right: 12, top: 18, bottom: -8});
+    sun.shadow.normalBias = .003; sun.shadow.bias = -.00002; sun.shadow.autoUpdate = false; sun.shadow.needsUpdate = true;
+    const sea = installSeaRipples(root);
+    scene.add(root, sky, sun, sun.target); scene.background = background;
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    let disposed = false, quality: number | undefined;
+    return {
+      position: [arcadeConfig.camera.position[0], arcadeConfig.camera.position[2], -arcadeConfig.camera.position[1]],
+      target: [arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]],
+      fov: arcadeConfig.camera.verticalFov,
+      cameraMode: 'fixed-position', yawRange: Math.PI / 30, exposure: 1, toneMapping: THREE.AgXToneMapping,
+      hasSimulation: false, waterMode: '遠海由模型提供；藤葉隨播放器時間輕擺',
+      update(_dt, elapsed, state) {
+        renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        foliage.update(elapsed, state.activity);
+        sea.update(elapsed);
+        // This is an art-directed direct/hemisphere-light approximation. The GLB
+        // contains no baked GI, so changing time deliberately does not claim a
+        // recalculated indirect-light solution.
+        const daylight = THREE.MathUtils.clamp(state.intensity/.9, 0, 1.1);
+        // sampleTime(14:00) has angle .25, which is the authored config baseline.
+        const sunDirection = afternoonSunDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (state.angle-.25)*.55).normalize();
+        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight);
+        const targetSkyIntensity = .16 + 1.24*Math.min(1, daylight);
+        const targetBackground = new THREE.Color('#60758b').lerp(new THREE.Color('#b7cddd'), daylight);
+        sun.position.copy(sunTarget).addScaledVector(sunDirection, 15);
+        sun.intensity = targetSunIntensity;
+        sun.color.setRGB(1, 1-.20*state.warmth, 1-.40*state.warmth);
+        sky.intensity = targetSkyIntensity;
+        sky.color.set('#b9d3e2').lerp(new THREE.Color('#e8bc88'), state.warmth*.28);
+        background.copy(targetBackground);
+        const resolution = state.lowQuality ? 1024 : 4096;
+        if (resolution !== quality) { quality = resolution; sun.shadow.map?.dispose(); sun.shadow.map = null; sun.shadow.mapSize.set(resolution, resolution); }
+        sun.shadow.needsUpdate = true;
+      },
+      disturb() {}, resetWater() {},
+      dispose() {
+        if (disposed) return; disposed = true;
+        foliage.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
+        if (scene.background === background) scene.background = null;
+        renderer.shadowMap.enabled = oldShadow.enabled; renderer.shadowMap.type = oldShadow.type;
+      },
+    };
+  };
+  return Object.assign(factory, {dispose() { if (!consumed) { consumed = true; release(); } }});
+}

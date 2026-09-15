@@ -118,8 +118,9 @@ function normalize(value: unknown): Preferences {
 
 /** Returns an independent, fully normalized preference set for one room. */
 export function getRoomPreferences(preferences: Preferences, id: PlaceId): RoomPreferences {
+  const fallback = { ...roomDefaults(), ...(id === 'last-arcade' ? { hour: 12 } : {}) };
   const saved = preferences.rooms?.[id];
-  if (saved) return normalizeRoom(saved, roomDefaults(), id);
+  if (saved) return normalizeRoom(saved, fallback, id);
   const legacyFallback = id === preferences.place
     ? {
       hour: preferences.hour,
@@ -129,8 +130,8 @@ export function getRoomPreferences(preferences: Preferences, id: PlaceId): RoomP
       rainIntensity: preferences.rainIntensity,
       oceanLevel: 'below' as const,
     }
-    : roomDefaults();
-  return normalizeRoom(legacyFallback, roomDefaults(), id);
+    : fallback;
+  return normalizeRoom(legacyFallback, fallback, id);
 }
 
 /** Stores a normalized copy so each room remains independent. */

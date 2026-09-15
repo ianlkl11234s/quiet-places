@@ -6,11 +6,23 @@ import {sampleTime,formatHour} from '../systems/TimeOfDay.ts';
 
 type VectorKey='position'|'target';type Axis='x'|'y'|'z';
 type Draft={version:1;position:number[];target:number[];fov:number;hour:number};
-const draftKey='quiet-places:snowwindow-camera:draft:v1';
+const isArcade=new URLSearchParams(location.search).get('place')==='last-arcade';
+const sceneId=isArcade?'last-arcade':'snowwindow';
+const sceneLabel=isArcade?'潮風商店街':'雪落海窗';
+const draftKey=`quiet-places:${sceneId}-camera:draft:v1`;
 const $=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const stage=$<HTMLDivElement>('stage'),status=$<HTMLParagraphElement>('status');
+if(isArcade){
+ document.title='潮風商店街 · 鏡頭調整';
+ document.querySelector('.tool-header span')!.textContent='潮風商店街 / 鏡頭調整';
+ document.querySelector<HTMLAnchorElement>('.tool-header a')!.href='/?place=last-arcade';
+ document.querySelector('.preview')!.setAttribute('aria-label','潮風商店街即時預覽');
+ $('loading').textContent='正在準備商店街。';
+ const bounds:Record<string,[number,number]>={'position:x':[.2,2.7],'position:y':[.4,2.8],'position:z':[-26,5],'target:x':[-12,12],'target:y':[-3,8],'target:z':[-60,5]};
+ document.querySelectorAll<HTMLInputElement>('input[data-group][data-axis][type=range]').forEach(input=>{const [min,max]=bounds[`${input.dataset.group}:${input.dataset.axis}`];input.min=String(min);input.max=String(max);});
+}
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','雪落海窗的相機預覽');stage.replaceChildren(renderer.domElement);
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label',`${sceneLabel}的相機預覽`);stage.replaceChildren(renderer.domElement);
 const camera=new THREE.PerspectiveCamera(56,1,.1,700),scene=new THREE.Scene(),clock=createSceneClock();
 let place:ReturnType<Awaited<ReturnType<typeof prepareSnowwindow>>>|undefined;
 let baseline:Draft|undefined,raf=0,last=performance.now(),disposed=false;
@@ -26,7 +38,7 @@ function changeVector(group:VectorKey,axis:Axis,raw:string){const value=raw.trim
 function setupInputs(){document.querySelectorAll<HTMLInputElement>('input[data-group][data-axis][type=range]').forEach(range=>{const group=range.dataset.group as VectorKey,axis=range.dataset.axis as Axis;const number=range.parentElement!.querySelector<HTMLInputElement>('.numeric')!,output=range.parentElement!.querySelector<HTMLOutputElement>('output')!;const key=`${group}:${axis}`;const label=`${group==='position'?'位置':'注視點'} ${axis.toUpperCase()}`;range.setAttribute('aria-label',label);number.setAttribute('aria-label',`${label} 數值`);inputs.set(key,{range,number,output});range.addEventListener('input',()=>changeVector(group,axis,range.value));number.addEventListener('input',()=>{if(number.value.trim()!==''&&Number.isFinite(number.valueAsNumber))changeVector(group,axis,number.value);});number.addEventListener('change',()=>changeVector(group,axis,number.value));});const fovRange=$<HTMLInputElement>('fov-range'),fovNumber=$<HTMLInputElement>('fov-number');fovRange.setAttribute('aria-label','視角');fovNumber.setAttribute('aria-label','視角數值');const changeFov=(raw:string)=>{try{const next=candidate();next.fov=Number(raw);apply(next);}catch(error){setStatus(String(error));syncInputs();}};fovRange.addEventListener('input',()=>changeFov(fovRange.value));fovNumber.addEventListener('input',()=>{if(fovNumber.valueAsNumber>=20&&fovNumber.valueAsNumber<=100)changeFov(fovNumber.value);});fovNumber.addEventListener('change',()=>changeFov(fovNumber.value));$<HTMLInputElement>('hour').addEventListener('input',()=>{syncInputs();draw(0);});}
 function draw(dt:number){if(!place)return;const hour=Number($<HTMLInputElement>('hour').value);place.update(dt,clock.elapsed,{...sampleTime(hour),beamStrength:1,lowQuality:false});renderer.render(scene,camera);const size=renderer.getSize(new THREE.Vector2());$<HTMLElement>('viewport-readout').textContent=`${Math.round(size.x)} × ${Math.round(size.y)}`;}
 function resize(){const rect=stage.getBoundingClientRect();if(rect.width<1||rect.height<1)return;renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix();draw(0);}
-function json(){const root=scene.getObjectByName('snowwindow-room');const size=renderer.getSize(new THREE.Vector2());return JSON.stringify({tool:'snowwindow-camera-preview',previewOnly:true,camera:candidate(),viewport:{width:Math.round(size.x),height:Math.round(size.y)},responsiveRootOffset:root?.position.toArray()??null},null,2);}
+function json(){const root=scene.getObjectByName('snowwindow-room');const size=renderer.getSize(new THREE.Vector2());return JSON.stringify({tool:`${sceneId}-camera-preview`,placeId:sceneId,previewOnly:true,camera:candidate(),viewport:{width:Math.round(size.x),height:Math.round(size.y)},responsiveRootOffset:root?.position.toArray()??null},null,2);}
 async function copy(){const text=json();try{await navigator.clipboard.writeText(text);$<HTMLTextAreaElement>('json-fallback').style.display='none';setStatus('鏡頭參數已複製。');}catch{$<HTMLTextAreaElement>('json-fallback').value=text;$<HTMLTextAreaElement>('json-fallback').style.display='block';$<HTMLTextAreaElement>('json-fallback').select();setStatus('剪貼簿不可用，JSON 已選取，可直接複製。');}}
 function pause(){clock.setPaused(!clock.paused);$<HTMLButtonElement>('pause').textContent=clock.paused?'繼續流動':'暫停流動';$<HTMLButtonElement>('pause').setAttribute('aria-pressed',String(clock.paused));$<HTMLElement>('flow-readout').textContent=clock.paused?'已暫停':'流動中';}
 function saveDraft(){try{localStorage.setItem(draftKey,JSON.stringify(candidate()));setStatus('本機草稿已儲存；未改動正式設定。');}catch{setStatus('無法寫入本機草稿。');}}
@@ -37,4 +49,4 @@ setupInputs();
 $<HTMLButtonElement>('pause').onclick=pause;$<HTMLButtonElement>('reset').onclick=()=>{if(baseline)apply(structuredClone(baseline));};$<HTMLButtonElement>('copy').onclick=()=>void copy();$<HTMLButtonElement>('save-draft').onclick=saveDraft;$<HTMLButtonElement>('restore-draft').onclick=restoreDraft;
 $<HTMLButtonElement>('panel-toggle').onclick=()=>{document.body.classList.toggle('panel-hidden');const hidden=document.body.classList.contains('panel-hidden'),button=$<HTMLButtonElement>('panel-toggle');button.textContent=hidden?'顯示控制':'收起控制';button.setAttribute('aria-expanded',String(!hidden));requestAnimationFrame(resize);};
 const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden&&!clock.paused)pause();});window.addEventListener('pagehide',dispose,{once:true});
-try{const factory=await prepareSnowwindow();place=factory(scene,renderer);renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=place.exposure??1;const initial:Draft={version:1,position:[...place.position],target:[...place.target],fov:place.fov??56,hour:12};baseline=structuredClone(initial);apply(initial,false);resize();raf=requestAnimationFrame(tick);setStatus('雪景已就緒，拖曳滑桿即可調整鏡頭。');}catch(error){setStatus(`載入失敗：${String(error)}`);dispose();}
+try{const factory=isArcade?await (await import('../places/last-arcade/index.ts')).prepareLastArcade():await prepareSnowwindow();place=factory(scene,renderer);renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=place.exposure??1;const initial:Draft={version:1,position:[...place.position],target:[...place.target],fov:place.fov??56,hour:12};baseline=structuredClone(initial);apply(initial,false);resize();raf=requestAnimationFrame(tick);setStatus(`${sceneLabel}已就緒，拖曳滑桿即可調整鏡頭。`);}catch(error){setStatus(`載入失敗：${String(error)}`);dispose();}

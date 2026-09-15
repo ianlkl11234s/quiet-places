@@ -1,0 +1,76 @@
+{
+  "blender": "5.1.2",
+  "seed": 91526,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      -1.8,
+      16,
+      1.25
+    ],
+    "verticalFov": 62
+  },
+  "objects": 51,
+  "triangles": 229284,
+  "plantStats": {
+    "seed": 91526,
+    "objects": 4,
+    "vines": 12,
+    "vineLeaves": 1764,
+    "grassTufts": 66,
+    "grassBlades": 662,
+    "litterLeaves": 328,
+    "triangles": 96806,
+    "drawcallsEstimate": 4
+  },
+  "occlusionStats": {
+    "objects": 47,
+    "occluderObjects": 46,
+    "triangles": 132466,
+    "vertices": 74407,
+    "cacheEntries": 68980,
+    "ao": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.5397365342533542
+    },
+    "sky": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.21161651457524158
+    },
+    "settings": {
+      "aoRangeM": 0.48,
+      "skyRangeM": 7.5,
+      "rayOffsetM": 0.012,
+      "aoSamples": 6,
+      "skySamples": 4
+    }
+  },
+  "glbBytes": 21899904,
+  "glbSHA256": "216ef189d7e5792c3a86f86ffcf8a5416b24d5fb90b2b9876c1b8de181623e88",
+  "blend": "assets/blender/last-arcade.blend",
+  "blendSHA256": "0ec6b852eb9c4a6447b6272b730d739821d9af88321ccd39b27ecdde7a254daa",
+  "sources": {
+    "assets/config/last-arcade.json": "dfb7e2e377bc1e2fdff49630845bee2b87b229173eb0ab3f962747a8e8202fe6",
+    "assets/blender/scripts/last_arcade.py": "c83caf829cfd052e3ca5edaf3b015845861327597db77116411e48b835f18627",
+    "assets/blender/scripts/last_arcade_plants.py": "6567fd80234299487d78de39b0bf4bfead92551e3b0231bb60b8d6c2aade7876",
+    "assets/blender/scripts/last_arcade_occlusion.py": "e5211ea64140a29f1ee4e875346c90c721d6ee80df29d8b1de5ac5034d2f3351",
+    "src/places/last-arcade/index.ts": "b5394ac3626c72d932245d13539eead09755406726f472076e26ac1edc15f8f8",
+    "src/places/last-arcade/Ambient.ts": "3fb95aa23e67c7cfef220a7ee3511b1496dde1c2273e14751ee50c2ea280c1dd",
+    "tests/last-arcade-gpu.ts": "840507be9c41d64524cfaf8379af1c839ee9e47b9a236268e00d1a10859ea428",
+    "tests/last-arcade-study.ts": "fc698eb0d837e2b655957bdf32eb5f4fbab91555ee88cb353ada3f7d33bf60d8",
+    "tests/last-arcade.test.ts": "858a0c26d388a0d8f4a2af54662329b2c073127fa7be7fc40bcadca0b54c9fa7",
+    "docs/scenes/last-arcade.md": "a086f993238424330c3da0ee4b6b25a973cf3b2f0131a634fc44da27bce76fd7",
+    "docs/production/experiments/2026-09-15-last-arcade-softness.md": "76187e8442eacf45cce462307fe530a5ab9ddfa8c430975536a5ba43c0960a53"
+  },
+  "renderViews": [
+    "hero",
+    "wide",
+    "detail"
+  ]
+}

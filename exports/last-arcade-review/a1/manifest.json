@@ -1,0 +1,41 @@
+{
+  "blender": "5.1.2",
+  "seed": 91526,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      1.45,
+      16,
+      1.25
+    ],
+    "verticalFov": 62,
+    "portraitAspect": 0.75
+  },
+  "objects": 51,
+  "triangles": 169469,
+  "plantStats": {
+    "seed": 91526,
+    "objects": 4,
+    "vines": 12,
+    "vineLeaves": 548,
+    "grassTufts": 72,
+    "grassBlades": 693,
+    "litterLeaves": 328,
+    "triangles": 36991,
+    "drawcallsEstimate": 4
+  },
+  "glbBytes": 23568044,
+  "glbSHA256": "c099ed54127dad75ddac3b1f636d97a7d1662ef13de9f2cbd4e7f7a1f7155910",
+  "blend": "/private/tmp/quiet-places-last-arcade/assets/blender/last-arcade.blend",
+  "renderViews": [
+    "hero",
+    "gray",
+    "wide",
+    "detail",
+    "structure"
+  ]
+}

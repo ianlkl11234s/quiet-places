@@ -1,0 +1,57 @@
+{
+  "passed": true,
+  "checks": [
+    "real-GLB",
+    "floor-and-storefront-rays",
+    "open-roadside",
+    "pinned-wind-weights",
+    "moving-shadow-materials",
+    "pause-pixel-repeatability",
+    "day-night-pixels",
+    "wind-pixels",
+    "shadow-pixels",
+    "low-quality",
+    "double-dispose",
+    "unused-factory-dispose"
+  ],
+  "meshCount": 52,
+  "foliageMeshes": 2,
+  "loadMs": 167.20000004768372,
+  "submissionMsPerFrame": 0.21333333253860473,
+  "performanceScope": "384x512 offscreen CPU submission only; not device fps or GPU timing",
+  "rendered": {
+    "frame": 37,
+    "calls": 52,
+    "triangles": 231524,
+    "points": 0,
+    "lines": 0
+  },
+  "loadedMemory": {
+    "geometries": 52,
+    "textures": 32
+  },
+  "baseline": {
+    "geometries": 0,
+    "textures": 1
+  },
+  "afterDispose": {
+    "geometries": 0,
+    "textures": 1
+  },
+  "pauseDifference": {
+    "sum": 0,
+    "pixels": 0
+  },
+  "dayNight": {
+    "sum": 17249793,
+    "pixels": 187298
+  },
+  "windDifference": {
+    "sum": 105729,
+    "pixels": 1980
+  },
+  "shadowDifference": {
+    "sum": 18640727,
+    "pixels": 128244
+  }
+}

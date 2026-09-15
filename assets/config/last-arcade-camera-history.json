@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "placeId": "last-arcade",
+  "records": [
+    {
+      "id": "original-2026-09-15",
+      "reason": "採用使用者新視角前的設定",
+      "blenderCamera": {
+        "position": [
+          1.12,
+          -1.0,
+          1.62
+        ],
+        "target": [
+          -1.8,
+          16,
+          1.25
+        ],
+        "verticalFov": 62
+      },
+      "webCamera": {
+        "position": [
+          1.12,
+          1.62,
+          1.0
+        ],
+        "target": [
+          -1.8,
+          1.25,
+          -16
+        ],
+        "fov": 62
+      }
+    },
+    {
+      "id": "user-selected-2026-09-15",
+      "reason": "使用者指定為預設",
+      "blenderCamera": {
+        "position": [
+          1.97,
+          -0.31,
+          1.62
+        ],
+        "target": [
+          -1.8,
+          16,
+          3.52
+        ],
+        "verticalFov": 62
+      },
+      "webCamera": {
+        "position": [
+          1.97,
+          1.62,
+          0.31
+        ],
+        "target": [
+          -1.8,
+          3.52,
+          -16
+        ],
+        "fov": 62,
+        "hour": 12
+      },
+      "referenceViewport": {
+        "width": 890,
+        "height": 805
+      }
+    }
+  ]
+}

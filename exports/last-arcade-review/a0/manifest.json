@@ -1,0 +1,28 @@
+{
+  "blender": "5.1.2",
+  "seed": 91526,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      1.45,
+      16,
+      1.25
+    ],
+    "verticalFov": 62,
+    "portraitAspect": 0.75
+  },
+  "objects": 47,
+  "triangles": 132478,
+  "plantStats": {},
+  "glbBytes": 19174508,
+  "glbSHA256": "c9c276b53821013013cdfbfbe1784a41189052d9c7f631b281ec3ac82d35b170",
+  "blend": "/private/tmp/quiet-places-last-arcade/assets/blender/last-arcade.blend",
+  "renderViews": [
+    "hero",
+    "gray"
+  ]
+}

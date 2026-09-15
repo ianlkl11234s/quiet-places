@@ -1,0 +1,172 @@
+{
+  "blender": "5.1.2",
+  "seed": 91526,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      -1.8,
+      16,
+      1.25
+    ],
+    "verticalFov": 62
+  },
+  "objects": 51,
+  "triangles": 169974,
+  "plantStats": {
+    "seed": 91526,
+    "objects": 4,
+    "vines": 8,
+    "vineLeaves": 664,
+    "mainPlants": [
+      {
+        "root": [
+          0.153,
+          -3.2,
+          0.003
+        ],
+        "height": 3.17,
+        "branches": 3,
+        "leaves": 130
+      },
+      {
+        "root": [
+          0.153,
+          0.0,
+          0.003
+        ],
+        "height": 3.12,
+        "branches": 3,
+        "leaves": 113
+      },
+      {
+        "root": [
+          0.153,
+          3.2,
+          0.003
+        ],
+        "height": 3.28,
+        "branches": 4,
+        "leaves": 150
+      },
+      {
+        "root": [
+          0.153,
+          9.6,
+          0.003
+        ],
+        "height": 2.98,
+        "branches": 2,
+        "leaves": 77
+      },
+      {
+        "root": [
+          0.153,
+          19.2,
+          0.003
+        ],
+        "height": 2.98,
+        "branches": 2,
+        "leaves": 71
+      },
+      {
+        "root": [
+          2.745,
+          -0.02,
+          0.003
+        ],
+        "height": 2.78,
+        "branches": 2,
+        "leaves": 44
+      },
+      {
+        "root": [
+          2.745,
+          6.38,
+          0.003
+        ],
+        "height": 3.02,
+        "branches": 2,
+        "leaves": 50
+      },
+      {
+        "root": [
+          2.745,
+          16.0,
+          0.003
+        ],
+        "height": 2.04,
+        "branches": 2,
+        "leaves": 29
+      }
+    ],
+    "leafColourMin": [
+      0.045,
+      0.105,
+      0.035
+    ],
+    "leafColourMax": [
+      0.16,
+      0.19,
+      0.065
+    ],
+    "grassTufts": 44,
+    "grassBlades": 314,
+    "litterLeaves": 328,
+    "triangles": 37496,
+    "drawcallsEstimate": 4
+  },
+  "occlusionStats": {
+    "objects": 47,
+    "occluderObjects": 46,
+    "triangles": 132466,
+    "vertices": 74407,
+    "cacheEntries": 68980,
+    "ao": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.5397365342533542
+    },
+    "sky": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.21161651457524158
+    },
+    "foliageSky": {
+      "vertices": 15478,
+      "mean": 0.07907998449412068,
+      "cacheEntries": 4210
+    },
+    "settings": {
+      "aoRangeM": 0.48,
+      "skyRangeM": 7.5,
+      "rayOffsetM": 0.012,
+      "aoSamples": 6,
+      "skySamples": 4
+    }
+  },
+  "glbBytes": 19695048,
+  "glbSHA256": "f7d9a4107325228ffff0a2b782827f8dd3f7e7ed3fecb412dd62bfcf4e129099",
+  "blend": "assets/blender/last-arcade.blend",
+  "blendSHA256": "42e7fa46b3895ae6965f2aa82d7e75c799a23a7906109e96938e6cfe88546791",
+  "sources": {
+    "assets/config/last-arcade.json": "dfb7e2e377bc1e2fdff49630845bee2b87b229173eb0ab3f962747a8e8202fe6",
+    "assets/blender/scripts/last_arcade.py": "c83caf829cfd052e3ca5edaf3b015845861327597db77116411e48b835f18627",
+    "assets/blender/scripts/last_arcade_plants.py": "a6a31cb29bfd31b66ba8ab02c38a9c842827027930a9af0758332132999f217c",
+    "assets/blender/scripts/last_arcade_occlusion.py": "2582c357f9b95f95170105046a58f4754faf3478da6b68b1c4bc5fd3148b7342",
+    "src/places/last-arcade/index.ts": "6fe62f8a3fa9235c5ff68107aca082fd3bf8c6a4a84d42c237da7c69ba32de2f",
+    "tests/last-arcade.test.ts": "9e390b9c98ab38beb872f35b07897ea3ea92dd2a67809c3653034c77aa579430",
+    "tests/last-arcade-gpu.ts": "79808346937c78cb4adda54893b9b7f24b350806afe6d9bc870a485fc96e70c8",
+    "docs/scenes/last-arcade.md": "2f3ffafc88fdd26a140ea85da70a29a7c264baa1ac2628c44ac640bd23471721",
+    "docs/biology/arcade-climbers.md": "7947be73a0bef3d0e56efdd0dfb7eea6b56a93c02d319b9e7484714db7b9d571",
+    "docs/production/experiments/2026-09-15-last-arcade-foliage.md": "e36a0a18c61e622dad6c10947bd1aa96be077d97d550323594a3528d7da40568"
+  },
+  "renderViews": [
+    "hero",
+    "wide",
+    "detail"
+  ]
+}

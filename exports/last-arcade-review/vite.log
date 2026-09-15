@@ -1,0 +1,40 @@
+
+> quiet-places@0.1.0 dev
+> vite --host 127.0.0.1 --port 5186
+
+
+  VITE v7.3.6  ready in 689 ms
+
+  ➜  Local:   http://127.0.0.1:5186/
+5:26:15 PM [vite] (client) page reload src/main.ts
+5:26:16 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:27:00 PM [vite] (client) page reload tests/last-arcade-gpu.html
+5:27:20 PM [vite] (client) page reload src/main.ts
+5:27:21 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:27:23 PM [vite] (client) page reload assets/config/last-arcade.json
+5:27:55 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:28:31 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:29:53 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:29:54 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:31:57 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:34:03 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:47:47 PM [vite] (client) page reload tests/last-arcade-study.html
+5:50:29 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:56:23 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:57:12 PM [vite] (client) page reload src/places/last-arcade/Ambient.ts
+5:58:11 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:58:11 PM [vite] (client) page reload tests/last-arcade-gpu.ts
+5:59:05 PM [vite] (client) page reload src/places/last-arcade/index.ts
+5:59:05 PM [vite] (client) page reload tests/last-arcade-gpu.ts
+5:59:05 PM [vite] (client) page reload src/places/last-arcade/index.ts
+6:25:58 PM [vite] (client) page reload src/places/last-arcade/index.ts
+6:26:24 PM [vite] (client) page reload src/places/last-arcade/index.ts
+6:27:56 PM [vite] (client) page reload tests/last-arcade-gpu.ts
+8:47:11 PM [vite] (client) page reload src/places/last-arcade/index.ts
+8:48:54 PM [vite] (client) page reload tests/last-arcade-gpu.ts
+8:49:47 PM [vite] (client) page reload src/places/last-arcade/Sea.ts
+9:11:54 PM [vite] (client) page reload src/main.ts
+9:13:21 PM [vite] (client) hmr update /src/studio/snowwindow-camera.css
+9:20:01 PM [vite] (client) page reload src/systems/Preferences.ts
+9:20:01 PM [vite] (client) page reload assets/config/last-arcade.json
+9:23:06 PM [vite] (client) page reload src/systems/Preferences.ts

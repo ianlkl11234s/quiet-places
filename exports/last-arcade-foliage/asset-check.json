@@ -1,0 +1,68 @@
+{
+  "architecturePositionStreamsUnchanged": 47,
+  "before": {
+    "arcade-plants-foliage": {
+      "vertices": 52920,
+      "linearRGBMean": [
+        0.1441968599955241,
+        0.3785167555014292,
+        0.06759227812290192
+      ],
+      "linearLuminanceMean": 0.3062515984501441,
+      "linearLuminanceP95": 0.35210904650092123,
+      "skyMean": null,
+      "windRange": [
+        0.0,
+        1.0
+      ]
+    },
+    "arcade-plants-grass": {
+      "vertices": 8538,
+      "linearRGBMean": [
+        0.18000000715255737,
+        0.36000001430511475,
+        0.07500000298023224
+      ],
+      "linearLuminanceMean": 0.30115501196682454,
+      "linearLuminanceP95": 0.30115501196682454,
+      "skyMean": null,
+      "windRange": [
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "after": {
+    "arcade-plants-foliage": {
+      "vertices": 13280,
+      "linearRGBMean": [
+        0.07955133530917208,
+        0.12660509291699673,
+        0.04541565884502201
+      ],
+      "linearLuminanceMean": 0.11073958690957662,
+      "linearLuminanceP95": 0.16387978017181157,
+      "skyMean": 0.06059864457831325,
+      "windRange": [
+        0.0,
+        1.0
+      ]
+    },
+    "arcade-plants-grass": {
+      "vertices": 4028,
+      "linearRGBMean": [
+        0.07538257122535513,
+        0.1277768150205024,
+        0.04622145028102333
+      ],
+      "linearLuminanceMean": 0.11074950145546368,
+      "linearLuminanceP95": 0.13251100455820558,
+      "skyMean": 0.214746772591857,
+      "windRange": [
+        0.0,
+        1.0
+      ]
+    }
+  },
+  "scope": "Authored linear vertex colors, not rendered brightness or biological measurements"
+}
