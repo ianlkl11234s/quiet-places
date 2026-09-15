@@ -1,5 +1,5 @@
 html.mobile-app{background:#080e11;overscroll-behavior:none}
-.mobile-choosing body> :not(#mobile-entry){visibility:hidden}
+.mobile-choosing body> :not(#mobile-entry):not(.mobile-recovery){visibility:hidden}
 #mobile-entry{position:fixed;inset:0;z-index:1000;overflow:auto;display:flex;align-items:center;flex-direction:column;justify-content:center;box-sizing:border-box;padding:calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px);color:#d3dedb;background:radial-gradient(ellipse at 50% 45%,#234144 0%,#102125 40%,#080e11 80%);font:14px/1.8 Georgia,serif;text-align:center}
 #mobile-entry h1{font-size:13px;font-weight:400;letter-spacing:.32em}
 #mobile-entry>p{letter-spacing:.12em}
@@ -38,4 +38,40 @@ html.mobile-app{background:#080e11;overscroll-behavior:none}
  #mobile-entry .mobile-room{width:100px;height:100px}
  #mobile-entry details{margin-top:8px;max-width:680px}
  #mobile-entry details p{margin:4px 0}
+}
+
+/* Eight rooms share a quiet, scrollable threshold; no scene is preloaded here. */
+#mobile-entry{justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 28px)}
+#mobile-entry[hidden],.mobile-recovery[hidden]{display:none}
+.mobile-rooms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 16px;width:min(660px,100%);margin:20px auto}
+.mobile-room-item{min-width:0}
+#mobile-entry .mobile-room{width:min(145px,100%);height:auto;aspect-ratio:1;margin:0;font-size:16px;letter-spacing:.06em}
+#mobile-entry .mobile-room:disabled{opacity:.45;cursor:default}
+.mobile-room-state{font:11px/1.6 system-ui,sans-serif;color:#a9b9b6;min-height:18px;margin:10px 0 2px}
+.mobile-room-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:4px}
+.mobile-room-actions button,.mobile-recovery button{min-height:44px;padding:8px 12px;background:transparent;border:0;border-radius:8px;color:#c0d2cc;font:12px system-ui,sans-serif;cursor:pointer}
+.mobile-room-actions button:disabled{opacity:.35;cursor:default}
+.mobile-room-actions button:focus-visible{outline:1px solid #cee4dc}
+.mobile-room-actions button[hidden]{display:none}
+#mobile-entry .mobile-storage{font:12px system-ui,sans-serif;letter-spacing:.02em;color:#bdccc8}
+#mobile-entry .mobile-message{font:12px/1.8 system-ui,sans-serif;max-width:360px;min-height:22px;letter-spacing:.03em}
+.mobile-recovery{position:fixed;z-index:1100;left:50%;top:35%;transform:translateX(-50%);width:min(300px,80vw);padding:24px;background:#0d1a1ef2;border:1px solid #8faaa64a;border-radius:12px;color:#dce5e1;text-align:center;font:14px/1.8 system-ui,sans-serif}
+.mobile-app .mobile-timer select{min-height:44px;width:100%;margin:6px 0;background:#172428;color:#dce5e1;border:1px solid #809d9755;border-radius:5px;padding:8px}
+.mobile-app #sleep-remaining{font-size:11px;line-height:1.5;margin:4px 0;color:#b4c5bf}
+@media(min-width:600px){.mobile-rooms{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 14px}}
+@media(orientation:landscape) and (max-height:500px){#mobile-entry .mobile-room{width:100px;height:auto}.mobile-rooms{margin:12px auto;gap:12px}#mobile-entry{padding-top:calc(env(safe-area-inset-top) + 12px)}}
+@media(orientation:landscape) and (max-height:500px){
+ #mobile-entry{padding-top:calc(env(safe-area-inset-top) + 8px);padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+ #mobile-entry .mobile-intro,#mobile-entry .mobile-note{display:none}
+ #mobile-entry .mobile-room{width:88px;font-size:13px;white-space:nowrap}
+ .mobile-rooms{gap:4px 14px;margin:6px auto}
+ .mobile-room-state{margin:3px 0 0;font-size:10px;min-height:16px}
+ #mobile-entry .mobile-storage,#mobile-entry .mobile-message{margin:2px 0;font-size:10px;line-height:1.3}
+}
+.mobile-app #about-toggle{font-size:22px;grid-area:about}
+@media(max-width:430px){.mobile-app .entry-dock{grid-template-columns:44px 44px minmax(60px,1fr) 44px 44px;grid-template-areas:"rooms pause music settings about" "moments moments moments moments moments"}}
+@media(orientation:landscape) and (max-height:500px){
+ .mobile-app #scene-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ .mobile-app #scene-options>div{margin:0;padding:0;border:0}
+ .mobile-app #settings>.actions{grid-template-columns:repeat(3,1fr)}
 }
