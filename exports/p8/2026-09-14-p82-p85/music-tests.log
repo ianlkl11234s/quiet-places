@@ -1,0 +1,12 @@
+(node:20009) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ music playlist advances through distinct tracks, wraps, and respects stop controls (2.858458ms)
+✔ native resolved audio resumes without reloading its current position (1.239917ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 177.851208

@@ -1,0 +1,346 @@
+{
+  "generatedAt": "2026-09-14T09:45:40.137170+00:00",
+  "branch": "codex/iphone-pilot",
+  "head": "79381c79af2333e2878b7f77c1a1c4ef872360c4",
+  "uncommitted": true,
+  "rollbackApp": "/private/tmp/quiet-places-p82-p85-last-known-good/App.app",
+  "assetBase": "http://127.0.0.1:8769",
+  "sourceServer": "stopped",
+  "trackedDiffSha256": "979c6b2eaf2ddd3a734ce97a98eaf08f039128ec434fff2f9442f59d70d2e19f",
+  "newSourceFiles": [
+    {
+      "path": "ios/App/App/NativeAssetsPlugin.swift",
+      "sha256": "55c70fb691127bb19113e3ff3c9865d30eee2e7f6aeed62312aa87fd402f4b97"
+    },
+    {
+      "path": "scripts/test-native-assets.py",
+      "sha256": "d03af76f94de7d53d8fb9f746719f790db7e64a5e89f9cb4642dc9623b28c0e9"
+    },
+    {
+      "path": "src/mobile/NativeAssets.ts",
+      "sha256": "503bf0f017c3aebab266d51c567e9cd7a40f9ca8673cc5f26f3aa23ccb1e8fc6"
+    },
+    {
+      "path": "src/mobile/SleepTimer.ts",
+      "sha256": "f3959b00b1bebf3feb89dc628e7439c52ff56e4a4580f2bbe47b2b7c864ebd5f"
+    },
+    {
+      "path": "src/shared/resources/AssetLocator.ts",
+      "sha256": "047f39aeeced5c0d25e559a073430f9ede87d4a934f171f60967d3bf193c11ad"
+    },
+    {
+      "path": "tests/mobile-asset-locator.test.ts",
+      "sha256": "06190af762e29f44dfa9b6d0f9a38cc5395349634784d7d81dab6e62a3bb9192"
+    },
+    {
+      "path": "tests/mobile-sleep-timer.test.ts",
+      "sha256": "73a37a260782a1cb32e9e2bbdf2175ce1b989e0504e60075d60ab4db1caa134e"
+    },
+    {
+      "path": "tests/native-assets-harness.swift",
+      "sha256": "452d072ff1018bd61c648edb6b3d363d7942f5d8481b21040f4b23850eab8a91"
+    }
+  ],
+  "bundleFiles": [
+    {
+      "path": "App",
+      "bytes": 73104,
+      "sha256": "ae67a196e78cfae051b8c24aecc92a8c6a1069d1024e9399f973e27741d7eecb"
+    },
+    {
+      "path": "App.debug.dylib",
+      "bytes": 1242112,
+      "sha256": "d3816d66d5574dd7f62aea77faf08bb4da17a1a248b83c031025d597ef4731c7"
+    },
+    {
+      "path": "AppIcon60x60@2x.png",
+      "bytes": 8125,
+      "sha256": "813fb1b9b645322b8bf56fb95fd085ef4463b2b4491c31c505b9502bc0e124ed"
+    },
+    {
+      "path": "AppIcon76x76@2x~ipad.png",
+      "bytes": 11629,
+      "sha256": "df7cc3c40e85fd1d8132b18b8f25872b1b724d80d21226631f9f4084c987a2c2"
+    },
+    {
+      "path": "Assets.car",
+      "bytes": 295656,
+      "sha256": "eacf6a456fe00e25f4a602211a1c1e39d57abee5bf37a861e4d4fbdc86edbb5a"
+    },
+    {
+      "path": "Base.lproj/LaunchScreen.storyboardc/01J-lp-oVM-view-snD-IY-ifK.nib",
+      "bytes": 1278,
+      "sha256": "ab27030fc1dd3f62c41ee7337145789d77d2d5b5c5e619b718bbfd3b78b1622a"
+    },
+    {
+      "path": "Base.lproj/LaunchScreen.storyboardc/Info.plist",
+      "bytes": 258,
+      "sha256": "1f255d5cc53b531e3f29a9406a8df49a958e2bf9443d3e20bd8374f707f7d5c8"
+    },
+    {
+      "path": "Base.lproj/LaunchScreen.storyboardc/UIViewController-01J-lp-oVM.nib",
+      "bytes": 924,
+      "sha256": "10bfccdee8aafcd0569b0a1dab6112e70b8afb0dac03fb910823e5097a880051"
+    },
+    {
+      "path": "Base.lproj/Main.storyboardc/Info.plist",
+      "bytes": 258,
+      "sha256": "3e9bdaa408d1eb6ae5e989b813a8644e0a4a981202c536905de52a7291e69aa4"
+    },
+    {
+      "path": "Base.lproj/Main.storyboardc/UIViewController-BYZ-38-t0r.nib",
+      "bytes": 858,
+      "sha256": "f9d413195ae089725549257dcf3d11af9e6c426a129fc0376b77ba9337a00312"
+    },
+    {
+      "path": "Frameworks/Capacitor.framework/Capacitor",
+      "bytes": 4242000,
+      "sha256": "6dfbd21d57ba7d97a7104b1f83bdb727ba105b526bfae93c81221dba3b37324f"
+    },
+    {
+      "path": "Frameworks/Capacitor.framework/Info.plist",
+      "bytes": 742,
+      "sha256": "fc80373140eb763d8c7af580d69b259477e8ee7991d0ba1e3ea5c16c836d0fb7"
+    },
+    {
+      "path": "Frameworks/Capacitor.framework/PrivacyInfo.xcprivacy",
+      "bytes": 373,
+      "sha256": "1bac827f49b2b8a5358491b9698203bf191791a6f1ba3a3ace3b1285d52d2d17"
+    },
+    {
+      "path": "Frameworks/Capacitor.framework/_CodeSignature/CodeResources",
+      "bytes": 7874,
+      "sha256": "b26432b65c85aab269fdf1ac41cc9e69e44d3410d236afed5bb38be3ad69d57c"
+    },
+    {
+      "path": "Frameworks/Capacitor.framework/native-bridge.js",
+      "bytes": 53118,
+      "sha256": "44ae55c944c91d5ebeb1ca2374e831d7920d1af6464faef8f0001a96252109bc"
+    },
+    {
+      "path": "Frameworks/Cordova.framework/Cordova",
+      "bytes": 277984,
+      "sha256": "57f174fa3621f408cef8b702ffc65f2e903818b20a97c2eef0a511914b726995"
+    },
+    {
+      "path": "Frameworks/Cordova.framework/Info.plist",
+      "bytes": 774,
+      "sha256": "c57ef2424de02bf6362dfaf8744da8d893d0626c2405270e3d6935e2480a4a4b"
+    },
+    {
+      "path": "Frameworks/Cordova.framework/PrivacyInfo.xcprivacy",
+      "bytes": 373,
+      "sha256": "5a9b8fc0cddb10201bb47cc2804b3f004c7251476622d25bfc4eb54ed46e1084"
+    },
+    {
+      "path": "Frameworks/Cordova.framework/_CodeSignature/CodeResources",
+      "bytes": 6620,
+      "sha256": "e95aecf8ede57f4c6a67b6e84c019fc97317cfdca7fde8c962676cbb6dd741c4"
+    },
+    {
+      "path": "Info.plist",
+      "bytes": 1736,
+      "sha256": "b72862d70f5495609f849bbf88550b5a99955c98f30eea4010d5f6b97843ffaa"
+    },
+    {
+      "path": "PkgInfo",
+      "bytes": 8,
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0"
+    },
+    {
+      "path": "__preview.dylib",
+      "bytes": 33136,
+      "sha256": "8f04caa92ac3054e6b13523afea7159c3f3d5fd50b68bc620744058973cd1fce"
+    },
+    {
+      "path": "capacitor.config.json",
+      "bytes": 204,
+      "sha256": "f747da52454611a4e5bfd94d1403b678689280582d3761c16fb2ee0ffc3cdaf0"
+    },
+    {
+      "path": "config.xml",
+      "bytes": 185,
+      "sha256": "e9dcda493e663c5c4db9e3cb3bd968477a6e90aa8840bcbba40d72ed54b767ce"
+    },
+    {
+      "path": "public/assets/EXRLoader-CnZlv93k.js",
+      "bytes": 23278,
+      "sha256": "9a97ef40caab5c76797202e5fcd7839dff3bf28df17a590b683b0926b556271e"
+    },
+    {
+      "path": "public/assets/GLTFLoader-tzmyPEeA.js",
+      "bytes": 44859,
+      "sha256": "56718e5dc2ca25ac7be5f97d074fea47ac05905374c8e45a96b985f2d6df7084"
+    },
+    {
+      "path": "public/assets/Lifecycle-DcgqT-vX.js",
+      "bytes": 228,
+      "sha256": "3efbe17ef7b8edc2a4f480bd1884caab7e62d8244bb2a02da99570b7079df7c5"
+    },
+    {
+      "path": "public/assets/ModelResources-CWavHSI6.js",
+      "bytes": 624,
+      "sha256": "437474c1b108e679f2680ecb1a7fb8823b8e1441f07c9893b41712ff247c9832"
+    },
+    {
+      "path": "public/assets/Optics-Dew5hcR3.js",
+      "bytes": 1102,
+      "sha256": "18c4f68196c99d9a96cca1b4ebb6d26deae337200e8efb339e5429370250787c"
+    },
+    {
+      "path": "public/assets/RectAreaLightUniformsLib-B72Ar2Jb.js",
+      "bytes": 247281,
+      "sha256": "07a9ba4098716a3e2652911b562cdb2eed8b8af3e7872a21a52f92f047de7b47"
+    },
+    {
+      "path": "public/assets/SkeletonUtils-BCVmgslc.js",
+      "bytes": 454,
+      "sha256": "df094ed5b6365662e0db768a4613d5d3373226a0b226f6e025a5fd9eeb9f58d5"
+    },
+    {
+      "path": "public/assets/fflate.module-CXh1ITwj.js",
+      "bytes": 31795,
+      "sha256": "f30f5bc7c0301c2a32bfe675603f96c1c4e2ffc31e9ca602359e84c76b92933e"
+    },
+    {
+      "path": "public/assets/index-Bz3eE_0r.js",
+      "bytes": 52743,
+      "sha256": "dcb338195de6141e92b398224af2d8a80eea57fca8299cb1c43e7cad77b6bd0b"
+    },
+    {
+      "path": "public/assets/index-C2DlmGjM.css",
+      "bytes": 7290,
+      "sha256": "dc6403bf1ec35aa660af23ca8b34733a5849b53fdc3ba4fa21c5f82618abec50"
+    },
+    {
+      "path": "public/assets/index-CF5yXrYm.js",
+      "bytes": 334,
+      "sha256": "487ea436f2bc770b17bc7dd09204cab6dba8289eaaf2f128c27ca2b9a0f3e769"
+    },
+    {
+      "path": "public/assets/index-CbkghxN8.js",
+      "bytes": 31051,
+      "sha256": "2c85c1d3f5136aef00889b885aa1291b03a357fc7e537e30e594dfcfe63b8a29"
+    },
+    {
+      "path": "public/assets/index-DKvDvdUO.js",
+      "bytes": 41406,
+      "sha256": "373278b6efe83c460f54f954311270a04de4cbb5c8f9410f2df6247ae93b5d6c"
+    },
+    {
+      "path": "public/assets/index-DircAX5m.js",
+      "bytes": 21846,
+      "sha256": "f141eca3392a830529e7dd5a272d6abf223f1917dd2f3ea687e86e2d6f2f21e7"
+    },
+    {
+      "path": "public/assets/index-Ds4rm29E.js",
+      "bytes": 18415,
+      "sha256": "fd50e28524af34f5da6d95da98ed0a3823fa269df890c5968e8d2efb498aaa99"
+    },
+    {
+      "path": "public/assets/index-EsWYWXSR.js",
+      "bytes": 12931,
+      "sha256": "ae52cc7573b17a5d8a4b04614e851c864258683e7edc85a1b3e947f2f837e106"
+    },
+    {
+      "path": "public/assets/index-JZCWQA9W.js",
+      "bytes": 278020,
+      "sha256": "885b95fdae9823e9db193d2f984627226f845e9aa0f211bbe27875dfaa0ffc64"
+    },
+    {
+      "path": "public/assets/index-OCVnjWLU.js",
+      "bytes": 33123,
+      "sha256": "5f51590c5bc5fa8dd588f98a72a485abcb9141232633dbbed3a4152f9278ec5d"
+    },
+    {
+      "path": "public/assets/index-RW8s_2Ej.js",
+      "bytes": 44328,
+      "sha256": "dcff2bb57d1c6c7e885ee62cbd1c31bd00fa6c3ec2af97c05a9795b24c190e4a"
+    },
+    {
+      "path": "public/assets/main-CyweFOeM.js",
+      "bytes": 413937,
+      "sha256": "58dc48925dee83086e9fa8520c91f465e4361be39f770a2cc8f4dc08b926642c"
+    },
+    {
+      "path": "public/assets/main-VUNuHZOR.css",
+      "bytes": 25539,
+      "sha256": "3b5cbab9a812b426776f5c0081144b1ab799d407f56b0389b6fa88005309b1b1"
+    },
+    {
+      "path": "public/assets/web-J6d2ZFHg.js",
+      "bytes": 843,
+      "sha256": "4d4e06d6f4b9cffc3ba3502f0f8234db5a6ca1a8d89e1bd76442782c61a6858f"
+    },
+    {
+      "path": "public/audio/dawn-cycles.m4a",
+      "bytes": 4474094,
+      "sha256": "089f127b7dc2a4a249348ec2e124c0362342535ec74485b0abf524c496cf0efa"
+    },
+    {
+      "path": "public/audio/dusk-resonance.m4a",
+      "bytes": 4821251,
+      "sha256": "313c36ca96ac5929f3a47211af302407d0c2acd3475487a287cf3bee4298ccbe"
+    },
+    {
+      "path": "public/audio/nightfall-undertone.m4a",
+      "bytes": 5190270,
+      "sha256": "f2527086fd01023e3a692c689c3002275b400c2ce2ec60183fbbadfbede82f04"
+    },
+    {
+      "path": "public/audio/quiet-room-glow.m4a",
+      "bytes": 4999316,
+      "sha256": "4eff7b0267ba2a9ea65dc204edb2d39462021b0d54f96a079d87fcacf0b9bb5c"
+    },
+    {
+      "path": "public/audio/submerged-sunlight.m4a",
+      "bytes": 5346051,
+      "sha256": "4be5a84b7ce489fa31150d7f6a7d313ce816bbaaa54e7d5a0ed30681f0d6e7ea"
+    },
+    {
+      "path": "public/audio/sun-through-water-2.m4a",
+      "bytes": 5332172,
+      "sha256": "543ea4e478f492d52ab7f844ee61cf6e81359625f6835fb6f829604dbbde0380"
+    },
+    {
+      "path": "public/audio/sun-through-water.m4a",
+      "bytes": 5943698,
+      "sha256": "0fc309190ebdc5625389e7ada7b06c11320fecdfdd04f3717cd1aee547589def"
+    },
+    {
+      "path": "public/audio/waterline-hush.m4a",
+      "bytes": 4606703,
+      "sha256": "91eb994cf5a1257045fd103f51d5c94ebc7b43badf3307ffaed1d5f373ac9153"
+    },
+    {
+      "path": "public/cordova.js",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "public/cordova_plugins.js",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "public/index.html",
+      "bytes": 8286,
+      "sha256": "1edeed6d5abea90f48cd9cc8952faadccf40295e803858a4a3483d8019563a2c"
+    },
+    {
+      "path": "public/mobile-assets.manifest.json",
+      "bytes": 3522,
+      "sha256": "515cf4aec905374fe3d8c7bdae7dcf4f4421ab2db6f108112f034343d4064117"
+    },
+    {
+      "path": "public/models/stingray.glb",
+      "bytes": 1859344,
+      "sha256": "e5909d095f4c09971b35e917e7c8b16e3a3468405b798373da8837d24bc89061"
+    },
+    {
+      "path": "public/room-manifests.json",
+      "bytes": 9944,
+      "sha256": "b96e36ddab33599b369a65b59881b7ae4ed9fe993e98c17dbd45055c3d16cbe7"
+    }
+  ]
+}
