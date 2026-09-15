@@ -1,0 +1,52 @@
+
+> quiet-places@0.1.0 mobile:sync
+> npm run mobile:build && cap sync ios
+
+
+> quiet-places@0.1.0 mobile:build
+> npm run mobile:assets && tsc --noEmit && vite build --config vite.mobile.config.ts
+
+
+> quiet-places@0.1.0 mobile:assets
+> node scripts/mobile-assets.mjs
+
+mobile assets prepared: 9 bundled files, 42572899 bytes at .mobile-public; 23 downloadable files at .mobile-downloads
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 122 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-mobile/index.html                                     8.29 kB │ gzip:   2.80 kB
+dist-mobile/assets/index-C2DlmGjM.css                      7.29 kB │ gzip:   2.02 kB
+dist-mobile/assets/main-VUNuHZOR.css                      25.54 kB │ gzip:   6.43 kB
+dist-mobile/assets/Lifecycle-DcgqT-vX.js                   0.23 kB │ gzip:   0.18 kB
+dist-mobile/assets/index-CF5yXrYm.js                       0.33 kB │ gzip:   0.24 kB
+dist-mobile/assets/SkeletonUtils-BCVmgslc.js               0.45 kB │ gzip:   0.27 kB
+dist-mobile/assets/ModelResources-CWavHSI6.js              0.62 kB │ gzip:   0.35 kB
+dist-mobile/assets/web-J6d2ZFHg.js                         0.84 kB │ gzip:   0.40 kB
+dist-mobile/assets/Optics-Dew5hcR3.js                      1.10 kB │ gzip:   0.64 kB
+dist-mobile/assets/index-EsWYWXSR.js                      12.93 kB │ gzip:   5.72 kB
+dist-mobile/assets/index-Ds4rm29E.js                      18.42 kB │ gzip:   7.33 kB
+dist-mobile/assets/index-DircAX5m.js                      21.85 kB │ gzip:   8.49 kB
+dist-mobile/assets/EXRLoader-CnZlv93k.js                  23.28 kB │ gzip:   8.02 kB
+dist-mobile/assets/index-CbkghxN8.js                      31.05 kB │ gzip:  12.07 kB
+dist-mobile/assets/fflate.module-CXh1ITwj.js              31.80 kB │ gzip:  12.15 kB
+dist-mobile/assets/index-OCVnjWLU.js                      33.12 kB │ gzip:  12.36 kB
+dist-mobile/assets/index-DKvDvdUO.js                      41.41 kB │ gzip:  15.04 kB
+dist-mobile/assets/index-RW8s_2Ej.js                      44.33 kB │ gzip:  17.22 kB
+dist-mobile/assets/GLTFLoader-tzmyPEeA.js                 44.86 kB │ gzip:  13.24 kB
+dist-mobile/assets/index-Bz3eE_0r.js                      52.74 kB │ gzip:  20.50 kB
+dist-mobile/assets/RectAreaLightUniformsLib-B72Ar2Jb.js  247.28 kB │ gzip: 103.15 kB
+dist-mobile/assets/index-JZCWQA9W.js                     278.02 kB │ gzip:  79.75 kB
+dist-mobile/assets/main-CyweFOeM.js                      413.94 kB │ gzip: 104.94 kB
+✓ built in 1.63s
+✔ Copying web assets from dist-mobile to ios/App/App/public in 111.05ms
+✔ Creating capacitor.config.json in ios/App/App in 388.17μs
+✔ copy ios in 119.13ms
+✔ Updating iOS plugins in 511.67μs
+[info] All Capacitor plugins have a Package.swift file and will be included in Package.swift
+[info] Writing Package.swift
+[info] Found 1 Capacitor plugin for ios:
+       @capacitor/app@8.1.1
+✔ update ios in 18.04ms
+[info] Sync finished in 0.142s
