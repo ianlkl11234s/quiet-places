@@ -1,0 +1,125 @@
+/private/tmp/quiet-places-last-arcade/assets/blender/scripts/last_arcade.py:60: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+/private/tmp/quiet-places-last-arcade/assets/blender/scripts/last_arcade.py:381: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new('Arcade-open-sky');world.use_nodes=True;scene.world=world
+Info: Packed 49 file(s)
+Info: Saved as "last-arcade.blend"
+INFO Draco mesh compression is available, use library at /Applications/Blender.app/Contents/Resources/5.1/scripts/addons_core/io_scene_gltf2/libextern_draco.dylib
+17:58:38 | INFO: Starting glTF 2.0 export
+17:58:38 | INFO: Extracting primitive: arcade-sign-lettering
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-recess-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-asphalt-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-plaster-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-kerb-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-sea-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-paver-3-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-paver-0-zone-0
+17:58:38 | INFO: Primitives created: 1
+17:58:38 | INFO: Extracting primitive: arcade-paver-1-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-2-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-4-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-1-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-0-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-2-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-3-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-4-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-0-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-1-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-4-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-2-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-paver-3-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-roof-zinc-zone-0
+17:58:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-kerb-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-recess-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-roof-zinc-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-kerb-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-recess-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-roof-zinc-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-soil-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-shutter-faded-zone-0
+17:58:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-painted-support-zone-0
+17:58:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-wall-ceramic-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-soffit-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-rust-zone-0
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-shutter-zone-0
+17:58:39 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-shutter-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-painted-support-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-plaster-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-wall-ceramic-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-soffit-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-shutter-faded-zone-1
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-shutter-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-painted-support-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-plaster-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-wall-ceramic-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-soffit-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-shutter-faded-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-distant-window-zone-2
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-plants-stems
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-plants-foliage
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-plants-grass
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Extracting primitive: arcade-plants-litter
+17:58:39 | INFO: Primitives created: 1
+17:58:39 | INFO: Finished glTF 2.0 export in 0.498471736907959 s
+00:28.416  render           | Saved: '/private/tmp/quiet-places-last-arcade/exports/last-arcade-review/hero.png'
+00:37.353  render           | Saved: '/private/tmp/quiet-places-last-arcade/exports/last-arcade-review/wide.png'
+00:48.594  render           | Saved: '/private/tmp/quiet-places-last-arcade/exports/last-arcade-review/detail.png'
+
+ARCADE_RESULT {"blender": "5.1.2", "seed": 91526, "camera": {"position": [1.12, -1.0, 1.62], "target": [-1.8, 16, 1.25], "verticalFov": 62}, "objects": 51, "triangles": 229284, "plantStats": {"seed": 91526, "objects": 4, "vines": 12, "vineLeaves": 1764, "grassTufts": 66, "grassBlades": 662, "litterLeaves": 328, "triangles": 96806, "drawcallsEstimate": 4}, "occlusionStats": {"objects": 47, "occluderObjects": 46, "triangles": 132466, "vertices": 74407, "cacheEntries": 68980, "ao": {"min": 0.0, "max": 1.0, "mean": 0.5397365342533542}, "sky": {"min": 0.0, "max": 1.0, "mean": 0.21161651457524158}, "settings": {"aoRangeM": 0.48, "skyRangeM": 7.5, "rayOffsetM": 0.012, "aoSamples": 6, "skySamples": 4}}, "glbBytes": 21899904, "glbSHA256": "216ef189d7e5792c3a86f86ffcf8a5416b24d5fb90b2b9876c1b8de181623e88", "blend": "assets/blender/last-arcade.blend", "blendSHA256": "0ec6b852eb9c4a6447b6272b730d739821d9af88321ccd39b27ecdde7a254daa", "sources": {"assets/config/last-arcade.json": "dfb7e2e377bc1e2fdff49630845bee2b87b229173eb0ab3f962747a8e8202fe6", "assets/blender/scripts/last_arcade.py": "c83caf829cfd052e3ca5edaf3b015845861327597db77116411e48b835f18627", "assets/blender/scripts/last_arcade_plants.py": "6567fd80234299487d78de39b0bf4bfead92551e3b0231bb60b8d6c2aade7876", "assets/blender/scripts/last_arcade_occlusion.py": "e5211ea64140a29f1ee4e875346c90c721d6ee80df29d8b1de5ac5034d2f3351"}, "renderViews": ["hero", "wide", "detail"]}
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:30:33)
+
+Blender quit

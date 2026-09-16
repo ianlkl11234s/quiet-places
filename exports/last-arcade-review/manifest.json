@@ -1,0 +1,166 @@
+{
+  "blender": "5.1.2",
+  "seed": 91526,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      -1.8,
+      16,
+      1.25
+    ],
+    "verticalFov": 62
+  },
+  "objects": 60,
+  "triangles": 185618,
+  "plantStats": {
+    "seed": 91526,
+    "objects": 4,
+    "vines": 8,
+    "vineLeaves": 664,
+    "mainPlants": [
+      {
+        "root": [
+          0.153,
+          -3.2,
+          0.003
+        ],
+        "height": 3.17,
+        "branches": 3,
+        "leaves": 130
+      },
+      {
+        "root": [
+          0.153,
+          0.0,
+          0.003
+        ],
+        "height": 3.12,
+        "branches": 3,
+        "leaves": 113
+      },
+      {
+        "root": [
+          0.153,
+          3.2,
+          0.003
+        ],
+        "height": 3.28,
+        "branches": 4,
+        "leaves": 150
+      },
+      {
+        "root": [
+          0.153,
+          9.6,
+          0.003
+        ],
+        "height": 2.98,
+        "branches": 2,
+        "leaves": 77
+      },
+      {
+        "root": [
+          0.153,
+          19.2,
+          0.003
+        ],
+        "height": 2.98,
+        "branches": 2,
+        "leaves": 71
+      },
+      {
+        "root": [
+          2.745,
+          -0.02,
+          0.003
+        ],
+        "height": 2.78,
+        "branches": 2,
+        "leaves": 44
+      },
+      {
+        "root": [
+          2.745,
+          6.38,
+          0.003
+        ],
+        "height": 3.02,
+        "branches": 2,
+        "leaves": 50
+      },
+      {
+        "root": [
+          2.745,
+          16.0,
+          0.003
+        ],
+        "height": 2.04,
+        "branches": 2,
+        "leaves": 29
+      }
+    ],
+    "leafColourMin": [
+      0.045,
+      0.105,
+      0.035
+    ],
+    "leafColourMax": [
+      0.16,
+      0.19,
+      0.065
+    ],
+    "grassTufts": 44,
+    "grassBlades": 314,
+    "litterLeaves": 328,
+    "triangles": 37496,
+    "drawcallsEstimate": 4
+  },
+  "occlusionStats": {
+    "objects": 56,
+    "occluderObjects": 55,
+    "triangles": 148110,
+    "vertices": 83183,
+    "cacheEntries": 77022,
+    "ao": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.5073107886508283
+    },
+    "sky": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.20712164745200343
+    },
+    "foliageSky": {
+      "vertices": 15478,
+      "mean": 0.07907998449412068,
+      "cacheEntries": 4210
+    },
+    "settings": {
+      "aoRangeM": 0.48,
+      "skyRangeM": 7.5,
+      "rayOffsetM": 0.012,
+      "aoSamples": 6,
+      "skySamples": 4
+    }
+  },
+  "glbBytes": 22356160,
+  "glbSHA256": "ff175319da589289b57322939e13dd49114b43f01041c3edd80fa7cdc41e9062",
+  "blend": "assets/blender/last-arcade.blend",
+  "blendSHA256": "f235738e26caf63f4486e17efd1eb773b8e6810bdd9bc9efdea22bb18e34379f",
+  "sources": {
+    "assets/config/last-arcade.json": "dfb7e2e377bc1e2fdff49630845bee2b87b229173eb0ab3f962747a8e8202fe6",
+    "assets/blender/scripts/last_arcade.py": "785dda3cdfe801205dac6e3c93a195203adda4ebf13f03a3b71bb274623d1143",
+    "assets/blender/scripts/last_arcade_plants.py": "a6a31cb29bfd31b66ba8ab02c38a9c842827027930a9af0758332132999f217c",
+    "assets/blender/scripts/last_arcade_occlusion.py": "2582c357f9b95f95170105046a58f4754faf3478da6b68b1c4bc5fd3148b7342"
+  },
+  "renderViews": [
+    "hero",
+    "wide",
+    "structure"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "blender": "5.1.2",
+  "seed": 91526,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      -1.8,
+      16,
+      1.25
+    ],
+    "verticalFov": 62
+  },
+  "objects": 51,
+  "triangles": 229284,
+  "plantStats": {
+    "seed": 91526,
+    "objects": 4,
+    "vines": 12,
+    "vineLeaves": 1764,
+    "grassTufts": 66,
+    "grassBlades": 662,
+    "litterLeaves": 328,
+    "triangles": 96806,
+    "drawcallsEstimate": 4
+  },
+  "glbBytes": 25832468,
+  "glbSHA256": "9b90f3d51b304e085000891f18bc11d2ee57c0c7b049fb05bd11c05f2e23b803",
+  "blend": "assets/blender/last-arcade.blend",
+  "blendSHA256": "d639c83b5c2b0d0dc247f0bb68abbd84c94e1262d70fe694ad8f2f761a007d8a",
+  "sources": {
+    "assets/config/last-arcade.json": "dfb7e2e377bc1e2fdff49630845bee2b87b229173eb0ab3f962747a8e8202fe6",
+    "assets/blender/scripts/last_arcade.py": "a2a7974cf806a7a67d7d77bc1a5d286df28787b6a64a25ab1cd0ee99d25ca444",
+    "assets/blender/scripts/last_arcade_plants.py": "6567fd80234299487d78de39b0bf4bfead92551e3b0231bb60b8d6c2aade7876"
+  },
+  "renderViews": [
+    "hero",
+    "gray",
+    "wide",
+    "detail",
+    "structure"
+  ]
+}

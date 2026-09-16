@@ -57,3 +57,7 @@
 - 向海的隧道：`src/places/seaward/` 沿用魟魚 GLB，新增單隻 adapter；程序建築、濕反射與波光屬場景專用近似，見 [場景筆記](../scenes/seaward.md)。
 - 雪落海窗：`src/places/snowwindow/` 程序 3D 海景、窗角、積雪、玻璃水氣與收攏亞麻；窗前加入可重用 Aurelia／Clione 本體，沿用共用 elapsed 與生命週期，見 [場景筆記](../scenes/snowwindow.md)。
 - 雪光長廊：`src/places/snowhall/` 的正式場景與 `/tools/snowhall-studio/` 共用走廊／窗戶幾何及雪粒倍率；工具只產出候選，見 [場景筆記](../scenes/snowhall.md)。
+
+- 潮風商店街第一版：`assets/blender/scripts/last_arcade.py` + `last_arcade_plants.py` 生成打包貼圖的母檔與GLB；`src/places/last-arcade/` 消費獨立葉端權重與共享時刻。見 [last-arcade](../scenes/last-arcade.md)；本機候選，非最終美術／實機／發布驗收。
+
+- 黑潮生物：`src/creatures/manta`、`whale-shark`、`chromis`、`fusilier` 與 `src/systems/schooling`、`virtual-flow`；商店街adapter負責路徑與建築代理。原創程序幾何、seeded motion、近照與10分鐘驗收入口，見[製作與限制](../kuroshio-arcade-biology.md)。

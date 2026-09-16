@@ -1,0 +1,14 @@
+(node:65217) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ last arcade GLB preserves the configured axes, architecture span and foliage wind inputs (9.747ms)
+✔ last arcade camera config remains an authored fixed vertical-FOV contract (1.202875ms)
+✔ last arcade factory restores renderer state and releases its prepared model (16.241042ms)
+✔ last arcade rejects missing root weights before retaining any prepared resources (0.477833ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 373.824709

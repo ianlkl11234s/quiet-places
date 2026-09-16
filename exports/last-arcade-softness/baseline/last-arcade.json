@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "seed": 91526,
+  "units": "metres",
+  "blenderAxes": "X across to road, Y down arcade, Z up; glTF=(X,Z,-Y)",
+  "bayCount": 10,
+  "camera": {
+    "position": [
+      1.12,
+      -1.0,
+      1.62
+    ],
+    "target": [
+      -1.8,
+      16,
+      1.25
+    ],
+    "verticalFov": 62
+  },
+  "sun": {
+    "directionToLight": [
+      0.74,
+      -0.25,
+      0.62
+    ],
+    "energy": 3.0,
+    "angleDegrees": 0.65
+  },
+  "render": {
+    "samples": 32,
+    "width": 768,
+    "height": 1024
+  }
+}
