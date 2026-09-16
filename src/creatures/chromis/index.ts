@@ -1,0 +1,37 @@
+import * as THREE from 'three';
+
+export interface ChromisVisuals { root: THREE.Group; update(elapsed:number):void; dispose():void; }
+
+/** A deliberately subdued, side-compressed Chromis silhouette. Local forward is -Z. */
+export function createChromisVisuals(count:number, phases:Float32Array, lengths:Float32Array):ChromisVisuals {
+  const root=new THREE.Group(); root.name='CHROMIS_VIRIDIS_INSTANCED';
+  const bodyGeometry=fishBodyGeometry(1,.16,.40,18,14), finGeometry=chromisFins(), eyeGeometry=pairedEyes(.010,.074,-.35);
+  addMotionAttributes(bodyGeometry,phases,lengths,.13); addMotionAttributes(finGeometry,phases,lengths,.08); addMotionAttributes(eyeGeometry,phases,lengths,0);
+  const body=new THREE.InstancedMesh(bodyGeometry,animatedStandard('#6bc4c1','#79cdc4'),count); body.name='CHROMIS_BODY';
+  const fins=new THREE.InstancedMesh(finGeometry,animatedStandard('#9ad9cf','#9ad9cf',true),count); fins.name='CHROMIS_TRANSPARENT_FINS';
+  const eyes=new THREE.InstancedMesh(eyeGeometry,new THREE.MeshStandardMaterial({color:'#172729',roughness:.52}),count); eyes.name='CHROMIS_EYES';
+  // Keep the school inexpensive in the directional-light shadow pass, but let
+  // the standard material sample the arcade's existing shadow map.
+  for(const mesh of [body,fins,eyes]){mesh.castShadow=false;mesh.receiveShadow=true;mesh.frustumCulled=false;root.add(mesh);}
+  const matrix=new THREE.Matrix4(); for(let i=0;i<count;i++){matrix.makeScale(lengths[i],lengths[i],lengths[i]);body.setMatrixAt(i,matrix);fins.setMatrixAt(i,matrix);eyes.setMatrixAt(i,matrix);} body.instanceMatrix.needsUpdate=true;fins.instanceMatrix.needsUpdate=true;eyes.instanceMatrix.needsUpdate=true;
+  return {root,update(elapsed){for(const material of [body.material,fins.material])setTime(material,elapsed);},dispose(){for(const mesh of [body,fins,eyes]){mesh.geometry.dispose();(mesh.material as THREE.Material).dispose();}root.clear();}};
+}
+
+export function setChromisMatrix(visuals:ChromisVisuals,index:number,matrix:THREE.Matrix4){for(const child of visuals.root.children)if(child instanceof THREE.InstancedMesh)child.setMatrixAt(index,matrix);}
+export function commitChromisMatrices(visuals:ChromisVisuals){for(const child of visuals.root.children)if(child instanceof THREE.InstancedMesh)child.instanceMatrix.needsUpdate=true;}
+/** Per-instance phase is integrated by the fixed-step controller; speed controls BCF strength. */
+export function setChromisMotion(visuals:ChromisVisuals,index:number,phase:number,speedBL:number){for(const child of visuals.root.children)if(child instanceof THREE.InstancedMesh){const a=child.geometry.getAttribute('aPhase') as THREE.InstancedBufferAttribute|undefined,amp=child.geometry.getAttribute('aTailAmplitude') as THREE.InstancedBufferAttribute|undefined;if(a){a.setX(index,phase);a.needsUpdate=true;}if(amp){amp.setX(index,Math.max(0,Math.min(.07,.012+Math.max(0,speedBL-.65)*.014)));amp.needsUpdate=true;}}}
+
+export function fishBodyGeometry(length:number,width:number,height:number,rings:number,segments:number){
+  const positions:number[]=[],colors:number[]=[],indices:number[]=[];
+  for(let i=0;i<=rings;i++){const s=i/rings,z=-length*.5+s*length*.88, profile=Math.pow(Math.sin(Math.PI*Math.min(1,s)),.62)*(s>.84?Math.max(0,(1-s)/.16):1);for(let j=0;j<segments;j++){const a=j*Math.PI*2/segments,x=Math.cos(a)*width*.5*profile,y=Math.sin(a)*height*.5*profile;positions.push(x,y,z);const belly=THREE.MathUtils.clamp((-.5-y/(height*.5||1))*.72,0,1),c=new THREE.Color('#6bc4c1').lerp(new THREE.Color('#b7ddd2'),belly);colors.push(c.r,c.g,c.b);}}
+  for(let i=0;i<rings;i++)for(let j=0;j<segments;j++){const a=i*segments+j,b=i*segments+(j+1)%segments,c=(i+1)*segments+(j+1)%segments,d=(i+1)*segments+j;indices.push(a,b,d,b,c,d);}
+  const head=positions.length/3;positions.push(0,0,-.5);colors.push(.42,.65,.65);const tail=positions.length/3;positions.push(0,0,.38);colors.push(.3,.48,.5);for(let j=0;j<segments;j++){indices.push(head,j,(j+1)%segments);const base=rings*segments;indices.push(tail,base+(j+1)%segments,base+j);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.setIndex(indices);g.computeVertexNormals();return g;
+}
+function chromisFins(){const g=new THREE.BufferGeometry();const p=[-.074,.01,-.18,-.19,-.035,-.02,-.17,-.025,.17,-.075,.005,.09, .074,.01,-.18,.19,-.035,-.02,.17,-.025,.17,.075,.005,.09, 0,.14,-.05,0,.29,.11,0,.12,.25,0,.10,.02, 0,-.13,.05,0,-.23,.16,0,-.10,.26,0,-.10,.08, 0,.025,.32,0,.14,.50,0,0,.43,0,-.14,.50,0,-.025,.32];g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));const c=new THREE.Color('#79cdc4'),colors=new Float32Array(p.length);for(let i=0;i<p.length/3;i++)colors.set([c.r,c.g,c.b],i*3);g.setAttribute('color',new THREE.BufferAttribute(colors,3));g.setAttribute('aFlutter',new THREE.BufferAttribute(new Float32Array([0,1,1,0,0,1,1,0,...Array(13).fill(0)]),1));g.setIndex([0,1,2,0,2,3,4,6,5,4,7,6,8,9,10,8,10,11,12,14,13,12,15,14,16,17,18,16,18,19,16,19,20]);g.computeVertexNormals();return g;}
+function pairedEyes(radius:number,x:number,z:number){const source=new THREE.SphereGeometry(radius,7,5),p=source.getAttribute('position') as THREE.BufferAttribute,positions:number[]=[],indices:number[]=[];for(const sign of [-1,1]){const offset=positions.length/3;for(let i=0;i<p.count;i++)positions.push(p.getX(i)+sign*x,p.getY(i),p.getZ(i)+z);for(const index of source.index!.array)indices.push(Number(index)+offset);}source.dispose();const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();return g;}
+function addMotionAttributes(g:THREE.BufferGeometry,phases:Float32Array,lengths:Float32Array,amplitude:number){g.setAttribute('aPhase',new THREE.InstancedBufferAttribute(phases,1));g.setAttribute('aLength',new THREE.InstancedBufferAttribute(lengths,1));g.setAttribute('aTailAmplitude',new THREE.InstancedBufferAttribute(lengths.map(l=>amplitude*l),1));if(!g.getAttribute('aFlutter'))g.setAttribute('aFlutter',new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count),1));}
+type SchoolShader={uniforms:Record<string,{value:number}>};
+export function animatedStandard(base:string,edge:string,transparent=false){const m=new THREE.MeshStandardMaterial({color:base,vertexColors:true,roughness:.52,metalness:0,transparent,opacity:transparent?.70:1,side:transparent?THREE.DoubleSide:THREE.FrontSide});m.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute float aPhase; attribute float aTailAmplitude; attribute float aFlutter;').replace('#include <beginnormal_vertex>','#include <beginnormal_vertex>\nfloat tailS=clamp(position.z+.5,0.,1.); float normalWavePhase=aPhase*6.2831853-tailS*5.1; objectNormal.x-=tailS*tailS*aTailAmplitude*5.1*cos(normalWavePhase);').replace('#include <begin_vertex>','#include <begin_vertex>\nfloat waveS=clamp(position.z+.5,0.,1.); float positionWavePhase=aPhase*6.2831853-waveS*5.1; transformed.x+=aTailAmplitude*waveS*waveS*sin(positionWavePhase); transformed.y+=aFlutter*.026*(1.-clamp(aTailAmplitude/.055,0.,1.))*sin(aPhase*6.2831853+position.z*3.+(position.x<0.?3.14159265:0.));');(m.userData as {shader?:SchoolShader}).shader=shader as unknown as SchoolShader;};m.customProgramCacheKey=()=>`chromis-integrated-phase-v2-${edge}`;return m;}
+function setTime(material:THREE.Material,elapsed:number){}

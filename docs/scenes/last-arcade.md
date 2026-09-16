@@ -1,6 +1,50 @@
 # 潮風商店街／last-arcade（暫名）
 
-## 目前摘要
+## 本輪確認（2026-09-17）
+
+使用者確認目前畫面 OK，授權提交：三隻連續拍翼鬼蝠魟、後方柱子周圍的 Fusilier、三處 Chromis、環境遮蔽與暮色反射同步、ミグ商店招牌與破布。鯨鯊僅保留共用模組，正式場景不啟用。最近魚群 600 s 避碰與 5 tests、build、check:project 通過；此為本機畫面確認與本地 commit，非發布。下方「未 commit」文字為各次調整當時狀態。
+
+## 2026-09-17：較大魚群後移
+
+Fusilier 群聚中心由 z=-5 m 移至後方柱子 z=-9.6 m，縱向繞游半徑由 3 m 收至 2.2 m；偶爾向遠處游出的偏移由 5 m 收至 3 m。初始魚群同步後移，避免先出現在鏡頭旁才游回目標。保留左右穿梭、自然高度變化、鬼蝠魟接近後躲入走廊及柱體避碰。近處三群 Chromis 不變。數值入口 `src/systems/schooling/index.ts`，網站 Y-up，單位 m。
+
+## 2026-09-17：暫時移除場景鯨鯊
+
+使用者希望降低畫面元素密度。正式商店街 adapter 只建立三隻鬼蝠魟與既有魚群；`ArcadeAnimalMotion(false)` 同時將鯨鯊排除在更新、避讓和碰撞計算之外，時間倒轉重建也沿用此設定。共用 `src/creatures/whale-shark/` 模組與模型檢視工具保留；Motion 預設完整模式仍可用於模型驗證。未 commit。
+
+## 2026-09-17：鬼蝠魟拍翼短暫停頓修正
+
+- 原因：`biology/Motion.ts` 每次拍翼跨週期時有 24% 機率插入 0.4–1.6 s 滑翔，頻率最多降低 97%，模型同時以 glide 壓低振幅，造成拍一下後近乎停住的節奏。這是程式的藝術行為設定，不是確認的瀏覽器掉幀。
+- 取消鬼蝠魟短週期隨機滑翔，保留原頻率變化、相位連續積分、個體差異、路徑避讓與防穿模；鯨鯊滑翔不變。未宣稱生物學驗證。
+- 新增 90 s / 60 Hz 取樣測試，檢查前三隻鬼蝠魟相位持續前進、沒有 GLIDE 事件、暫停可重現。連續拍翼測試與 900 s 動態回歸共 4 tests 通過；build、check:project 通過，預覽無 console error。未 commit。
+
+## 2026-09-17：生物環境光、三處聚落與破布
+
+- `biology/CreatureAmbient.ts` 為場景 adapter：以 24 個上半球方向、35 m 射線範圍對既有建築 proxy 計算天空可見度，另以附近表面距離估計 contact 遮蔽。每隻小魚取自身位置，大型生物取中心；6 Hz 取樣、0.45 s 平滑，保留直射 shadow map。這是動態環境可見度近似，不是完整 GI 或逐頂點光線追蹤。
+- 生物環境反射強度改為與建築一致的 .38，間接 diffuse/specular 使用位置遮蔽；反射環境貼圖也跟隨既有暮色分段更新，清除舊 PMREM 快取，避免天空變橘但生物仍反射正午天空。
+- `src/systems/schooling/index.ts` 的三處 Chromis shelter 中心（網站 Y-up，m）：招牌下 `(0.95,2.16,-4.05)`、近處門腳 `(0.68,0.42,-2.5)`、遠處柱腳 `(2.35,0.58,-17.6)`；保留個別 home 偏移、群游與鬼蝠魟接近後避入走廊的行為。
+- `TornCloth.ts`：自行程序建模的兩片細分舊布，z=-6.4…-7.4 m，上緣固定 y=2.5 m，灰米色高粗糙材質，幾何破口與不規則下擺。CPU 更新頂點與 normals，投影使用同一變形，布料也套用棚下環境遮蔽。風是固定上緣的美術波形近似，不是布料求解器；最大外擺約 2.4 cm，與牆面保持淨距。
+- 本機驗收：環境光、魚群、互動與陰影共 11 tests 通過；布料與環境光 4 tests 通過；build 與 check:project 通過。瀏覽器 GPU 17 項通過，dispose 回到 10 geometry / 4 texture 的既有快取基準；正午、暮色畫面另行檢視。未 commit、發布或實機驗收。
+
+## 復原中的最新狀態（2026-09-16 晚間）
+
+舊 `/private/tmp/quiet-places-last-arcade` 消失後，依本任務的原始程式紀錄與使用者規格復原。固定worktree為專案 `.worktrees/last-arcade-recovery`，分支 `codex/last-arcade-recovery`，基準 `50cfcf8`。恢復三隻鬼蝠魟、一隻鯨鯊、100隻Chromis、50隻Fusilier；沿用最後一輪鬼蝠魟形態及魚群降速版本，不改建築、相機或暮色。
+
+下方原日期的驗收數字是历史紀錄；本輪重新驗收與備份位置以 `exports/last-arcade-recovery/README.md` 為準。
+
+## 2026-09-17：店招文字
+
+- 使用者指定把既有 `SHIO STORE` 改為「ミグ商店」。網站 runtime 在 `src/places/last-arcade/index.ts` 隱藏 GLB 的獨立 `arcade-sign-lettering` mesh（原材質 `arcade-sign-ink`），並於同一塊招牌中央加入透明 CanvasTexture 文字；不重建 `last-arcade.glb`。
+- Canvas 優先使用 macOS `Hiragino Kaku Gothic ProN`，其次 `Yu Gothic`／sans-serif；文字層為 0.78 × 0.30 m，位在原 0.94 × 0.66 m 招牌範圍內。因此原本板材的鏽蝕邊緣、固定件與受光仍由 GLB 保留。Canvas 文字只是網站端字樣覆蓋，並非重新烘焙或材質掃描。
+- 程式的 world 座標是網站 Three Y-up；此文字平面位於 `(0.75, 2.63, -4.553)` m，略在原字 mesh 的朝鏡頭一側。dispose 時會移除並釋放 CanvasTexture／平面／材質，且還原原字 mesh 可見性。
+
+
+## 最新接入：2026-09-16 黑潮生物候選
+
+暮色已提交 `50cfcf8`。目前生物入口與驗收以 [黑潮製作頁](../kuroshio-arcade-biology.md)／[參數證據](../kuroshio-arcade-parameter-evidence.md) 為準；下方保留先前建築製作歷史。已接入3隻鬼蝠魟、1隻鯨鯊與兩群小魚，沿用使用者鏡頭與乾燥空氣。原建築GLB不重建。
+
+
+## 建築製作摘要（歷史，生物復原狀態見上）
 
 - 日期：2026-09-15。狀態：使用者認為場景尚可、但光線與材質生硬；柔化後另回饋葉色螢光、生長排列像複製；葉色修正後再依道路／右側房屋回饋補上街道尺度與海岸銜接，遠海已接入共用波浪；本機候選待使用者评估；名稱為暫名。
 - 需求：依使用者提供的海邊廢棄商店街圖片，先規劃略帶末日感、空間合理、以建模支撐細節的 3D 場景。
@@ -245,3 +289,62 @@ npm run dev -- --port 5186
 - `Ambient.ts` 背景近地平線轉#efbc83、天頂保留#8295b5冷色，以20階暖色權重更新。背景與固定環境反射分開，避免每幀重算PMREM；環境反射保留日間基底並沿用暮色亮度，並非完整日落天空光譜／GI。棚下冷色填光保留。
 - Runtime改動，無需重烘焙Blender／GLB。瀏覽器17:30可見暖色鐵門受光與冷色地面陰影；待使用者美術確認。
 - 驗收：4項場景測試、build、check:project通過；正式播放器17:30已目視確認。未commit／發布。
+
+## 2026-09-16：黑潮生物整合
+
+- 本輪隔離cwd `/Users/migu/Desktop/資料庫/gen_ai_try/ichef_工作用/GIS/stillwater/.worktrees/last-arcade-recovery`，branch `codex/last-arcade`。先提交暮色，再依使用者v1任務書做形態、運動、路徑、群游與整合。
+- 大型生物以真實mesh變形投射動態陰影；日光方向保持原基準，但光源沿同方向移至42m、shadow far100m，使9–17m高的生物位於shadow camera前方。陰影仍為PCF近似。
+- 獨立檢查入口 `/tools/kuroshio-biology/`，相機與光照不因此更改。檢查模式可看背面／腹面／灰模、動作與參數，錄影是實際WebGL畫面。
+- 所有數值單位、來源分級、需求衝突、驗收證據與未完成項目集中至黑潮製作頁，不把程序近似寫成生物學實測。
+
+
+## 2026-09-16：鬼蝠魟形態重建
+
+- 使用者提供[幾何規格](../biology/references/giant-manta-geometry-spec-v1.md)及解剖參考圖，重點是盤體輪廓、中央厚度、頭部位置與肉質頭鰭。尺寸數值以文字規格為準；圖片嘴寬與厚度標示未採用。
+- 本輪模型權威仍是 `src/creatures/manta/MantaModel.ts`，沿用原三尾翼展、場景路線與相機；不是新Blender匯出資產。細節與來源界線見[模型頁](../biology/kuroshio-manta-model.md)、[參數證據](../kuroshio-arcade-parameter-evidence.md)。
+- 獨立檢查工具增加正面、頭部近景、中性姿態與正交投影，讓輪廓驗收不受透視或拍翼遮掩。原始source快照保留於 `exports/last-arcade-manta-geometry/baseline/`。
+
+- 最新本機驗收：16項相關tests、build、check:project及WebGL 17類檢查通過；600秒新版頂點抽樣0建築代理接觸，暫停像素差0、dispose回到暖機基準。三視图與近照保留於 `exports/last-arcade-manta-geometry/`。未提交／發布，使用者美術確認與實機另計。
+
+
+### 復原驗收完成
+
+2026-09-16：159 tests、build、check:project 與 17 項 browser GPU 檢查通過。大型生物及魚群各 600 秒抽樣無建築穿入。固定 `.worktrees/last-arcade-recovery` 提供 5186 預覽；詳見 `exports/last-arcade-recovery/README.md`。未 commit／發布。
+
+
+## 2026-09-16 魚群靠近走廊（待使用者確認）
+
+使用者反映原魚群過遠。沿用模型尺寸、數量、低速與平順姿態；只調整 `src/systems/schooling/index.ts` 的分布及路徑吸引力。
+
+- Chromis 三個停留點移至 (0.95,1.55,-2.2)、(1.45,1.75,-4.6)、(2.1,1.55,-7.8) m，出現在近處店面與柱間。
+- Fusilier 目標環線中心 (2.75,1.7,-5)m，水平半徑 X=1.3、Z=3m，角速度 0.045 rad/s；在走廊與路側之間往返。這是群游引導路線，個體會偏移，非剛性軌道。
+- 初始魚群位於走廊內，縮小初始散布；降低切線引導、增加回到環線的吸引，避免長期漂至遠處道路。保留逐步避障、欄杆／柱子／店面 proxy。
+- 本輪 600 秒 seed91626：Fusilier 1068 次穿越柱列 X=2.82 平面（不是穿入柱體）；約82%抽樣時間至少一隻在相機5m內；兩群建築穿入計數0。這是抽樣 proxy 驗證，非連續 mesh 碰撞證明。
+- 五項 schooling tests 通過（含另seed600秒、插值、暫停、轉速／俯仰限制）；瀏覽器暮色實際看到近處店面小魚及柱間大魚，未捕獲console error。證據 `exports/last-arcade-recovery/corridor-audit.json`、`corridor-dusk.png`；改前程式 `schooling-before-corridor.ts`。
+- 同一固定 recovery worktree 與 5186 網址；未 commit／發布。
+
+
+## 2026-09-17 生物間距、可見性與群聚位置（本機候選）
+
+- 需求：鬼蝠魟不能互穿、鯨鯊能被看見；小魚分成招牌旁與遠處門腳兩群；大魚群保留近游並偶爾遠行。招牌使用「ミグ商店」，細節見本頁招牌紀錄。
+- `Motion.ts`：Manta 起始路徑比例改為 .12/.43/.76，先錯開通行時序；接近時提早降速，並以半徑4.5/4.2/4.0m（Manta）、5.2m（Whale）的球體檢查每步相對掃掠線段。安全範圍包含24組相位／滑行／左右翼差異的模型全部LOD頂點。球體仍為保守近似，不是生物形狀的精確碰撞網格。
+- 900秒固定20Hz驗收涵蓋低空通過及回返；安全球外緣最小餘裕約0.35m；僅1個個體步進速度低於0.01m/s，沒有持續卡住。15分鐘路徑／速度測試通過，不把前後自然遮擋當作身體相交。
+- Whale 改在海側寬環線：中心(5.8,3,-65)m，半徑25m，近端約Z=-40m；初始比例.98讓開場即可通過遠端開口。高度波幅.25m、緩慢高度目標±.15m；模型維持8.5m。此處是可見性與建築避障的美術路線，不是野外行為實測。
+- `schooling/index.ts`：100 Chromis 分成兩組，各有個別home偏移与低頻、不同相位的小幅游移。中心約(1.43,2.22,-4.12)m（招牌右下）及(.78,.55,-10.8)m（遠處鐵門腳）；收縮事件向各自home收束，避免兩組突然奔向同一中心。
+- Fusilier 沿用近處巡游，增加約286秒的平滑遠行包絡，最大額外X+1.1m、Z-5m；速度與轉向上限保留。這是目標路線，個體位置會因群游與避障偏移。
+- Browser 實際確認「ミグ商店」、招牌小魚、遠處門腳小魚與鯨鯊出現在雨棚下方的街尾開口。證據 `exports/last-arcade-recovery/placement-whale-visible.png`。
+- 驗收與限制：schooling 5項（含600秒）及motion 3項（含900秒與形變包絡）通過；900秒建築頂點抽樣、build、check:project與browser GPU另存同目錄。本機候選，未commit／發布／實機驗收。
+
+低空回程在街尾Z=-25m後爬升，X由6.15收至約5.95m以避開電線橫臂；A/C巡航個體則在28m內開始平滑升高讓出B的回程走廊（最多6m、8秒平滑）。安全優先，未保留原本可能導致相遇卡住的回程高度。
+
+
+## 2026-09-17 街道生物互動與小魚陰影（本機候選）
+
+- 需求：鬼蝠魟低空進入街道時，魚群往走廊躲避；陰影下的魚要和周圍受光一致。
+- 互動入口：`src/places/last-arcade/biology/index.ts` 提供同一 `ArcadeAnimalMotion` 公式的獨立固定步進取樣器，給 `schooling/index.ts` 每12Hz取樣。避免以當前render frame的位置驅動所有過去步進，也保持時間重置可重現。
+- 警戒為美術行為近似：高度6m內的Manta，沿未來8秒速度方向預測靠近；相對體半徑之外1–6m形成平滑警戒。每隻魚1.2秒逐漸反應、12秒釋放；小魚靠各自原停留點退縮，Fusilier往柱間缺口後方的走廊內退避。每隻避難點不同，保留避柱、轉向及速度平滑；退避時最高基準速度倍率1.5，無瞬移。沒有把藝術反應描述為物種實測。
+- 兩魚模型原本 `receiveShadow=false`，造成棚下仍吃到太陽直射；現已開啟body/fins/eyes/stripes的陰影接收。沿用既有Standard PBR材質、原色及場景日光／天空／反射光，未用emissive補亮。尾部變形在Three project_vertex/shadowmap_vertex前，因此接收陰影座標隨形變一致。
+- 小魚仍不投射自己的陰影；天空與地面反射仍為原場景環境光近似，未新增完整GI／物理流體。
+- 驗收：synthetic通過事件有41/50隻在40秒進柱內（無威脅對照7/50）；警戒解除後回到巡游。兩項互動測試與兩項材質／shader陰影測試通過；另5項既有schooling測試通過。固定步進重播比較允許1e-9內插值餘數，魚的模擬狀態完全一致。
+- 實際adapter900秒抽樣建築穿入0；828秒browser畫面47/50隻在柱內，836秒略向道路轉頭可同時看到低空Manta與走廊魚群。`exports/last-arcade-recovery/encounter-review.html?time=836&road=1` 可直接播放該時刻後30秒；它使用正式場景與正式controller，不是合成動畫。
+- Browser陰影、變形與pause檢查／build／check:project通過；未做實機驗收、未commit／發布。證據在 `exports/last-arcade-recovery/encounter-*`。

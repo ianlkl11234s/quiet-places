@@ -4,7 +4,10 @@ import type {PlaceInstance} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import {createArcadeEnvironment,updateArcadeEnvironment,installArcadeAmbient} from './Ambient.ts';
+import {installTornCloth} from './TornCloth.ts';
+import {installCreatureAmbient} from './biology/CreatureAmbient.ts';
 import {installArcadeSea} from './Sea.ts';
+import {createArcadeBiology} from './biology/index.ts';
 import arcadeConfig from '../../../assets/config/last-arcade.json' with {type:'json'};
 
 type FoliageMesh = THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
@@ -98,6 +101,42 @@ function installFoliageWind(root: THREE.Object3D) {
   };
 }
 
+/** Replaces only the exported lettering; the original rust-edged signboard stays in the GLB. */
+function installArcadeShopSign(root: THREE.Object3D) {
+  const lettering = root.getObjectByName('arcade-sign-lettering');
+  // Node-only lifecycle tests deliberately have no canvas implementation. The
+  // shipping browser is the rendering authority for this small text overlay.
+  if (!lettering || typeof document === 'undefined') return {dispose() {}};
+  const canvas = document.createElement('canvas');
+  canvas.width = 1280; canvas.height = 512;
+  const context = canvas.getContext('2d');
+  if (!context) return {dispose() {}};
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.fillStyle = '#20251f';
+  context.font = '500 272px "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif';
+  context.textAlign = 'center'; context.textBaseline = 'middle';
+  context.fillText('ミグ商店', canvas.width / 2, canvas.height / 2 + 8);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  const material = new THREE.MeshStandardMaterial({map: texture, transparent: true, alphaTest: .02, roughness: .9, metalness: 0, side: THREE.FrontSide});
+  // The exported lettering occupies the middle of a 0.94 × 0.66 m board. This
+  // transparent plane keeps its weathered perimeter and mounting hardware visible.
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(.78, .30), material);
+  sign.name = 'arcade-sign-migu-store-lettering';
+  sign.position.set(.75, 2.63, -4.553);
+  lettering.visible = false;
+  root.add(sign);
+  return {
+    dispose() {
+      lettering.visible = true;
+      sign.removeFromParent(); sign.geometry.dispose(); material.dispose(); texture.dispose();
+    },
+  };
+}
+
 export async function prepareLastArcade() {
   let gltf: Awaited<ReturnType<GLTFLoader['loadAsync']>>;
   try { gltf = await new GLTFLoader().loadAsync('/models/last-arcade.glb'); }
@@ -128,16 +167,20 @@ export async function prepareLastArcade() {
       }
     });
     const foliage = installFoliageWind(root);
+    const shopSign = installArcadeShopSign(root);
+    const tornCloth = installTornCloth(root);
+    const clothAmbient = installCreatureAmbient(tornCloth.group);
     const sky = new THREE.HemisphereLight(new THREE.Color('#b9d3e2'), new THREE.Color('#a58b65'), .25);
     const sun = new THREE.DirectionalLight(new THREE.Color('#ffe0b2'), arcadeConfig.sun.energy);
     const sunTarget = new THREE.Vector3(0, 0, -9);
     const blenderSun = new THREE.Vector3(...arcadeConfig.sun.directionToLight);
     const afternoonSunDirection = new THREE.Vector3(blenderSun.x, blenderSun.z, -blenderSun.y).normalize();
-    sun.position.copy(sunTarget).addScaledVector(afternoonSunDirection, 15); sun.target.position.copy(sunTarget); sun.castShadow = true;
-    sun.shadow.mapSize.set(4096, 4096); sun.shadow.camera.near = .1; sun.shadow.camera.far = 46;
+    sun.position.copy(sunTarget).addScaledVector(afternoonSunDirection, 42); sun.target.position.copy(sunTarget); sun.castShadow = true;
+    sun.shadow.mapSize.set(4096, 4096); sun.shadow.camera.near = .1; sun.shadow.camera.far = 100;
     Object.assign(sun.shadow.camera, {left: -12, right: 12, top: 18, bottom: -8});
     sun.shadow.normalBias = .0015; sun.shadow.bias = -.00004; sun.shadow.radius=2.5; sun.shadow.autoUpdate = false; sun.shadow.needsUpdate = true;
     const sea = installArcadeSea(root);
+    const biology=createArcadeBiology();scene.add(biology.root);
     // Broad, upward-facing patches represent sunlight reflected by the open road.
     // RectAreaLight has no occlusion; keep the emitting planes outside the arcade.
     const groundBounces=[-5,-18].map(z=>{const light=new THREE.RectAreaLight('#e8c99a',.8,3.4,12);light.name='arcade-road-bounce';light.position.set(4.8,-.10,z);light.rotation.x=-Math.PI/2;return light;});
@@ -149,11 +192,13 @@ export async function prepareLastArcade() {
       target: [arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]],
       fov: arcadeConfig.camera.verticalFov,
       cameraMode: 'fixed-position', yawRange: Math.PI / 30, exposure: 1.08, toneMapping: THREE.AgXToneMapping,
-      hasSimulation: false, waterMode: '遠海由模型提供；藤葉隨播放器時間輕擺',
+      hasSimulation: true, waterMode: '黑潮生物在乾燥街道間巡游；遠海與藤葉隨時間流動',
       update(_dt, elapsed, state) {
         renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
         foliage.update(elapsed, state.activity);
+        tornCloth.update(elapsed, state.activity); clothAmbient.update(elapsed);
         sea.update(elapsed);
+        biology.update(_dt,elapsed);
         // This is an art-directed direct/hemisphere-light approximation. The GLB
         // contains no baked GI, so changing time deliberately does not claim a
         // recalculated indirect-light solution.
@@ -161,6 +206,11 @@ export async function prepareLastArcade() {
         const hour = state.hour ?? 14;
         const dusk = THREE.MathUtils.smoothstep(hour,14.5,17.5)*(1-THREE.MathUtils.smoothstep(hour,17.5,19));
         updateArcadeEnvironment(background,dusk);
+        const reflectionStep=environment.userData.duskStep;
+        updateArcadeEnvironment(environment,dusk);
+        // Three caches PMREM for ordinary DataTextures: invalidate that cache
+        // only when the quantized sky changes, so dusk reaches reflections too.
+        if(reflectionStep!==environment.userData.duskStep){environment.dispose();environment.needsUpdate=true;}
         // sampleTime(14:00) has angle .25, which is the authored config baseline.
         const sunDirection = afternoonSunDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (state.angle-.25)*.55).normalize();
         sunDirection.y *= 1-.38*dusk; sunDirection.normalize();
@@ -172,7 +222,7 @@ export async function prepareLastArcade() {
           light.intensity=.02+.38*Math.min(1,daylight);
           light.color.set('#e8c99a').lerp(new THREE.Color('#efb56f'),dusk);
         }
-        sun.position.copy(sunTarget).addScaledVector(sunDirection, 15);
+        sun.position.copy(sunTarget).addScaledVector(sunDirection, 42);
         sun.intensity = targetSunIntensity;
         sun.color.setRGB(1, 1-.20*state.warmth, 1-.40*state.warmth).lerp(new THREE.Color().setRGB(1,.57,.25),dusk);
         sky.intensity = targetSkyIntensity;
@@ -182,10 +232,10 @@ export async function prepareLastArcade() {
         if (resolution !== quality) { quality = resolution; sun.shadow.map?.dispose(); sun.shadow.map = null; sun.shadow.mapSize.set(resolution, resolution); }
         sun.shadow.needsUpdate = true;
       },
-      disturb() {}, resetWater() {},
+      disturb() {biology.disturb();}, resetWater() {},
       dispose() {
         if (disposed) return; disposed = true;
-        foliage.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
+        clothAmbient.dispose(); tornCloth.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
         groundBounces.forEach(light=>light.removeFromParent());
         if(scene.environment===environment)scene.environment=priorAmbient.environment;
         if(scene.background===background)scene.background=priorAmbient.background;
