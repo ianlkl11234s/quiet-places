@@ -3,7 +3,25 @@ import * as THREE from 'three';
 /** Sky/ground radiance only: no sun disc, no direct lighting baked into the environment. */
 export function createArcadeEnvironment(){
  const width=256,height=128,pixels=new Float32Array(width*height*4);
+ const texture=new THREE.DataTexture(pixels,width,height,THREE.RGBAFormat,THREE.FloatType);
+ texture.mapping=THREE.EquirectangularReflectionMapping;texture.colorSpace=THREE.LinearSRGBColorSpace;
+ texture.minFilter=texture.magFilter=THREE.LinearFilter;texture.name='arcade-open-sky-ground-radiance';
+ updateArcadeEnvironment(texture,0);
+ return texture;
+}
+
+/** Quantized dusk radiance avoids rebuilding the environment on every animation frame. */
+export function updateArcadeEnvironment(texture:THREE.DataTexture,dusk:number){
+ const step=Math.round(THREE.MathUtils.clamp(dusk,0,1)*20);
+ if(texture.userData.duskStep===step)return;
+ texture.userData.duskStep=step;
+ const warmth=step/20;
+ const {width,height,data}=texture.image;
+ const pixels=data as Float32Array;
  const zenith=new THREE.Color('#83afd1'),horizon=new THREE.Color('#d8e0df'),ground=new THREE.Color('#99866b');
+ zenith.lerp(new THREE.Color('#8295b5'),warmth);
+ horizon.lerp(new THREE.Color('#efbc83'),warmth);
+ ground.lerp(new THREE.Color('#ad8259'),warmth);
  const color=new THREE.Color();
  for(let y=0;y<height;y++){
   const altitude=-Math.cos(Math.PI*y/(height-1));
@@ -13,10 +31,7 @@ export function createArcadeEnvironment(){
    const i=(y*width+x)*4;pixels[i]=color.r;pixels[i+1]=color.g;pixels[i+2]=color.b;pixels[i+3]=1;
   }
  }
- const texture=new THREE.DataTexture(pixels,width,height,THREE.RGBAFormat,THREE.FloatType);
- texture.mapping=THREE.EquirectangularReflectionMapping;texture.colorSpace=THREE.LinearSRGBColorSpace;
- texture.minFilter=texture.magFilter=THREE.LinearFilter;texture.needsUpdate=true;texture.name='arcade-open-sky-ground-radiance';
- return texture;
+ texture.needsUpdate=true;
 }
 
 /** Static architectural visibility modulates ambient light only; direct shadows remain live. */

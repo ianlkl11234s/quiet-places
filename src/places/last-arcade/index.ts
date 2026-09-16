@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import type {PlaceInstance} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
-import {createArcadeEnvironment,installArcadeAmbient} from './Ambient.ts';
+import {createArcadeEnvironment,updateArcadeEnvironment,installArcadeAmbient} from './Ambient.ts';
 import {installArcadeSea} from './Sea.ts';
 import arcadeConfig from '../../../assets/config/last-arcade.json' with {type:'json'};
 
@@ -118,7 +118,7 @@ export async function prepareLastArcade() {
     const oldShadow = {enabled: renderer.shadowMap.enabled, type: renderer.shadowMap.type};
     if (!('LTC_FLOAT_1' in THREE.UniformsLib)) RectAreaLightUniformsLib.init();
     const priorAmbient={environment:scene.environment,background:scene.background,environmentIntensity:scene.environmentIntensity,backgroundIntensity:scene.backgroundIntensity};
-    const background=createArcadeEnvironment();scene.environment=background;
+    const background=createArcadeEnvironment(),environment=createArcadeEnvironment();scene.environment=environment;
     installArcadeAmbient(root);
     root.traverse(object => { if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; } });
     root.traverse(object => {
@@ -158,16 +158,23 @@ export async function prepareLastArcade() {
         // contains no baked GI, so changing time deliberately does not claim a
         // recalculated indirect-light solution.
         const daylight = THREE.MathUtils.clamp(state.intensity/.9, 0, 1.1);
+        const hour = state.hour ?? 14;
+        const dusk = THREE.MathUtils.smoothstep(hour,14.5,17.5)*(1-THREE.MathUtils.smoothstep(hour,17.5,19));
+        updateArcadeEnvironment(background,dusk);
         // sampleTime(14:00) has angle .25, which is the authored config baseline.
         const sunDirection = afternoonSunDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (state.angle-.25)*.55).normalize();
+        sunDirection.y *= 1-.38*dusk; sunDirection.normalize();
         const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight);
         const targetSkyIntensity = .025 + .22*Math.min(1, daylight);
         scene.environmentIntensity=.025+.50*Math.min(1,daylight);
         scene.backgroundIntensity=.06+.94*Math.min(1,daylight);
-        for(const light of groundBounces)light.intensity=.02+.38*Math.min(1,daylight);
+        for(const light of groundBounces){
+          light.intensity=.02+.38*Math.min(1,daylight);
+          light.color.set('#e8c99a').lerp(new THREE.Color('#efb56f'),dusk);
+        }
         sun.position.copy(sunTarget).addScaledVector(sunDirection, 15);
         sun.intensity = targetSunIntensity;
-        sun.color.setRGB(1, 1-.20*state.warmth, 1-.40*state.warmth);
+        sun.color.setRGB(1, 1-.20*state.warmth, 1-.40*state.warmth).lerp(new THREE.Color().setRGB(1,.57,.25),dusk);
         sky.intensity = targetSkyIntensity;
         sky.color.set('#b9d3e2').lerp(new THREE.Color('#e8bc88'), state.warmth*.28);
 
@@ -180,10 +187,10 @@ export async function prepareLastArcade() {
         if (disposed) return; disposed = true;
         foliage.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
         groundBounces.forEach(light=>light.removeFromParent());
-        if(scene.environment===background)scene.environment=priorAmbient.environment;
+        if(scene.environment===environment)scene.environment=priorAmbient.environment;
         if(scene.background===background)scene.background=priorAmbient.background;
         scene.environmentIntensity=priorAmbient.environmentIntensity;scene.backgroundIntensity=priorAmbient.backgroundIntensity;
-        background.dispose();
+        background.dispose();environment.dispose();
         renderer.shadowMap.enabled = oldShadow.enabled; renderer.shadowMap.type = oldShadow.type;
       },
     };

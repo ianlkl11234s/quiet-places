@@ -237,3 +237,11 @@ npm run dev -- --port 5186
 - 正式權威last-arcade.json使用Blender Z-up；新position `(1.97,-0.31,1.62)`、target `(-1.8,16,3.52)`。Runtime與調整工具讀同一入口。回退時將history的 `original-2026-09-15.blenderCamera` 複製到config.camera，並同步母檔相機。
 - 只採用鏡頭與新訪客預設時刻；已保存的個人時刻仍沿用原偏好。模型幾何與材質不變；GLB不匯出相機，無須重建模型。
 - 驗收：Blender母檔相機與camera_target已同步；相機／偏好focused tests通過，build與check:project通過。Browser確認調整工具新座標、FOV62及12:00，已返回正式場景。未commit或發布。
+
+## 2026-09-16：暮色橘黃夕照
+
+- 基準commit `035553f`；沿用使用者相機、FOV62及曝光1.08。僅商店街14:30–19:00平滑進出暖色，17:30最強；正午等其餘時段維持基準。
+- `src/places/last-arcade/index.ts` 將夕陽linear RGB漸變到(1,.57,.25)，日照方向垂直分量乘.62後正規化，讓夕照拉長；路面近似反光轉柔和金黃。這是美術時刻近似，不是實際經緯度太陽計算。
+- `Ambient.ts` 背景近地平線轉#efbc83、天頂保留#8295b5冷色，以20階暖色權重更新。背景與固定環境反射分開，避免每幀重算PMREM；環境反射保留日間基底並沿用暮色亮度，並非完整日落天空光譜／GI。棚下冷色填光保留。
+- Runtime改動，無需重烘焙Blender／GLB。瀏覽器17:30可見暖色鐵門受光與冷色地面陰影；待使用者美術確認。
+- 驗收：4項場景測試、build、check:project通過；正式播放器17:30已目視確認。未commit／發布。
