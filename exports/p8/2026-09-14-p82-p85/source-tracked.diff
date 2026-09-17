@@ -1,0 +1,958 @@
+diff --git a/.gitignore b/.gitignore
+index ff0156f..0ebf39b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -22,3 +22,5 @@ node_modules
+ # Native pilot generated assets
+ .mobile-public/
+ dist-mobile/
++
++.mobile-downloads/
+diff --git a/assets/config/mobile-assets.json b/assets/config/mobile-assets.json
+index e5ab898..f49d2b4 100644
+--- a/assets/config/mobile-assets.json
++++ b/assets/config/mobile-assets.json
+@@ -1,5 +1,6 @@
+ {
+   "schemaVersion": 1,
++  "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md",
+   "pilot": {
+     "sceneId": "seaward",
+     "status": "bundled-for-iphone-pilot-only",
+diff --git a/docs/production/IPHONE_ASSETS.md b/docs/production/IPHONE_ASSETS.md
+index ff6841b..a2e3b1c 100644
+--- a/docs/production/IPHONE_ASSETS.md
++++ b/docs/production/IPHONE_ASSETS.md
+@@ -6,8 +6,10 @@
+ node scripts/mobile-assets.mjs
+ ```
+ 
+-輸出只包含 Seaward 的 `models/stingray.glb` 與共用八首 `.m4a`。每次會重新產生 `.mobile-public/mobile-assets.manifest.json`，其中每個檔案都有 bytes 與 SHA-256；準備過程在本機複製、讀檔與雜湊，不發出網路請求。GLB 若宣告 buffer 或 image 的外部 URI，腳本會失敗，避免離線 preview 遺漏檔案。
++輸出只包含 Seaward 的 `models/stingray.glb` 與共用八首 `.m4a`。每次會重新產生 `.mobile-public/mobile-assets.manifest.json` 與 `.mobile-public/room-manifests.json`；前者的每個 bundled 檔案都有 bytes 與 SHA-256，後者是八景的版本化下載契約。每個 room manifest 都是 `schemaVersion: 1`、`appSchemaVersion: 1`，並有 `roomId`、房間檔和共用檔完整 descriptors 導出的 `assetVersion`、完整下載 `totalBytes`、房間檔案的 path／bytes／SHA-256、共用音訊引用與既有程式 provenance。音訊內容改變也會改變引用它的每個房間版本。`licenseStatus` 目前是 `unverified; see docs/production/IPHONE_ASSETS.md`，不能當成已核實的授權。`totalBytes` 包含引用的共用音訊，所以可表示一個獨立可離線房間所需的總量。
+ 
+-清單同時保留目前八景的 **active public runtime** 依賴與程式 provenance，供 app 擴展時檢查。Snowhall 目前由 `AntarcticLife` 的程序模型建立銀魚，因此 active public 檔案清單為空；場景筆記中留存的魟魚／GLB 歷史不是 runtime dependency。它是 inventory，**不是**其餘七景已進入 app 的聲明：本輪只有 Seaward 可被 native host 選作 pilot。
++同一次執行也會在 repo 內產生 `.mobile-downloads/`：它含八景所有 allowlisted public runtime 檔案、`mobile-assets.manifest.json` 和同一份 `room-manifests.json`，供本機 Simulator 的下載／hash／離線流程驗證。這不是 app bundle，也不會發布或連網。準備過程只在本機複製、讀檔與雜湊。任何 allowlisted GLB 若宣告 buffer 或 image 的外部 URI，腳本都會失敗，避免下載 payload 漏掉外部依賴。
++
++清單同時保留目前八景的 **active public runtime** 依賴與程式 provenance，供 app 擴展時檢查。Snowhall 目前由 `AntarcticLife` 的程序模型建立銀魚，因此 active public 檔案清單為空；場景筆記中留存的魟魚／GLB 歷史不是 runtime dependency。它是 inventory 與本機下載 payload，**不是**其餘七景已進入 app bundle 或完成實機驗收的聲明：本輪只有 Seaward 可被 native host 選作 pilot。
+ 
+ `public/favicon.svg`、HTML entry 與 Vite 的 `publicDir` 由 app host 負責；本資產準備器不複製它們，也不複製整個 `public/`（大小會隨場景變動）。
+diff --git a/docs/production/IPHONE_PILOT.md b/docs/production/IPHONE_PILOT.md
+index eb1c8db..1dd99b5 100644
+--- a/docs/production/IPHONE_PILOT.md
++++ b/docs/production/IPHONE_PILOT.md
+@@ -1,16 +1,16 @@
+ # iPhone 單景 pilot：操作與驗收
+ 
+-2026-09-14 更新。P8.0 本機盤點完成；P8.1 已完成未簽署 iOS 建置及 Simulator 操作驗收，**iPhone 16 實機 gate 尚未通過**。此輪未提交、未合併、未發布。
++2026-09-14 更新。P8.0–P8.5 的本機實作與 Simulator 開發驗收已完成目前範圍；**iPhone 16 的 P8.1 與 P8.5 實機 gate 尚未通過**。此輪從 `79381c7` 起、HEAD 未變，未提交、未合併、未推送、未發布。
+ 
+ ## 工作區與範圍
+ 
+ - cwd：`/private/tmp/quiet-places-iphone-pilot-20260913`；branch：`codex/iphone-pilot`；基準：main `da4283f`。
+ - 原工作區不寫入；原本 `.local-backups/` 與交接草稿維持未追蹤。
+ - 八景都在 metadata 與 [active 資產清單](IPHONE_ASSETS.md)。新加入 Snow Window／Snowhall 保留目前生物、相機及光影基準；本轮不修改場景原始碼或模型。
+-- App 先選房再建立 WebGL；首輪僅 Seaward 內建可選。其餘七景顯示「尚未開放」，無假下載按鈕。
++- App 先選房再建立 WebGL；Seaward 與八首音樂內建，另外七景必須下載並完整校驗後才可進入。Simulator 已下載七景，停止本機 `127.0.0.1:8769` 來源後強制結束、冷重啟仍可選八景；production source 尚未設定。
+ - 沿用網站渲染與觀賞控制；mobile build 不產生 Studio 網頁，隱藏製作／輸出及全螢幕入口。44px 主要按鈕、直橫式與 safe-area CSS 是本機實作，瀏海與觸控仍須實機確認。
+ - 離開／鎖屏：native App 事件與 document visibility 合併處理，暫停 scene clock、取消 RAF、停止兩種音訊；返回保持暫停，需手動繼續／播放。補上環境聲啟動途中被停止的取消機制。
+-- Seaward 模型＋八首音樂直接內建，9 檔共 42,572,899 bytes。這是 asset bytes，不是 IPA／安裝／GPU 大小。下載、更新、睡眠定時、其餘場景啟用與 TestFlight 是 P8.2 之後的工作。
++- Seaward 模型＋八首音樂直接內建，9 檔共 42,572,899 bytes。這是 asset bytes，不是 IPA／安裝／GPU 大小。七景下載 payload、版本／hash 校驗、更新／刪除、睡眠定時及八景選房已是本機實作；TestFlight 與任何外部發布未開始。來源／音樂授權仍未核實。
+ 
+ ## 重現建置
+ 
+@@ -39,16 +39,16 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App \
+ 
+ ## 目前證據與缺口
+ 
+-本機證據保存在 [exports/p8/2026-09-13-pilot](../../exports/p8/2026-09-13-pilot)（連結以 repo 根路徑為準：`exports/p8/2026-09-13-pilot/`）。
++最新證據見 [P8.2–P8.5 驗收](../../exports/p8/2026-09-14-p82-p85/README.md)；[首輪 pilot](../../exports/p8/2026-09-13-pilot) 與下方 P8.1 Simulator 紀錄保留為歷史。
+ 
+ | 項目 | 狀態 |
+ | --- | --- |
+-| 程式測試 | 146／146 通過，包含資產準備、重複生命週期與 pending audio stop |
++| 程式測試 | 152／152 通過，包含資產準備／版本 hash、重複生命週期、timer 與 pending audio stop；native store harness 另行通過 |
+ | 製作 harness、網站 build、手機 build／sync | 通過；Vite 保留 >500kB chunk 提示 |
+ | Xcode generic iOS Simulator build | 未簽署編譯通過 |
+ | iPhone 16 Simulator／iOS 26.5 | 已安裝、原生啟動並操作，見下方 2026-09-14 紀錄；不是實體 iPhone 驗收 |
+ | 桌面瀏覽器手機尺寸 | 393×852、852×393 渲染／控制列／暫停／選房；無 console error |
+-| 已同步原生 public 資產 | SHA-256／bytes 回讀；詳見 evidence 摘要 |
++| 本機下載與原生資產 | 7 個下載房間加 Seaward 內建；全數 SHA-256／bytes 回讀，停 loopback 後冷重啟仍可進入八景 |
+ | iPhone16 安裝、飛航冷啟動、鎖屏音訊、安全區、效能／發熱 | 未驗收；目前未連接裝置、無有效 codesigning identity |
+ | Apple 分發／會員／上傳 | 未執行 |
+ 
+@@ -65,9 +65,15 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App \
+ 3. 開啟 `ios/App/App.xcodeproj`，App target → Signing & Capabilities 選 Personal Team；bundle ID 暫用 `com.migu.quietplaces.pilot`，若不可用再換本人可簽的 ID，同步改 capacitor config。
+ 4. 選實體 iPhone 作目的地，Run；首次依手機提示允許個人開發者 App。
+ 
+-實機 gate：先選 Seaward → 直橫式／拖曳／時刻 → 音樂與環境聲分別播放後切背景／鎖屏，確認立即停止、返回未自動重播 → 飛航模式強制結束重開仍可進房。記錄 iOS／build／資產 manifest；暖機30秒後10分鐘量測 median FPS≥28、frame interval P95≤50ms，5次冷進入中4次≤5秒，保存實測而非估計。
++實機 gate：選八景（含下載房）→ 直橫式／拖曳／能力控制 → 音樂與環境聲分別播放後切背景／鎖屏，確認立即停止、返回未自動重播 → 真飛航模式強制結束重開仍可進房 → 完整 15 分鐘 timer 到期。記錄 iOS／build／資產 manifest；暖機30秒後10分鐘量測 median FPS≥28、frame interval P95≤50ms，5次冷進入中4次≤5秒，保存實測而非估計。
+ 
+-通過這一步才決定進入 P8.2–P8.5；目前可本機繼續修正，但不能因沒有手機而把 P8.1 標完成。固定操作與證據即可，無需另建 iOS skill／agent 系統。
++P8.2–P8.5 的本機工作不再等待這一步，但不能因 Simulator 或本機測試通過而把 P8.1／P8.5 標完成。固定操作與證據即可，無需另建 iOS skill／agent 系統。
++
++## 2026-09-14 P8.2–P8.5 本機／Simulator 證據
++
++證據入口：[2026-09-14-p82-p85](../../exports/p8/2026-09-14-p82-p85/README.md)。專用 iPhone 16 Simulator（iOS 26.5）完成七景下載與 Seaward 內建的八景矩陣：直橫式、metadata 能力控制、背景／前景與兩種音訊停止均已操作；下載檔案全數以 SHA-256／bytes 回讀。停止 `127.0.0.1:8769` 本機來源後強制結束、冷重啟，八景仍可選取，這只證明 Simulator 的本機儲存與 locator 流程。
++
++原生 store harness 驗證 hash／容量／取消／rollback／shared delete／毀損修復；完整測試為 152 通過。Simulator 已完成真實15分鐘到期，確認場景及兩種音訊停止、手動繼續；30／60分鐘設定與取消也已操作，截圖見最新紀錄。這些本機結果不替代真機飛航、聲音訊號、30 分鐘穩定性、20 次換景記憶體、FPS、發熱或耗電量測。
+ 
+ ## 2026-09-14 Simulator 操作驗收
+ 
+diff --git a/docs/production/P8_IPHONE_PLAN.md b/docs/production/P8_IPHONE_PLAN.md
+index 4b53716..a4f47fb 100644
+--- a/docs/production/P8_IPHONE_PLAN.md
++++ b/docs/production/P8_IPHONE_PLAN.md
+@@ -1,6 +1,6 @@
+ # P8：iPhone 觀賞 app 實作計畫
+ 
+-2026-09-13 更新。實作基準 main `da4283f`，獨立 worktree `/private/tmp/quiet-places-iphone-pilot-20260913`、分支 `codex/iphone-pilot`。P8.0 本機盤點與 P8.1 單景容器已實作；2026-09-14 已完成 Simulator 原生操作驗收；iPhone 16 實機簽署、安裝與效能驗收仍待執行，不能標為 P8.1 完成。最新進度與操作見 [iPhone pilot](IPHONE_PILOT.md)。原 2026-09-09 八景規劃已更新為八景，保留階段範圍。
++2026-09-14 更新。實作基準 main `da4283f`，獨立 worktree `/private/tmp/quiet-places-iphone-pilot-20260913`、分支 `codex/iphone-pilot`、起點 `79381c7`，HEAD 未變。P8.0–P8.5 的本機實作與 Simulator 開發驗收已推進至八景下載、離線重啟、宿主／能力控制、生命週期與睡眠定時；具體證據見 [iPhone pilot](IPHONE_PILOT.md) 與 `exports/p8/2026-09-14-p82-p85/README.md`。iPhone 16 實機簽署、安裝與效能驗收仍待執行，不能標為 P8.1 或 P8.5 完成，也沒有合併、推送或發布。原 2026-09-09 八景規劃已更新為八景，保留階段範圍。
+ 
+ ## 1. 已確認的產品範圍
+ 
+@@ -24,7 +24,7 @@
+ 基準 metadata 註冊 waterlight、leaflight、oceanlight、afterlight、seaward、stairlight、snowwindow、snowhall 八景。新增的雪落海窗與雪光長廊都纳入 [資產清單](IPHONE_ASSETS.md) 及 P8.5 驗收；雪光長廊現行銀魚系統優先於已停用的魟魚／烏賊歷史。新增場景的美術基準不因 app 移植而改寫。
+ 
+ - 沿用 Three.js、`PlaceInstance`／catalog／metadata、`SceneClock`、既有偏好、MusicPlayer／AudioSystem。main 已有 visibilitychange／pagehide，應整合 native 事件，不建第二套互相競爭的時間與音訊管理。
+-- 首選試作：Capacitor iOS＋WKWebView，重用現有 WebGL 場景；不要求 Ionic UI，也不重寫 Swift／Metal 渲染器。此為架構提案，通過 P8.1 實機後才定案。
++- 現行本機實作採 Capacitor iOS＋WKWebView，重用現有 WebGL 場景；不要求 Ionic UI，也不重寫 Swift／Metal 渲染器。其實機可行性仍須通過 P8.1 gate 才能定案。
+ - 方案比較：PWA 可以作早期瀏覽器參考，但不能替代本次 native 安裝、離線與生命週期驗收；自訂 WKWebView/Swift 宿主保留為橋接不足時的有界備案。只有找到 Capacitor 可重現且無法合理修正的阻塞才切換方案。
+ - native app 使用打包的本地 HTML／JS，不將開發伺服器 URL 當正式入口；場景資產可下載，程式碼及 shader 隨 app 版本發布，不做任意遠端程式更新。
+ - app build 獨立 entry/output，例如 `src/mobile/`、`共用 index.html（mobile build 替換 entry）`、`dist-mobile/`、`ios/`；以 `vite.mobile.config.ts` 排除 Studio 與非必要 public 資產。保留網站原 build。檔名是預定責任邊界，實作時沿用現有風格。
+@@ -38,10 +38,10 @@
+ | --- | --- | --- |
+ | P8.0 基準與環境 | 最新可用 P7 commit、獨立 worktree、八景基準、裝置／工具清單、資產依賴清單 | repo test/build/check 通過；識別簽署／實機缺口 |
+ | P8.1 單景實機 | Seaward 為預設 pilot，app 本地載入、最小選房入口、觸控／旋轉／背景停止 | iPhone 16 安裝與離線冷啟動成功；10分鐘基本效能達標 |
+-| P8.2 觀賞宿主 | 正式選房、能力控制、直橫式構圖、生命週期與失敗恢復 | pilot 全流程可用，網站未退步 |
+-| P8.3 房間下載 | 清單、版本化資產包、下載／校驗／刪除／更新／離線播放 | 真下載後飛航模式＋強制結束重開仍可觀看 |
+-| P8.4 睡眠定時 | 倒數、取消、到期停止、前後景時間語義 | 真機到期與提前離開等情境通過 |
+-| P8.5 八景整合 | 全部已註冊房間與最終效能調整、回退包 | 八景實機驗收矩陣、30分鐘穩定性通過 |
++| P8.2 觀賞宿主 | 正式選房、能力控制、直橫式構圖、生命週期與失敗恢復 | 本機／Simulator 已驗收；iPhone 16 實機 gate 未通過 |
++| P8.3 房間下載 | 清單、版本化資產包、下載／校驗／刪除／更新／離線播放 | Simulator 已下載七景、停 loopback 來源後冷重啟；真機飛航模式仍待 |
++| P8.4 睡眠定時 | 倒數、取消、到期停止、前後景時間語義 | 本機／Simulator 短流程已驗收；15 分鐘定時證據見最新紀錄，真機仍待 |
++| P8.5 八景整合 | 全部已註冊房間與最終效能調整、回退包 | Simulator 八景直橫式與能力控制已驗收；實機矩陣、30 分鐘穩定性仍待 |
+ | P8.6 少數朋友測試 | 合適分發方式、測試說明、回報與版本紀錄 | 朋友可安裝並完成選房／下載／離線流程 |
+ 
+ 依序 P8.0 → P8.1 → P8.2 → P8.3 → P8.4 → P8.5 → P8.6。手機／帳號依賴只阻擋需要它的驗收；文件、資產盤點與單元測試可繼續。不能用模擬器通過來跳過 P8.1 真機 gate。
+@@ -56,7 +56,7 @@
+ 
+ ### P8.1–P8.2：先證明看得順
+ 
+-- 先內建一景及必要依賴。冷啟動先有選房入口，點選才建立 renderer／scene；房間清單不預載八景 GPU 資源。其餘房間在 app 尚未支援時不得顯示為可進入。
++- Seaward 與八首音樂維持內建；其餘七景透過版本化 manifest 下載。冷啟動先有選房入口，點選才建立 renderer／scene；房間清單不預載八景 GPU 資源。只有內建或完整校驗的房間可進入。
+ - 同一個指標事件分辨 tap／drag，避免拖曳誤觸水面；滑鼠 wheel 的鏡頭調整先沿用既有滑桿，不強制新增 pinch。保留各景固定站位與轉頭限制。
+ - safe-area、瀏海、Home indicator、橫式短邊、控制面板滾動及至少44pt觸控區；rotation 更新 renderer/composer/camera 尺寸與 framing，不重建整個場景。直橫式逐景確認主角不被裁切。
+ - native 前後景事件與 document visibility 進入同一 suspend/resume 管理；同事件可重入、不重複掛 listener。停止兩種音訊、RAF及模擬，記住原本手動暫停狀態；返回不補算背景數小時 dt。
+@@ -65,7 +65,7 @@
+ 
+ ### P8.3：離線是完整依賴可用，不只是網頁快取
+ 
+-第一版使用可追溯的靜態 HTTPS 資產清單／下載來源，無須另建使用者後端。具體 hosting／URL 在此階段確定；需要外部發布時再依當次授權操作。內建 pilot 與下載房間使用同一份 manifest 契約。
++第一版使用可追溯的靜態 HTTPS 資產清單／下載來源，無須另建使用者後端。內建 pilot 與下載房間使用同一份 manifest 契約。目前 production source 尚未設定；`http://127.0.0.1:8769/` 僅供 Simulator 的本機下載驗證，停止來源後的冷重啟已在 Simulator 重現，不能當作外部 hosting、真機 HTTPS 或飛航模式證據。需要外部發布時再依當次授權操作。
+ 
+ - room manifest：schemaVersion、roomId、assetVersion、相容 app/asset schema、總 bytes、每檔相對路徑／size／SHA-256、共享資產引用、來源／授權。沿用現有 recipe 收據資料，補「runtime 可下載集合」，不把 build recipe 直接當房間完整依賴清單。
+ - 狀態：未下載 → 下載中 → 校驗中 → 可離線；另有失敗、可更新、刪除中。只有全依賴校驗完成才設可離線；斷網／殺 app 的半包不提升成功。
+@@ -84,7 +84,7 @@
+ - 到期停止 MusicPlayer＋AudioSystem、暫停 RAF／模擬，顯示「已結束」與明確繼續操作。不要關閉 app，也不承諾程式可以強制鎖屏。
+ - 背景本來就停止所有聲音；不依賴背景 JS timer 準時觸發。返回先比對 deadline，已過期保持停止；app 被終止後重開也不自動恢復播放。
+ - 與「保持螢幕開啟」分開：第一版先沿用系統自動鎖定，不默默增加常亮需求；若觀看時頻繁鎖定影響體驗，再讓使用者選定是否加常亮選項。
+-- 測試短測試時長、15/30/60顯示、途中換景／暫停、取消、重設、背景超時、反覆進出；實機至少一次完整15分鐘到期。
++- 測試短測試時長、15/30/60顯示、途中換景／暫停、取消、重設、背景超時、反覆進出；實機至少一次完整15分鐘到期。Simulator 已完成一次完整15分鐘到期及30／60設定、取消操作；真機到期仍待驗收，證據見最新 P8 紀錄。
+ 
+ ## 4. 效能與驗收標準
+ 
+@@ -117,7 +117,7 @@ P8.5 必測：八景×直橫式、支持的雨／水位、順向時段過渡、
+ - 補 `docs/production/IPHONE_RUNBOOK.md`（實作首次真機成功時才建立），涵蓋安裝、同步網頁資產、資產包生成、更新、已知故障、睡眠及离線檢查；沿用現有製作 skill，不先增加一套 iOS agent harness。
+ - 第一個可交付里程碑是「iPhone16上可安裝、可選一景、直橫式順暢、離開停止音樂」，不是一次做完朋友分發。
+ 
+-下一次開始實作：先做 P8.0–P8.1。離線下載服務位置、精確OS下限、bundle ID、實際iPhone簽署、朋友裝置與會員選擇在對應階段定案；這份計畫不等於已授權購買、上傳或發布。
++下一個有界工作是 iPhone 16 實機：簽署／安裝、真飛航冷啟動、15 分鐘 timer 到期、30 分鐘最重場景、20 次換景、FPS／frame interval／發熱／耗電與實際音訊訊號。離線下載 production source、精確 OS 下限、朋友裝置與會員選擇仍在對應階段定案；這份計畫不等於已授權購買、上傳或發布。
+ 
+ ## 7. 查核來源
+ 
+diff --git a/docs/production/ROADMAP.md b/docs/production/ROADMAP.md
+index b01a107..73eed69 100644
+--- a/docs/production/ROADMAP.md
++++ b/docs/production/ROADMAP.md
+@@ -1,6 +1,6 @@
+ # 長期專案實作總計畫
+ 
+-更新：2026-09-09。本文是後續執行與驗收的權威計畫，取代先前簡短候選表；原交接草稿保留本地技術背景，實作不依賴該未追蹤文件。使用者已授權實作至 P6。2026-09-09 已完成本地 pilot 實作與下列技術驗收；[P0–P6 交付紀錄](P0_P6_ACCEPTANCE.md) 是目前證據入口。P5 開口正式採用仍有人工烘焙交接，此段為 P0–P6 歷史。2026-09-13：P7 場景已累積為八景；P8.0–P8.1 單景 iPhone 試作進行中，實機未驗收，詳見 [P8 計畫](P8_IPHONE_PLAN.md)。
++更新：2026-09-14。本文是後續執行與驗收的權威計畫，取代先前簡短候選表；原交接草稿保留本地技術背景，實作不依賴該未追蹤文件。使用者已授權實作至 P6。2026-09-09 已完成本地 pilot 實作與下列技術驗收；[P0–P6 交付紀錄](P0_P6_ACCEPTANCE.md) 是目前證據入口。P5 開口正式採用仍有人工烘焙交接，此段為 P0–P6 歷史。P7 場景已累積為八景；P8.0–P8.5 已有本機／Simulator 開發證據，實機 gate 尚未驗收，詳見 [P8 計畫](P8_IPHONE_PLAN.md) 與 [iPhone pilot](IPHONE_PILOT.md)。
+ 
+ ## 最終目標與完成定義
+ 
+@@ -37,7 +37,7 @@ Quiet Places 可以持續製作房間：保留共同風格，沿用已有模型
+ | P5 | 參數實驗工具與採用流程 | P1–P4 | 本地流程完成；幾何／GI 採用依文件人工交接 |
+ | P6 | harness 實際接手驗證與知識補齊 | P5；期間持續更新 | 完成（本地 pilot） |
+ | P7 | 新房間端到端製作與長期架構驗收 | P6 | 待實作 |
+-| P8 | app 宿主與實機交付 | P4、P7、平台選擇 | iPhone 16；P8.0 本機就緒，P8.1 待實機 |
++| P8 | app 宿主與實機交付 | P4、P7、平台選擇 | iPhone 16；P8.0–P8.5 本機／Simulator 開發驗收，P8.1／P8.5 待實機 |
+ 
+ 每階段可拆多個小批次；上游完成條件未通過，不把依賴工作標完成。非依賴的資料補齊可繼續。狀態使用：待實作／進行中／技術通過待美術確認／完成／受阻；受阻要寫原因與可繼續項。
+ 
+@@ -149,7 +149,7 @@ Quiet Places 可以持續製作房間：保留共同風格，沿用已有模型
+ 
+ ## P8：app 與實機
+ 
+-已確認 iPhone 16、直橫式、先選房、離線觀賞、離開即停音與睡眠定時方向。以 Capacitor 單景 pilot 驗證，分階段實作及簽署／實機 gate 見 [P8 計畫](P8_IPHONE_PLAN.md) 與 [pilot 狀態](IPHONE_PILOT.md)。
++已確認 iPhone 16、直橫式、先選房、離線觀賞、離開即停音與睡眠定時方向。Capacitor 本機實作已從 Seaward 單景擴至八景：Simulator 下載七景、保留 Seaward 內建，停止本機 loopback 來源後冷重啟，並完成八景直橫式／能力控制／生命週期的開發驗收。production source、外部發布與授權核實均未開始；簽署與真機 gate 見 [P8 計畫](P8_IPHONE_PLAN.md) 與 [pilot 狀態](IPHONE_PILOT.md)。
+ 
+ 1. 比較在選定平台承載現有 WebGL 場景的最小方案，做單場景實機 spike，再選 host；保留 P4 場景契約。
+ 2. 實作前後景切換／恢復、音訊啟動、觸控、安全區、資產快取／離線更新與錯誤恢復。
+diff --git a/ios/App/App.xcodeproj/project.pbxproj b/ios/App/App.xcodeproj/project.pbxproj
+index 8ff8d04..cdac443 100644
+--- a/ios/App/App.xcodeproj/project.pbxproj
++++ b/ios/App/App.xcodeproj/project.pbxproj
+@@ -16,6 +16,7 @@
+ 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
+ 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+ 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
++		A91A00010000000000000001 /* NativeAssetsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91A00020000000000000001 /* NativeAssetsPlugin.swift */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXFileReference section */
+@@ -29,6 +30,7 @@
+ 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+ 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+ 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
++		A91A00020000000000000001 /* NativeAssetsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAssetsPlugin.swift; sourceTree = "<group>"; };
+ 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+ /* End PBXFileReference section */
+ 
+@@ -64,6 +66,7 @@
+ 		504EC3061FED79650016851F /* App */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				A91A00020000000000000001 /* NativeAssetsPlugin.swift */,
+ 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
+ 				50379B222058CBB4000EE86E /* capacitor.config.json */,
+ 				504EC3071FED79650016851F /* AppDelegate.swift */,
+@@ -158,6 +161,7 @@
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				A91A00010000000000000001 /* NativeAssetsPlugin.swift in Sources */,
+ 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+ 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+ 			);
+diff --git a/ios/App/App/SceneDelegate.swift b/ios/App/App/SceneDelegate.swift
+index f352e1e..21ad60f 100644
+--- a/ios/App/App/SceneDelegate.swift
++++ b/ios/App/App/SceneDelegate.swift
+@@ -8,7 +8,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+         guard let windowScene = scene as? UIWindowScene else { return }
+ 
+         window = UIWindow(windowScene: windowScene)
+-        window?.rootViewController = CAPBridgeViewController()
++        window?.rootViewController = QuietPlacesBridgeViewController()
+         window?.makeKeyAndVisible()
+ 
+         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
+diff --git a/scripts/mobile-assets.mjs b/scripts/mobile-assets.mjs
+index 620f980..53dc1fe 100644
+--- a/scripts/mobile-assets.mjs
++++ b/scripts/mobile-assets.mjs
+@@ -8,6 +8,7 @@ const defaultRoot=fileURLToPath(new URL('../',import.meta.url));
+ const argument=(name)=>{const at=process.argv.indexOf(name);return at<0?undefined:process.argv[at+1];};
+ const root=resolve(argument('--root')??defaultRoot);
+ const output=resolve(root,argument('--output')??'.mobile-public');
++const downloadOutput=resolve(root,argument('--download-output')??'.mobile-downloads');
+ const configPath=resolve(root,'assets/config/mobile-assets.json');
+ const publicRoot=resolve(root,'public');
+ const sha256=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
+@@ -27,13 +28,24 @@ function glbHasExternalUris(path){
+   return [...(json.buffers??[]),...(json.images??[])].some(item=>typeof item.uri==='string'&&item.uri.length>0);
+ }
+ function revision(){try{return execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();}catch{return 'unavailable';}}
++function fileRecord(path,rootPath){
++  const source=sourcePath(path),destination=resolve(rootPath,path);
++  mkdirSync(dirname(destination),{recursive:true});copyFileSync(source,destination);
++  return {path,bytes:statSync(destination).size,sha256:sha256(destination)};
++}
++export function assetVersionFor(files,sharedFiles){return `sha256-${createHash('sha256').update(JSON.stringify({files,sharedFiles})).digest('hex').slice(0,16)}`;}
++function prepareRoot(path,name){
++  if(path===root||!inside(root,path)||path!==resolve(root,name))throw new Error(`輸出只能是 repo 內的 ${name}。`);
++  rmSync(path,{recursive:true,force:true});mkdirSync(path,{recursive:true});
++}
+ function main(){
+   const config=JSON.parse(readFileSync(configPath,'utf8'));
+-  if(config.schemaVersion!==1||config.pilot?.sceneId!=='seaward'||config.pilot?.status!=='bundled-for-iphone-pilot-only')throw new Error('mobile asset config 的 pilot 契約無效。');
++  if(config.schemaVersion!==1||config.licenseStatus!=='unverified; see docs/production/IPHONE_ASSETS.md'||config.pilot?.sceneId!=='seaward'||config.pilot?.status!=='bundled-for-iphone-pilot-only')throw new Error('mobile asset config 的 pilot 契約無效。');
+   const inventory=config.inventory;
+   if(!inventory||typeof inventory!=='object'||Object.keys(inventory).length!==8)throw new Error('inventory 必須列出正式八景。');
+   const allInventory=new Set(Object.values(inventory).flat());
+   for(const asset of allInventory)if(!existsSync(sourcePath(asset)))throw new Error(`inventory 檔案不存在：${asset}`);
++  for(const asset of allInventory)if(asset.endsWith('.glb')&&glbHasExternalUris(sourcePath(asset)))throw new Error(`拒絕含外部 URI 的 GLB：${asset}`);
+   const selected=[...new Set([...config.pilot.runtimeAssets,...config.sharedAudio])];
+   if(selected.some(asset=>!allInventory.has(asset)&&!config.sharedAudio.includes(asset)))throw new Error('pilot 資產必須有 inventory 或 sharedAudio 來源。');
+   for(const asset of selected){
+@@ -41,16 +53,28 @@ function main(){
+     if(!existsSync(source))throw new Error(`pilot 檔案不存在：${asset}`);
+     if(asset.endsWith('.glb')&&glbHasExternalUris(source))throw new Error(`拒絕含外部 URI 的 GLB：${asset}`);
+   }
+-  if(output===root||!inside(root,output)||output!==resolve(root,'.mobile-public'))throw new Error('輸出只能是 repo 內的 .mobile-public。');
+-  rmSync(output,{recursive:true,force:true});mkdirSync(output,{recursive:true});
+-  const files=selected.map(asset=>{
+-    const source=sourcePath(asset),destination=resolve(output,asset);
+-    mkdirSync(dirname(destination),{recursive:true});copyFileSync(source,destination);
+-    return {path:asset,bytes:statSync(destination).size,sha256:sha256(destination)};
+-  });
++  prepareRoot(output,'.mobile-public');
++  prepareRoot(downloadOutput,'.mobile-downloads');
++  const files=selected.map(asset=>fileRecord(asset,output));
+   const manifest={schemaVersion:1,kind:'quiet-places-mobile-public',sourceRevision:revision(),pilot:{...config.pilot,files:config.pilot.runtimeAssets},sharedAudio:config.sharedAudio,inventory,provenance:config.provenance,files};
+   writeFileSync(resolve(output,'mobile-assets.manifest.json'),JSON.stringify(manifest,null,2)+'\n');
++  const downloadable=[...new Set([...allInventory,...config.sharedAudio])].sort();
++  const downloadableFiles=downloadable.map(asset=>fileRecord(asset,downloadOutput));
++  const recordsByPath=new Map(downloadableFiles.map(file=>[file.path,file]));
++  const sharedFiles=config.sharedAudio.map(asset=>recordsByPath.get(asset));
++  const rooms=Object.entries(inventory).map(([roomId,assets])=>{
++    const roomFiles=assets.map(asset=>recordsByPath.get(asset));
++    const sharedAssets=[...config.sharedAudio];
++    const totalBytes=[...roomFiles,...sharedFiles].reduce((sum,file)=>sum+file.bytes,0);
++    return {schemaVersion:1,roomId,assetVersion:assetVersionFor(roomFiles,sharedFiles),appSchemaVersion:1,totalBytes,files:roomFiles,sharedAssets,provenance:config.provenance[roomId],licenseStatus:config.licenseStatus};
++  });
++  const roomManifests={schemaVersion:1,kind:'quiet-places-room-manifests',appSchemaVersion:1,sourceRevision:revision(),sharedFiles,rooms};
++  const serializedRoomManifests=JSON.stringify(roomManifests,null,2)+'\n';
++  writeFileSync(resolve(output,'room-manifests.json'),serializedRoomManifests);
++  writeFileSync(resolve(downloadOutput,'room-manifests.json'),serializedRoomManifests);
++  const downloadManifest={schemaVersion:1,kind:'quiet-places-mobile-download-payload',sourceRevision:revision(),files:downloadableFiles};
++  writeFileSync(resolve(downloadOutput,'mobile-assets.manifest.json'),JSON.stringify(downloadManifest,null,2)+'\n');
+   const total=files.reduce((sum,file)=>sum+file.bytes,0);
+-  console.log(`mobile assets prepared: ${files.length} files, ${total} bytes at ${relative(root,output)}`);
++  console.log(`mobile assets prepared: ${files.length} bundled files, ${total} bytes at ${relative(root,output)}; ${downloadableFiles.length} downloadable files at ${relative(root,downloadOutput)}`);
+ }
+-main();
++if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))main();
+diff --git a/src/main.ts b/src/main.ts
+index 4cbafd6..a3df1f3 100644
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -14,14 +14,28 @@ import afterlightStudy from '../assets/config/afterlight-study.json';
+ import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences,PREFERENCES_STORAGE_KEY,LEGACY_PREFERENCES_STORAGE_KEY} from './systems/Preferences.ts';
+ import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
+ import {createSceneClock} from './player/SceneClock.ts';
++import type {PlaceInstance} from './player/contracts.ts';
+ import {chooseInitialPlace,layoutMemoryBubbles,ROOM_ENTRY_SESSION_KEY} from './ui/RoomBrowser.ts';
+ import {createRoomBubbleMotionController,ROOM_BUBBLE_SEED_KEY} from './ui/RoomBubbleMotion.ts';
++import {SleepTimer} from './mobile/SleepTimer.ts';
+ import './style.css';
+ const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
+ const status=el('status');
+ declare const __QUIET_PLACES_MOBILE__:boolean;
+ const mobile=typeof __QUIET_PLACES_MOBILE__!=='undefined'&&__QUIET_PLACES_MOBILE__;
+-const places=mobile?catalogPlaces.filter(place=>place.id==='seaward'):catalogPlaces;
++const places=catalogPlaces;
++export interface MobileViewer {
++ enterRoom(id:PlaceId):Promise<boolean>;
++ leaveRoom():void;
++ /** This is manual only; native foreground events never invoke it. */
++ resume():void;
++ suspend():void;
++ retry():Promise<boolean>;
++ readonly timer:SleepTimer;
++}
++export let mobileViewer:MobileViewer|undefined;
++export let sleepTimer:SleepTimer|undefined;
++let failedStartCleanup:(()=>void)|undefined;
+ async function start(){
+  let nativeInactive=false;
+  const hadStoredPreference=(()=>{try{return localStorage.getItem(PREFERENCES_STORAGE_KEY)!==null||localStorage.getItem(LEGACY_PREFERENCES_STORAGE_KEY)!==null;}catch{return true;}})();
+@@ -57,13 +71,20 @@ async function start(){
+  const camera=new THREE.PerspectiveCamera(53,innerWidth/innerHeight,.1,700);
+  const requestedPlace=new URLSearchParams(location.search).get('place');
+  const linkedPlace=isPlaceId(requestedPlace)?requestedPlace:undefined;
+- let currentPlace:PlaceId=mobile?'seaward':chooseInitialPlace({requested:linkedPlace,preferred:preferences.place,places,hasStoredPreference:hadStoredPreference});
++ let currentPlace:PlaceId=mobile?(linkedPlace??'seaward'):chooseInitialPlace({requested:linkedPlace,preferred:preferences.place,places,hasStoredPreference:hadStoredPreference});
+  if(!linkedPlace&&!hadStoredPreference){preferences.place=currentPlace;savePreferences(preferences);}
+  const requestedSea=new URLSearchParams(location.search).get('sea');
+  const initialRoom=getRoomPreferences(preferences,currentPlace);
+  Object.assign(preferences,initialRoom);
+  let oceanLevel:OceanLevel=isOceanLevel(requestedSea)?requestedSea:initialRoom.oceanLevel;
+- let place=(await preparePlace(currentPlace))(scene,renderer);
++ let place!:PlaceInstance;
++ failedStartCleanup=()=>{place?.dispose();renderer.domElement.remove();renderer.dispose();};
++ try{
++  const factory=await preparePlace(currentPlace);
++  try{place=factory(scene,renderer);}catch(error){factory.dispose?.();throw error;}
++ }catch(error){
++  failedStartCleanup();failedStartCleanup=undefined;throw error;
++ }
+  place.setOceanLevel?.(oceanLevel);
+  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=place.exposure??1.1;
+@@ -94,7 +115,7 @@ async function start(){
+  controls.touches={ONE:THREE.TOUCH.ROTATE,TWO:null};controls.saveState();
+  renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','拖曳環繞天窗，靠近牆面時停止；左右方向鍵旋轉，Home 回到初始視角');
+  renderer.domElement.addEventListener('keydown',e=>{
+-  if(exporting||switching||!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
++  if(roomReleased||exporting||switching||!['ArrowLeft','ArrowRight','Home'].includes(e.key))return;e.preventDefault();
+   if(e.key==='Home'){resetView();return;}
+   const angle=THREE.MathUtils.clamp(controls.getAzimuthalAngle()+(e.key==='ArrowLeft'?-.08:.08)*(place.cameraMode==='fixed-position'?-1:1),controls.minAzimuthAngle,controls.maxAzimuthAngle);
+   const offset=camera.position.clone().sub(controls.target),radius=Math.hypot(offset.x,offset.z);
+@@ -118,7 +139,7 @@ async function start(){
+  renderer.domElement.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)waterDown={x:e.clientX,y:e.clientY,id:e.pointerId};});
+  renderer.domElement.addEventListener('pointercancel',()=>{waterDown=undefined;});
+  renderer.domElement.addEventListener('pointerup',e=>{
+-  const start=waterDown;waterDown=undefined;if(switching||exporting||!placeSupports(currentPlace,'water-interaction'))return;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
++  const start=waterDown;waterDown=undefined;if(roomReleased||switching||exporting||!placeSupports(currentPlace,'water-interaction'))return;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
+   const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);
+   if(raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)place.disturb(u,v);}
+  });
+@@ -130,6 +151,7 @@ async function start(){
+  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
+  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,last=performance.now(),lastPresented=last,raf=0,lost=false;
++ let roomReleased=false,viewerDisposed=false;
+  const bubbleSeed=(()=>{try{const stored=Number(sessionStorage.getItem(ROOM_BUBBLE_SEED_KEY));if(Number.isInteger(stored)&&stored>=0)return stored>>>0;const value=crypto.getRandomValues(new Uint32Array(1))[0];sessionStorage.setItem(ROOM_BUBBLE_SEED_KEY,String(value));return value;}catch{return Date.now()>>>0;}})();
+  const roomButtons=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-place]'));
+  const bubbleMotion=createRoomBubbleMotionController(roomCards,roomButtons,bubbleSeed,reduce.matches);
+@@ -185,7 +207,6 @@ async function start(){
+   controls.minPolarAngle=homePolar;controls.maxPolarAngle=homePolar;controls.saveState();controls.enableDamping=!reduce.matches;
+  }
+  async function switchPlace(id:PlaceId,save=true){
+-  if(mobile&&id!=='seaward')throw new Error('此房間尚未內建於 iPhone 試作。');
+   if(switching||(!exporting&&id===currentPlace))return;
+   switching=true;
+    const old={place,scene,id:currentPlace,oceanLevel,hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,elapsed:sceneClock.elapsed,afterlightCameraDistance,position:camera.position.clone(),target:controls.target.clone()};
+@@ -232,14 +253,51 @@ async function start(){
+    busyInputs.forEach(({input,disabled})=>{input.disabled=disabled;});el<HTMLButtonElement>('water-reset').disabled=exporting||!place.hasSimulation;requestRender();
+   }
+  }
++ async function enterMobileRoom(id:PlaceId):Promise<boolean>{
++  if(!mobile||!isPlaceId(id)||switching||lost)return false;
++  try{
++   if(roomReleased){
++    switching=true;
++    const factory=await preparePlace(id),nextScene=new THREE.Scene();nextScene.background=new THREE.Color('#080e11');
++    let next:typeof place;
++    try{next=factory(nextScene,renderer);}catch(error){factory.dispose?.();throw error;}
++    scene=nextScene;place=next;renderPass.scene=scene;currentPlace=id;roomReleased=false;lost=false;
++    const room=getRoomPreferences(preferences,id);hour=room.live?localHour():room.hour;live=room.live;beamStrength=room.beamStrength;oceanLevel=room.oceanLevel;
++    preferences.weather=room.weather;preferences.rainIntensity=room.rainIntensity;place.setOceanLevel?.(oceanLevel);homeCamera();sceneClock.reset();state=sampleTime(hour);
++    controls.enabled=true;resize();describePlace();syncRoomInputs();status.hidden=true;
++   }else if(id!==currentPlace)await switchPlace(id);
++   if(!document.hidden&&!nativeInactive&&!sleepTimer?.ended){paused=false;sceneClock.setPaused(false);}
++   updateLabels();requestRender();
++   return true;
++  }catch(error){
++   console.error(error);status.hidden=false;status.textContent='房間暫時無法載入，請回到選房後重試。';
++   return false;
++  }finally{switching=false;}
++ }
++ function suspendViewer(){
++  cancelAnimationFrame(raf);raf=0;paused=true;sceneClock.setPaused(true);timeTravel=undefined;
++  audio.stop();music.visibility(true);bubbleMotion.stop();el('audio').textContent='開啟環境聲';el('audio').setAttribute('aria-pressed','false');updateLabels();
++  window.dispatchEvent(new CustomEvent('quiet-places-mobile-suspended'));
++ }
++ function resumeViewer(){
++  if(roomReleased||sleepTimer?.check())return;
++  if(document.hidden||nativeInactive)return;
++  if(status.textContent==='睡眠定時已結束。')status.hidden=true;
++  paused=false;sceneClock.setPaused(false);updateLabels();wake();requestRender();
++  window.dispatchEvent(new CustomEvent('quiet-places-mobile-resumed'));
++ }
++ function leaveMobileRoom(){
++  if(!mobile||roomReleased)return;
++  persist();suspendViewer();controls.enabled=false;place.dispose();scene.clear();roomReleased=true;
++ }
+  function chooseRoom(id:PlaceId){if(exporting||switching)return;setPanel(false);void switchPlace(id).catch(error=>console.error(error));}
+  placeSelect.addEventListener('change',()=>chooseRoom(placeSelect.value as PlaceId));
+  document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.addEventListener('click',()=>{if(isPlaceId(button.dataset.place))chooseRoom(button.dataset.place);}));
+  document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.addEventListener('click',()=>{
+-  const level=button.dataset.oceanLevel;if(exporting||!placeSupports(currentPlace,'ocean-level')||!isOceanLevel(level))return;
++  const level=button.dataset.oceanLevel;if(roomReleased||exporting||!placeSupports(currentPlace,'ocean-level')||!isOceanLevel(level))return;
+   oceanLevel=level;place.setOceanLevel?.(level);persist();describePlace();requestRender();
+  }));
+- el('water-reset').addEventListener('click',()=>place.resetWater());
++ el('water-reset').addEventListener('click',()=>{if(!roomReleased)place.resetWater();});
+  const range=el<HTMLInputElement>('hour'),liveInput=el<HTMLInputElement>('live');
+  liveInput.checked=live;
+  const beamInput=el<HTMLInputElement>('beam-strength');beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
+@@ -269,7 +327,7 @@ async function start(){
+   el('place-title').textContent=weatherProfile==='water'&&preferences.weather==='rain'?'雨落水面':getPlaceMetadata(currentPlace).name;
+  }
+  describePlace();
+- weather.addEventListener('change',()=>{const profile=getPlaceMetadata(currentPlace).weatherProfile;preferences.weather=profile==='afterlight'&&weather.value==='heavy-rain'?'heavy-rain':weather.value==='rain'?'rain':'clear';if(placeSupports(currentPlace,'water-interaction'))place.resetWater();weatherLabels();persist();requestRender();});
++ weather.addEventListener('change',()=>{const profile=getPlaceMetadata(currentPlace).weatherProfile;preferences.weather=profile==='afterlight'&&weather.value==='heavy-rain'?'heavy-rain':weather.value==='rain'?'rain':'clear';if(!roomReleased&&placeSupports(currentPlace,'water-interaction'))place.resetWater();weatherLabels();persist();requestRender();});
+  quality.addEventListener('change',()=>{preferences.quality=quality.value==='low'?'low':'standard';resize();persist();});
+  rainInput.addEventListener('input',()=>{preferences.rainIntensity=Number(rainInput.value)/100;weatherLabels();persist();requestRender();});
+  function updateLabels(){
+@@ -348,7 +406,10 @@ async function start(){
+   const direction=event.key==='ArrowRight'||event.key==='ArrowDown'?1:-1;const next=buttons[(current+direction+buttons.length)%buttons.length];next.focus();next.click();
+  });
+  liveInput.addEventListener('change',()=>{live=liveInput.checked;timeTravel=undefined;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
+- pause.addEventListener('click',()=>{paused=!paused;sceneClock.setPaused(paused);updateLabels();requestRender();});
++ pause.addEventListener('click',()=>{
++  if(mobile&&paused){resumeViewer();return;}
++  paused=!paused;sceneClock.setPaused(paused);updateLabels();requestRender();
++ });
+  reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);bubbleMotion.setReduced(e.matches);if(!e.matches&&!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.startArrival();updateLabels();requestRender();});
+  el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
+  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
+@@ -366,10 +427,11 @@ async function start(){
+  let dirtyUntil=0,rendering=false;
+  function requestRender(){
+   dirtyUntil=performance.now()+650;
+-  if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!nativeInactive&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
++  if(!roomReleased&&!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!nativeInactive&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
+  }
+  // Paused scenes redraw only after input; a short tail lets orbit damping settle.
+  controls.addEventListener('change',()=>{
++  if(roomReleased)return;
+   if(place.cameraMode==='fixed-position'){
+    // OrbitControls supplies the look direction; translate its pivot back with
+    // the eye so dragging never moves this viewer through a nearby wall.
+@@ -381,6 +443,10 @@ async function start(){
+  document.addEventListener('input',requestRender);
+  document.addEventListener('click',requestRender);
+  function resize(){
++  if(roomReleased){
++   renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
++   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);return;
++  }
+   updateAntialiasing();
+   camera.aspect=innerWidth/innerHeight;camera.fov=placeFov();camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
+   renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
+@@ -388,7 +454,7 @@ async function start(){
+  }
+  window.addEventListener('resize',resize);resize();
+  function frame(now:number){
+-  raf=0;if(document.hidden||nativeInactive||lost||exporting||!gallery.hidden)return;
++  raf=0;if(roomReleased||document.hidden||nativeInactive||lost||exporting||!gallery.hidden)return;
+   const interval=1000/(preferences.quality==='low'?24:30);
+   if(now-last<interval-.5){raf=requestAnimationFrame(frame);return;}
+   rendering=true;
+@@ -461,11 +527,11 @@ async function start(){
+  let disposeNative=()=>{};
+  if(mobile){
+   const [{App},{createMobileLifecycle}]=await Promise.all([import('@capacitor/app'),import('./mobile/Lifecycle.ts')]);
+-  const lifecycle=createMobileLifecycle(()=>{
+-   nativeInactive=true;cancelAnimationFrame(raf);raf=0;paused=true;sceneClock.setPaused(true);
+-   timeTravel=undefined;audio.stop();music.visibility(true);bubbleMotion.stop();
+-   el('audio').textContent='開啟環境聲';el('audio').setAttribute('aria-pressed','false');updateLabels();
+-  },()=>{nativeInactive=false;wake();requestRender();});
++  sleepTimer=new SleepTimer({onExpire:()=>{
++   suspendViewer();status.hidden=false;status.textContent='睡眠定時已結束。';window.dispatchEvent(new CustomEvent('quiet-places-mobile-expired'));
++  }});
++  sleepTimer.subscribe(()=>{if(!sleepTimer?.ended&&status.textContent==='睡眠定時已結束。')status.hidden=true;});
++  const lifecycle=createMobileLifecycle(()=>{nativeInactive=true;suspendViewer();},()=>{nativeInactive=false;sleepTimer?.check();wake();requestRender();});
+   const visibility=()=>lifecycle.document(!document.hidden);
+   document.addEventListener('visibilitychange',visibility);visibility();
+   const listener=await App.addListener('appStateChange',state=>lifecycle.native(state.isActive));
+@@ -478,10 +544,17 @@ async function start(){
+   if(document.hidden)bubbleMotion.stop();else if(!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.start();
+   if(!document.hidden&&!lost)requestRender();
+  });
+- renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent='繪圖連線暫時中斷，請重新整理此頁。'});
+- window.addEventListener('pagehide',(event)=>{if(event.persisted)return;disposeNative();cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
++ renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent=mobile?'繪圖連線暫時中斷，請回到選房後重新開啟。':'繪圖連線暫時中斷，請重新整理此頁。';if(mobile){suspendViewer();window.dispatchEvent(new CustomEvent('quiet-places-mobile-context-lost',{detail:{recovery:'reload'}}));}});
++ renderer.domElement.addEventListener('webglcontextrestored',()=>{if(mobile)window.dispatchEvent(new CustomEvent('quiet-places-mobile-context-restored',{detail:{recovered:false,recovery:'reload'}}));});
++ window.addEventListener('pagehide',(event)=>{if(event.persisted||viewerDisposed)return;viewerDisposed=true;failedStartCleanup=undefined;disposeNative();sleepTimer?.dispose();cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));if(!roomReleased)place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
+  updateLabels();wake();status.hidden=true;requestRender();
++ if(mobile&&sleepTimer){
++  mobileViewer={enterRoom:enterMobileRoom,leaveRoom:leaveMobileRoom,resume:resumeViewer,suspend:suspendViewer,retry:async()=>{
++   if(lost)return false;leaveMobileRoom();return enterMobileRoom(currentPlace);
++  },timer:sleepTimer};
++  window.dispatchEvent(new CustomEvent('quiet-places-mobile-viewer-ready',{detail:{viewer:mobileViewer}}));
++ }
+  const showRoomEntry=!linkedPlace&&(()=>{try{if(sessionStorage.getItem(ROOM_ENTRY_SESSION_KEY))return false;sessionStorage.setItem(ROOM_ENTRY_SESSION_KEY,'1');return true;}catch{return !hadStoredPreference;}})();
+  if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel,'landing'));
+ }
+-export const ready=start().then(()=>true).catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';return false;});
++export const ready=start().then(()=>true).catch(error=>{failedStartCleanup?.();failedStartCleanup=undefined;console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';return false;});
+diff --git a/src/mobile/main.ts b/src/mobile/main.ts
+index 48d35f3..c6ef9f0 100644
+--- a/src/mobile/main.ts
++++ b/src/mobile/main.ts
+@@ -1,32 +1,146 @@
+-import {places} from '../places/metadata.ts';
++import {DefaultLoadingManager} from 'three';
++import {Capacitor} from '@capacitor/core';
++import {places,type PlaceId} from '../places/metadata.ts';
++import {setRoomAssetUrls,resolveAssetUrl} from '../shared/resources/AssetLocator.ts';
++import {NativeAssets,toWebUrls,type InstalledRoomAssets,type RoomAssetManifest,type NativeAssetFile} from './NativeAssets.ts';
++import type {MobileViewer} from '../main.ts';
+ import './mobile.css';
+ 
+-// No renderer or audio is constructed until the viewer chooses the pilot room.
++declare const __QUIET_PLACES_ASSET_BASE__:string;
++const source=__QUIET_PLACES_ASSET_BASE__;
++const native=Capacitor.isNativePlatform();
++DefaultLoadingManager.setURLModifier(resolveAssetUrl);
+ const host=document.createElement('section');host.id='mobile-entry';host.setAttribute('aria-label','選擇房間');
+-const heading=document.createElement('h1');heading.textContent='QUIET PLACES';
+-const intro=document.createElement('p');intro.textContent='選一個房間，停留片刻。';
+-const choice=document.createElement('button');choice.className='mobile-room';
+-const pilot=places.find(place=>place.id==='seaward')!;
+-choice.textContent=pilot.name;choice.setAttribute('aria-label',`進入${pilot.name}`);
+-const note=document.createElement('p');note.className='mobile-note';note.textContent='已內建 · 可離線觀賞';
+-const later=document.createElement('details');const summary=document.createElement('summary');summary.textContent='其他房間 · 尚未開放';later.append(summary);
+-const list=document.createElement('p');list.textContent=places.filter(place=>place.id!==pilot.id).map(place=>place.name).join(' · ');later.append(list);
+-const message=document.createElement('p');message.setAttribute('role','status');
+-host.append(heading,intro,choice,note,later,message);document.body.append(host);
+-document.documentElement.classList.add('mobile-app','mobile-choosing');
+-choice.addEventListener('click',async()=>{
+- choice.disabled=true;message.textContent='光正在進來。';
+- const url=new URL(location.href);url.search='?place=seaward';history.replaceState(null,'',url);
++host.innerHTML='<h1>QUIET PLACES</h1><p class="mobile-intro">選一個房間，停留片刻。</p><div class="mobile-rooms"></div><p class="mobile-storage"></p><p class="mobile-note">已下載的房間，可以在沒有網路的地方陪你。</p><p class="mobile-message" role="status"></p>';
++document.body.append(host);document.documentElement.classList.add('mobile-app','mobile-choosing');
++const message=host.querySelector<HTMLElement>('.mobile-message')!;
++const storage=host.querySelector<HTMLElement>('.mobile-storage')!;
++const grid=host.querySelector<HTMLElement>('.mobile-rooms')!;
++const recovery=document.createElement('section');recovery.className='mobile-recovery';recovery.hidden=true;recovery.setAttribute('role','status');
++const recoveryText=document.createElement('p');const returnButton=document.createElement('button');returnButton.textContent='回到選房';
++const reloadButton=document.createElement('button');reloadButton.textContent='重新開啟';reloadButton.onclick=()=>location.reload();
++const rollbackButton=document.createElement('button');rollbackButton.textContent='使用上一版';rollbackButton.hidden=true;
++recovery.append(recoveryText,returnButton,rollbackButton,reloadButton);document.body.append(recovery);
++let viewer:MobileViewer|undefined,bootFailed=false,current:PlaceId|undefined,busy=false,downloading:PlaceId|undefined;
++let retainedBytes=0;
++const invalid=new Set<string>();
++let catalog:{rooms:RoomAssetManifest[];sharedFiles:NativeAssetFile[]};
++const installed=new Map<string,InstalledRoomAssets>();
++const failures=new Map<string,string>();
++const rows=new Map<string,{enter:HTMLButtonElement;state:HTMLElement;download:HTMLButtonElement;remove:HTMLButtonElement}>();
++const bytes=(n:number)=>`${(n/1_000_000).toFixed(1)} MB`;
++function say(text:string){message.textContent=text;}
++function showChooser(){
++ viewer?.leaveRoom();current=undefined;host.hidden=false;recovery.hidden=true;
++ document.documentElement.classList.add('mobile-choosing');
++ document.getElementById('settings')?.setAttribute('hidden','');document.getElementById('music-panel')?.setAttribute('hidden','');document.getElementById('mobile-sleep-panel')?.setAttribute('hidden','');
++ render();
++}
++returnButton.onclick=showChooser;
++function render(){
++ let total=0;
++ const unique=new Map<string,number>();
++ for(const room of installed.values())for(const file of room.manifest.files)unique.set(file.sha256,file.bytes);
++ for(const size of unique.values())total+=size;
++ total=Math.max(total,retainedBytes);
++ storage.textContent=installed.size?`已保存 ${installed.size} 個房間 · 共用檔案合計 ${bytes(total)}`:'向海的隧道已內建 · 可離線觀賞';
++ for(const place of places){
++  const row=rows.get(place.id);if(!row)continue;
++  const saved=installed.get(place.id),manifest=catalog.rooms.find(room=>room.roomId===place.id)!;
++  const bundled=place.id==='seaward';
++  const compatible=saved?.manifest.appSchemaVersion===1;
++  const ready=bundled||Boolean(saved&&compatible);
++  const update=Boolean(saved&&saved.assetVersion!==manifest.assetVersion);
++  row.enter.disabled=busy||Boolean(downloading)||!ready;row.enter.setAttribute('aria-label',`進入${place.name}`);
++  row.state.textContent=failures.get(place.id)??(downloading===place.id?'正在下載…':bundled?'已內建 · 可離線':saved?(compatible?(update?'可離線 · 有更新':'可離線觀賞'):'需要更新'): `尚未下載 · ${bytes(manifest.totalBytes)}`);
++  row.download.hidden=bundled||Boolean(saved&&!update&&!failures.has(place.id));
++  row.download.textContent=downloading===place.id?'取消下載':saved?'更新房間':'下載房間';
++  row.download.disabled=busy||Boolean(downloading&&downloading!==place.id)||!native||!source;
++  row.remove.hidden=!saved&&!invalid.has(place.id);row.remove.disabled=busy||Boolean(downloading);
++ }
++}
++async function enter(id:PlaceId){
++ if(busy||downloading)return;
++ busy=true;render();say('光正在進來。');
++ try{
++  if(bootFailed){location.reload();return;}
++  viewer?.leaveRoom();
++  const saved=installed.get(id);
++  if(saved){const verified=toWebUrls(await NativeAssets.resolve({roomId:id}));setRoomAssetUrls(verified.urls);}
++  else if(id==='seaward')setRoomAssetUrls(Object.fromEntries([...catalog.rooms.find(room=>room.roomId===id)!.files,...catalog.sharedFiles].map(file=>[file.path,`/${file.path}`])));
++  else throw new Error('請先下載這個房間。');
++  const url=new URL(location.href);url.search=`?place=${id}`;history.replaceState(null,'',url);
++  if(!viewer){
++   const module=await import('../main.ts');
++   if(!await module.ready||!module.mobileViewer){bootFailed=true;throw new Error('空間暫時無法載入，請重新開啟。');}
++   viewer=module.mobileViewer;attachViewer();
++  }else if(!await viewer.enterRoom(id))throw new Error('空間暫時無法載入，可以再試一次。');
++  current=id;host.hidden=true;recovery.hidden=true;document.documentElement.classList.remove('mobile-choosing');say('');
++ }catch(error){
++  viewer?.leaveRoom();rollbackButton.hidden=!installed.has(id);rollbackButton.onclick=async()=>{rollbackButton.disabled=true;try{const restored=await NativeAssets.rollback({roomId:id});installed.set(id,restored);await enter(id);}catch{recoveryText.textContent='沒有可用的上一版，請重新下載或重新開啟。';}finally{rollbackButton.disabled=false;}};say(error instanceof Error?error.message:'房間無法載入，請重試。');
++  recoveryText.textContent=message.textContent;recovery.hidden=false;
++ }finally{busy=false;render();}
++}
++function attachViewer(){
++ const rooms=document.getElementById('rooms-toggle')!;rooms.setAttribute('aria-label','回到選房');rooms.title='回到選房';
++ rooms.querySelector('.dock-button__label')!.textContent='回到選房';rooms.removeAttribute('aria-expanded');rooms.removeAttribute('aria-controls');
++ rooms.addEventListener('click',event=>{event.stopImmediatePropagation();showChooser();},{capture:true});
++ const timerSection=document.createElement('section');timerSection.className='settings-section mobile-timer';
++ timerSection.innerHTML='<label for="sleep-duration">睡眠定時</label><select id="sleep-duration" aria-label="睡眠定時"><option value="0">關閉</option><option value="15">15 分鐘</option><option value="30">30 分鐘</option><option value="60">60 分鐘</option></select><p id="sleep-remaining" role="status"></p>';
++ const timerPanel=document.createElement('section');timerPanel.id='mobile-sleep-panel';timerPanel.className='side-panel';timerPanel.hidden=true;timerPanel.setAttribute('aria-label','睡眠定時');
++ const timerHead=document.createElement('div');timerHead.className='panel-head';timerHead.innerHTML='<span>讓空間慢慢安靜</span><button aria-label="關閉睡眠定時">×</button>';timerPanel.append(timerHead,timerSection);document.body.append(timerPanel);
++ const timerToggle=document.getElementById('about-toggle')!;timerToggle.classList.remove('dock-button--about');timerToggle.setAttribute('aria-label','睡眠定時');timerToggle.title='睡眠定時';timerToggle.setAttribute('aria-controls','mobile-sleep-panel');timerToggle.innerHTML='<span aria-hidden="true">◷</span>';
++ const closeTimer=()=>{timerPanel.hidden=true;timerToggle.setAttribute('aria-expanded','false');};
++ timerHead.querySelector('button')!.onclick=closeTimer;
++ timerToggle.addEventListener('click',event=>{event.stopImmediatePropagation();timerPanel.hidden=!timerPanel.hidden;timerToggle.setAttribute('aria-expanded',String(!timerPanel.hidden));},{capture:true});
++ document.addEventListener('pointerdown',event=>{if(event.target instanceof Node&&!timerPanel.contains(event.target)&&!timerToggle.contains(event.target))closeTimer();});
++ const select=timerSection.querySelector<HTMLSelectElement>('select')!;
++ const remaining=timerSection.querySelector<HTMLElement>('p')!;
++ let ended=viewer!.timer.ended;
++ select.onchange=()=>{ended=false;if(select.value==='0')viewer!.timer.cancel();else viewer!.timer.setMinutes(Number(select.value) as 15|30|60);updateTimer();};
++ function updateTimer(){
++  const timer=viewer!.timer;
++  if(timer.active){const seconds=Math.ceil(timer.remainingMs/1000);remaining.textContent=`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')} 後，讓空間安靜下來`;}
++  else{select.value='0';remaining.textContent=ended?'已結束 · 輕點繼續流動即可再觀賞':'到期停止聲音與流動';}
++ }
++ const unsubscribe=viewer!.timer.subscribe(updateTimer);const interval=window.setInterval(updateTimer,1000);window.addEventListener('pagehide',()=>{clearInterval(interval);unsubscribe();},{once:true});updateTimer();
++ window.addEventListener('quiet-places-mobile-expired',()=>{ended=true;updateTimer();});
++}
++async function download(id:PlaceId){
++ if(downloading===id){await NativeAssets.cancel({roomId:id});return;}
++ if(downloading||busy)return;
++ downloading=id;failures.delete(id);render();say('下載期間請留在 App。');
+  try{
+-  const {ready}=await import('../main.ts');
+-  if(!await ready)throw new Error('Scene initialization failed');
+-  const rooms=document.getElementById('rooms-toggle')!;
+-  rooms.setAttribute('aria-label','回到選房');rooms.title='回到選房';
+-  rooms.querySelector('.dock-button__label')!.textContent='回到選房';
+-  rooms.removeAttribute('aria-expanded');rooms.removeAttribute('aria-controls');
+-  rooms.addEventListener('click',event=>{event.stopImmediatePropagation();location.href=location.pathname;},{capture:true});
+-  host.remove();document.documentElement.classList.remove('mobile-choosing');
+- }catch{
+-  message.textContent='空間暫時無法載入。';choice.disabled=false;choice.textContent='重新開啟';choice.onclick=()=>location.reload();
++  const manifest=catalog.rooms.find(room=>room.roomId===id)!;
++  const result=await NativeAssets.download({manifest,sharedFiles:catalog.sharedFiles,baseUrl:source});
++  installed.set(id,result);invalid.delete(id);await refreshStorage();say('房間已保存，可以離線觀賞。');
++ }catch{failures.set(id,'下載未完成 · 可重試');say('下載未完成。請確認連線與可用空間後重試；原有房間仍保留。');}
++ finally{downloading=undefined;render();}
++}
++async function remove(id:PlaceId){
++ if(busy||downloading)return;busy=true;render();rows.get(id)!.state.textContent='正在刪除…';
++ try{if(current===id)showChooser();await NativeAssets.remove({roomId:id});installed.delete(id);invalid.delete(id);failures.delete(id);await refreshStorage();say('房間已移除。其他房間仍然保留。');}
++ catch{say('暫時無法移除房間，請重試。');}
++ finally{busy=false;render();}
++}
++window.addEventListener('quiet-places-mobile-context-lost',()=>{recoveryText.textContent='畫面暫時中斷，請重新開啟房間。';recovery.hidden=false;});
++window.addEventListener('quiet-places-mobile-context-restored',()=>{recoveryText.textContent='繪圖連線已恢復，請重新開啟以重建房間。';recovery.hidden=false;});
++async function refreshStorage(){const result=await NativeAssets.list();retainedBytes=result.retainedBytes;for(const room of result.invalidRooms){invalid.add(room.roomId);failures.set(room.roomId,'下載檔案需修復 · 請重試');}}
++async function initialize(){
++ const response=await fetch('/room-manifests.json');if(!response.ok)throw new Error('無法讀取房間清單');catalog=await response.json();
++ if(native){
++  const result=await NativeAssets.list();result.rooms.forEach(room=>installed.set(room.roomId,room));retainedBytes=result.retainedBytes;for(const room of result.invalidRooms){invalid.add(room.roomId);failures.set(room.roomId,'下載檔案需修復 · 請重試');}
++  await NativeAssets.addListener('progress',progress=>{const row=rows.get(progress.roomId);if(row)row.state.textContent=progress.phase==='verifying'?'正在校驗…':`正在下載 ${Math.min(100,Math.round(progress.bytesDownloaded/progress.totalBytes*100))}%`;});
++ }
++ for(const place of places){
++  const article=document.createElement('article');article.className='mobile-room-item';
++  const enterButton=document.createElement('button');enterButton.className='mobile-room';enterButton.textContent=place.name;enterButton.onclick=()=>void enter(place.id);
++  const state=document.createElement('p');state.className='mobile-room-state';
++  const actions=document.createElement('div');actions.className='mobile-room-actions';
++  const get=document.createElement('button');get.textContent='下載房間';get.onclick=()=>void download(place.id);
++  const del=document.createElement('button');del.textContent='移除下載';del.onclick=()=>void remove(place.id);
++  actions.append(get,del);article.append(enterButton,state,actions);grid.append(article);rows.set(place.id,{enter:enterButton,state,download:get,remove:del});
+  }
+-},{once:true});
++ render();if(!source)say('其餘房間的下載服務尚未設定。');
++}
++void initialize().catch(error=>{console.error('Mobile catalog initialization failed',error);say('房間清單暫時無法開啟，請重新開啟 App。');recoveryText.textContent=message.textContent;recovery.hidden=false;});
+diff --git a/src/mobile/mobile.css b/src/mobile/mobile.css
+index 46c73bb..c78ff55 100644
+--- a/src/mobile/mobile.css
++++ b/src/mobile/mobile.css
+@@ -1,5 +1,5 @@
+ html.mobile-app{background:#080e11;overscroll-behavior:none}
+-.mobile-choosing body> :not(#mobile-entry){visibility:hidden}
++.mobile-choosing body> :not(#mobile-entry):not(.mobile-recovery){visibility:hidden}
+ #mobile-entry{position:fixed;inset:0;z-index:1000;overflow:auto;display:flex;align-items:center;flex-direction:column;justify-content:center;box-sizing:border-box;padding:calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px);color:#d3dedb;background:radial-gradient(ellipse at 50% 45%,#234144 0%,#102125 40%,#080e11 80%);font:14px/1.8 Georgia,serif;text-align:center}
+ #mobile-entry h1{font-size:13px;font-weight:400;letter-spacing:.32em}
+ #mobile-entry>p{letter-spacing:.12em}
+@@ -39,3 +39,39 @@ html.mobile-app{background:#080e11;overscroll-behavior:none}
+  #mobile-entry details{margin-top:8px;max-width:680px}
+  #mobile-entry details p{margin:4px 0}
+ }
++
++/* Eight rooms share a quiet, scrollable threshold; no scene is preloaded here. */
++#mobile-entry{justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 28px)}
++#mobile-entry[hidden],.mobile-recovery[hidden]{display:none}
++.mobile-rooms{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 16px;width:min(660px,100%);margin:20px auto}
++.mobile-room-item{min-width:0}
++#mobile-entry .mobile-room{width:min(145px,100%);height:auto;aspect-ratio:1;margin:0;font-size:16px;letter-spacing:.06em}
++#mobile-entry .mobile-room:disabled{opacity:.45;cursor:default}
++.mobile-room-state{font:11px/1.6 system-ui,sans-serif;color:#a9b9b6;min-height:18px;margin:10px 0 2px}
++.mobile-room-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:4px}
++.mobile-room-actions button,.mobile-recovery button{min-height:44px;padding:8px 12px;background:transparent;border:0;border-radius:8px;color:#c0d2cc;font:12px system-ui,sans-serif;cursor:pointer}
++.mobile-room-actions button:disabled{opacity:.35;cursor:default}
++.mobile-room-actions button:focus-visible{outline:1px solid #cee4dc}
++.mobile-room-actions button[hidden]{display:none}
++#mobile-entry .mobile-storage{font:12px system-ui,sans-serif;letter-spacing:.02em;color:#bdccc8}
++#mobile-entry .mobile-message{font:12px/1.8 system-ui,sans-serif;max-width:360px;min-height:22px;letter-spacing:.03em}
++.mobile-recovery{position:fixed;z-index:1100;left:50%;top:35%;transform:translateX(-50%);width:min(300px,80vw);padding:24px;background:#0d1a1ef2;border:1px solid #8faaa64a;border-radius:12px;color:#dce5e1;text-align:center;font:14px/1.8 system-ui,sans-serif}
++.mobile-app .mobile-timer select{min-height:44px;width:100%;margin:6px 0;background:#172428;color:#dce5e1;border:1px solid #809d9755;border-radius:5px;padding:8px}
++.mobile-app #sleep-remaining{font-size:11px;line-height:1.5;margin:4px 0;color:#b4c5bf}
++@media(min-width:600px){.mobile-rooms{grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 14px}}
++@media(orientation:landscape) and (max-height:500px){#mobile-entry .mobile-room{width:100px;height:auto}.mobile-rooms{margin:12px auto;gap:12px}#mobile-entry{padding-top:calc(env(safe-area-inset-top) + 12px)}}
++@media(orientation:landscape) and (max-height:500px){
++ #mobile-entry{padding-top:calc(env(safe-area-inset-top) + 8px);padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
++ #mobile-entry .mobile-intro,#mobile-entry .mobile-note{display:none}
++ #mobile-entry .mobile-room{width:88px;font-size:13px;white-space:nowrap}
++ .mobile-rooms{gap:4px 14px;margin:6px auto}
++ .mobile-room-state{margin:3px 0 0;font-size:10px;min-height:16px}
++ #mobile-entry .mobile-storage,#mobile-entry .mobile-message{margin:2px 0;font-size:10px;line-height:1.3}
++}
++.mobile-app #about-toggle{font-size:22px;grid-area:about}
++@media(max-width:430px){.mobile-app .entry-dock{grid-template-columns:44px 44px minmax(60px,1fr) 44px 44px;grid-template-areas:"rooms pause music settings about" "moments moments moments moments moments"}}
++@media(orientation:landscape) and (max-height:500px){
++ .mobile-app #scene-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
++ .mobile-app #scene-options>div{margin:0;padding:0;border:0}
++ .mobile-app #settings>.actions{grid-template-columns:repeat(3,1fr)}
++}
+diff --git a/src/shared/biology/medaka/MedakaMotion.ts b/src/shared/biology/medaka/MedakaMotion.ts
+index 7304441..c261b09 100644
+--- a/src/shared/biology/medaka/MedakaMotion.ts
++++ b/src/shared/biology/medaka/MedakaMotion.ts
+@@ -1,3 +1,4 @@
++import {resolveAssetUrl} from '../../resources/AssetLocator.ts';
+ import * as THREE from 'three';
+ 
+ export interface MedakaMetadata { duration:number; fps:number; frameCount:number; fishCount:number; stride:number; states:string[]; fish:Array<{length:number;colorVariant:number;motionPhase:number;motionSeed:number}>; events:Array<{time:number;initiator:number;members:number[];target:number[];reactionWindow:number[]}>; }
+@@ -20,4 +21,4 @@ export function createMedakaRoute(points:readonly THREE.Vector3[],options:Medaka
+   const controlPoints=points.map(p=>p.clone()),curve=new THREE.CatmullRomCurve3(controlPoints,closed,'centripetal'),activeDuration=curve.getLength()/(speed*tempo);if(!Number.isFinite(activeDuration)||activeDuration<=0)throw new RangeError('Medaka route must have non-zero length.');const duration=activeDuration+pause;
+   return {duration,activeDuration,controlPoints,sample(elapsed){const raw=Number.isFinite(elapsed)?Math.max(0,elapsed):0,local=closed?modulo(raw,duration):Math.min(raw,duration),progress=Math.min(1,local/activeDuration),position=curve.getPointAt(progress),tangent=curve.getTangentAt(progress).normalize(),quaternion=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,-1),tangent);return {position,quaternion,speed:local>=activeDuration?0:speed*tempo,phase:modulo(progress*TAU*2,TAU),q:Math.min(1,speed*tempo/.18),acceleration:0,state:0,length:.04,colorVariant:0};}};
+ }
+-export async function prepareMedakaMotion(metadataUrl='/models/medaka-motion.json',binaryUrl='/models/medaka-motion.bin'):Promise<PreparedMedakaMotion>{const [meta,binary]=await Promise.all([fetch(metadataUrl),fetch(binaryUrl)]);if(!meta.ok||!binary.ok)throw new Error('Medaka motion cache could not be loaded.');return decodeMedakaMotion(await meta.json() as MedakaMetadata,await binary.arrayBuffer());}
++export async function prepareMedakaMotion(metadataUrl='/models/medaka-motion.json',binaryUrl='/models/medaka-motion.bin'):Promise<PreparedMedakaMotion>{const [meta,binary]=await Promise.all([fetch(resolveAssetUrl(metadataUrl)),fetch(resolveAssetUrl(binaryUrl))]);if(!meta.ok||!binary.ok)throw new Error('Medaka motion cache could not be loaded.');return decodeMedakaMotion(await meta.json() as MedakaMetadata,await binary.arrayBuffer());}
+diff --git a/src/systems/MusicPlayer.ts b/src/systems/MusicPlayer.ts
+index fd7967d..aa2cb36 100644
+--- a/src/systems/MusicPlayer.ts
++++ b/src/systems/MusicPlayer.ts
+@@ -1,3 +1,4 @@
++import {resolveAssetUrl} from '../shared/resources/AssetLocator.ts';
+ export interface MusicPlayerOptions {
+   /** 0 到 1；呼叫端可將它保存為使用者偏好。 */
+   volume?: number;
+@@ -107,10 +108,10 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
+     options.onPlaybackChange?.({playing:isPlaying,title:tracks[trackIndex].title});
+   };
+   const setStatus = (message: string) => { status.textContent = message; };
+-  const selectedSource = () => new URL(tracks[trackIndex].source, document.baseURI).href;
++  const selectedSource = () => new URL(resolveAssetUrl(tracks[trackIndex].source), document.baseURI).href;
+   const loadSelectedTrack = () => {
+     if (audio.currentSrc !== selectedSource()) {
+-      audio.src = tracks[trackIndex].source;
++      audio.src = resolveAssetUrl(tracks[trackIndex].source);
+       audio.load();
+     }
+   };
+diff --git a/tests/mobile-assets.test.ts b/tests/mobile-assets.test.ts
+index ec937f0..cc08324 100644
+--- a/tests/mobile-assets.test.ts
++++ b/tests/mobile-assets.test.ts
+@@ -5,13 +5,37 @@ import {createHash} from 'node:crypto';
+ import {execFileSync} from 'node:child_process';
+ import {fileURLToPath} from 'node:url';
+ import {join} from 'node:path';
++import {assetVersionFor} from '../scripts/mobile-assets.mjs';
+ 
+ const root=fileURLToPath(new URL('../',import.meta.url));
+ const output=join(root,'.mobile-public');
++const downloads=join(root,'.mobile-downloads');
+ const hash=(path:string)=>createHash('sha256').update(readFileSync(path)).digest('hex');
+ 
++const expectedInventory={
++  waterlight:['models/long-fin-koi-school.glb'],
++  leaflight:['models/leaflight-study.glb','textures/leaflight/room-indirect.exr','models/koi.glb'],
++  oceanlight:['models/stingray.glb'],
++  afterlight:['models/afterlight-courtyard.glb','textures/afterlight/room-indirect.exr','models/medaka.glb','models/medaka-motion.json','models/medaka-motion.bin'],
++  seaward:['models/stingray.glb'],
++  stairlight:['models/stairlight.glb','textures/stairlight/room-indirect.exr','models/stairlight-rear.glb','textures/stairlight-rear/room-indirect.exr','models/blacktip-shark.glb'],
++  snowwindow:[],snowhall:[],
++};
++
++const loaderSources:{path:string;assets:string[]}[]=[
++  {path:'src/places/waterlight/FishSchool.ts',assets:['/models/long-fin-koi-school.glb']},
++  {path:'src/places/leaflight/index.ts',assets:['/models/leaflight-study.glb','/textures/leaflight/room-indirect.exr']},
++  {path:'src/places/leaflight/Koi.ts',assets:['/models/koi.glb']},
++  {path:'src/places/oceanlight/Stingrays.ts',assets:['/models/stingray.glb']},
++  {path:'src/places/afterlight/index.ts',assets:['/models/afterlight-courtyard.glb','/textures/afterlight/room-indirect.exr']},
++  {path:'src/shared/biology/medaka/Medaka.ts',assets:['/models/medaka.glb']},
++  {path:'src/shared/biology/medaka/MedakaMotion.ts',assets:['/models/medaka-motion.json','/models/medaka-motion.bin']},
++  {path:'src/places/seaward/Stingray.ts',assets:['/models/stingray.glb']},
++  {path:'src/places/stairlight/index.ts',assets:['/models/${asset}.glb','/textures/${asset}/room-indirect.exr','/models/blacktip-shark.glb']},
++];
++
+ test('mobile asset preparation creates the Seaward-only offline public set with an inspectable eight-scene inventory',()=>{
+-  rmSync(output,{recursive:true,force:true});
++  rmSync(output,{recursive:true,force:true});rmSync(downloads,{recursive:true,force:true});
+   try{
+     execFileSync(process.execPath,['scripts/mobile-assets.mjs'],{cwd:root,encoding:'utf8'});
+     const manifest=JSON.parse(readFileSync(join(output,'mobile-assets.manifest.json'),'utf8'));
+@@ -23,5 +47,42 @@ test('mobile asset preparation creates the Seaward-only offline public set with
+     assert.deepEqual(manifest.files.map((file:{path:string})=>file.path).sort(),['models/stingray.glb',...manifest.sharedAudio].sort());
+     for(const file of manifest.files){const path=join(output,file.path);assert.ok(existsSync(path));assert.equal(statSync(path).size,file.bytes);assert.equal(hash(path),file.sha256);}
+     assert.ok(!existsSync(join(output,'models','stairlight.glb')));
+-  }finally{rmSync(output,{recursive:true,force:true});}
++  }finally{rmSync(output,{recursive:true,force:true});rmSync(downloads,{recursive:true,force:true});}
++});
++
++test('room manifests contain every loader dependency and a complete local download payload',()=>{
++  rmSync(output,{recursive:true,force:true});rmSync(downloads,{recursive:true,force:true});
++  try{
++    execFileSync(process.execPath,['scripts/mobile-assets.mjs'],{cwd:root,encoding:'utf8'});
++    const manifests=JSON.parse(readFileSync(join(output,'room-manifests.json'),'utf8'));
++    const downloaded=JSON.parse(readFileSync(join(downloads,'room-manifests.json'),'utf8'));
++    const config=JSON.parse(readFileSync(join(root,'assets/config/mobile-assets.json'),'utf8'));
++    assert.equal(manifests.schemaVersion,1);assert.equal(manifests.appSchemaVersion,1);
++    assert.deepEqual(manifests,downloaded,'bundle and local download use the same immutable manifest contract');
++    assert.deepEqual(config.inventory,expectedInventory,'inventory follows every current public loader, including stairlight query variants');
++    for(const loader of loaderSources){
++      const source=readFileSync(join(root,loader.path),'utf8');
++      for(const asset of loader.assets)assert.ok(source.includes(asset),`${loader.path} loader is covered by the inventory: ${asset}`);
++    }
++    assert.equal(manifests.rooms.length,8);
++    for(const room of manifests.rooms){
++      assert.equal(room.schemaVersion,1);assert.equal(room.appSchemaVersion,1);
++      assert.match(room.assetVersion,/^sha256-[a-f0-9]{16}$/);
++      assert.deepEqual(room.files.map((file:{path:string})=>file.path),expectedInventory[room.roomId as keyof typeof expectedInventory]);
++      assert.deepEqual(room.sharedAssets,config.sharedAudio);
++      assert.equal(room.provenance,config.provenance[room.roomId]);
++      assert.equal(room.licenseStatus,config.licenseStatus);
++      const resolved=[...room.files,...manifests.sharedFiles];
++      assert.equal(room.totalBytes,resolved.reduce((total:number,file:{bytes:number})=>total+file.bytes,0));
++      for(const file of resolved){const path=join(downloads,file.path);assert.ok(existsSync(path),`${room.roomId} dependency is downloadable: ${file.path}`);assert.equal(statSync(path).size,file.bytes);assert.equal(hash(path),file.sha256);}
++    }
++    assert.ok(!existsSync(join(output,'models','afterlight-courtyard.glb')),'unbundled rooms remain outside the pilot app');
++  }finally{rmSync(output,{recursive:true,force:true});rmSync(downloads,{recursive:true,force:true});}
++});
++
++test('room assetVersion changes when a shared asset hash changes',()=>{
++  const roomFiles=[{path:'models/stingray.glb',bytes:100,sha256:'a'.repeat(64)}];
++  const shared=[{path:'audio/submerged-sunlight.m4a',bytes:200,sha256:'b'.repeat(64)}];
++  const changedShared=[{...shared[0],sha256:'c'.repeat(64)}];
++  assert.notEqual(assetVersionFor(roomFiles,shared),assetVersionFor(roomFiles,changedShared));
+ });
+diff --git a/tests/music-player.test.ts b/tests/music-player.test.ts
+index a5eb371..fb4b49a 100644
+--- a/tests/music-player.test.ts
++++ b/tests/music-player.test.ts
+@@ -1,5 +1,6 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
++import {setRoomAssetUrls} from '../src/shared/resources/AssetLocator.ts';
+ import {createMusicPlayer} from '../src/systems/MusicPlayer.ts';
+ 
+ class Element extends EventTarget {
+@@ -39,3 +40,16 @@ test('music playlist advances through distinct tracks, wraps, and respects stop
+   player.dispose();audio.end();assert.equal(audio.starts,stopped,'disposed player cannot restart');
+  }finally{Object.assign(globalThis,{Audio:oldAudio,document:oldDocument});}
+ });
++
++
++test('native resolved audio resumes without reloading its current position',async()=>{
++ const oldAudio=globalThis.Audio,oldDocument=globalThis.document;
++ Object.assign(globalThis,{Audio:TestAudio,document:{baseURI:'capacitor://localhost/',createElement:()=>new Element(),createTextNode:(text:string)=>Object.assign(new Element(),{textContent:text})}});
++ setRoomAssetUrls({'audio/submerged-sunlight.m4a':'capacitor://localhost/_capacitor_file_/downloaded.m4a'});
++ try{
++  const player=createMusicPlayer(new Element() as unknown as HTMLElement),audio=TestAudio.latest;
++  await player.toggle();audio.currentTime=3;player.visibility(true);await player.toggle();
++  assert.equal(audio.currentTime,3,'resume must not reload the resolved native URL');
++  player.dispose();
++ }finally{setRoomAssetUrls(undefined);Object.assign(globalThis,{Audio:oldAudio,document:oldDocument});}
++});
+diff --git a/vite.mobile.config.ts b/vite.mobile.config.ts
+index 5db67c9..61bac27 100644
+--- a/vite.mobile.config.ts
++++ b/vite.mobile.config.ts
+@@ -4,7 +4,7 @@ const sourceRevision=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).
+ const sourceDirty=Boolean(execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim());
+ export default defineConfig({
+  publicDir:'.mobile-public',
+- define:{__QUIET_PLACES_MOBILE__:true,__QUIET_PLACES_SOURCE__:JSON.stringify({sourceRevision,sourceDirty})},
++ define:{__QUIET_PLACES_MOBILE__:true,__QUIET_PLACES_ASSET_BASE__:JSON.stringify(process.env.QUIET_PLACES_ASSET_BASE_URL??''),__QUIET_PLACES_SOURCE__:JSON.stringify({sourceRevision,sourceDirty})},
+  plugins:[{name:'mobile-entry',transformIndexHtml:{order:'pre',handler:html=>html
+   .replace('/src/main.ts','/src/mobile/main.ts')
+   .replace('width=device-width, initial-scale=1.0','width=device-width, initial-scale=1.0, viewport-fit=cover')

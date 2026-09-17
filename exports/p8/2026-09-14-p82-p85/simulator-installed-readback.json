@@ -1,0 +1,126 @@
+{
+  "rooms": [
+    {
+      "roomId": "afterlight",
+      "assetVersion": "sha256-2ad5df816ae91157",
+      "verifiedFiles": [
+        "models/afterlight-courtyard.glb",
+        "textures/afterlight/room-indirect.exr",
+        "models/medaka.glb",
+        "models/medaka-motion.json",
+        "models/medaka-motion.bin",
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 58104920
+    },
+    {
+      "roomId": "leaflight",
+      "assetVersion": "sha256-6b34c75e517b62b0",
+      "verifiedFiles": [
+        "models/leaflight-study.glb",
+        "textures/leaflight/room-indirect.exr",
+        "models/koi.glb",
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 48473529
+    },
+    {
+      "roomId": "oceanlight",
+      "assetVersion": "sha256-4ba43b0c8a3c32cb",
+      "verifiedFiles": [
+        "models/stingray.glb",
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 42572899
+    },
+    {
+      "roomId": "snowhall",
+      "assetVersion": "sha256-58e938d99185025e",
+      "verifiedFiles": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 40713555
+    },
+    {
+      "roomId": "snowwindow",
+      "assetVersion": "sha256-58e938d99185025e",
+      "verifiedFiles": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 40713555
+    },
+    {
+      "roomId": "stairlight",
+      "assetVersion": "sha256-2d1b4df568b7f597",
+      "verifiedFiles": [
+        "models/stairlight.glb",
+        "textures/stairlight/room-indirect.exr",
+        "models/stairlight-rear.glb",
+        "textures/stairlight-rear/room-indirect.exr",
+        "models/blacktip-shark.glb",
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 147553676
+    },
+    {
+      "roomId": "waterlight",
+      "assetVersion": "sha256-677d4e4569dd4119",
+      "verifiedFiles": [
+        "models/long-fin-koi-school.glb",
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "totalBytes": 50344743
+    }
+  ],
+  "uniqueObjectBytes": 184195547,
+  "roomCount": 7
+}

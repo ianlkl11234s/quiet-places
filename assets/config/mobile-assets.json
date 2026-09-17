@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md",
+  "pilot": {
+    "sceneId": "seaward",
+    "status": "bundled-for-iphone-pilot-only",
+    "runtimeAssets": ["models/stingray.glb"]
+  },
+  "sharedAudio": [
+    "audio/submerged-sunlight.m4a",
+    "audio/waterline-hush.m4a",
+    "audio/sun-through-water.m4a",
+    "audio/sun-through-water-2.m4a",
+    "audio/dawn-cycles.m4a",
+    "audio/dusk-resonance.m4a",
+    "audio/nightfall-undertone.m4a",
+    "audio/quiet-room-glow.m4a"
+  ],
+  "inventory": {
+    "waterlight": ["models/long-fin-koi-school.glb"],
+    "leaflight": ["models/leaflight-study.glb", "textures/leaflight/room-indirect.exr", "models/koi.glb"],
+    "oceanlight": ["models/stingray.glb"],
+    "afterlight": ["models/afterlight-courtyard.glb", "textures/afterlight/room-indirect.exr", "models/medaka.glb", "models/medaka-motion.json", "models/medaka-motion.bin"],
+    "seaward": ["models/stingray.glb"],
+    "stairlight": ["models/stairlight.glb", "textures/stairlight/room-indirect.exr", "models/stairlight-rear.glb", "textures/stairlight-rear/room-indirect.exr", "models/blacktip-shark.glb"],
+    "snowwindow": [],
+    "snowhall": []
+  },
+  "provenance": {
+    "waterlight": "src/places/waterlight/FishSchool.ts",
+    "leaflight": "src/places/leaflight/index.ts and Koi.ts",
+    "oceanlight": "src/places/oceanlight/Stingrays.ts",
+    "afterlight": "src/places/afterlight/index.ts and Medaka.ts",
+    "seaward": "src/places/seaward/Stingray.ts",
+    "stairlight": "src/places/stairlight/index.ts",
+    "snowwindow": "src/places/snowwindow/index.ts uses procedural geometry and shaders",
+    "snowhall": "src/places/snowhall/index.ts → AntarcticLife.ts → shared/biology/antarctic/AntarcticModels.ts; procedural models, no public runtime file"
+  }
+}

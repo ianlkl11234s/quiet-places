@@ -1,0 +1,10 @@
+{
+  "src/mobile/mobile.css": "33680f8109e9631ac3a9a91eb4ccab6d430ac9056a1998797b2128651fb71a38",
+  "src/mobile/main.ts": "f741c9c2a9559662c5d810f3955d2f9a82f11578c84a937edd0fac90fa9d5b7b",
+  "src/mobile/Lifecycle.ts": "7dc237677fce1cdf133b506065112655fdd662e16168c0a3f8b528f10d4ce526",
+  "src/main.ts": "3782614c58da19a8b5b13f1cf226cb1b7e6987f6705b4e8c75b4651a4acb70ab",
+  "src/systems/AudioSystem.ts": "8ff192db6857a7ca89a8728b1e48039ebe70891d0ea5f7ef94e7f9d30c26597c",
+  "package-lock.json": "64d532c9cc469f8150840c26a2829352cbab8dfbf286b08fb382727778445b69",
+  "capacitor.config.ts": "f9b5ef9c8f0c1a5c80bb545231be28255e87b6f4b40f48207d4855c258679c57",
+  "vite.mobile.config.ts": "caa41206cc6e1c0fb9451bf7a966081c554417256f5880c67f23b7422927b088"
+}

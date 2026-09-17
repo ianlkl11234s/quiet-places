@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {setRoomAssetUrls} from '../src/shared/resources/AssetLocator.ts';
 import {createMusicPlayer} from '../src/systems/MusicPlayer.ts';
 
 class Element extends EventTarget {
@@ -38,4 +39,17 @@ test('music playlist advances through distinct tracks, wraps, and respects stop 
   loop.checked=true;play.dispatchEvent(new Event('click'));await Promise.resolve();player.visibility(true);const stopped=audio.starts;audio.end();assert.equal(audio.starts,stopped,'background pause cannot restart the playlist');
   player.dispose();audio.end();assert.equal(audio.starts,stopped,'disposed player cannot restart');
  }finally{Object.assign(globalThis,{Audio:oldAudio,document:oldDocument});}
+});
+
+
+test('native resolved audio resumes without reloading its current position',async()=>{
+ const oldAudio=globalThis.Audio,oldDocument=globalThis.document;
+ Object.assign(globalThis,{Audio:TestAudio,document:{baseURI:'capacitor://localhost/',createElement:()=>new Element(),createTextNode:(text:string)=>Object.assign(new Element(),{textContent:text})}});
+ setRoomAssetUrls({'audio/submerged-sunlight.m4a':'capacitor://localhost/_capacitor_file_/downloaded.m4a'});
+ try{
+  const player=createMusicPlayer(new Element() as unknown as HTMLElement),audio=TestAudio.latest;
+  await player.toggle();audio.currentTime=3;player.visibility(true);await player.toggle();
+  assert.equal(audio.currentTime,3,'resume must not reload the resolved native URL');
+  player.dispose();
+ }finally{setRoomAssetUrls(undefined);Object.assign(globalThis,{Audio:oldAudio,document:oldDocument});}
 });

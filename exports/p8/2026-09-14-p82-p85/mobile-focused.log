@@ -1,0 +1,18 @@
+(node:15478) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ downloaded room uses only its verified dependencies; website URLs remain unchanged (0.678333ms)
+(node:15479) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ native and visibility inactivity are combined; foreground does not request playback (1.321292ms)
+(node:15480) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ persists absolute 15, 30 and 60 minute deadlines and can reset or cancel (0.830917ms)
+✔ expires across navigation, background time and cold launch exactly once (0.132625ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 440.257291

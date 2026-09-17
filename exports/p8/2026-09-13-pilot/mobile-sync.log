@@ -1,0 +1,57 @@
+
+> quiet-places@0.1.0 mobile:sync
+> npm run mobile:build && cap sync ios
+
+
+> quiet-places@0.1.0 mobile:build
+> npm run mobile:assets && tsc --noEmit && vite build --config vite.mobile.config.ts
+
+
+> quiet-places@0.1.0 mobile:assets
+> node scripts/mobile-assets.mjs
+
+mobile assets prepared: 9 files, 42572899 bytes at .mobile-public
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 119 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-mobile/index.html                                     8.29 kB │ gzip:   2.80 kB
+dist-mobile/assets/index-D-XiPrXN.css                      3.25 kB │ gzip:   1.12 kB
+dist-mobile/assets/main-VUNuHZOR.css                      25.54 kB │ gzip:   6.43 kB
+dist-mobile/assets/Lifecycle-DcgqT-vX.js                   0.23 kB │ gzip:   0.18 kB
+dist-mobile/assets/SkeletonUtils-BCVmgslc.js               0.45 kB │ gzip:   0.27 kB
+dist-mobile/assets/ModelResources-YTzQRLy8.js              0.63 kB │ gzip:   0.35 kB
+dist-mobile/assets/web-DIIjoiMB.js                         0.87 kB │ gzip:   0.42 kB
+dist-mobile/assets/Optics-Dq1oCYzZ.js                      1.10 kB │ gzip:   0.63 kB
+dist-mobile/assets/index-D6sEWQ5P.js                       6.39 kB │ gzip:   2.85 kB
+dist-mobile/assets/index-Fgb-_85F.js                       8.53 kB │ gzip:   3.52 kB
+dist-mobile/assets/index-BoKZTxmd.js                      12.91 kB │ gzip:   5.72 kB
+dist-mobile/assets/index-CowEn6FZ.js                      18.40 kB │ gzip:   7.33 kB
+dist-mobile/assets/index-BfjgLvm7.js                      21.82 kB │ gzip:   8.49 kB
+dist-mobile/assets/EXRLoader-DPUUouJu.js                  23.25 kB │ gzip:   8.00 kB
+dist-mobile/assets/index-DllAVz9I.js                      31.03 kB │ gzip:  12.06 kB
+dist-mobile/assets/fflate.module-CXh1ITwj.js              31.80 kB │ gzip:  12.15 kB
+dist-mobile/assets/index-C2AHJhko.js                      33.10 kB │ gzip:  12.36 kB
+dist-mobile/assets/index-BXcJnhyA.js                      41.38 kB │ gzip:  15.03 kB
+dist-mobile/assets/index-BO2Rj0Cc.js                      44.29 kB │ gzip:  17.21 kB
+dist-mobile/assets/GLTFLoader-CmHr04bv.js                 44.82 kB │ gzip:  13.21 kB
+dist-mobile/assets/index-BhXMUrH7.js                      52.71 kB │ gzip:  20.49 kB
+dist-mobile/assets/RectAreaLightUniformsLib-DuxoMyNO.js  247.25 kB │ gzip: 103.12 kB
+dist-mobile/assets/main-PGCjrjXZ.js                      663.21 kB │ gzip: 173.10 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.29s
+✔ Copying web assets from dist-mobile to ios/App/App/public in 125.36ms
+✔ Creating capacitor.config.json in ios/App/App in 511.71μs
+✔ copy ios in 131.92ms
+✔ Updating iOS plugins in 389.25μs
+[info] All Capacitor plugins have a Package.swift file and will be included in Package.swift
+[info] Writing Package.swift
+[info] Found 1 Capacitor plugin for ios:
+       @capacitor/app@8.1.1
+✔ update ios in 9.83ms
+[info] Sync finished in 0.147s

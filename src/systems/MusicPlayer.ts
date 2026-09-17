@@ -1,3 +1,4 @@
+import {resolveAssetUrl} from '../shared/resources/AssetLocator.ts';
 export interface MusicPlayerOptions {
   /** 0 到 1；呼叫端可將它保存為使用者偏好。 */
   volume?: number;
@@ -107,10 +108,10 @@ export function createMusicPlayer(container: HTMLElement, options: MusicPlayerOp
     options.onPlaybackChange?.({playing:isPlaying,title:tracks[trackIndex].title});
   };
   const setStatus = (message: string) => { status.textContent = message; };
-  const selectedSource = () => new URL(tracks[trackIndex].source, document.baseURI).href;
+  const selectedSource = () => new URL(resolveAssetUrl(tracks[trackIndex].source), document.baseURI).href;
   const loadSelectedTrack = () => {
     if (audio.currentSrc !== selectedSource()) {
-      audio.src = tracks[trackIndex].source;
+      audio.src = resolveAssetUrl(tracks[trackIndex].source);
       audio.load();
     }
   };

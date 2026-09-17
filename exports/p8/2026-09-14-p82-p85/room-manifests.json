@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "kind": "quiet-places-room-manifests",
+  "appSchemaVersion": 1,
+  "sourceRevision": "79381c79af2333e2878b7f77c1a1c4ef872360c4",
+  "sharedFiles": [
+    {
+      "path": "audio/submerged-sunlight.m4a",
+      "bytes": 5346051,
+      "sha256": "4be5a84b7ce489fa31150d7f6a7d313ce816bbaaa54e7d5a0ed30681f0d6e7ea"
+    },
+    {
+      "path": "audio/waterline-hush.m4a",
+      "bytes": 4606703,
+      "sha256": "91eb994cf5a1257045fd103f51d5c94ebc7b43badf3307ffaed1d5f373ac9153"
+    },
+    {
+      "path": "audio/sun-through-water.m4a",
+      "bytes": 5943698,
+      "sha256": "0fc309190ebdc5625389e7ada7b06c11320fecdfdd04f3717cd1aee547589def"
+    },
+    {
+      "path": "audio/sun-through-water-2.m4a",
+      "bytes": 5332172,
+      "sha256": "543ea4e478f492d52ab7f844ee61cf6e81359625f6835fb6f829604dbbde0380"
+    },
+    {
+      "path": "audio/dawn-cycles.m4a",
+      "bytes": 4474094,
+      "sha256": "089f127b7dc2a4a249348ec2e124c0362342535ec74485b0abf524c496cf0efa"
+    },
+    {
+      "path": "audio/dusk-resonance.m4a",
+      "bytes": 4821251,
+      "sha256": "313c36ca96ac5929f3a47211af302407d0c2acd3475487a287cf3bee4298ccbe"
+    },
+    {
+      "path": "audio/nightfall-undertone.m4a",
+      "bytes": 5190270,
+      "sha256": "f2527086fd01023e3a692c689c3002275b400c2ce2ec60183fbbadfbede82f04"
+    },
+    {
+      "path": "audio/quiet-room-glow.m4a",
+      "bytes": 4999316,
+      "sha256": "4eff7b0267ba2a9ea65dc204edb2d39462021b0d54f96a079d87fcacf0b9bb5c"
+    }
+  ],
+  "rooms": [
+    {
+      "schemaVersion": 1,
+      "roomId": "waterlight",
+      "assetVersion": "sha256-677d4e4569dd4119",
+      "appSchemaVersion": 1,
+      "totalBytes": 50344743,
+      "files": [
+        {
+          "path": "models/long-fin-koi-school.glb",
+          "bytes": 9631188,
+          "sha256": "04eb2ffb056e5a87484eec0e9524e45112582ed08260618d650fae61f7b96803"
+        }
+      ],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/waterlight/FishSchool.ts",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "leaflight",
+      "assetVersion": "sha256-6b34c75e517b62b0",
+      "appSchemaVersion": 1,
+      "totalBytes": 48473529,
+      "files": [
+        {
+          "path": "models/leaflight-study.glb",
+          "bytes": 4389120,
+          "sha256": "19ddfb9a9583c396d2eefd874d5b43d5225b6eba3c20b302a80a31e991e59244"
+        },
+        {
+          "path": "textures/leaflight/room-indirect.exr",
+          "bytes": 1581834,
+          "sha256": "70cc1c2d4186e6fa257c41b0a63bd6a48e690d765d823b62d211c3021e7f5b84"
+        },
+        {
+          "path": "models/koi.glb",
+          "bytes": 1789020,
+          "sha256": "929cf6dd15a03de3a06953cac9e39243c23abd9894e978bbbdd17d07323eeaf9"
+        }
+      ],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/leaflight/index.ts and Koi.ts",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "oceanlight",
+      "assetVersion": "sha256-4ba43b0c8a3c32cb",
+      "appSchemaVersion": 1,
+      "totalBytes": 42572899,
+      "files": [
+        {
+          "path": "models/stingray.glb",
+          "bytes": 1859344,
+          "sha256": "e5909d095f4c09971b35e917e7c8b16e3a3468405b798373da8837d24bc89061"
+        }
+      ],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/oceanlight/Stingrays.ts",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "afterlight",
+      "assetVersion": "sha256-2ad5df816ae91157",
+      "appSchemaVersion": 1,
+      "totalBytes": 58104920,
+      "files": [
+        {
+          "path": "models/afterlight-courtyard.glb",
+          "bytes": 9681708,
+          "sha256": "106e5a6f4789b5eb2855e97da03cfe6c63c4583574a1f0645fb3b6de5113ecc0"
+        },
+        {
+          "path": "textures/afterlight/room-indirect.exr",
+          "bytes": 3154363,
+          "sha256": "9468796635d633acc3e4b592699eca06e0c04c1d5e460639d96270cf1c4a043d"
+        },
+        {
+          "path": "models/medaka.glb",
+          "bytes": 55612,
+          "sha256": "b42d59bb77403ecc15944b8cc52189e5c7caf54279db363423cfb7f8c700a300"
+        },
+        {
+          "path": "models/medaka-motion.json",
+          "bytes": 5634,
+          "sha256": "26d34bd707534c60255fb6e6eec49841e5dd2181461ab4c2b87d3712c8682e15"
+        },
+        {
+          "path": "models/medaka-motion.bin",
+          "bytes": 4494048,
+          "sha256": "46987da6b00ba752f804704053657fbe138a5be459e06c7e4e3acca67e06aafb"
+        }
+      ],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/afterlight/index.ts and Medaka.ts",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "seaward",
+      "assetVersion": "sha256-4ba43b0c8a3c32cb",
+      "appSchemaVersion": 1,
+      "totalBytes": 42572899,
+      "files": [
+        {
+          "path": "models/stingray.glb",
+          "bytes": 1859344,
+          "sha256": "e5909d095f4c09971b35e917e7c8b16e3a3468405b798373da8837d24bc89061"
+        }
+      ],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/seaward/Stingray.ts",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "stairlight",
+      "assetVersion": "sha256-2d1b4df568b7f597",
+      "appSchemaVersion": 1,
+      "totalBytes": 147553676,
+      "files": [
+        {
+          "path": "models/stairlight.glb",
+          "bytes": 29866288,
+          "sha256": "c9a8d701822b91a15c6354eaf5a2f60581e507de33c4de899898e53db847e378"
+        },
+        {
+          "path": "textures/stairlight/room-indirect.exr",
+          "bytes": 25199336,
+          "sha256": "c761f4743eb410970bf7c8304c1339d3a37f99840758455a64912ac13ffd1abc"
+        },
+        {
+          "path": "models/stairlight-rear.glb",
+          "bytes": 26051636,
+          "sha256": "c99e501d1626c5b3b3daf0315dd2c340558a3998d7afad765d67913f59c225e4"
+        },
+        {
+          "path": "textures/stairlight-rear/room-indirect.exr",
+          "bytes": 25199341,
+          "sha256": "838bae239d0e001e8c1354e807000b661720cadaa5b6609efe5d2d54d643dbdc"
+        },
+        {
+          "path": "models/blacktip-shark.glb",
+          "bytes": 523520,
+          "sha256": "8f356a0741bc50dd0b34eaf81d6c37a67cd8d859043ad30f175d80db2472ee84"
+        }
+      ],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/stairlight/index.ts",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "snowwindow",
+      "assetVersion": "sha256-58e938d99185025e",
+      "appSchemaVersion": 1,
+      "totalBytes": 40713555,
+      "files": [],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/snowwindow/index.ts uses procedural geometry and shaders",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    },
+    {
+      "schemaVersion": 1,
+      "roomId": "snowhall",
+      "assetVersion": "sha256-58e938d99185025e",
+      "appSchemaVersion": 1,
+      "totalBytes": 40713555,
+      "files": [],
+      "sharedAssets": [
+        "audio/submerged-sunlight.m4a",
+        "audio/waterline-hush.m4a",
+        "audio/sun-through-water.m4a",
+        "audio/sun-through-water-2.m4a",
+        "audio/dawn-cycles.m4a",
+        "audio/dusk-resonance.m4a",
+        "audio/nightfall-undertone.m4a",
+        "audio/quiet-room-glow.m4a"
+      ],
+      "provenance": "src/places/snowhall/index.ts → AntarcticLife.ts → shared/biology/antarctic/AntarcticModels.ts; procedural models, no public runtime file",
+      "licenseStatus": "unverified; see docs/production/IPHONE_ASSETS.md"
+    }
+  ]
+}

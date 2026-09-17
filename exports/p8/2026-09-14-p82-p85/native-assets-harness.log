@@ -1,0 +1,4 @@
+$ swiftc extracted NativeAssetStore + native-assets-harness.swift
+NATIVE_ASSET_HARNESS_PASS
+
+fixture hits={'/a.bin': 2, '/shared.bin': 2, '/b.bin': 1, '/bad.bin': 1, '/new.bin': 1, '/slow.bin': 1}

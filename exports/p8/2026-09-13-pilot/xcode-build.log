@@ -1,0 +1,70 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project ios/App/App.xcodeproj -scheme App -destination "generic/platform=iOS Simulator" -derivedDataPath /private/tmp/quiet-places-ios-build CODE_SIGNING_ALLOWED=NO build
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  CapacitorApp: /tmp/quiet-places-iphone-pilot-20260913/node_modules/@capacitor/app @ local
+  capacitor-swift-pm: https://github.com/ionic-team/capacitor-swift-pm.git @ 8.5.2
+  CapApp-SPM: /tmp/quiet-places-iphone-pilot-20260913/ios/App/CapApp-SPM @ local
+
+2026-09-13 19:30:29.596 xcodebuild[80790:79232252] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (7 targets)
+    Target 'App' in project 'App'
+        ➜ Explicit dependency on target 'CapApp-SPM' in project 'CapApp-SPM'
+    Target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'CapacitorApp' in project 'CapacitorApp'
+    Target 'CapApp-SPM' in project 'CapApp-SPM'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'CapacitorApp' in project 'CapacitorApp'
+    Target 'CapacitorApp' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'AppPlugin' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'AppPlugin' in project 'CapacitorApp'
+        ➜ Explicit dependency on target 'Capacitor' in project 'capacitor-swift-pm'
+        ➜ Explicit dependency on target 'Cordova' in project 'capacitor-swift-pm'
+    Target 'Cordova' in project 'capacitor-swift-pm' (no dependencies)
+    Target 'Capacitor' in project 'capacitor-swift-pm' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /tmp/quiet-places-ios-build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /tmp/quiet-places-iphone-pilot-20260913/ios/App/App.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /tmp/quiet-places-ios-build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+CpResource /tmp/quiet-places-ios-build/Build/Products/Debug-iphonesimulator/App.app/capacitor.config.json /tmp/quiet-places-iphone-pilot-20260913/ios/App/App/capacitor.config.json (in target 'App' from project 'App')
+    cd /tmp/quiet-places-iphone-pilot-20260913/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/quiet-places-iphone-pilot-20260913/ios/App/App/capacitor.config.json /tmp/quiet-places-ios-build/Build/Products/Debug-iphonesimulator/App.app
+
+CpResource /tmp/quiet-places-ios-build/Build/Products/Debug-iphonesimulator/App.app/config.xml /tmp/quiet-places-iphone-pilot-20260913/ios/App/App/config.xml (in target 'App' from project 'App')
+    cd /tmp/quiet-places-iphone-pilot-20260913/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/quiet-places-iphone-pilot-20260913/ios/App/App/config.xml /tmp/quiet-places-ios-build/Build/Products/Debug-iphonesimulator/App.app
+
+CpResource /tmp/quiet-places-ios-build/Build/Products/Debug-iphonesimulator/App.app/public /tmp/quiet-places-iphone-pilot-20260913/ios/App/App/public (in target 'App' from project 'App')
+    cd /tmp/quiet-places-iphone-pilot-20260913/ios/App
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /tmp/quiet-places-iphone-pilot-20260913/ios/App/App/public /tmp/quiet-places-ios-build/Build/Products/Debug-iphonesimulator/App.app
+
+** BUILD SUCCEEDED **
