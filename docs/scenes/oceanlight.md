@@ -223,3 +223,11 @@
 整合期間，來源場景筆記追加使用者已確認造型／游姿、受光與潮汐效果「很好」，並授權來源工作區保存本地基準。本整合保留同一份模型與程式；來源工作區的提交和本整理分支的提交／發布狀態分開記錄。
 
 來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理已由 PR #2 合併至 `main`（`27e597f`）。
+
+## 2026-09-26：Q1-1 時段驅動窗景（候選待使用者確認）
+
+分支 `claude/visual-quality`；狀態：**候選待使用者確認**，只改 `Surface.ts` 的 `oceanSkyGLSL`，可單獨退回。證據：`exports/quality-q0q1-20260926/lighting-A/{before,after}/oceanlight-*`，數字 `luminance-before-after.txt`。
+
+- 問題：horizon 為 `mix(藍, 米色(.77,.61,.43), warmth)`，晨曦 .66 與暮色 .95 都落在米色帶；低角度太陽（晨曦 y≈.235、暮色 y≈.19）在窄窗視野之外，`pow(…,360)` 日盤對畫面無貢獻。
+- 改法：warmth ≤ .5 仍用原線性 palette（`baseWarm = min(warmth,.5)`，午後／正午／月夜不變）。其上 `golden = smoothstep(.50,.70) × (1 - smoothstep(0,.3,angle))`（只在早晨負 angle 生效，避免 15:00–16:00 warmth .57–.77 的午後借用晨曦色）往桃色低空 `(.80,.56,.42)`／藍灰天頂 `(.17,.21,.34)`，`dusk = smoothstep(.75,.95)` 往琥珀 `(.92,.47,.20)`／暗紫 `(.21,.15,.25)`；另加寬前向散射 `pow(dot(d,sun),8) × lowSun × (golden×.30 + dusk×.45)`，`lowSun = 1 - smoothstep(.25,.60,sun.y)`（14:00 angle .25 時 sun.y≈.66 → 0）。天空背板與海面反射共用 `skyColor()`，海面自動跟著轉暖。
+- 界線：依 `sampleTime` 算，14:00–16:00 golden 與 dusk 皆為 0（16:00 dusk .016），17:00 dusk .95 已進入暮色；即午後 palette 維持到 16:00 左右。月夜未改（已偏暗藍，before/after 相同）。美術 palette，不是大氣散射解算。

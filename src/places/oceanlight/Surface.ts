@@ -13,10 +13,27 @@ const oceanSkyGLSL = /* glsl */`
   vec3 skyColor(vec3 d) {
     float up = clamp(d.y, 0.0, 1.0);
     float warm = clamp(uWarmth, 0.0, 1.0);
-    vec3 horizon = mix(vec3(.23, .39, .49), vec3(.77, .61, .43), warm);
-    vec3 zenith = mix(vec3(.035, .12, .24), vec3(.30, .30, .38), warm);
+    // Warmth <= .5 keeps the confirmed afternoon/noon/moon palette exactly.
+    // Above it, dawn (.66) moves to a peach low sky and sunset (.95) to amber
+    // under a dusky violet zenith, instead of both sharing one beige band.
+    float baseWarm = min(warm, .5);
+    // Dawn stage only in the morning (negative angle): 15:00-16:00 afternoon
+    // warmth (.57-.77) must not borrow the dawn palette.
+    float golden = smoothstep(.50, .70, warm) * (1.0 - smoothstep(0.0, .3, uAngle));
+    float dusk = smoothstep(.75, .95, warm);
+    vec3 horizon = mix(vec3(.23, .39, .49), vec3(.77, .61, .43), baseWarm);
+    horizon = mix(horizon, vec3(.80, .56, .42), golden);
+    horizon = mix(horizon, vec3(.92, .47, .20), dusk);
+    vec3 zenith = mix(vec3(.035, .12, .24), vec3(.30, .30, .38), baseWarm);
+    zenith = mix(zenith, vec3(.17, .21, .34), golden);
+    zenith = mix(zenith, vec3(.21, .15, .25), dusk);
     vec3 col = mix(horizon, zenith, pow(up, .45));
     vec3 sun = uSunDirection;
+    // The low dawn/sunset sun sits above the narrow window's view; a broad
+    // forward-scattering lobe carries its colour into the visible sky band
+    // and, through reflection, onto the sea.
+    float lowSun = 1.0 - smoothstep(.25, .60, sun.y);
+    col += vec3(.95, .55, .26) * pow(max(dot(d, sun), 0.0), 8.0) * lowSun * (golden * .30 + dusk * .45);
     col += vec3(1.0, .76, .46) * pow(max(dot(d, sun), 0.0), 360.0) * (.35 + uIntensity*.5);
     return col * (.035 + uIntensity*.965);
   }
