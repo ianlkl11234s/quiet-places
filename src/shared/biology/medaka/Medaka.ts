@@ -4,7 +4,10 @@ import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
 import {collectModelResources, disposeModelResources} from '../../resources/ModelResources.ts';
 import type {MedakaMotionSample, MedakaRoute} from './MedakaMotion.ts';
 import {hoverTailScale, hoverWeight, pectoralScull, type HoverParams} from '../locomotion/index.ts';
+import {FISH_FIN_MEMBRANE, installFishSurface, type FishBodySurface} from '../fish-surface/index.ts';
 
+/** Q1-4 candidate: silver-olive back darker than the silvery belly, cool grazing sheen. */
+export const MEDAKA_BODY_SURFACE:FishBodySurface={role:'body',countershade:.15,sheen:.30,sheenTint:new THREE.Color(.86,.95,1)};
 
 const TAIL_BONES=['Spine_01','Spine_02','Spine_03','Spine_04','Spine_05','Peduncle','Tail_Base','Tail_Tip'];
 const REQUIRED_BONES=['MedakaRoot',...TAIL_BONES,'Pectoral_L','Pectoral_R'];
@@ -67,6 +70,8 @@ function cloneMaterials(model:THREE.Object3D,variant:number):THREE.Material[] {
         material.color.multiply(variantColor(variant));
         material.emissive.setRGB(0,0,0);
         material.emissiveIntensity=0;
+        if(material.name.startsWith('Medaka_Body'))installFishSurface(material,MEDAKA_BODY_SURFACE);
+        else if(material.name.startsWith('Medaka_Fin'))installFishSurface(material,FISH_FIN_MEMBRANE);
       }
       return material;
     });

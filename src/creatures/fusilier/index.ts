@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import {addBendAttribute,animatedStandard,fishBodyGeometry,setInstanceBend} from '../chromis/index.ts';
+import {FISH_FIN_MEMBRANE,installFishSurface,type FishBodySurface} from '../../shared/biology/fish-surface/index.ts';
+export const FUSILIER_BODY_SURFACE:FishBodySurface={role:'body',countershade:.12,sheen:.25,sheenTint:new THREE.Color(.86,.95,1)};
 
 export interface FusilierVisuals { root:THREE.Group; update(elapsed:number):void; dispose():void; }
 export function createFusilierVisuals(count:number,phases:Float32Array,lengths:Float32Array):FusilierVisuals {
@@ -8,6 +10,7 @@ export function createFusilierVisuals(count:number,phases:Float32Array,lengths:F
  const fins=new THREE.InstancedMesh(fusilierFins(),animatedStandard('#5f8994','#5f8994',true),count);fins.name='FUSILIER_FINS_AND_FORK';
  const eyes=new THREE.InstancedMesh(pairedEyes(),new THREE.MeshStandardMaterial({color:'#142024',roughness:.45}),count);eyes.name='FUSILIER_LATERAL_EYES';
  const stripes=makeStripes(count,phases,lengths);root.add(body,fins,eyes,stripes);
+ installFishSurface(body.material,FUSILIER_BODY_SURFACE);installFishSurface(fins.material,FISH_FIN_MEMBRANE);
  // These remain non-casters, while their standard materials receive the same
  // directional shadow map as the surrounding arcade geometry.
  for(const mesh of [body,fins,eyes,stripes]){motion(mesh.geometry,phases,lengths,.025);mesh.castShadow=false;mesh.receiveShadow=true;mesh.frustumCulled=false;}

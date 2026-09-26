@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {collectModelResources, disposeModelResources} from '../../shared/resources/ModelResources.ts';
+import {FISH_FIN_MEMBRANE, installFishSurface, prepareFinMembrane, type FishBodySurface} from '../../shared/biology/fish-surface/index.ts';
 import {createLongFinKoiSchool, type LongFinKoiBehavior, type LongFinKoiPose, type LongFinKoiSchool} from './LongFinKoiMotion.ts';
 
 export type FishSchoolState = LightingState;
@@ -22,6 +23,8 @@ function actionFor(pose: LongFinKoiPose): string {
   return ACTION[pose.behavior];
 }
 
+const LONG_FIN_BODY_SURFACE: FishBodySurface = {role: 'body', countershade: .08, sheen: .25, sheenTint: new THREE.Color(.92, .96, 1)};
+
 function configureLongFinMaterials(root: THREE.Object3D) {
   root.traverse(object => {
     if (!(object instanceof THREE.Mesh)) return;
@@ -30,12 +33,10 @@ function configureLongFinMaterials(root: THREE.Object3D) {
     // the broader fin membrane only.
     if (object.name.includes('LFK_RAY')) { object.visible = false; return; }
     const materials = Array.isArray(object.material) ? object.material : [object.material];
+    // Q1-4 candidate: shared fish surface (materials are shared by clones; installation is idempotent).
+    if (object.name.includes('LFK_BODY')) materials.forEach(material => installFishSurface(material, LONG_FIN_BODY_SURFACE));
     if (!object.name.includes('LFK_FIN')) return;
-    materials.forEach(material => {
-      material.transparent = true; material.depthWrite = false;
-      if (material instanceof THREE.MeshPhysicalMaterial) material.transmission = 0;
-      material.needsUpdate = true;
-    });
+    materials.forEach(material => { prepareFinMembrane(material); installFishSurface(material, FISH_FIN_MEMBRANE); });
   });
 }
 

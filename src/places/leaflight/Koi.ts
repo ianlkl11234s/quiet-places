@@ -3,6 +3,10 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
 import {sampleKoiMotion, type KoiIndex} from './KoiMotion.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
+import {FISH_FIN_MEMBRANE, installFishSurface, prepareFinMembrane, type FishBodySurface} from '../../shared/biology/fish-surface/index.ts';
+
+/** Q1-4 candidate: shared fish surface on the Kohaku body (art calibration). */
+const KOI_BODY_SURFACE: FishBodySurface = {role: 'body', countershade: .06, sheen: .20, sheenTint: new THREE.Color(1, .95, .86)};
 
 export type BlenderKoi = {
   /** `elapsed` is the single animation clock; supplying the same value restores the same pose. */
@@ -87,7 +91,12 @@ function cloneMaterialsAndConfigure(root: THREE.Object3D, daylight: {value: numb
     const materials = source.map(material => {
       const instance = material.clone();
       ownedMaterials.add(instance);
+      // Q1-4: membranes drop the transmission pass (fin-edge halo) and use the
+      // shared fin layer; rays keep their opaque shading but trimmed specular.
+      if (instance.name === 'KOI_MAT_FIN') prepareFinMembrane(instance);
       if (isOpaque(instance)) installDiffuseFill(instance, daylight, sun);
+      if (instance.name.startsWith('KOI_MAT_FIN')) installFishSurface(instance, FISH_FIN_MEMBRANE);
+      else if (instance.name === 'KOI_MAT_KOHAKU') installFishSurface(instance, KOI_BODY_SURFACE);
       return instance;
     });
     object.material = Array.isArray(object.material) ? materials : materials[0];

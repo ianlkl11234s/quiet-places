@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import {FISH_FIN_MEMBRANE,installFishSurface,type FishBodySurface} from '../../shared/biology/fish-surface/index.ts';
+/** Q1-4 candidates: countershading on top of the vertex-colour belly, cool grazing sheen. */
+export const CHROMIS_BODY_SURFACE:FishBodySurface={role:'body',countershade:.10,sheen:.25,sheenTint:new THREE.Color(.82,1,.95)};
 
 export interface ChromisVisuals { root: THREE.Group; update(elapsed:number):void; dispose():void; }
 
@@ -12,6 +15,7 @@ export function createChromisVisuals(count:number, phases:Float32Array, lengths:
   const eyes=new THREE.InstancedMesh(eyeGeometry,new THREE.MeshStandardMaterial({color:'#172729',roughness:.52}),count); eyes.name='CHROMIS_EYES';
   // Keep the school inexpensive in the directional-light shadow pass, but let
   // the standard material sample the arcade's existing shadow map.
+  installFishSurface(body.material,CHROMIS_BODY_SURFACE);installFishSurface(fins.material,FISH_FIN_MEMBRANE);
   for(const mesh of [body,fins,eyes]){mesh.castShadow=false;mesh.receiveShadow=true;mesh.frustumCulled=false;root.add(mesh);}
   const matrix=new THREE.Matrix4(); for(let i=0;i<count;i++){matrix.makeScale(lengths[i],lengths[i],lengths[i]);body.setMatrixAt(i,matrix);fins.setMatrixAt(i,matrix);eyes.setMatrixAt(i,matrix);} body.instanceMatrix.needsUpdate=true;fins.instanceMatrix.needsUpdate=true;eyes.instanceMatrix.needsUpdate=true;
   return {root,update(elapsed){for(const material of [body.material,fins.material])setTime(material,elapsed);},dispose(){for(const mesh of [body,fins,eyes]){mesh.geometry.dispose();(mesh.material as THREE.Material).dispose();}root.clear();}};

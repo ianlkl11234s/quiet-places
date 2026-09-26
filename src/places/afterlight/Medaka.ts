@@ -14,11 +14,13 @@ function installAfterlightMaterials(root:THREE.Object3D):THREE.Material[]{
     // `prepareSharedMedaka` has already cloned and variant-tinted this material.
     // Keep this shader byte-for-byte equivalent to the established room adapter.
     const bounce={value:0};material.userData.medakaBounce=bounce;
-    material.onBeforeCompile=shader=>{shader.uniforms.medakaBounce=bounce;shader.fragmentShader='uniform float medakaBounce;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`#include <lights_fragment_maps>
+    // Chains the shared fish-surface hook installed by the shared factory (Q1-4).
+    const previous=material.onBeforeCompile,previousKey=material.customProgramCacheKey;
+    material.onBeforeCompile=(shader,renderer)=>{previous.call(material,shader,renderer);shader.uniforms.medakaBounce=bounce;shader.fragmentShader='uniform float medakaBounce;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',`#include <lights_fragment_maps>
             vec3 bounceNormal = inverseTransformDirection(geometryNormal, viewMatrix);
             float bounceFacing = .35 + .65 * max(0., dot(bounceNormal, normalize(vec3(.25, .8, .35))));
             irradiance += vec3(.78, .85, .80) * medakaBounce * bounceFacing;
-          `);};material.customProgramCacheKey=()=> 'medaka-local-skylight-bounce-v1';material.needsUpdate=true;
+          `);};material.customProgramCacheKey=()=>`${previousKey.call(material)}|medaka-local-skylight-bounce-v1`;material.needsUpdate=true;
   }});return materials;
 }
 

@@ -56,3 +56,5 @@
 - [商店街攀緣植物](arcade-climbers.md)：潮風商店街的原創未定物種寬葉、草叢、附著枝網與低頻天空遮蔽；生物學與實機未驗證。
 
 - [黑潮商店街生物](../kuroshio-arcade-biology.md)：大鬼蝠魟、鯨鯊、Chromis與雙帶烏尾鮗；原創程序模型與群游、[參數證據](../kuroshio-arcade-parameter-evidence.md)、[原任務書](references/kuroshio-arcade-spec-v1.md)。本機候選，非生物學／實機最終驗收。
+
+- 共用運動與材質層（2026-09-26 候選，待使用者確認）：`src/shared/biology/locomotion/`（轉向控制器、f=f0+U/(k·BL)、懸停）與 `src/shared/biology/fish-surface/`（背深腹淺、掠射鱗片光澤、鰭層）。單位與慣例寫在程式註解；各物種參數與量測見 [長鰭錦鯉](long-fin-koi.md)、[錦鯉](koi.md)、[青鱂](medaka.md)、[黑潮小魚](kuroshio-small-schools.md) 的 2026-09-26 節。
