@@ -88,3 +88,15 @@ Node測試26/26與build通過，涵蓋16實例、重用造型的骨架／動畫�
 光柱回游力改為追隨各魚的活動中心，中心與房間邊界保留1.1m餘量；靠牆0.8m內另加柔性回游力，只改速度、不直接clamp魚位置。保留短暫加速、柔化光束與原場景燈光；魚進暗處自然降低受光，不新增自發光。
 
 20分鐘數值測試：4隻均曾越過投影開口半徑2.35m並返回1.5m內，最大速度0.307999m/s，最小中心間距0.626520m，保持牆面餘量與同時最多兩隻加速。此明暗指標是開口投影近似，非逐魚照度量測。26項測試與build通過（exports/long-fin-koi-integration/tests-excursions.log與build-excursions.log）。CUA reload目前5182預覽後，實際可見光柱右側的深色魚輪廓。未提交或發布，基準仍為25bc75f。
+
+
+## 2026-09-26：Q0-6／Q1-3a／Q1-4 候選（待使用者確認）
+
+分支 `claude/visual-quality`，本機候選；每項可單獨退回，數值均為美術校準。
+
+- 生物事實（一般觀察，本次未重新核對原始文獻，不引用數值）：身體-尾鰭推進魚類的擺尾頻率大致隨游速線性上升；轉彎時身體呈 C 形彎曲、常向轉彎內側傾斜；懸停時多以胸鰭維持姿態。
+- 美術近似（Q0-6，`src/places/waterlight/LongFinKoiMotion.ts` 的 `LONG_FIN_KOI_HEADING`）：改用共用 `stepHeading`。速度 <1.0 cm/s 保持朝向、2.2 cm/s 起完全跟隨；偏航上限 40°/s（τ .25 s）；俯仰 ±20°、20°/s；側傾 = 8°·tanh(偏航率/35°/s)，平滑 τ .4 s。巡游時以 `constrainTravelToHeading` 讓行進方向與鼻端夾角 ≤30°、爬升 ≤30°（魚沿身體方向推進，不側滑）；速度大小與群游力不變。
+- 轉彎動畫（`FishSchool.ts` `actionFor`）：實際轉彎強度 |turn|>.6 時播 TURN_LEFT／TURN_RIGHT（GLB 量測：TURN_LEFT 尾端偏 -X，即左轉內側）；原本依 behavior 的 left/right 改回 SLOW_CRUISE。
+- 20 分鐘數值（seed 0x51f15）：俯仰最大 20.000°、偏航率最大 40.000°/s、懸停（<1 cm/s）偏航 0°/s、巡游側滑 ≤30.0°、側傾最大 6.52°、偏航率 >20°/s 時向內側傾 99.5%。群游：最小中心距 .465 m（原 .63，門檻 .45，餘量變小）、最大速度 .309 m/s、光柱半徑 2.89（≤3）。
+- 材質（Q1-4，`src/shared/biology/fish-surface/`）：身體 countershade .08、sheen .25（冷白）；鰭 transmission=0（原已如此）+ 共用鰭層（正視 alpha ×.75、正面漫射 ×.75、鏡面 ×.4、陰影感知背光透射 .25）。
+- 證據：`exports/quality-q0q1-20260926/biology/`（before／after 四時段裁切、連拍）。未做：實機、使用者確認。

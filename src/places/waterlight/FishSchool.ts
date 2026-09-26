@@ -3,12 +3,24 @@ import * as THREE from 'three';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {collectModelResources, disposeModelResources} from '../../shared/resources/ModelResources.ts';
-import {createLongFinKoiSchool, type LongFinKoiBehavior, type LongFinKoiSchool} from './LongFinKoiMotion.ts';
+import {createLongFinKoiSchool, type LongFinKoiBehavior, type LongFinKoiPose, type LongFinKoiSchool} from './LongFinKoiMotion.ts';
 
 export type FishSchoolState = LightingState;
 export type FishSchool = {update: (dt: number, elapsed: number, state: FishSchoolState) => void; dispose: () => void; inspect: () => ReturnType<LongFinKoiSchool['inspect']>};
 export type FishSchoolFactory = ((scene: THREE.Scene) => FishSchool) & {dispose: () => void};
 const ACTION: Record<LongFinKoiBehavior, string> = {hover: 'IDLE_HOVER', slow: 'SLOW_CRUISE', glide: 'GLIDE', left: 'TURN_LEFT', right: 'TURN_RIGHT', rise: 'SLIGHT_RISE', descend: 'SLIGHT_DESCEND', pause: 'PAUSE'};
+
+/**
+ * Q0-6: turn clips follow the presented (actual) yaw rate, not the steering
+ * intent. TURN_LEFT bends the tail toward -X (measured on the GLB), which is the
+ * inside of a positive-yaw-rate turn in the shared locomotion convention.
+ */
+function actionFor(pose: LongFinKoiPose): string {
+  const swimming = pose.behavior !== 'hover' && pose.behavior !== 'pause';
+  if (swimming && Math.abs(pose.turn) > .6) return pose.turn > 0 ? 'TURN_LEFT' : 'TURN_RIGHT';
+  if (pose.burst > .15 || pose.behavior === 'left' || pose.behavior === 'right') return 'SLOW_CRUISE';
+  return ACTION[pose.behavior];
+}
 
 function configureLongFinMaterials(root: THREE.Object3D) {
   root.traverse(object => {
@@ -95,7 +107,7 @@ export async function prepareLongFinKoiSchool(): Promise<FishSchoolFactory> {
       update(dt, _elapsed, state) {
         if (disposed) return; motion.update(dt, {angle: state.angle, activity: state.activity});
         motion.poses().forEach((pose, index) => {
-          const item = fish[index], name = pose.burst > .15 ? 'SLOW_CRUISE' : ACTION[pose.behavior]; item.carrier.position.copy(pose.position); item.carrier.quaternion.copy(pose.quaternion);
+          const item = fish[index], name = actionFor(pose); item.carrier.position.copy(pose.position); item.carrier.quaternion.copy(pose.quaternion);
           const blend = 1 - Math.exp(-(Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, .25) : 0) / 1.5);
           item.actions.forEach((action, key) => {
             const weight = THREE.MathUtils.lerp(item.weights.get(key) ?? 0, key === name ? 1 : 0, blend); item.weights.set(key, weight); action.setEffectiveWeight(weight);
