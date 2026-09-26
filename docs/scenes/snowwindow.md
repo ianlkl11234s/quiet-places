@@ -159,3 +159,8 @@
 - 座標注意：room root 會依視角在 x 平移，必須用平台局部座標；第一版誤用世界座標產生大片硬邊暗區，已修正。
 - 亮度：凍結 elapsed 正午，積雪像素均值 191.02 → 191.19、整幀 104.55 → 104.56（未改變已確認亮度）；亮點 >8 階 637 px。
 - 退回：`SILL_SNOW_SPARKLE=0`、`SILL_SNOW_SOFT_EDGE=0`（皆 0 時不注入任何 shader）。證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/snowwindow-*`、`snow-noon-zoom.jpg`。
+
+## 2026-09-27：J3 流場、J4 marine snow（候選待使用者確認）
+- 生物、顆粒都讀同一個 `motion.sampleFlow`（背景加尾流渦環）。細節、數值、等級見 `docs/biology/aurelia-clione.md` 的 J3／J4 段。
+- `?marineSnow=off|particles|particles-dense`，預設 `particles`（待定）。只有 `WINDOW_SHAFT` 窗光體積（C）內可見，灰階、無 emission。在 `creatures.update` 之後更新。進場或倒帶時，dense 重算約 .47 s。
+- 檢視頁 `tools/snowwindow-biology/flow-scene.html`：固定 elapsed，提供像素檢查 `__measure` 與傘下位移 `__underBell`。

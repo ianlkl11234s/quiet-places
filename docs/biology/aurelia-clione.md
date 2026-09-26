@@ -115,7 +115,7 @@ glTF 是兩秒 morph + root 動画的 QA 匯出版本；網站仍直接執行同
 - 取消「永遠朝上」：每拍開始鎖定轉向（`JELLY_ATTITUDE`）。目標傾角 5–29° 平滑決定性分布 + 每 41／47／53 s 一次約 12 s 的傾斜巡航（C 編舞）；水平方向由漫遊、回家區域與邊界組成。只在收縮期施加扭矩（扇區不對稱 + skid，速度不重新對準）；被動翻正扭矩 .07，傾角 >30° 時加強；|ω| ≤ .4 rad/s。機制 A（Costello 2024、Hoover 2021），數值 B/C。
 - 扇區不對稱：lead 側提前 .07 週期、振幅 +16%（`AURELIA_TURN`），扇區響應延伸到 r≈.4，網格上可見一側先收縮（測試量 margin 半徑）。B。
 - 口腕延遲：PBD 口腕節點受「延遲的尾流」徑向加速度，延遲 = 深度 ÷ (.5 D/s) 的對流時間（`ARM_WAKE`）。B/C。
-- 對 J3 預留：`motion.beatEvents`／`beatEventsSince(t)`，每拍 `contraction` 與 `relaxation` 事件（世界座標位置、軸向、衝量 proxy N·s、直徑、turn、turnDirection、time），倒帶決定性重建，保留最近 64 筆。
+- 對 J3 預留：`motion.beatEvents`／`beatEventsSince(t)`，每拍 `contraction` 與 `relaxation` 事件（世界座標位置、軸向、衝量 proxy N·s、直徑、turn、turnDirection、time），倒帶決定性重建，保留最近 64 筆（J3 起改為 128 筆，見下）。
 
 **60 秒統計**（`tools/snowwindow-biology/aurelia-motion-stats.ts`，輸出 `exports/quality-j-20260927/J1-J2/aurelia-motion-summary.csv`／`-60s.csv`）
 
@@ -136,3 +136,42 @@ glTF 是兩秒 morph + root 動画的 QA 匯出版本；網站仍直接執行同
 **畫面證據**：`exports/quality-j-20260927/J1-J2/{before,after}/`（近看正面／側面／逆光／俯視、近看決定性連拍 8 張 0.5 s、場景連拍 8 張約 0.55–0.7 s、四時段與四宮格）。近看頁 `tools/snowwindow-biology/aurelia-light.html?view=front|side|back|top&t=&motion=1`，光照只供檢查用。灰階：四時段水母區域無 ≥250 像素；俯視中心 15.3 < 邊緣 23.0，逆光 61.3 < 87.6，正面 26.8 < 30.2。
 
 **未證明／風險**：遠景水母比前版淡很多，辨識度需使用者判斷；傘頂仍是舊幾何的尖錐；三隻水母共用全域 renderOrder，互相重疊時排序可能錯；Blender 匯出（`scripts/export-snow-creatures.ts`）會把共用 geometry 的傘面匯出多次，未重烘；手機 FPS 未測。
+
+### 2026-09-27 J3 流場與耦合（候選待使用者確認）
+
+- **統一取樣**：`createCreatureMotion().sampleFlow(p,t,excludeSource?,out?)`（`src/places/snowwindow/CreatureMotion.ts`）＝ 背景 `backgroundCurrent`（原 J2 三個解析模態 ＋ 三個低頻 curl-noise 模態，`src/shared/biology/VirtualFluid.ts`）＋ 所有 `time ≤ t` 的尾流渦環。背景在預設 gain .494 下 p50 .55、p95 .97、max 1.31 cm/s（研究帶 0.5–2 cm/s）。curl 層振幅 C。
+- **渦環**（`WAKE`、`ringFromBeat`、`addRingVelocity`、`createWakeField`）：每個 `beatEvents` 事件產生一個 Lagrangian 環。收縮 → starting ring（半徑 .40 D，於 −.20 D，沿 −axis 漂移）；舒張 → stopping ring（.34 D，於 −.10 D，傘下不漂移，方向相反）。Rosenhead–Moore 平滑 Biot–Savart，12 段中點積分；Γ(age) = 行程內平滑上升 × exp(−age/.8T) × 窗函數，3 拍時恰為 0。環心為年齡的解析函數，因此可在任意過去時刻取樣（倒帶、顆粒重算）。機制 A（Gemmell 2013）、幾何 B、強度 C。
+- **強度誠實說明**：由衝量 proxy 換算 Γ_I = I/(ρπR²) ≈ 9e-5 m²/s，傘下軸向流 < .05 cm/s，看不見。`circulationGain` 120（C）把 Γ0 提到 ≈ .0105 m²/s（JELLY_A）。這不是 Aurelia 實測環量；`driftGain` 3 也是 C。
+- **單向耦合**：水母 root 阻力排除自己的環（推進已在 PULSE/PER）；裸海蝶 root 阻力讀完整場（未動 `clione/*`）。口腕與觸手導引鏈每個 120 Hz 步、每個節點透過 `AureliaControls.sampleFlow` 讀場（含自己的環，扣掉本體速度，轉到局部座標）：加速度 = drag·u − restore·(x − 下垂靜止姿態)（`APPENDAGE_FLOW` arm 90/28、tentacle 16/26，B 機制／C 數值）。**J2 的 `ARM_WAKE` 已移除**，延遲只來自真實渦環。沒有 sampler 的呼叫端仍用舊的常數 `relativeFlow`。
+- `beatEvents` 與環保留上限改為 `BEAT_EVENT_CAPACITY` = 128（約 60 s）；事件新增 `frequency`、`activity`。獨立測試用 `createLocalWakeSampler`（同一組 `ringFromBeat`／`addRingVelocity`，不是第二套模型）。
+
+| 驗收 | 數值 | 目標 |
+|---|---|---|
+| 散度（有限差分，含環附近） | 最大相對值 8.0e-6 | ≈ 0 |
+| 環量衰減 | 2 拍 .082，3 拍 = 0 | 2–3 拍內 |
+| 傘下 .5 D 向下峰值（每拍中位） | A 2.24、B 2.62、C 2.79 cm/s | 可量測 |
+| 口腕延遲（場景內，60 s） | .272／.253／.193 拍（相關 .83／.84／.79） | .15–.35 |
+| 口腕延遲（獨立，D .30、.38 Hz） | .272 拍（相關 .97） | .15–.35 |
+| J2 統計 | 頻率誤差 ≤ .6%、傾角中位 15.7／10.9／11.0°、>25° 14.9／7.0／8.1% | 維持 J2 |
+| 決定性 | 倒帶／暫停／不同 frame 切分下 `sampleFlow` 完全相同 | 測試 |
+
+證據：`exports/quality-j-20260927/J3-J4/after/J3-flow-summary.json`、`J3-ring-decay.csv`、`J3-below-bell-60s.csv`、`J3-aurelia-motion/`（工具 `tools/snowwindow-biology/flow-stats.ts`、`aurelia-motion-stats.ts`）。
+風險：口腕相關係數比 J2 低（.79–.84 對 .82–.98）；restore 彈簧讓口腕比 J1 更挺，需使用者看動態確認；Γ 增益 120 是美術值。
+
+### 2026-09-27 J4 光錐內 marine snow（候選待使用者確認）
+
+- `src/places/snowwindow/MarineSnow.ts`：模式 `off`／`particles`（1800）／`particles-dense`（3000），節能品質 60%；目前預設 `particles`，最終預設由主 agent／使用者決定。場景 URL `?marineSnow=`。
+- 平流：固定 1/30 s Euler 格點，壽命 14 s（淡入淡出 1.6 s），沉降 .3 mm/s（C）。60% 生成在水母最近一次拍動位置附近（σ .34 m），其餘均勻分布。粒子位置只依（編號、世代、elapsed）決定；倒帶或跳時間時從世代起點重算。模式只改數量，同一編號的軌跡在各模式相同。
+- 可見範圍：`WINDOW_SHAFT` 是美術定義的窗光體積（C，不是陰影計算）：窗面 z = −4.42 上 x −.95..2.45、y 2.55..4.45 的開口，光向 (.22,−.42,1)，內側軟邊 .32 m、深度衰減 2.1 m。開口外 mask = 0，shader 直接 clip＋discard；TS 與 GLSL 兩份實作。在水母區域內約 25–80% 的體積是暗的。
+- 外觀：R=G=B 灰（.92 × 光量），NormalBlending，無 emission，不寫深度，亮度低於 bloom 門檻；點 1.3–2.4 px，距離越遠越淡，鏡頭前 1 m 內淡出；alpha × (.1 + .9 × visibility)。
+
+| 驗收 | 結果 |
+|---|---|
+| 光錐外 alpha 0 | 單元測試（開口外、玻璃後都是 0）；像素：327／534 個錐外粒子位置在開／關兩張渲染間 0 個像素改變；所有改變的像素都在錐內粒子 3 px 內 |
+| 灰階 | 粒子像素飽和度平均 .04–.25，四時段都低於同位置背景（.11–.48），也就是只會降低飽和度；shader 為 R=G=B |
+| 月夜 | 亮度差平均 10.4／最大 27 階（正午 20.0／113） |
+| 被推開 | 測試：多拍平均，傘下 1 D 內示蹤粒子收縮後 .3 拍沿 −axis 位移 < −3 mm；場景畫面 JELLY_A 43.30→44.30 s 中位 −6.7 mm ≈ 3.1 px（dense）、−4.7 mm ≈ 2.4 px（particles） |
+| 效能（桌機 1600×900，dpr 1，60 s rAF） | off p50 8.2／p95 10.0 ms；particles 8.1／9.9；dense 8.1／10.0。Node：dense 每幀 CPU 約 1.0 ms；進場／倒帶一次重算約 .47 s（dense）|
+
+**判讀**：在場景相機距離（2.2–3.3 m）下，每拍把傘下粒子推開約 2–3 px，靜態截圖看不太出來，要看連續動態；畫面中主要的運動是背景流造成的整體漂移。證據：`exports/quality-j-20260927/J3-J4/after/J4-*`（裁切前後與差異合成、8 張連拍與軌跡合成、off／particles／dense、四時段、`J4-pixel-checks-four-moments.json`、`J4-perf-frame-interval.json`），`before/J4-off-*`。固定 elapsed 的檢視頁：`tools/snowwindow-biology/flow-scene.html?t=&hour=&marineSnow=`（沒有 bloom pass）。
+未完成：手機 FPS 未測；J1 後續（傘頂圓弧、每幀 renderOrder）未做。

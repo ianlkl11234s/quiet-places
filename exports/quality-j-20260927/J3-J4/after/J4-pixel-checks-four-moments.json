@@ -1,0 +1,198 @@
+{
+ "particles": [
+  {
+   "t": 43.3,
+   "hour": 6.5,
+   "drawn": 1800,
+   "litOnScreen": 1209,
+   "unlitOnScreen": 344,
+   "unlitChecked": 327,
+   "unlitChanged": 0,
+   "changedPixels": 1029,
+   "changedPixelsNearLit": 1029,
+   "particlePixelSaturation": {
+    "mean": 0.08262917444173355,
+    "p95": 0.14285714285714285
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.24085909176307715,
+    "p95": 1
+   },
+   "saturationIncrease": -0.15822991732134362,
+   "lumaDeltaChangedPixels": {
+    "mean": 14.160673793326852,
+    "max": 67
+   }
+  },
+  {
+   "t": 43.3,
+   "hour": 12,
+   "drawn": 1800,
+   "litOnScreen": 1209,
+   "unlitOnScreen": 344,
+   "unlitChecked": 327,
+   "unlitChanged": 0,
+   "changedPixels": 1127,
+   "changedPixelsNearLit": 1127,
+   "particlePixelSaturation": {
+    "mean": 0.10967831186878191,
+    "p95": 0.1901840490797546
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.17294661235033396,
+    "p95": 0.3137254901960784
+   },
+   "saturationIncrease": -0.06326830048155205,
+   "lumaDeltaChangedPixels": {
+    "mean": 20.020408163265298,
+    "max": 113
+   }
+  },
+  {
+   "t": 43.3,
+   "hour": 17.5,
+   "drawn": 1800,
+   "litOnScreen": 1209,
+   "unlitOnScreen": 344,
+   "unlitChecked": 327,
+   "unlitChanged": 0,
+   "changedPixels": 1104,
+   "changedPixelsNearLit": 1104,
+   "particlePixelSaturation": {
+    "mean": 0.03710420676969341,
+    "p95": 0.11851851851851852
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.1187735666176619,
+    "p95": 0.5
+   },
+   "saturationIncrease": -0.0816693598479685,
+   "lumaDeltaChangedPixels": {
+    "mean": 19.423913043478255,
+    "max": 104
+   }
+  },
+  {
+   "t": 43.3,
+   "hour": 23,
+   "drawn": 1800,
+   "litOnScreen": 1209,
+   "unlitOnScreen": 344,
+   "unlitChecked": 327,
+   "unlitChanged": 0,
+   "changedPixels": 877,
+   "changedPixelsNearLit": 877,
+   "particlePixelSaturation": {
+    "mean": 0.25519226745531326,
+    "p95": 0.5
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.48318247814754256,
+    "p95": 0.7
+   },
+   "saturationIncrease": -0.2279902106922293,
+   "lumaDeltaChangedPixels": {
+    "mean": 10.411630558722916,
+    "max": 27
+   }
+  }
+ ],
+ "particles-dense": [
+  {
+   "t": 43.3,
+   "hour": 6.5,
+   "drawn": 3000,
+   "litOnScreen": 2009,
+   "unlitOnScreen": 568,
+   "unlitChecked": 534,
+   "unlitChanged": 0,
+   "changedPixels": 1727,
+   "changedPixelsNearLit": 1727,
+   "particlePixelSaturation": {
+    "mean": 0.08028732080588799,
+    "p95": 0.14285714285714285
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.22555967749310005,
+    "p95": 1
+   },
+   "saturationIncrease": -0.14527235668721206,
+   "lumaDeltaChangedPixels": {
+    "mean": 14.283729009843661,
+    "max": 67
+   }
+  },
+  {
+   "t": 43.3,
+   "hour": 12,
+   "drawn": 3000,
+   "litOnScreen": 2009,
+   "unlitOnScreen": 568,
+   "unlitChecked": 534,
+   "unlitChanged": 0,
+   "changedPixels": 1902,
+   "changedPixelsNearLit": 1902,
+   "particlePixelSaturation": {
+    "mean": 0.10987787776403886,
+    "p95": 0.1901840490797546
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.1802125651875122,
+    "p95": 0.3333333333333333
+   },
+   "saturationIncrease": -0.07033468742347333,
+   "lumaDeltaChangedPixels": {
+    "mean": 20.1328426218016,
+    "max": 113
+   }
+  },
+  {
+   "t": 43.3,
+   "hour": 17.5,
+   "drawn": 3000,
+   "litOnScreen": 2009,
+   "unlitOnScreen": 568,
+   "unlitChecked": 534,
+   "unlitChanged": 0,
+   "changedPixels": 1856,
+   "changedPixelsNearLit": 1856,
+   "particlePixelSaturation": {
+    "mean": 0.03607611875622642,
+    "p95": 0.11278195488721804
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.11386986938692137,
+    "p95": 0.5
+   },
+   "saturationIncrease": -0.07779375063069495,
+   "lumaDeltaChangedPixels": {
+    "mean": 19.59500718390805,
+    "max": 104
+   }
+  },
+  {
+   "t": 43.3,
+   "hour": 23,
+   "drawn": 3000,
+   "litOnScreen": 2009,
+   "unlitOnScreen": 568,
+   "unlitChecked": 534,
+   "unlitChanged": 0,
+   "changedPixels": 1490,
+   "changedPixelsNearLit": 1490,
+   "particlePixelSaturation": {
+    "mean": 0.2544213956861314,
+    "p95": 0.5
+   },
+   "backgroundSaturationSamePixels": {
+    "mean": 0.48217589170405506,
+    "p95": 0.7
+   },
+   "saturationIncrease": -0.22775449601792364,
+   "lumaDeltaChangedPixels": {
+    "mean": 10.371364653243852,
+    "max": 27.333333333333332
+   }
+  }
+ ]
+}

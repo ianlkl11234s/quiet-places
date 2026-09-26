@@ -8,6 +8,7 @@ import {createOakMaterial,createPlasterMaterial,createWinterGlassMaterial} from 
 import {createSnowField} from './Snow.ts';
 import {createWinterExterior} from './Exterior.ts';
 import {createSnowCreatures} from './Creatures.ts';
+import {anchorFromBeatEvents,createMarineSnow,MARINE_SNOW_MODES,type MarineSnowMode} from './MarineSnow.ts';
 
 export async function prepareSnowwindow():Promise<PlaceFactory>{
  RectAreaLightUniformsLib.init();
@@ -33,6 +34,11 @@ export async function prepareSnowwindow():Promise<PlaceFactory>{
   for(const texture of [glassMaterial.normalMap])if(texture){texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(59.968/11.94,19.185/3.74);texture.needsUpdate=true;}glass.position.set(28.86,10.39,-4.42);root.add(glass);
   const exterior=createWinterExterior();root.add(exterior.group);
   const creatures=createSnowCreatures({clioneCount:7,environment:glassMaterial.envMap as THREE.CubeTexture|null});root.add(creatures.group);
+  // J4 candidate A/B: ?marineSnow=off|particles|particles-dense (default particles until the user chooses).
+  const requested=typeof location==='undefined'?null:new URLSearchParams(location.search).get('marineSnow');
+  // Spawn clusters follow each jelly's latest beat position at spawn time (deterministic: beat events are replayed on rewind).
+  const anchor=anchorFromBeatEvents(()=>creatures.motion.beatEvents);
+  const marineSnow=createMarineSnow({sampleFlow:(p,t,out)=>creatures.motion.sampleFlow(p,t,undefined,out),anchor,mode:MARINE_SNOW_MODES.includes(requested as MarineSnowMode)?requested as MarineSnowMode:'particles'});root.add(marineSnow.points);
   const falling=createSnowField();root.add(falling.points);
   const curtains=createCurtains();root.add(curtains.group);
   // A small residual room bounce, not unoccluded exterior illumination.
@@ -57,8 +63,10 @@ export async function prepareSnowwindow():Promise<PlaceFactory>{
     snowBounce.color.copy(light.tint);snowBounce.intensity=.004+.16*light.visibility;
     glassMaterial.envMapIntensity=.65*light.visibility;exterior.update(elapsed,light);
     falling.update(elapsed,light.visibility,state.lowQuality);curtains.update(elapsed);creatures.update(elapsed,light.visibility);
+    // after creatures: the wake rings for this elapsed exist before particles sample them
+    marineSnow.update(elapsed,light.visibility,state.lowQuality,renderer.domElement.height);
    },
-   disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;creatures.dispose();falling.dispose();curtains.dispose();exterior.dispose();exterior.group.removeFromParent();oak.dispose();plaster.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
+   disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;marineSnow.dispose();creatures.dispose();falling.dispose();curtains.dispose();exterior.dispose();exterior.group.removeFromParent();oak.dispose();plaster.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
   };
  };
  return factory;

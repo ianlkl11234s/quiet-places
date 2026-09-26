@@ -1,0 +1,4 @@
+name,nominalHz,measuredHz,frequencyError,contractionShare,perShareInScene,perShareCalibrated,tiltMedianDeg,tiltP90Deg,tiltMaxDeg,tiltOver25Share,beats,maxBeatTurnDeg,medianBeatTurnDeg,maxAngularSpeed,armLagBeats,armLagCorrelation
+JELLY_A,0.32,0.3195,0.0015,0.200,0.364,0.323,15.7,29.1,33.3,0.149,19,22.1,3.8,0.367,0.272,0.832
+JELLY_B,0.37,0.3698,0.0005,0.198,0.362,0.324,10.9,22.3,30.1,0.070,22,13.4,1.7,0.219,0.253,0.840
+JELLY_C,0.4,0.3977,0.0058,0.201,0.377,0.322,11.0,24.1,29.6,0.081,24,19.7,2.1,0.290,0.193,0.788

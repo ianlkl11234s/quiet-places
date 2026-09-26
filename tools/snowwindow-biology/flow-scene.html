@@ -1,0 +1,49 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>雪窗流場 · 固定時刻</title><style>
+body{margin:0;background:#000}canvas{display:block}
+</style><script type="module">
+// J3/J4 inspection page: the real snowwindow place rendered at a FIXED elapsed (no player clock, no bloom pass).
+// ?t=seconds &hour=6.5|12|17.5|23 &marineSnow=off|particles|particles-dense (read by the place itself)
+// window.__render(t,hour) re-renders; window.__project(x,y,z) → pixel; window.__measure(t,hour) → pixel checks (JSON).
+import * as THREE from 'three';
+import {prepareSnowwindow} from '/src/places/snowwindow/index.ts';
+import {sampleTime} from '/src/systems/TimeOfDay.ts';
+import {windowShaftMask} from '/src/places/snowwindow/MarineSnow.ts';
+const q=new URLSearchParams(location.search);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(1);renderer.outputColorSpace=THREE.SRGBColorSpace;
+document.body.append(renderer.domElement);
+const scene=new THREE.Scene(),factory=await prepareSnowwindow(),place=factory(scene,renderer);
+renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=place.exposure??1;
+const camera=new THREE.PerspectiveCamera(place.fov??52,1,.05,400);camera.position.set(...place.position);camera.lookAt(...place.target);
+const root=scene.getObjectByName('snowwindow-room'),motion=()=>scene.getObjectByName('SNOW_CREATURES');
+let hour=Number(q.get('hour')??12),t=Number(q.get('t')??40);
+function render(nextT=t,nextHour=hour){t=nextT;hour=nextHour;place.update(0,t,{...sampleTime(hour),beamStrength:1,lowQuality:false});renderer.render(scene,camera);document.title=`flow t=${t.toFixed(3)} h=${hour}`;return t;}
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener('resize',()=>{resize();render();});resize();
+window.__render=render;
+window.__points=(visible)=>{scene.getObjectByName('snowwindow-marine-snow').visible=visible;render();};
+window.__underBell=(name,t0,t1,D)=>{ // median screen displacement (px) of marine-snow tracers within 1 D under a jelly's bell, t0→t1
+ const pts=scene.getObjectByName('snowwindow-marine-snow'),holder=scene.getObjectByName(name),snap=()=>Array.from(pts.geometry.getAttribute('position').array.slice(0,pts.geometry.drawRange.count*3));
+ render(t0);const a=snap(),c=holder.position.clone(),axis=new THREE.Vector3(0,0,1).applyQuaternion(holder.quaternion);render(t1);const b=snap(),out=[],along=[];
+ for(let i=0;i<a.length;i+=3){const p=new THREE.Vector3(a[i],a[i+1],a[i+2]),q=new THREE.Vector3(b[i],b[i+1],b[i+2]);if(p.distanceTo(q)>.1)continue;const r=p.clone().sub(c),s=r.dot(axis),radial=r.clone().addScaledVector(axis,-s).length();
+  if(s<-.1*D&&s>-D&&radial<.4*D){const [x0,y0]=window.__project(p.x,p.y,p.z),[x1,y1]=window.__project(q.x,q.y,q.z);out.push(Math.hypot(x1-x0,y1-y0));along.push(q.clone().sub(p).dot(axis)*1000);}}
+ const med=v=>{const s=[...v].sort((x,y)=>x-y);return s.length?s[s.length>>1]:null;};return {name,t0,t1,tracers:out.length,medianScreenPx:med(out),medianAlongAxis_mm:med(along)};};
+window.__project=(x,y,z)=>{root.updateMatrixWorld(true);const v=new THREE.Vector3(x,y,z).applyMatrix4(root.matrixWorld).project(camera);return [(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight];};
+// Pixel check: render with and without the marine-snow points at the same elapsed/hour and compare.
+// Unlit particles (TS twin of the shader mask = 0) must change no pixel; lit particle pixels are checked for saturation.
+const grab=()=>{const c=document.createElement('canvas');c.width=renderer.domElement.width;c.height=renderer.domElement.height;const g=c.getContext('2d');g.drawImage(renderer.domElement,0,0);return g.getImageData(0,0,c.width,c.height).data;};
+const sat=(r,g,b)=>{const mx=Math.max(r,g,b),mn=Math.min(r,g,b);return mx===0?0:(mx-mn)/mx;};
+window.__measure=(mt=t,mh=hour)=>{
+ const points=scene.getObjectByName('snowwindow-marine-snow');render(mt,mh);const A=grab();points.visible=false;render(mt,mh);const B=grab();points.visible=true;render(mt,mh);
+ const W=renderer.domElement.width,H=renderer.domElement.height,pos=points.geometry.getAttribute('position'),fade=points.geometry.getAttribute('aFade'),n=points.geometry.drawRange.count;
+ const lit=[],unlit=[];for(let i=0;i<Math.min(n,pos.count);i++){const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i),m=windowShaftMask(x,y,z);const [sx,sy]=window.__project(x,y,z);if(sx<0||sy<0||sx>=W||sy>=H)continue;(m>0&&fade.getX(i)>0?lit:unlit).push([Math.round(sx),Math.round(sy)]);}
+ const near=new Uint8Array(W*H);for(const [x,y] of lit)for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<W&&Y<H)near[Y*W+X]=1;}
+ let changed=0,changedNearLit=0,unlitChecked=0,unlitChanged=0,sp=[],sb=[],dl=[];
+ for(let k=0;k<W*H;k++){const j=k*4,d=Math.max(Math.abs(A[j]-B[j]),Math.abs(A[j+1]-B[j+1]),Math.abs(A[j+2]-B[j+2]));if(d>2){changed++;if(near[k]){changedNearLit++;sp.push(sat(A[j],A[j+1],A[j+2]));sb.push(sat(B[j],B[j+1],B[j+2]));dl.push((A[j]+A[j+1]+A[j+2]-B[j]-B[j+1]-B[j+2])/3);}}}
+ for(const [x,y] of unlit){if(near[y*W+x])continue;unlitChecked++;const j=(y*W+x)*4;if(Math.max(Math.abs(A[j]-B[j]),Math.abs(A[j+1]-B[j+1]),Math.abs(A[j+2]-B[j+2]))>0)unlitChanged++;}
+ const mean=v=>v.length?v.reduce((a,b)=>a+b,0)/v.length:0,q=(v,f)=>{const s=[...v].sort((a,b)=>a-b);return s.length?s[Math.floor(f*(s.length-1))]:0;};
+ return {t:mt,hour:mh,drawn:n,litOnScreen:lit.length,unlitOnScreen:unlit.length,unlitChecked,unlitChanged,changedPixels:changed,changedPixelsNearLit:changedNearLit,
+  particlePixelSaturation:{mean:mean(sp),p95:q(sp,.95)},backgroundSaturationSamePixels:{mean:mean(sb),p95:q(sb,.95)},saturationIncrease:mean(sp)-mean(sb),lumaDeltaChangedPixels:{mean:mean(dl),max:dl.length?Math.max(...dl):0}};
+};
+render();render();
+window.__ready=true;
+</script></html>

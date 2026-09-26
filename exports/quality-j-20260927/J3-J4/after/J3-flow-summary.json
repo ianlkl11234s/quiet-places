@@ -1,0 +1,36 @@
+{
+ "background_cm_s": {
+  "gain": 0.49400000000000005,
+  "p5": 0.216,
+  "p50": 0.552,
+  "p95": 0.964,
+  "max": 1.305
+ },
+ "wakeDownBelowBell_cm_s": [
+  {
+   "name": "JELLY_A",
+   "beats": 14,
+   "medianPeak": 2.239,
+   "maxPeak": 2.974
+  },
+  {
+   "name": "JELLY_B",
+   "beats": 14,
+   "medianPeak": 2.616,
+   "maxPeak": 3.449
+  },
+  {
+   "name": "JELLY_C",
+   "beats": 16,
+   "medianPeak": 2.785,
+   "maxPeak": 3.663
+  }
+ ],
+ "ringJELLY_A": {
+  "circulation_m2_s": 0.01053,
+  "radius_m": 0.12,
+  "gammaAt2Beats": 0.0821,
+  "gammaAt3Beats": 0
+ },
+ "maxRelativeDivergence": 0.000008023739631793345
+}
