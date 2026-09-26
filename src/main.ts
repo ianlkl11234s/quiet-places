@@ -129,6 +129,8 @@ async function start(){
  }
  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
+ function applyBloom(){bloom.strength=place.bloom?.strength??.19;bloom.radius=place.bloom?.radius??.65;bloom.threshold=place.bloom?.threshold??1.05;}
+ applyBloom();
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,last=performance.now(),lastPresented=last,raf=0,lost=false;
  const bubbleSeed=(()=>{try{const stored=Number(sessionStorage.getItem(ROOM_BUBBLE_SEED_KEY));if(Number.isInteger(stored)&&stored>=0)return stored>>>0;const value=crypto.getRandomValues(new Uint32Array(1))[0];sessionStorage.setItem(ROOM_BUBBLE_SEED_KEY,String(value));return value;}catch{return Date.now()>>>0;}})();
  const roomButtons=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-place]'));
@@ -175,7 +177,7 @@ async function start(){
   if(resetAfterlightDistance)afterlightCameraDistance=0;
   updateAntialiasing();
   renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=place.exposure??1.1;
+  renderer.toneMappingExposure=place.exposure??1.1;applyBloom();
   camera.fov=placeFov();camera.updateProjectionMatrix();
   controls.enableDamping=false;controls.update();
   controls.minAzimuthAngle=-Infinity;controls.maxAzimuthAngle=Infinity;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
