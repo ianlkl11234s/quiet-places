@@ -155,7 +155,7 @@ table{{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:t
 {''.join(sections)}
 <section id=closeups><h2>生物近看</h2>{closeups}</section>
 <section id=perf><h2>效能（正午，1600×900，dpr 1，真實 composer，5 秒暖機 + 15 秒取樣）</h2>
-<p class=lede>網站上限 30 fps。CPU 為 composer 提交時間，不是 GPU 時間。量測中發現水光之間與階光之間掉到 16.7／13.8 fps，已修正（<code>491391d</code>）；以下為修正後數字。p95 幀間隔約 35→40 ms 屬 30 fps 節拍下的抖動（main 各場景自身介於 35–43 ms）。</p>
+<p class=lede>網站上限 30 fps。CPU 為 composer 提交時間，不是 GPU 時間。量測中發現水光之間與階光之間掉到 16.7／13.8 fps，已修正（<code>491391d</code>）；以下為修正後數字。p95 幀間隔約 35→40 ms 屬 30 fps 節拍下的抖動（main 各場景自身介於 35–43 ms）。<br>CPU 提交時間 p95 在部分場景上升 1–2 ms（例：水光之間 1.8→4.0、向海的隧道 1.2→2.6），這已超過計劃訂的 10% 門檻，但絕對值遠低於每幀 33 ms 的預算，幀率也沒有下降。把 MSAA 關掉後幾乎不變（4.0→3.7），所以原因不是 MSAA；確切來源這次沒有隔離出來，列為待追。雪落海窗則從 4.3 降到 2.0，因為移除了水母的放射管幾何。</p>
 <div class=scroll><table><thead><tr><th>場景</th><th>fps main</th><th>fps 分支</th><th>p95 ms main</th><th>p95 ms 分支</th><th>CPU p95 main</th><th>CPU p95 分支</th><th>三角面 main</th><th>三角面 分支</th><th>draw calls main</th><th>draw calls 分支</th></tr></thead>
 <tbody>{perf_rows()}</tbody></table></div></section>
 <section id=decisions><h2>需要你決定的事</h2><ul class=decisions>{decisions}</ul></section>
