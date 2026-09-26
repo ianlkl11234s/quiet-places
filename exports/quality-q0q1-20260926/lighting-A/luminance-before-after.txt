@@ -1,0 +1,16 @@
+== leaflight (before/after)
+dawn  room:15.0/15.0  nightSky:108.9/124.5  control_noonFloorPatch:3.6/3.6
+noon  room:33.3/32.8  nightSky:137.5/137.6  control_noonFloorPatch:4.6/4.6
+sunset  room:37.3/37.3  nightSky:123.6/133.5  control_noonFloorPatch:3.7/3.7
+moon  room:6.4/6.4  nightSky:78.5/16.5  control_noonFloorPatch:3.6/3.6
+== oceanlight (before/after)
+dawn  leftWall:5.4/5.8  rightWall:8.3/8.8  ceiling:4.1/4.6  frontWall:8.1/8.4
+noon  leftWall:11.8/13.2  rightWall:21.4/22.9  ceiling:6.8/9.8  frontWall:19.2/20.3
+sunset  leftWall:6.5/7.2  rightWall:11.0/11.8  ceiling:4.6/5.6  frontWall:10.4/11.1
+moon  leftWall:3.6/3.6  rightWall:3.8/3.8  ceiling:3.6/3.6  frontWall:3.9/3.9
+== waterlight (before/after)
+dawn  lowerWallNearBeam:29.2/32.8  leftLowCorner:11.5/12.5  farRightWall:8.0/8.0  upperLeftWall:12.1/12.1  floorNear:11.2/11.8
+noon  lowerWallNearBeam:65.9/68.3  leftLowCorner:23.1/25.9  farRightWall:16.2/16.3  upperLeftWall:23.9/24.0  floorNear:22.5/24.4
+sunset  lowerWallNearBeam:51.8/54.8  leftLowCorner:13.7/15.8  farRightWall:9.3/9.4  upperLeftWall:14.3/14.3  floorNear:13.4/15.2
+moon  lowerWallNearBeam:11.8/11.3  leftLowCorner:6.9/6.9  farRightWall:5.3/5.3  upperLeftWall:7.2/7.2  floorNear:6.7/6.7
+leaflight moon canopy (1040,180,1190,330) before 49.2 -> after 10.7; sky 78.5 -> 16.5

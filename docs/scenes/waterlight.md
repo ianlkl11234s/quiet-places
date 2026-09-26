@@ -168,3 +168,12 @@ build通過（exports/long-fin-koi-integration/build-soft-light.log）；CUA實�
 新增tests/waterlight-performance.html，載入真實main與composer，5秒暖機＋15秒量測；CPU值是composer提交時間，不是GPU計時。初次766×912 DPR1標準模式約27.00fps、幀時間p95=50ms／max95.8ms、texture135；修改後765×912 DPR0.9約29.47fps、p95=35.3ms／max146.9ms、texture39。視窗與DPR不同，並非嚴格同條件benchmark，最大延遲仍表示偶發卡頓，不能宣稱無效能問題或代表實機手機表現。測試26項、build通過；完整PR驗收將在整合main後補記。
 
 PR整合驗收：已合併origin/main的房間導覽與字體更新，保留其介面。整合後26項測試與build通過；5183為正式build的本機預覽（無Vite HMR），實際載入畫面正常、console error為空，尚未重現使用者描述的全頁閃白。量測摘要存於exports/long-fin-koi-integration/performance-pr.json；偶發長幀及實機GPU限制仍保留，不將本機預覽稱為正式部署。
+
+## 2026-09-26：Q1-2 光柱落點反彈光（候選待使用者確認）
+
+- 分支 `claude/visual-quality`；狀態：**候選待使用者確認**。只改 `Environment.ts` 的 room shader，`WATER_ROOM_BOUNCE = 0` 即退回原房間。
+- 為何不是 PMREM：房間牆面是自訂 `ShaderMaterial`，`scene.environment` 對牆無效；魚已有 `HemisphereLight bounce (.25 + intensity×1.3)`，再加 PMREM 等於同一件事做兩次，因此本場景不建 PMREM（也就沒有需要釋放的 render target）。
+- 做法：地板光斑中心 `patchCenter = (slope.x×7, 0, -.2 + slope.y×7)`（與既有 aperture 同一個天窗投影），對所有房間表面加 `light × exp(-dist×.50) × (1 - smoothstep(.5,4.5,y)) × intensity × smoothstep(.10,.45,intensity) × .04`。只照光斑附近的下牆與地板，遠牆與上半部維持原暗度，月夜歸零。一次反彈的美術近似，不是 GI。
+- 量測（sRGB luminance，before → after；`exports/quality-q0q1-20260926/lighting-A/`）：正午 光柱旁下牆 65.9→68.3、左下牆角 23.1→25.9、近地板 22.5→24.4；遠右牆 16.2→16.3、左上牆 23.9→24.0（對照區不變）；月夜不變。
+- 注意：拍 after 時同一 worktree 另有 agent 在改 `FishSchool.ts`／`LongFinKoiMotion.ts`，魚的差異不屬本項。
+- **AO 延後**：房間是程式平面，沒有 Blender 母檔可烘 AO／lightMap；牆角接觸暗化需另建母檔或評估 SSAO pass，不在本批。

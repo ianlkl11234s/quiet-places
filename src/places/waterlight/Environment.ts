@@ -8,6 +8,9 @@ import {disturbedSurfaceGLSL, disturbedSurfaceSlopeGLSL} from './SurfaceSampling
 import {SHALLOW_SEA_BOTTOM, SHALLOW_SEA_DEPTH, shallowSeaSunDirection} from './ShallowSea.ts';
 
 
+/** Peak linear strength of the candidate floor-patch bounce; 0 reverts to the confirmed room. */
+export const WATER_ROOM_BOUNCE = .04;
+
 export interface WaterlightEnvironment {
   update(elapsed: number, state: SceneState, dt?: number): void;
   disturb(u: number, v: number): void;
@@ -243,10 +246,10 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const add = (mesh: THREE.Object3D) => { root.add(mesh); return mesh; };
   // A dark, but readable mineral surface. The small hemisphere term acts as bounced
   // skylight and keeps the architecture from collapsing into a pure silhouette.
-  const roomUniforms = {uIntensity:{value:1},uAngle:{value:.25},uWarmth:{value:.48}};
+  const roomUniforms = {uIntensity:{value:1},uAngle:{value:.25},uWarmth:{value:.48},uBounce:{value:WATER_ROOM_BOUNCE}};
   const roomMaterial = new THREE.ShaderMaterial({uniforms:roomUniforms,vertexShader:causticVertex,fragmentShader:/* glsl */ `
     varying vec3 vWorld;
-    uniform float uIntensity; uniform float uAngle; uniform float uWarmth;
+    uniform float uIntensity; uniform float uAngle; uniform float uWarmth; uniform float uBounce;
     void main(){
       vec2 slope=vec2(-.45+sin(uAngle)*.14,-.30+sin(uAngle*.7)*.10);
       vec2 roof=vWorld.xz-slope*(7.-vWorld.y);
@@ -259,6 +262,14 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
       base*=.92+mineral*.16;
       vec3 light=mix(vec3(.38,.66,.79),vec3(1.,.83,.56),uWarmth);
       vec3 color=base*(.23+uIntensity*.77)+light*aperture*uIntensity*.09;
+      // Candidate one-bounce approximation (Q1-2): the lit floor patch under the
+      // skylight returns a little light to the nearby lower walls and floor.
+      // Distance/height falloff keeps far walls and the upper room dark; the gate
+      // removes it at the moon keyframe. Not a GI solve.
+      vec3 patchCenter=vec3(clamp(slope.x*7.,-3.4,3.4),0.,clamp(-.2+slope.y*7.,-4.4,10.4));
+      float bounce=exp(-length(vWorld-patchCenter)*.50)*(1.-smoothstep(.5,4.5,vWorld.y));
+      float bounceGate=smoothstep(.10,.45,uIntensity);
+      color+=light*bounce*uIntensity*bounceGate*uBounce;
       gl_FragColor=vec4(color,1.);
     }`});
   disposable.push(roomMaterial);
