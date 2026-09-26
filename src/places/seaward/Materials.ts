@@ -50,9 +50,17 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
  col+=vec3(.65,.72,.69)*caustic*exitLight*opening*smoothstep(.015,.32,max(dot(n,sun),0.))*(uKind==2?0.:.22)*uDay*uBeam*uDirect*uTint;
  if(uKind==1){
   float wet=smoothstep(.32,.62,noise(uv*.8)*.6+noise(uv*3.)*.4);
-  vec3 v=normalize(p-cameraPosition);vec3 normal=normalize(vec3((noise(uv*18.)-.5)*.055,1.,(noise(uv*17.+9.)-.5)*.07));
+  vec3 v=normalize(p-cameraPosition);
+  // Q0-4: the ripple tilt is an angle, so its offset on the exit plane grows
+  // with travel. Bound that offset (~.4 m near the camera) and fade ripples at grazing view,
+  // then widen the mask edge with travel like the direct-light penumbra.
+  vec3 r0=reflect(v,vec3(0.,1.,0.));float d0=max((-11.-p.z)/min(r0.z,-.001),0.);
+  float ripple=1./(1.+d0*.12)*smoothstep(.02,.25,-v.y);
+  vec2 tilt=vec2(noise(uv*6.)*.5+noise(uv*14.)*.5-.5,noise(uv*5.5+9.)*.5+noise(uv*13.+4.)*.5-.5);
+  vec3 normal=normalize(vec3(tilt.x*.055*ripple,1.,tilt.y*.07*ripple));
   vec3 r=reflect(v,normal);float d=(-11.-p.z)/r.z;vec3 q=p+r*d;
-  float mask=step(0.,d)*smoothstep(-3.6,-3.25,q.x)*(1.-smoothstep(3.25,3.6,q.x))*smoothstep(0.,.3,q.y)*(1.-smoothstep(3.9,4.3,q.y));
+  float edge=.18+d0*.03;
+  float mask=step(0.,d)*smoothstep(-3.4-edge,-3.4+edge,q.x)*(1.-smoothstep(3.4-edge,3.4+edge,q.x))*smoothstep(-edge*.5,edge,q.y)*(1.-smoothstep(4.1-edge,4.1+edge,q.y));
   float fresnel=.045+.50*pow(1.-max(dot(-v,normal),0.),5.);
   col=mix(col,col*.65,wet);col+=vec3(.48,.59,.65)*mask*fresnel*wet*uDay;
  }
