@@ -1,7 +1,7 @@
 import {MathUtils,Quaternion,Vector3} from 'three';
 import {AURELIA_PULSE,sampleAureliaKinematics} from '../../shared/biology/aurelia/index.ts';
 import {sampleClioneWingForces,type ClioneGait} from '../../shared/biology/clione/index.ts';
-import {virtualCurrent,VIRTUAL_SEAWATER,reynolds} from '../../shared/biology/VirtualFluid.ts';
+import {backgroundCurrent,createWakeField,VIRTUAL_SEAWATER,reynolds} from '../../shared/biology/VirtualFluid.ts';
 
 const STEP=1/120,TAU=2*Math.PI,up=new Vector3(0,1,0),axisZ=new Vector3(0,0,1),DEG=Math.PI/180;
 export const SNOW_CREATURE_SEED=2718;
@@ -37,7 +37,11 @@ export interface JellyBeatEvent {
  position:[number,number,number];axis:[number,number,number];
  /** stroke impulse proxy along the axis, N·s (same force model as jellyForces; not a measured impulse) */
  strength:number;diameter:number;turn:number;turnDirection:number;
+ /** J3: instantaneous pulse frequency (Hz) and activity envelope at the event */
+ frequency:number;activity:number;
 }
+/** J3: beat events / wake rings kept for rewind and particle re-simulation (~60 s at three jellies). */
+export const BEAT_EVENT_CAPACITY=128;
 export interface CreatureState {
  name:string;kind:'aurelia'|'clione';position:Vector3;velocity:Vector3;orientation:Quaternion;angularVelocity:Vector3;
  phase:number;frequency:number;activity:number;turn:number;turnDirection:number;gait:ClioneGait;previousGait:ClioneGait;gaitBlend:number;gaitChangedAt:number;behavior:JellyBehavior;
@@ -82,6 +86,7 @@ export function createCreatureMotion(clioneCount=5,overrides:Partial<CreatureCon
  let states=[...JELLY_PRESETS.map(p=>createState(p,'aurelia')),...CLIONE_PRESETS.slice(0,clioneCount).map(p=>createState(p,'clione'))],stepIndex=0;
  const force=new Vector3(),relative=new Vector3(),normal=new Vector3(),desired=new Vector3(),torque=new Vector3(),rotation=new Quaternion(),tangent=new Vector3(),inverse=new Quaternion();
  let beatEvents:JellyBeatEvent[]=[];
+ const wake=createWakeField();
  const buoyancy=JELLY_PRESETS.map((p,i)=>JELLY_BUOYANCY_RATIO[i]*jellyMeanThrust(p.diameter,p.frequency));
  const liftGains=CLIONE_PRESETS.slice(0,clioneCount).map(p=>{
   let mean=0;for(let i=0;i<120;i++)mean+=sampleClioneWingForces(i/120/p.frequency,p,{gait:'slowhover',frequency:p.frequency,phase:i/120*TAU}).total.z;
@@ -91,14 +96,24 @@ export function createCreatureMotion(clioneCount=5,overrides:Partial<CreatureCon
   const radius=diameter/2,peak=.5*Math.PI*frequency/AURELIA_PULSE.contract,duration=AURELIA_PULSE.contract/frequency;
   // ∫pulse dt over one contraction with the jellyForces pulse model (mean sin² = .5).
   const strength=PULSE_GAIN*radius**3*peak**2*.5*duration*state.activity;
-  beatEvents.push({name:state.name,index,beat:state.beat,kind,time,position:state.position.toArray() as [number,number,number],axis:axis.toArray() as [number,number,number],strength,diameter,turn:state.turn,turnDirection:state.turnDirection});
-  if(beatEvents.length>64)beatEvents.shift();
+  const event:JellyBeatEvent={name:state.name,index,beat:state.beat,kind,time,position:state.position.toArray() as [number,number,number],axis:axis.toArray() as [number,number,number],strength,diameter,turn:state.turn,turnDirection:state.turnDirection,frequency,activity:state.activity};
+  beatEvents.push(event);wake.push(event);
+  if(beatEvents.length>BEAT_EVENT_CAPACITY){beatEvents.shift();wake.trim(BEAT_EVENT_CAPACITY);}
+ };
+ /**
+  * J3 unified flow sample (m/s, world): background (J2 modes + curl layer) + wake rings of beats with time ≤ t.
+  * Valid for any t covered by the retained events, so particles can re-simulate the recent past exactly.
+  */
+ const sampleFlow=(p:Vector3,t:number,excludeSource?:string,out=new Vector3())=>{
+  backgroundCurrent(p,t,controls.currentGain*(1-.3*controls.quietness),out);
+  return wake.sample(p,t,excludeSource,out);
  };
  const advance=()=>{
   const t=(++stepIndex)*STEP;
   for(let index=0;index<states.length;index++){
    const state=states[index],isJelly=index<3;
-   virtualCurrent(state.position,t,controls.currentGain*(1-.3*controls.quietness),state.current);
+   // J3: root drag reads the unified field; a jelly excludes its own rings (its propulsion is already PULSE/PER).
+   sampleFlow(state.position,t,isJelly?state.name:undefined,state.current);
    force.set(0,0,0);normal.set(0,0,1).applyQuaternion(state.orientation);
    let mass:number,dragFactor:number,radius:number;
    if(isJelly){
@@ -189,11 +204,11 @@ export function createCreatureMotion(clioneCount=5,overrides:Partial<CreatureCon
    if(!controls.freezeRoots){state.velocity.addScaledVector(force,STEP).clampLength(0,isJelly?.045:.035);state.position.addScaledVector(state.velocity,STEP*controls.motionGain);state.distance+=state.velocity.length()*STEP*controls.motionGain;}
   }
  };
- /** Most recent beat events (≤64), oldest first; rebuilt deterministically on rewind. */
- return {get states(){return states;},get beatEvents():readonly JellyBeatEvent[]{return beatEvents;},beatEventsSince(time:number){return beatEvents.filter(e=>e.time>time);},controls,update(elapsed:number){
+ /** Most recent beat events (≤BEAT_EVENT_CAPACITY), oldest first; rebuilt deterministically on rewind. */
+ return {get states(){return states;},get beatEvents():readonly JellyBeatEvent[]{return beatEvents;},get wakeRings(){return wake.rings;},beatEventsSince(time:number){return beatEvents.filter(e=>e.time>time);},sampleFlow,controls,update(elapsed:number){
   if(!Number.isFinite(elapsed)||elapsed<0)throw new RangeError('Creature elapsed must be finite and nonnegative.');
   const target=Math.floor(elapsed/STEP+1e-7);
-  if(target<stepIndex){states=[...JELLY_PRESETS.map(p=>createState(p,'aurelia')),...CLIONE_PRESETS.slice(0,clioneCount).map(p=>createState(p,'clione'))];stepIndex=0;beatEvents=[];}
+  if(target<stepIndex){states=[...JELLY_PRESETS.map(p=>createState(p,'aurelia')),...CLIONE_PRESETS.slice(0,clioneCount).map(p=>createState(p,'clione'))];stepIndex=0;beatEvents=[];wake.clear();}
   while(stepIndex<target)advance();return states;
  },diagnostics(){return states.map(s=>({name:s.name,speed:s.velocity.length(),Re:reynolds(s.velocity.length(),s.kind==='aurelia'?JELLY_PRESETS.find(p=>p.name===s.name)!.diameter:CLIONE_PRESETS.find(p=>p.name===s.name)!.length),phase:s.phase,behavior:s.kind==='aurelia'?s.behavior:s.gait,distance:s.distance}));}};
 }

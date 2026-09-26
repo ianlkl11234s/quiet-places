@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Vector3} from 'three';
-import {virtualCurrent} from '../src/shared/biology/VirtualFluid.ts';
-import {createCreatureMotion,jellyForces,JELLY_ATTITUDE,JELLY_PRESETS} from '../src/places/snowwindow/CreatureMotion.ts';
+import {addRingVelocity,backgroundCurrent,ringCenter,ringFromBeat,ringStrength,virtualCurrent} from '../src/shared/biology/VirtualFluid.ts';
+import {createCreatureMotion,DEFAULT_CREATURE_CONTROLS,jellyForces,JELLY_ATTITUDE,JELLY_PRESETS} from '../src/places/snowwindow/CreatureMotion.ts';
 import {AURELIA_PULSE,sampleAureliaKinematics} from '../src/shared/biology/aurelia/index.ts';
 
 const positions=(m:ReturnType<typeof createCreatureMotion>)=>m.states.map(s=>[...s.position.toArray(),...s.orientation.toArray(),s.phase]);
@@ -75,4 +75,51 @@ test('J2 beat events are emitted per stroke and rebuilt identically on rewind',(
  assert.ok(a.beatEvents.some(e=>e.kind==='relaxation'));
  const snapshot=JSON.stringify(a.beatEvents);a.update(5);a.update(30);assert.equal(JSON.stringify(a.beatEvents),snapshot);
  assert.deepEqual(a.beatEventsSince(29).map(e=>e.time),a.beatEvents.filter(e=>e.time>29).map(e=>e.time));
+});
+
+// ---- J3 flow field and one-way coupling ----
+test('J3 unified flow is numerically divergence-free, including next to live wake rings',()=>{
+ const motion=createCreatureMotion();motion.update(40);
+ const e=1e-4,points:Vector3[]=[];
+ for(const ring of motion.wakeRings.slice(-6)){const c=ringCenter(ring,40);points.push(c.clone(),c.clone().add(new Vector3(...ring.e1).multiplyScalar(ring.radius*.8)),c.clone().add(new Vector3(...ring.jet).multiplyScalar(ring.radius*.5)));}
+ points.push(new Vector3(.4,2,-3),new Vector3(1.5,3.1,-2.6));
+ let checked=0;
+ for(const p of points){const u=motion.sampleFlow(p,40).length();let div=0,grad=0;
+  for(let a=0;a<3;a++){const hi=p.clone(),lo=p.clone();hi.setComponent(a,hi.getComponent(a)+e);lo.setComponent(a,lo.getComponent(a)-e);const d=(motion.sampleFlow(hi,40).getComponent(a)-motion.sampleFlow(lo,40).getComponent(a))/(2*e);div+=d;grad+=Math.abs(d);}
+  assert.ok(Math.abs(div)<=1e-5*Math.max(grad,1e-3)+1e-9,`div ${div} vs |∂u| ${grad} at ${p.toArray()} (|u| ${u})`);checked++;}
+ assert.ok(checked>=5);
+});
+test('J3 wake rings: Γ decays to ≤10% within 2–3 beats and is exactly zero at 3 beats; probe speed follows',()=>{
+ const ring=ringFromBeat({name:'X',kind:'contraction',time:10,position:[0,2,-3],axis:[0,1,0],strength:.0042,diameter:.3,frequency:.32}),T=1/.32;
+ assert.ok(ringStrength(ring,.2*T)>.7);assert.ok(ringStrength(ring,2*T)<=.1,`${ringStrength(ring,2*T)}`);
+ assert.equal(ringStrength(ring,3*T),0);assert.equal(ringStrength(ring,0),0);
+ const probe=(age:number)=>{const c=ringCenter(ring,10+age);return addRingVelocity(ring,c,10+age,new Vector3()).length();};
+ const peak=Math.max(...[.3,.5,.8,1].map(b=>probe(b*T)));
+ assert.ok(peak>.005,`peak ${peak}`);assert.ok(probe(2*T)<.12*peak);assert.equal(probe(3*T),0);
+ // starting ring: on-axis jet points away from the bell (−axis) and the ring drifts that way
+ const below=addRingVelocity(ring,ringCenter(ring,10+.5*T),10+.5*T,new Vector3());assert.ok(below.y<0);
+ assert.ok(ringCenter(ring,10+2*T).y<ring.center[1]);
+ const stop=ringFromBeat({name:'X',kind:'relaxation',time:10,position:[0,2,-3],axis:[0,1,0],strength:.0042,diameter:.3,frequency:.32});
+ assert.ok(addRingVelocity(stop,new Vector3(...stop.center),10+.5*T,new Vector3()).y>0,'stopping ring draws water up under the bell');
+});
+test('J3 coupling: a contraction pushes water down below the bell; roots exclude only their own rings',()=>{
+ const motion=createCreatureMotion();motion.update(40);
+ const event=[...motion.beatEvents].reverse().find(e=>e.kind==='contraction'&&e.time<39)!,t=event.time+.25/event.frequency;
+ motion.update(t);
+ const axis=new Vector3(...event.axis),below=new Vector3(...event.position).addScaledVector(axis,-.5*event.diameter);
+ const all=motion.sampleFlow(below,t),own=motion.sampleFlow(below,t,event.name);
+ assert.ok(all.clone().sub(own).dot(axis)<-.005,`wake along −axis ${all.clone().sub(own).dot(axis)}`);
+ const background=backgroundCurrent(below,t,DEFAULT_CREATURE_CONTROLS.currentGain*(1-.3*DEFAULT_CREATURE_CONTROLS.quietness));
+ assert.ok(own.distanceTo(background)<.02,'excluded sample is background plus only other jellies\' far rings');
+});
+test('J3 background band and deterministic flow on rewind / pause / frame partition',()=>{
+ const gain=DEFAULT_CREATURE_CONTROLS.currentGain*(1-.3*DEFAULT_CREATURE_CONTROLS.quietness),speeds:number[]=[];let s=1;
+ const rnd=()=>((s=Math.imul(s,1664525)+1013904223>>>0)/4294967296);
+ for(let i=0;i<4000;i++)speeds.push(backgroundCurrent(new Vector3(-.68+3.48*rnd(),1+3.3*rnd(),-4.25+2.33*rnd()),rnd()*600,gain).length());
+ speeds.sort((a,b)=>a-b);assert.ok(speeds[2000]>=.004&&speeds[2000]<=.008,`p50 ${speeds[2000]}`);assert.ok(speeds[3999]<.02,`max ${speeds[3999]}`);
+ const a=createCreatureMotion(),b=createCreatureMotion(),p=new Vector3(1.1,2.3,-3.3);a.update(45);for(let i=1;i<=45*30;i++)b.update(i/30);
+ const samples=(m:typeof a)=>[44.2,44.9,45].map(t=>m.sampleFlow(p,t).toArray());
+ assert.deepEqual(samples(a),samples(b));const snap=JSON.stringify(samples(a));
+ a.update(45);assert.equal(JSON.stringify(samples(a)),snap);a.update(3);a.update(45);assert.equal(JSON.stringify(samples(a)),snap);
+ assert.equal(a.wakeRings.length,a.beatEvents.length);
 });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {AURELIA_PULSE,createAurelia,createAureliaDynamics,measureAureliaMarginLoop,sampleAureliaKinematics,validateAureliaTopology} from '../src/shared/biology/aurelia/index.ts';
+import {AURELIA_PULSE,createAurelia,createLocalWakeSampler,createAureliaDynamics,measureAureliaMarginLoop,sampleAureliaKinematics,validateAureliaTopology} from '../src/shared/biology/aurelia/index.ts';
 import {phaseLag} from '../tools/snowwindow-biology/aurelia-motion-stats.ts';
 
 const preset={diameter:.30,frequency:.38,phase:.13,seed:41};
@@ -117,9 +117,9 @@ test('J2 turning stroke deforms the actual mesh: the lead side contracts first',
  assert.ok(lead<trail*.995,`lead ${lead} trail ${trail}`);
  jelly.dispose();
 });
-test('J2 oral arms trail the bell margin by 0.15–0.35 beat (B-level target)',()=>{
- const jelly=createAurelia(preset),margin:number[]=[],arm:number[]=[];
- for(let k=0;k<=120*24;k++){jelly.update(k/120,{activity:1});if(k<600)continue;margin.push(jelly.group.userData.aureliaDiagnostics.marginResponse);arm.push(-jelly.group.userData.aureliaAppendage.armTipRadial);}
+test('J3 oral arms trail the bell margin by 0.15–0.35 beat through the real wake rings (B-level target)',()=>{
+ const jelly=createAurelia(preset),margin:number[]=[],arm:number[]=[],sampleFlow=createLocalWakeSampler(preset);
+ for(let k=0;k<=120*24;k++){jelly.update(k/120,{activity:1,sampleFlow});if(k<600)continue;margin.push(jelly.group.userData.aureliaDiagnostics.marginResponse);arm.push(-jelly.group.userData.aureliaAppendage.armTipRadial);}
  const lag=phaseLag(margin,arm,Math.round(120/preset.frequency));
  assert.ok(lag.beats>=.15&&lag.beats<=.35&&lag.correlation>.9,JSON.stringify(lag));
  jelly.dispose();

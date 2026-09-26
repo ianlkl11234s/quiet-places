@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {createTentacleMaterial,installTissueShading} from './AureliaShading.ts';
+import {addRingVelocity,ringFromBeat,type VortexRing} from '../VirtualFluid.ts';
 
 const TAU=Math.PI*2;
 const STEP=1/120;
@@ -10,11 +11,21 @@ const modulo=(value:number,divisor:number)=>((value%divisor)+divisor)%divisor;
 export const AURELIA_PULSE={contract:.20,relaxEnd:.70} as const;
 /** J2 sector asymmetry at |turn|=1: onset lead in cycles and stroke gain (B, chosen so the lead side is visibly first in the mesh). */
 export const AURELIA_TURN={onsetLead:.07,amplitude:.16} as const;
-/** J2 oral-arm wake: radial acceleration gain (×D, m/s²) and convective speed (×D per s). B/C tuning so arms lag the margin by ~¼ beat. */
-export const ARM_WAKE={accel:2.2,speed:.5} as const;
+/**
+ * J3 appendage coupling to the sampled (body-relative) flow u: node acceleration = drag·u − restore·(x − x_rest),
+ * x_rest = the chain hanging straight from its root. Replaces the J2 ARM_WAKE proxy: the ¼-beat lag now comes
+ * from the real wake rings (ring rise + transit) plus this overdamped response. B mechanism, C values.
+ */
+export const APPENDAGE_FLOW={arm:{drag:90,restore:28},tentacle:{drag:16,restore:26}} as const;
+/** Body-relative fluid velocity (m/s) in the organism's local frame at a local point and absolute time. */
+export type AureliaFlowSampler=(x:number,y:number,z:number,time:number,out:THREE.Vector3)=>THREE.Vector3;
 
 export interface AureliaOptions { diameter:number; frequency:number; phase:number; seed:number; }
-export interface AureliaControls { turn?:number; turnDirection?:number; activity?:number; relativeFlow?:THREE.Vector3; }
+export interface AureliaControls { turn?:number; turnDirection?:number; activity?:number;
+  /** legacy constant body-relative flow (local, m/s), used only when no sampler is given */
+  relativeFlow?:THREE.Vector3;
+  /** J3: per-node flow sampler (local frame); arms and tentacle guides read it every fixed step */
+  sampleFlow?:AureliaFlowSampler; }
 export interface AureliaKinematics { phase:number; cycle:number; frequency:number; contraction:number; contractionRate:number; }
 export interface AureliaDiagnostics extends AureliaKinematics { marginResponse:number; marginVelocity:number; sectorMarginResponse:readonly number[]; sectorMarginVelocity:readonly number[]; marginRadial:number; marginVertical:number; hysteresisArea:number; sectorOnset:readonly number[]; sectorAmplitude:readonly number[]; thrustProxy:number; passiveEnergyRecapture:number; force:THREE.Vector3; }
 export interface AureliaInstance { group:THREE.Group; update(elapsed:number,controls?:AureliaControls):void; dispose():void; }
@@ -183,7 +194,8 @@ function oralGeometry(){const segments=16,across=10,count=(segments+1)*(across+1
 type PbdChain={nodes:Float32Array;previous:Float32Array;rest:number;count:number};
 function makePbdChain(count:number,rest:number){const nodes=new Float32Array(count*3),previous=new Float32Array(count*3);for(let i=0;i<count;i++){nodes[i*3+2]=previous[i*3+2]=-i*rest;}return {nodes,previous,rest,count};}
 /** Verlet/PBD secondary chain: 4 constraint passes, fixed 120Hz, with a rooted first node. */
-function stepPbd(chain:PbdChain,rootX:number,rootY:number,rootZ:number,dt:number,flowX:number,flowY:number,flowZ:number,wake?:{x:number;y:number;accel:(node:number)=>number}){const d=Math.min(Math.max(dt,0),1/30),d2=d*d;chain.nodes[0]=rootX;chain.nodes[1]=rootY;chain.nodes[2]=rootZ;chain.previous[0]=rootX;chain.previous[1]=rootY;chain.previous[2]=rootZ;for(let i=1;i<chain.count;i++){const at=i*3,x=chain.nodes[at],y=chain.nodes[at+1],z=chain.nodes[at+2];const w=wake?wake.accel(i):0;chain.nodes[at]=x+(x-chain.previous[at])*.84+(flowX+(wake?wake.x*w:0))*d2;chain.nodes[at+1]=y+(y-chain.previous[at+1])*.84+(flowY+(wake?wake.y*w:0))*d2;chain.nodes[at+2]=z+(z-chain.previous[at+2])*.84+flowZ*d2;chain.previous[at]=x;chain.previous[at+1]=y;chain.previous[at+2]=z;}for(let pass=0;pass<4;pass++)for(let i=1;i<chain.count;i++){const a=(i-1)*3,b=i*3,dx=chain.nodes[b]-chain.nodes[a],dy=chain.nodes[b+1]-chain.nodes[a+1],dz=chain.nodes[b+2]-chain.nodes[a+2],length=Math.hypot(dx,dy,dz)||1,scale=chain.rest/length;if(i===1){chain.nodes[b]=chain.nodes[a]+dx*scale;chain.nodes[b+1]=chain.nodes[a+1]+dy*scale;chain.nodes[b+2]=chain.nodes[a+2]+dz*scale;}else{const correction=(1-scale)*.5;chain.nodes[a]+=dx*correction;chain.nodes[a+1]+=dy*correction;chain.nodes[a+2]+=dz*correction;chain.nodes[b]-=dx*correction;chain.nodes[b+1]-=dy*correction;chain.nodes[b+2]-=dz*correction;}}}
+function stepPbd(chain:PbdChain,rootX:number,rootY:number,rootZ:number,dt:number,flowX:number,flowY:number,flowZ:number,coupling?:{sample:AureliaFlowSampler;time:number;drag:number;restore:number}){const d=Math.min(Math.max(dt,0),1/30),d2=d*d;chain.nodes[0]=rootX;chain.nodes[1]=rootY;chain.nodes[2]=rootZ;chain.previous[0]=rootX;chain.previous[1]=rootY;chain.previous[2]=rootZ;for(let i=1;i<chain.count;i++){const at=i*3,x=chain.nodes[at],y=chain.nodes[at+1],z=chain.nodes[at+2];let ax=flowX,ay=flowY,az=flowZ;if(coupling){const u=coupling.sample(x,y,z,coupling.time,pbdFlow);ax+=coupling.drag*u.x-coupling.restore*(x-rootX);ay+=coupling.drag*u.y-coupling.restore*(y-rootY);az+=coupling.drag*u.z-coupling.restore*(z-(rootZ-i*chain.rest));}chain.nodes[at]=x+(x-chain.previous[at])*.84+ax*d2;chain.nodes[at+1]=y+(y-chain.previous[at+1])*.84+ay*d2;chain.nodes[at+2]=z+(z-chain.previous[at+2])*.84+az*d2;chain.previous[at]=x;chain.previous[at+1]=y;chain.previous[at+2]=z;}for(let pass=0;pass<4;pass++)for(let i=1;i<chain.count;i++){const a=(i-1)*3,b=i*3,dx=chain.nodes[b]-chain.nodes[a],dy=chain.nodes[b+1]-chain.nodes[a+1],dz=chain.nodes[b+2]-chain.nodes[a+2],length=Math.hypot(dx,dy,dz)||1,scale=chain.rest/length;if(i===1){chain.nodes[b]=chain.nodes[a]+dx*scale;chain.nodes[b+1]=chain.nodes[a+1]+dy*scale;chain.nodes[b+2]=chain.nodes[a+2]+dz*scale;}else{const correction=(1-scale)*.5;chain.nodes[a]+=dx*correction;chain.nodes[a+1]+=dy*correction;chain.nodes[a+2]+=dz*correction;chain.nodes[b]-=dx*correction;chain.nodes[b+1]-=dy*correction;chain.nodes[b+2]-=dz*correction;}}}
+const pbdFlow=new THREE.Vector3();
 /** J1: each arm is a curled, gently frilled gutter (smooth across the width), not a zig-zag folded strip. */
 function updateArm(position:Float32Array,geometry:{segments:number;across:number},diameter:number,angle:number,time:number,margin:number,chain:PbdChain){const R=diameter*.5,sideX=Math.cos(angle+Math.PI*.5),sideY=Math.sin(angle+Math.PI*.5),outX=Math.cos(angle),outY=Math.sin(angle);for(let j=0;j<=geometry.segments;j++){const s=j/geometry.segments,f=s*(chain.count-1),n0=Math.min(chain.count-2,Math.floor(f)),w=f-n0,a=n0*3,b=a+3,cx=chain.nodes[a]+(chain.nodes[b]-chain.nodes[a])*w,cy=chain.nodes[a+1]+(chain.nodes[b+1]-chain.nodes[a+1])*w,cz=chain.nodes[a+2]+(chain.nodes[b+2]-chain.nodes[a+2])*w,width=.085*R*Math.pow(1-s,.9)+.016*R,curl=.95+.35*s;for(let i=0;i<=geometry.across;i++){const u=i/geometry.across-.5,edge=Math.abs(2*u),theta=u*Math.PI*curl,frill=.010*R*edge*edge*Math.sin(s*TAU*2.2+Math.sign(u)*1.4+angle*3+.4*margin),side=width*Math.sin(theta)*.62,depth=width*.42*(1-Math.cos(theta))+frill,at=(j*(geometry.across+1)+i)*3;position[at]=cx+sideX*side+outX*depth;position[at+1]=cy+sideY*side+outY*depth;position[at+2]=cz+.006*R*edge*Math.sin(s*TAU*1.5+angle);}}}
 
@@ -218,15 +230,30 @@ export function createAurelia(options:AureliaOptions):AureliaInstance {
   const resetPbd=()=>{for(const arm of arms)initializeChain(arm.chain,options.diameter*.125*Math.cos(arm.angle),options.diameter*.125*Math.sin(arm.angle),-options.diameter*.11);for(let i=0;i<guides.length;i++){const theta=TAU*i/guides.length;initializeChain(guides[i],options.diameter*.49*Math.cos(theta),options.diameter*.49*Math.sin(theta),-options.diameter*.16);}};
   const advancePbd=(time:number,controls:AureliaControls)=>{
     const pulse=sampleAureliaKinematics(time,options,controls.activity??1).contraction;
-    const flow=controls.relativeFlow,fx=(flow?.x??0)*.8,fy=(flow?.y??0)*.8,fz=(flow?.z??0)*.8;
-    // J2 (B): each arm node feels the stroke's wake after a convective delay depth/ARM_WAKE.speed, so the arms trail the margin.
-    const activity=controls.activity??1,peakRate=.5*Math.PI*options.frequency/AURELIA_PULSE.contract,rest=arms[0].chain.rest;
-    const wakeAt=(node:number)=>{const depth=options.diameter*.11+node*rest;return -ARM_WAKE.accel*options.diameter*sampleAureliaKinematics(time-depth/(ARM_WAKE.speed*options.diameter),options,activity).contractionRate/peakRate;};
-    for(const arm of arms){const r=options.diameter*.125*(1-.07*pulse);stepPbd(arm.chain,r*Math.cos(arm.angle),r*Math.sin(arm.angle),-options.diameter*(.11+.018*pulse),STEP,fx,fy,fz-.02*options.diameter,{x:Math.cos(arm.angle),y:Math.sin(arm.angle),accel:wakeAt});}
-    for(let i=0;i<guides.length;i++){const theta=TAU*i/guides.length,r=options.diameter*.49*(1-.145*pulse);stepPbd(guides[i],r*Math.cos(theta),r*Math.sin(theta),-options.diameter*(.16+.05*pulse),STEP,fx,fy,fz-.012*options.diameter);}
+    // J3: with a sampler, arms/tentacles read the unified flow (background + wake rings, body-relative) per node;
+    // the legacy constant relativeFlow acceleration is kept only for callers without a sampler.
+    const sampler=controls.sampleFlow,flow=sampler?undefined:controls.relativeFlow,fx=(flow?.x??0)*.8,fy=(flow?.y??0)*.8,fz=(flow?.z??0)*.8;
+    const armCoupling=sampler?{sample:sampler,time,...APPENDAGE_FLOW.arm}:undefined,tentacleCoupling=sampler?{sample:sampler,time,...APPENDAGE_FLOW.tentacle}:undefined;
+    for(const arm of arms){const r=options.diameter*.125*(1-.07*pulse);stepPbd(arm.chain,r*Math.cos(arm.angle),r*Math.sin(arm.angle),-options.diameter*(.11+.018*pulse),STEP,fx,fy,fz-.02*options.diameter,armCoupling);}
+    for(let i=0;i<guides.length;i++){const theta=TAU*i/guides.length,r=options.diameter*.49*(1-.145*pulse);stepPbd(guides[i],r*Math.cos(theta),r*Math.sin(theta),-options.diameter*(.16+.05*pulse),STEP,fx,fy,fz-.012*options.diameter,tentacleCoupling);}
   };
   resetPbd();
   const update=(elapsed:number,controls:AureliaControls={})=>{if(disposed)return;const safeElapsed=Number.isFinite(elapsed)?Math.max(0,elapsed):0;if(safeElapsed<lastElapsed){dynamics.reset();resetPbd();pbdElapsed=0;}const d=dynamics.update(safeElapsed,controls),position=bell.geometry.getAttribute('position') as THREE.BufferAttribute;while(pbdElapsed+STEP<=safeElapsed+1e-9){advancePbd(pbdElapsed+STEP,controls);pbdElapsed+=STEP;}lastElapsed=safeElapsed;setBellPositions(position.array as Float32Array,bell.vertices,options.diameter,d);position.needsUpdate=true;bell.geometry.computeVertexNormals();internals.group.scale.set(1-.07*d.marginResponse,1-.07*d.marginResponse,1);internals.group.position.z=-options.diameter*.018*d.marginResponse;for(const arm of arms){const attr=arm.shape.geometry.getAttribute('position') as THREE.BufferAttribute;updateArm(attr.array as Float32Array,arm.shape,options.diameter,arm.angle,safeElapsed,d.marginResponse,arm.chain);attr.needsUpdate=true;arm.shape.geometry.computeVertexNormals();}const tentaclePosition=tentacles.geometry.getAttribute('position') as THREE.BufferAttribute;updateTentacles(tentaclePosition.array as Float32Array,tentacles.count,tentacles.nodes,options.diameter,d.marginResponse,options.seed,guides);tentaclePosition.needsUpdate=true;for(let k=0;k<rhopalia.children.length;k++){const theta=TAU*k/8,r=options.diameter*.493*(1-.145*d.marginResponse);rhopalia.children[k].position.set(r*Math.cos(theta),r*Math.sin(theta),-options.diameter*.16-.10*options.diameter*d.marginResponse);}group.userData.aureliaDiagnostics=d;let tipR=0,tipZ=0;for(const arm of arms){const at=(arm.chain.count-1)*3;tipR+=Math.hypot(arm.chain.nodes[at],arm.chain.nodes[at+1])/arms.length;tipZ+=arm.chain.nodes[at+2]/arms.length;}group.userData.aureliaAppendage={armTipRadial:tipR,armTipZ:tipZ};};
   update(0);
   return {group,update,dispose(){if(disposed)return;disposed=true;group.removeFromParent();group.traverse(object=>{if(object instanceof THREE.Mesh||object instanceof THREE.Line)object.geometry.dispose();});bell.geometry.dispose();for(const material of materials)material.dispose();group.clear();}};
+}
+
+/**
+ * Test/inspection fixture: the wake of ONE stationary jelly at the local origin (axis +Z), built from its own
+ * beats with the same ringFromBeat/addRingVelocity used by the scene's sampleFlow. Not a second wake model.
+ * `impulse` defaults to the CreatureMotion stroke proxy (PULSE_GAIN .63 · r³ · peak² · ½ · T_contract).
+ */
+export function createLocalWakeSampler(options:Pick<AureliaOptions,'diameter'|'frequency'|'phase'|'seed'>,activity=1,impulse=(frequency:number)=>{const r=options.diameter/2,peak=.5*Math.PI*frequency/AURELIA_PULSE.contract;return .63*r**3*peak**2*.5*(AURELIA_PULSE.contract/frequency)*activity;}):AureliaFlowSampler&{rings:VortexRing[]}{
+  const rings:VortexRing[]=[];let scanned=0,lastCycle=-1;const p=new THREE.Vector3();
+  const extend=(time:number)=>{while(scanned<=time){const k=sampleAureliaKinematics(scanned,options,activity);
+    if(lastCycle>=0&&k.cycle<lastCycle)rings.push(ringFromBeat({name:'self',kind:'contraction',time:scanned,position:[0,0,0],axis:[0,0,1],strength:impulse(k.frequency),diameter:options.diameter,frequency:k.frequency}));
+    if(lastCycle>=0&&lastCycle<AURELIA_PULSE.contract&&k.cycle>=AURELIA_PULSE.contract)rings.push(ringFromBeat({name:'self',kind:'relaxation',time:scanned,position:[0,0,0],axis:[0,0,1],strength:impulse(k.frequency),diameter:options.diameter,frequency:k.frequency}));
+    lastCycle=k.cycle;scanned+=STEP;}};
+  const sampler=((x:number,y:number,z:number,time:number,out:THREE.Vector3)=>{extend(time);out.set(0,0,0);p.set(x,y,z);for(let i=rings.length-1;i>=0;i--){const r=rings[i];if(r.time>time)continue;if(time-r.time>=r.life*1.5)break;addRingVelocity(r,p,time,out);}return out;}) as AureliaFlowSampler&{rings:VortexRing[]};
+  sampler.rings=rings;return sampler;
 }
