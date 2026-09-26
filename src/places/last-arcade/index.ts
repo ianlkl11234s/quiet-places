@@ -137,6 +137,127 @@ function installArcadeShopSign(root: THREE.Object3D) {
   };
 }
 
+/**
+ * Q2-A2 candidate: ordinary street lamps (防犯灯-style LED heads) on the
+ * existing utility poles at glTF (9.52, 0–6.2, z). z=-21 shows its head in the
+ * default view; z=-8 is hidden by the arcade columns but lights the near road
+ * and throws the railing/column shadows. Warm-white 3000 K-ish,
+ * low chroma; inverse-square decay and a real shadow map. It is switched by
+ * the scene's own night factor, so dawn/noon/dusk keep intensity 0. The light
+ * stays in the scene all day (intensity 0, shadow updates paused) so the
+ * shader light count never changes during a time-of-day transition.
+ */
+function installStreetLamp(LAMP_Z:number,shadowSize:number){
+  const group=new THREE.Group();group.name=`arcade-street-lamp-${-LAMP_Z}`;
+  const metal=new THREE.MeshStandardMaterial({color:'#4b4f4c',roughness:.62,metalness:.35});
+  const lens=new THREE.MeshStandardMaterial({color:'#d9d6cf',roughness:.4,metalness:0,emissive:new THREE.Color('#f3dcb8'),emissiveIntensity:0});
+  // Pole centre x=9.52, radius .10 m; arm leans toward the road (-x).
+  const armStart=new THREE.Vector3(9.43,4.55,LAMP_Z),armEnd=new THREE.Vector3(8.82,4.78,LAMP_Z);
+  const armGeometry=new THREE.CylinderGeometry(.022,.022,armStart.distanceTo(armEnd),8);
+  const arm=new THREE.Mesh(armGeometry,metal);arm.position.copy(armStart).lerp(armEnd,.5);
+  arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),armEnd.clone().sub(armStart).normalize());
+  const clampGeometry=new THREE.CylinderGeometry(.115,.115,.07,12);
+  const clamp=new THREE.Mesh(clampGeometry,metal);clamp.position.set(9.52,4.55,LAMP_Z);
+  const headGeometry=new THREE.BoxGeometry(.40,.07,.17);
+  const head=new THREE.Mesh(headGeometry,metal);head.position.set(8.74,4.79,LAMP_Z);head.rotation.z=-.08;
+  const lensGeometry=new THREE.PlaneGeometry(.30,.12);
+  const lensMesh=new THREE.Mesh(lensGeometry,lens);lensMesh.rotation.x=Math.PI/2;lensMesh.position.set(8.74,4.752,LAMP_Z);
+  for(const mesh of [arm,clamp,head]){mesh.castShadow=true;mesh.receiveShadow=true;}
+  const light=new THREE.SpotLight('#f1d9b8',0,22,1.0,.9,2);light.name='arcade-street-lamp-light';
+  light.position.set(8.74,4.70,LAMP_Z);light.target.position.set(7.4,0,LAMP_Z+.4);
+  light.castShadow=true;light.shadow.mapSize.set(shadowSize,shadowSize);light.shadow.camera.near=.25;light.shadow.camera.far=26;
+  light.shadow.bias=-.0002;light.shadow.normalBias=.02;light.shadow.radius=3;light.shadow.autoUpdate=false;
+  group.add(arm,clamp,head,lensMesh,light,light.target);
+  return {group,light,
+    update(night:number,lowQuality:boolean){
+      const on=THREE.MathUtils.smoothstep(night,.35,1);
+      // ≈ a ~700 lm residential LED lantern (about 16 cd into the lower hemisphere): intensity is in candela (physical lights, decay 2).
+      light.intensity=16*on;
+      lens.emissiveIntensity=1.6*on;
+      const size=lowQuality?Math.min(512,shadowSize):shadowSize;
+      if(light.shadow.mapSize.x!==size){light.shadow.map?.dispose();light.shadow.map=null;light.shadow.mapSize.set(size,size);}
+      if(on>0)light.shadow.needsUpdate=true;
+    },
+    dispose(){light.shadow.map?.dispose();group.removeFromParent();[armGeometry,clampGeometry,headGeometry,lensGeometry].forEach(g=>g.dispose());metal.dispose();lens.dispose();},
+  };
+}
+
+/**
+ * Q2-A2 candidate: the opposite houses were flat grey boxes at viewing distance.
+ * World-space facade weathering on the three `arcade-opposite-wall-*`
+ * materials and per-pane variation on `arcade-distant-window` only:
+ * per-parcel paint tint, a storey datum band, drip streaks under the band and
+ * roof edge, and a darker splash zone. All changes multiply albedo (0.78–1.06)
+ * or roughness; nothing is emissive, so night stays dark.
+ * Parcel starts/widths mirror `street_context()` in assets/blender/scripts/last_arcade.py
+ * (Blender y → glTF −z). Metres.
+ */
+const facadeGLSL=/* glsl */`
+varying vec3 vArcadeFacadeWorld;
+float arcadeFacadeHash(vec2 p){return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5453);}
+float arcadeFacadeNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+ return mix(mix(arcadeFacadeHash(i),arcadeFacadeHash(i+vec2(1,0)),f.x),mix(arcadeFacadeHash(i+vec2(0,1)),arcadeFacadeHash(i+vec2(1,1)),f.x),f.y);}
+// Parcel index along the street from Blender y=-z; tops from street_context().
+void arcadeParcel(float y,out float id,out float top){
+ id=0.;top=5.75;
+ if(y>-1.32){id=1.;top=3.25;} if(y>3.68){id=2.;top=6.0;} if(y>9.60){id=3.;top=4.05;}
+ if(y>14.30){id=4.;top=5.55;} if(y>19.95){id=5.;top=3.60;}
+}
+vec3 arcadeFacadeTint(vec3 p){
+ float id,top;arcadeParcel(-p.z,id,top);
+ // Restrained paint families: warm concrete, faded sage, pale ivory, grey.
+ vec3 tint=id<.5?vec3(1.02,.99,.93):id<1.5?vec3(.90,.99,.94):id<2.5?vec3(1.04,1.02,.97):id<3.5?vec3(.96,.96,.97):id<4.5?vec3(1.03,.96,.89):vec3(.95,.99,.99);
+ float h=p.y;
+ // Storey datum (2.85 m) and parapet band, 10–14 cm.
+ float band=smoothstep(.07,.0,abs(h-2.85))*step(3.2,top);
+ float parapet=smoothstep(.16,.0,abs(h-(top-.12)));
+ float columns=arcadeFacadeNoise(vec2(-p.z*5.5,1.7))*.6+arcadeFacadeNoise(vec2(-p.z*17.,4.1))*.4;
+ // Drips fade over ~1.2 m below the datum and ~1.6 m below the roof edge.
+ float dripBand=step(h,2.80)*smoothstep(1.2,0.,2.80-h)*step(3.2,top);
+ float dripRoof=step(h,top-.14)*smoothstep(1.6,0.,top-.14-h);
+ float drips=smoothstep(.55,.85,columns)*(dripBand*.55+dripRoof);
+ float splash=smoothstep(.55,.0,h)*(.6+.4*arcadeFacadeNoise(vec2(-p.z*3.,h*6.)));
+ float macro=arcadeFacadeNoise(vec2(-p.z*.9,h*.7))-.5;
+ float shade=(1.-band*.16-parapet*.10)*(1.-drips*.30)*(1.-splash*.18)*(1.+macro*.10);
+ return tint*shade;
+}
+`;
+function installFacadeDetail(root:THREE.Object3D){
+  const restores:Array<()=>void>=[];
+  const done=new Set<THREE.Material>();
+  root.traverse(object=>{
+    if(!(object instanceof THREE.Mesh))return;
+    for(const material of Array.isArray(object.material)?object.material:[object.material]){
+      if(!(material instanceof THREE.MeshStandardMaterial)||done.has(material))continue;
+      const wall=/^arcade-opposite-wall-\d$/.test(material.name),glass=material.name==='arcade-distant-window';
+      if(!wall&&!glass)continue;
+      done.add(material);
+      const previous=material.onBeforeCompile,previousKey=material.customProgramCacheKey,key=previousKey.call(material);
+      material.onBeforeCompile=(shader,renderer)=>{
+        previous.call(material,shader,renderer);
+        shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vArcadeFacadeWorld;')
+          .replace('#include <begin_vertex>','#include <begin_vertex>\nvArcadeFacadeWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
+        shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>\n${facadeGLSL}`)
+          .replace('#include <map_fragment>',wall?`#include <map_fragment>
+diffuseColor.rgb*=arcadeFacadeTint(vArcadeFacadeWorld);`:`#include <map_fragment>
+// Each pane gets its own interior: dark room, drawn pale curtain or blind.
+vec2 arcadePane=vec2(floor(-vArcadeFacadeWorld.z*1.35),floor(vArcadeFacadeWorld.y/2.85));
+float arcadePaneKind=arcadeFacadeHash(arcadePane+7.);
+vec3 arcadeInterior=arcadePaneKind<.45?vec3(.55):arcadePaneKind<.75?vec3(1.55,1.48,1.32):vec3(1.2,1.22,1.18);
+float arcadeCurtainFold=.9+.1*sin(-vArcadeFacadeWorld.z*38.);
+diffuseColor.rgb*=arcadeInterior*mix(1.,arcadeCurtainFold,step(.45,arcadePaneKind));`)
+          .replace('#include <roughnessmap_fragment>',wall?`#include <roughnessmap_fragment>
+roughnessFactor=clamp(roughnessFactor+.04*(1.-arcadeFacadeTint(vArcadeFacadeWorld).g),0.,1.);`:`#include <roughnessmap_fragment>
+roughnessFactor=clamp(roughnessFactor+.18*arcadeFacadeNoise(vArcadeFacadeWorld.zy*3.),0.,1.);`);
+      };
+      material.customProgramCacheKey=()=>`${key}|last-arcade-facade-${wall?'wall':'glass'}-v1`;
+      material.needsUpdate=true;
+      restores.push(()=>{material.onBeforeCompile=previous;material.customProgramCacheKey=previousKey;material.needsUpdate=true;});
+    }
+  });
+  return {dispose(){restores.splice(0).forEach(restore=>restore());}};
+}
+
 export async function prepareLastArcade() {
   let gltf: Awaited<ReturnType<GLTFLoader['loadAsync']>>;
   try { gltf = await new GLTFLoader().loadAsync('/models/last-arcade.glb'); }
@@ -159,6 +280,7 @@ export async function prepareLastArcade() {
     const priorAmbient={environment:scene.environment,background:scene.background,environmentIntensity:scene.environmentIntensity,backgroundIntensity:scene.backgroundIntensity};
     const background=createArcadeEnvironment(),environment=createArcadeEnvironment();scene.environment=environment;
     installArcadeAmbient(root);
+    const facade=installFacadeDetail(root);
     root.traverse(object => { if (object instanceof THREE.Mesh) { object.castShadow = true; object.receiveShadow = true; } });
     root.traverse(object => {
       if (!(object instanceof THREE.Mesh)) return;
@@ -181,6 +303,7 @@ export async function prepareLastArcade() {
     sun.shadow.normalBias = .0015; sun.shadow.bias = -.00004; sun.shadow.radius=2.5; sun.shadow.autoUpdate = false; sun.shadow.needsUpdate = true;
     const sea = installArcadeSea(root);
     const biology=createArcadeBiology();scene.add(biology.root);
+    const streetLamps=[installStreetLamp(-8,1024),installStreetLamp(-21,512)];streetLamps.forEach(lamp=>scene.add(lamp.group));
     // Broad, upward-facing patches represent sunlight reflected by the open road.
     // RectAreaLight has no occlusion; keep the emitting planes outside the arcade.
     const groundBounces=[-5,-18].map(z=>{const light=new THREE.RectAreaLight('#e8c99a',.8,3.4,12);light.name='arcade-road-bounce';light.position.set(4.8,-.10,z);light.rotation.x=-Math.PI/2;return light;});
@@ -205,26 +328,42 @@ export async function prepareLastArcade() {
         const daylight = THREE.MathUtils.clamp(state.intensity/.9, 0, 1.1);
         const hour = state.hour ?? 14;
         const dusk = THREE.MathUtils.smoothstep(hour,14.5,17.5)*(1-THREE.MathUtils.smoothstep(hour,17.5,19));
-        updateArcadeEnvironment(background,dusk);
+        // Night factor for the Q2-A2 candidate: 1 at 23:00 (intensity .09),
+        // 0 at dawn/noon/dusk moments (daylight ≥ .4), so those stay unchanged.
+        const night = 1-THREE.MathUtils.smoothstep(daylight,.12,.38);
+        // Three caches the equirect→cube conversion of a background texture and
+        // does not watch its version, so the old dusk-only updates never reached
+        // the visible sky. Invalidate only when the night step changes: the
+        // moon sky is actually shown, while dawn/noon/dusk keep the confirmed
+        // rendering (see docs/scenes/last-arcade.md, Q2-A2).
+        const backgroundNight=Math.round(THREE.MathUtils.clamp(night,0,1)*20);
+        updateArcadeEnvironment(background,dusk,night);
+        if(backgroundNight!==background.userData.nightShown){background.userData.nightShown=backgroundNight;background.dispose();background.needsUpdate=true;}
         const reflectionStep=environment.userData.duskStep;
-        updateArcadeEnvironment(environment,dusk);
+        updateArcadeEnvironment(environment,dusk,night);
         // Three caches PMREM for ordinary DataTextures: invalidate that cache
         // only when the quantized sky changes, so dusk reaches reflections too.
         if(reflectionStep!==environment.userData.duskStep){environment.dispose();environment.needsUpdate=true;}
         // sampleTime(14:00) has angle .25, which is the authored config baseline.
         const sunDirection = afternoonSunDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (state.angle-.25)*.55).normalize();
         sunDirection.y *= 1-.38*dusk; sunDirection.normalize();
-        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight);
+        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight)*(1-.45*night);
         const targetSkyIntensity = .025 + .22*Math.min(1, daylight);
-        scene.environmentIntensity=.025+.50*Math.min(1,daylight);
-        scene.backgroundIntensity=.06+.94*Math.min(1,daylight);
+        // The night palette is already dark, so its intensities converge to a
+        // fixed value instead of being scaled down a second time.
+        scene.environmentIntensity=THREE.MathUtils.lerp(.025+.50*Math.min(1,daylight),.9,night);
+        scene.backgroundIntensity=THREE.MathUtils.lerp(.06+.94*Math.min(1,daylight),1,night);
+        streetLamps.forEach(lamp=>lamp.update(night,!!state.lowQuality));
         for(const light of groundBounces){
-          light.intensity=.02+.38*Math.min(1,daylight);
+          // Sun-on-road bounce; at night the moon's share of it is negligible.
+          light.intensity=(.02+.38*Math.min(1,daylight))*(1-.85*night);
           light.color.set('#e8c99a').lerp(new THREE.Color('#efb56f'),dusk);
         }
         sun.position.copy(sunTarget).addScaledVector(sunDirection, 42);
         sun.intensity = targetSunIntensity;
         sun.color.setRGB(1, 1-.20*state.warmth, 1-.40*state.warmth).lerp(new THREE.Color().setRGB(1,.57,.25),dusk);
+        // Moonlight: same authored direction, cooler and desaturated (not blue).
+        sun.color.lerp(new THREE.Color().setRGB(.66,.74,.86),night);
         sky.intensity = targetSkyIntensity;
         sky.color.set('#b9d3e2').lerp(new THREE.Color('#e8bc88'), state.warmth*.28);
 
@@ -235,7 +374,7 @@ export async function prepareLastArcade() {
       disturb() {biology.disturb();}, resetWater() {},
       dispose() {
         if (disposed) return; disposed = true;
-        clothAmbient.dispose(); tornCloth.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
+        clothAmbient.dispose(); tornCloth.dispose(); streetLamps.forEach(lamp=>lamp.dispose()); facade.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
         groundBounces.forEach(light=>light.removeFromParent());
         if(scene.environment===environment)scene.environment=priorAmbient.environment;
         if(scene.background===background)scene.background=priorAmbient.background;

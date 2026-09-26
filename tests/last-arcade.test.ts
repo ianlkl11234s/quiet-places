@@ -110,3 +110,27 @@ test('last arcade rejects missing root weights before retaining any prepared res
   try {await assert.rejects(prepareLastArcade(),/_arcade_wind/);assert.equal(disposed,1);}
   finally {GLTFLoader.prototype.loadAsync=old;}
 });
+
+test('Q2-A2 street lamps are dark by day, lit only at night, and the night sky is darker', async () => {
+  const root = new THREE.Group();
+  const old = GLTFLoader.prototype.loadAsync;
+  GLTFLoader.prototype.loadAsync = async () => ({scene: root, animations: []}) as never;
+  try {
+    const factory = await prepareLastArcade(), scene = new THREE.Scene();
+    const renderer = {shadowMap: {enabled: false, type: THREE.BasicShadowMap}} as unknown as THREE.WebGLRenderer;
+    const place = factory(scene, renderer);
+    const lamps = () => { const found: THREE.SpotLight[] = []; scene.traverse(o => { if (o instanceof THREE.SpotLight && o.name === 'arcade-street-lamp-light') found.push(o); }); return found; };
+    const skyAt = () => { const t = scene.background as THREE.DataTexture; const d = t.image.data as Float32Array, w = t.image.width; return d[(Math.floor(t.image.height * .75) * w) * 4 + 2]; };
+    assert.equal(lamps().length, 2);
+    for (const [hour, intensity, warmth, angle] of [[6.5, .36, .66, -.7], [12, 1, .3, 0], [17.5, .47, .95, .75]] as const) {
+      place.update(0, 1, {hour, intensity, warmth, angle, activity: .6});
+      assert.ok(lamps().every(l => l.intensity === 0), `lamps off at ${hour}`);
+    }
+    const daySky = skyAt();
+    place.update(0, 1, {hour: 23, intensity: .09, warmth: 0, angle: -.15, activity: .3});
+    assert.ok(lamps().every(l => l.intensity > 0 && l.castShadow && l.decay === 2), 'lamps lit with shadows and inverse-square decay');
+    assert.ok(skyAt() < daySky * .15, 'moonlit sky radiance is far below the day palette');
+    place.dispose(); factory.dispose?.();
+    assert.equal(scene.children.length, 0);
+  } finally { GLTFLoader.prototype.loadAsync = old; }
+});

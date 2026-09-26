@@ -1,5 +1,28 @@
 # 潮風商店街／last-arcade（暫名）
 
+## 2026-09-27：Q2-A2 月夜路燈、夜空、鐵捲門 1K、對側樓房（候選待使用者確認）
+
+分支 `claude/visual-quality-split`。三小項可各自退回；晨曦／正午／暮色畫面的天空、牆與地面亮度前後差 ≤1.3（8-bit 亮度，含魚群動態）。
+
+1. **月夜光源與夜空**（`src/places/last-arcade/index.ts` 的 `installStreetLamp()`、`night` 因子；`Ambient.ts` 的 `updateArcadeEnvironment(texture,dusk,night)`）
+   - `night = 1 − smoothstep(daylight,.12,.38)`：23:00 為 1；06:30／12:00／17:30 為 0，這三個時段不受影響。
+   - 兩盞一般住宅街的 LED 防犯燈，掛在既有電線桿（glTF x=9.52）z=−8 與 z=−21、高 4.7 m。SpotLight 16 cd（約 700 lm 等級的美術估值，不是實測）、decay 2、distance 22 m、半角 1.0 rad、penumbra .9，色 #f1d9b8（暖白、低彩度）。兩盞都有陰影：近燈 1024²、遠燈 512²，低畫質各 512²。白天燈的 intensity 為 0，陰影停止更新；燈始終留在場景中，所以時刻切換時 shader 的燈數不變。燈罩的 emissive 只在夜間為 1.6，代表燈具本身，不是讓物件發光。z=−21 的燈頭在預設視角可見；z=−8 的燈頭被棚架柱遮住，但照亮近處道路並投下欄杆的影子。
+   - 夜空：天頂 #151d29、地平線 #2f3843、地面 #2a2824（低彩度藍灰）；夜間 backgroundIntensity 收斂到 1，environmentIntensity 收斂到 .9，避免被第二次縮放。月光方向沿用原設定，顏色轉為 (.66,.74,.86)，強度 ×(1−.45·night)；道路反光 RectAreaLight ×(1−.85·night)。
+   - 發現的既有問題：Three 會快取背景 equirect→cube 的轉換，而且不看 texture version，所以既有暮色背景更新其實從未顯示在天空上（先前截圖的暮色天空仍是正午色）。本輪只在 night 階數改變時 dispose 背景，讓月夜天空能生效；暮色維持使用者已看過的樣子。要不要修正暮色背景，交由使用者另外決定。
+   - 退回方式：刪掉 `installStreetLamp`／`streetLamps`；把 `night` 設為 0，或還原 Ambient.ts 的 night 參數。
+2. **鐵捲門 1K**（`assets/blender/scripts/last_arcade_steel_1k.py`）
+   - 評估：完整的 Blender 重建會連帶重寫幾何、植物、遮蔽權重與 packed .blend（.blend 不在本輪授權範圍），風險過高。改為只重新生成 `shutter`、`shutter-faded` 兩組 steel 貼圖（color／normal／metallic-roughness），並以純 Python 替換 GLB 內對應的 6 張影像；其餘 bufferView 逐位元組照搬。
+   - 圖樣延續：沿用 `last_arcade.py` 的 numpy RNG 序列（包含 steel 用不到、但會推進序列的 512² grain）。`--check512` 重現現有 512² PNG 時，最大差 1/255（量化誤差）。1K 另外用獨立 RNG 加上鏽邊破碎（150–360 格）、鏽內深淺斑駁與點蝕；normal 梯度乘上 n/512，讓每公尺的起伏不變。鏽斑位置不變，只有邊緣和內部有了細節。
+   - 資產：GLB 22,356,160 → 23,149,824 bytes（+3.6%）；6 張貼圖 512²→1024²，GPU 記憶體估計增加約 24 MB（RGBA8 含 mip）。原檔備份在 `exports/quality-q2-20260927/A2-A6-A9/backup-original/`（GLB SHA-256 `ff175319…`，新檔 `73ec9708…`）。
+   - 退回方式：把備份的 GLB 與 8 張 PNG 複製回原位。
+   - 限制：若日後用 `last_arcade.py` 做完整重建，會回到 512²。要沿用 1K，須讓 `material()` 對 shutter 改呼叫本腳本的 `steel_maps(..., 1024, detail=True)`；本輪沒有改主 builder，也沒有重跑 Blender。
+3. **對側樓房**（`index.ts` 的 `installFacadeDetail()`，只作用在 `arcade-opposite-wall-0..2` 與 `arcade-distant-window`）
+   - 世界座標程序 shader：每棟一種低彩度塗色（米、灰綠、象牙、灰），2.85 m 樓層帶與女兒牆帶，樓層帶和屋簷下方的滴流痕，以及 0–0.55 m 的濺水帶。albedo 乘數約 .78–1.06。
+   - 窗玻璃依格子隨機呈現暗室、淺色窗簾（有細褶）或百葉三種。沒有 emissive，所以夜間不亮燈。棟別範圍抄自 `street_context()`，若日後改了 Blender 的 parcel，要同步修改。
+   - 退回方式：刪除 `installFacadeDetail(root)` 那一行。
+
+驗收：`npx tsc --noEmit` 通過；last-arcade 7 tests 通過（新增 1 項：白天燈 0、夜間有陰影與 decay 2、夜空輻射 <15% 日間）。全套測試 190 項中 189 項通過，唯一失敗是 main 上既有的 manta encounter 測試。`check:project` 通過。四時段截圖在 `exports/quality-q2-20260927/A2-A6-A9/before|after/last-arcade-*.jpg`，局部放大在 `after/crop-A2-*.jpg`（左為 before）。月夜 8-bit 亮度 before→after：天空 87.9→42.8（RGB (78,90,98)→(33,44,57)）、走廊地面 44.1→28.4、近處鐵捲門 23.2→16.1、對側牆 31.3→18.0、燈下道路 20.6→28.4、全畫面 1st percentile 5.0→4.1（黑位沒有抬高）。本機 browser 驗收，尚未經使用者確認，也沒有實機驗收。
+
 ## 本輪確認（2026-09-17）
 
 使用者確認目前畫面 OK，授權提交：三隻連續拍翼鬼蝠魟、後方柱子周圍的 Fusilier、三處 Chromis、環境遮蔽與暮色反射同步、ミグ商店招牌與破布。鯨鯊僅保留共用模組，正式場景不啟用。最近魚群 600 s 避碰與 5 tests、build、check:project 通過；此為本機畫面確認與本地 commit，非發布。下方「未 commit」文字為各次調整當時狀態。
