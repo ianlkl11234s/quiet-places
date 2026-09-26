@@ -64,3 +64,29 @@ test('Kuroshio schools keep gentle vertical travel, bounded turns, and cruising 
  assert.ok(final.chromis.meanSpeedBL>.55&&final.chromis.meanSpeedBL<1.2,'Chromis remains in a slow cruising band');
  assert.ok(final.fusilier.meanSpeedBL>.85&&final.fusilier.meanSpeedBL<1.65,'Fusilier remains in a measured cruising band');
 });
+test('Kuroshio schools bank into turns, C-bend inside them, and integrate f = f0 + U/(k BL) (shared locomotion)',()=>{
+ const school=createArcadeSchools({seed:808,obstacles}),previous:{chromis:Agent[];fusilier:Agent[]}={chromis:[],fusilier:[]};
+ type Turning=Agent&{bank:number;bend:number;length:number};
+ const stats={chromis:{maxBank:0,maxBend:0,into:0,samples:0,freqError:0},fusilier:{maxBank:0,maxBend:0,into:0,samples:0,freqError:0}};
+ const tail={chromis:{f0:.60,k:1.0},fusilier:{f0:.60,k:.80}};
+ for(let frame=0;frame<=90*12;frame++){
+  school.update(0,frame/12);const now=school.getDebug() as unknown as {chromis:{agents:Turning[]};fusilier:{agents:Turning[]}};
+  for(const kind of ['chromis','fusilier'] as const)now[kind].agents.forEach((agent,index)=>{
+   const before=previous[kind][index] as Turning|undefined,s=stats[kind];
+   s.maxBank=Math.max(s.maxBank,Math.abs(agent.bank));s.maxBend=Math.max(s.maxBend,Math.abs(agent.bend));
+   if(!before)return;
+   const a=new THREE.Vector3(...before.heading).setY(0).normalize(),b=new THREE.Vector3(...agent.heading).setY(0).normalize();
+   const yawRate=Math.atan2(a.clone().cross(b).y,a.dot(b))*12;
+   if(Math.abs(yawRate)>THREE.MathUtils.degToRad(12)&&Math.abs(agent.bank)>THREE.MathUtils.degToRad(.5)){s.samples++;if(Math.sign(agent.bank)===Math.sign(yawRate)&&Math.sign(agent.bend)===-Math.sign(yawRate))s.into++;}
+   const expected=tail[kind].f0+agent.speedBL/tail[kind].k,actual=(agent.phase-before.phase)*12;
+   s.freqError=Math.max(s.freqError,Math.abs(actual-expected));
+  });
+  previous.chromis=now.chromis.agents;previous.fusilier=now.fusilier.agents;
+ }
+ school.dispose();
+ console.log(JSON.stringify({schoolTurn:Object.fromEntries(Object.entries(stats).map(([k,v])=>[k,{maxBankDeg:THREE.MathUtils.radToDeg(v.maxBank),maxBendBL:v.maxBend,intoFraction:v.into/Math.max(1,v.samples),samples:v.samples,maxFrequencyErrorHz:v.freqError}]))}));
+ assert.ok(stats.chromis.maxBank>THREE.MathUtils.degToRad(3)&&stats.chromis.maxBank<=THREE.MathUtils.degToRad(8)+1e-9,'Chromis bank is visible but <= 8 deg');
+ assert.ok(stats.fusilier.maxBank>THREE.MathUtils.degToRad(3)&&stats.fusilier.maxBank<=THREE.MathUtils.degToRad(10)+1e-9,'Fusilier bank is visible but <= 10 deg');
+ assert.ok(stats.chromis.maxBend<=.035+1e-9&&stats.fusilier.maxBend<=.045+1e-9);
+ for(const kind of ['chromis','fusilier'] as const){assert.ok(stats[kind].samples>100);assert.ok(stats[kind].into/stats[kind].samples>.9,`${kind} banks into the turn`);assert.ok(stats[kind].freqError<1e-6,`${kind} tail phase integrates the shared cadence`);}
+});

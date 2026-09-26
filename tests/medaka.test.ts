@@ -101,3 +101,21 @@ test('shared factory rejects an invalid agent length before cloning resources',a
     factory.dispose();disposals.forEach(count=>assert.equal(count,1));
   } finally { GLTFLoader.prototype.loadAsync=originalLoad; }
 });
+
+test('hovering medaka stills its tail and sculls alternating pectorals; swimming keeps the tail wave (shared locomotion)',async()=>{
+  const gltf=await loadAsset(),originalLoad=GLTFLoader.prototype.loadAsync;
+  GLTFLoader.prototype.loadAsync=async()=>gltf;
+  try {
+    const route=(speed:number)=>({duration:10,activeDuration:10,controlPoints:[],sample:(elapsed:number)=>({position:new THREE.Vector3(),quaternion:new THREE.Quaternion(),speed,phase:(elapsed*Math.PI*2*2.2)%(Math.PI*2),q:speed/.18,acceleration:0,state:0,length:.045,colorVariant:0})});
+    const factory=await prepareSharedMedaka(),parent=new THREE.Group();
+    const hovering=factory.create(parent,{route:route(.002),name:'hover'}),swimming=factory.create(parent,{route:route(.05),name:'swim'});
+    const read=(fish:typeof hovering,name:string)=>(fish.root.getObjectByName(name) as THREE.Bone).quaternion.clone();
+    const hoverTail:THREE.Quaternion[]=[],hoverFins:THREE.Quaternion[][]=[];
+    for(const t of [.10,.21,.33]){hovering.update(t);hoverTail.push(read(hovering,'Tail_Tip'));hoverFins.push([read(hovering,'Pectoral_L'),read(hovering,'Pectoral_R')]);}
+    assert.ok(hoverTail.every(q=>q.angleTo(hoverTail[0])<1e-9),'hovering tail does not beat');
+    assert.ok(hoverFins[0][0].angleTo(hoverFins[1][0])>.05,'hovering pectorals keep sculling');
+    const swimTips:THREE.Quaternion[]=[];for(const t of [.10,.21,.33]){swimming.update(t);swimTips.push(read(swimming,'Tail_Tip'));}
+    assert.ok(swimTips[0].angleTo(swimTips[1])>.01,'swimming tail keeps its wave');
+    hovering.dispose();swimming.dispose();factory.dispose();
+  } finally { GLTFLoader.prototype.loadAsync=originalLoad; }
+});

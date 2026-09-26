@@ -3,10 +3,20 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
 import {collectModelResources, disposeModelResources} from '../../resources/ModelResources.ts';
 import type {MedakaMotionSample, MedakaRoute} from './MedakaMotion.ts';
+import {hoverTailScale, hoverWeight, pectoralScull, type HoverParams} from '../locomotion/index.ts';
+
 
 const TAIL_BONES=['Spine_01','Spine_02','Spine_03','Spine_04','Spine_05','Peduncle','Tail_Base','Tail_Tip'];
 const REQUIRED_BONES=['MedakaRoot',...TAIL_BONES,'Pectoral_L','Pectoral_R'];
 const TAU=Math.PI*2;
+/**
+ * Q1-3c candidate (art calibration). The baked cache keeps a >=2 Hz tail phase
+ * even when nearly still (30% of samples are below .3 BL/s). Below .2 BL/s the
+ * tail amplitude now fades to zero and the pectorals scull alternately at the
+ * cached phase (so pause/seek stay exact); full swimming from .5 BL/s.
+ * Revert: residualTail 1 and pectoralAmplitude 0.
+ */
+export const MEDAKA_HOVER:HoverParams={hoverSpeedBL:.2,swimSpeedBL:.5,residualTail:0,pectoralAmplitude:.22};
 
 export interface PrepareMedakaOptions { modelUrl?:string; }
 export interface MedakaAgentOptions { route:MedakaRoute; phaseOffsetSeconds?:number; length?:number; colorVariant?:number; name?:string; }
@@ -38,9 +48,9 @@ function bindQuaternion(root:THREE.Object3D,bone:THREE.Bone):THREE.Quaternion {
   return quaternion;
 }
 
-function tailTangent(sample:MedakaMotionSample,progress:number):number {
+function tailTangent(sample:MedakaMotionSample,progress:number,tailScale=1):number {
   const s=THREE.MathUtils.clamp(progress,0,1);
-  const amplitude=.035*(.65+.55*sample.q)*(1+.2*THREE.MathUtils.clamp(sample.acceleration,0,1));
+  const amplitude=tailScale*.035*(.65+.55*sample.q)*(1+.2*THREE.MathUtils.clamp(sample.acceleration,0,1));
   const theta=sample.phase-TAU*.9*s;
   return Math.atan(amplitude*(2.2*s**1.2*Math.sin(theta)-TAU*.9*s**2.2*Math.cos(theta)));
 }
@@ -70,14 +80,15 @@ function cloneMaterials(model:THREE.Object3D,variant:number):THREE.Material[] {
 function applyPose(carrier:THREE.Group,bones:BonePose[],pectorals:PectoralPose[],sample:MedakaMotionSample):void {
   carrier.position.copy(sample.position);
   carrier.quaternion.copy(sample.quaternion);
+  const hover=hoverWeight(sample.speed,sample.length,MEDAKA_HOVER),tailScale=hoverTailScale(hover,MEDAKA_HOVER);
   let previous=0;
   for(const control of bones){
-    const current=tailTangent(sample,control.progress);
+    const current=tailTangent(sample,control.progress,tailScale);
     control.bone.quaternion.copy(control.base).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),current-previous));
     previous=current;
   }
-  const fin=.20*(1-.55*sample.q)*Math.sin(sample.phase);
-  for(const control of pectorals)control.bone.quaternion.copy(control.base).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),fin*control.sign));
+  const fin=.20*(1-.55*sample.q)*Math.sin(sample.phase)*(1-hover),scull=pectoralScull(sample.phase,hover,MEDAKA_HOVER);
+  for(const control of pectorals)control.bone.quaternion.copy(control.base).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),(fin+(control.sign>0?scull.left:scull.right))*control.sign));
 }
 
 /** Loads one immutable GLB; each instance owns its cloned materials and skeletons. */
