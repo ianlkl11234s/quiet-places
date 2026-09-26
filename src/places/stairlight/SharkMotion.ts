@@ -2,6 +2,11 @@ import * as THREE from 'three';
 
 const TAU = Math.PI * 2;
 const SHARK_LENGTH = .9;
+/** Q2 A1-5 candidate. 0 restores the confirmed fins that only follow the body. */
+export const PECTORAL_ATTACK_GAIN = 1;
+/** Art values (class C): fraction of body pitch copied to fin incidence, and differential turn incidence. */
+export const PECTORAL_CLIMB_RATIO = .6;
+export const PECTORAL_TURN_DEG = 4;
 const ROUTE_STEPS = 16384;
 
 export interface SharkSpineSample {
@@ -34,6 +39,12 @@ export interface SharkMotionSample {
   wavelengthRatio: number;
   length: number;
   spine: readonly SharkSpineSample[];
+  /**
+   * Pectoral incidence relative to the body, radians about the body lateral
+   * axis; positive raises the leading edge. Climb sets both fins, turns add an
+   * opposite-sign differential (outer fin up) that agrees with the bank.
+   */
+  pectoralAttack: { left: number; right: number };
 }
 
 /** Shared dense-friendly stations; consumers may interpolate for their own rig. */
@@ -253,10 +264,17 @@ export function sampleSharkMotion(elapsed: number): SharkMotionSample {
   lateral.applyAxisAngle(direction, bank);
   dorsal.applyAxisAngle(direction, bank);
   const quaternion = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(direction, dorsal, lateral));
+  // Positive curvature turns toward local -Z (the animal's left, Pectoral_L side);
+  // the right (outer) fin raises incidence, the left lowers it. Both are continuous
+  // because pitch and curvature already are. Flight-control analogy, not measured.
+  const climbAttack = PECTORAL_CLIMB_RATIO * pitch;
+  const turnAttack = THREE.MathUtils.degToRad(PECTORAL_TURN_DEG) * Math.tanh(curvature / 1.2);
+  const pectoralAttack = { left: PECTORAL_ATTACK_GAIN * (climbAttack - turnAttack), right: PECTORAL_ATTACK_GAIN * (climbAttack + turnAttack) };
   return {
     position: route.position, direction, quaternion,
     speed: wave.speed, frequency: wave.frequency, phase: wave.phase,
     turnCurvature: curvature, turnBias: wave.turn, bank, pitch, wavelengthRatio: wave.wavelengthRatio,
     length: SHARK_LENGTH, spine: sampleSpine(wave.phase, wave.wavelengthRatio, wave.tailScale,curvature),
+    pectoralAttack,
   };
 }

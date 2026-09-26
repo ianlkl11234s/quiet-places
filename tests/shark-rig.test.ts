@@ -39,3 +39,29 @@ test('shipped shark body actually uses the spine and deforms more at the tail',a
  shark.dispose();shark.dispose();assert.ok(counts.every(n=>n===1),'every owned resource releases exactly once');
  console.log(`Shark head excursion ${head.toFixed(4)}m, rear body ${tail.toFixed(4)}m`);
 });
+
+test('pectoral bone angle realises the requested fin incidence on the shipped skin (Q2 A1-5)',async()=>{
+ const {pectoralBoneAngle}=await import('../src/places/stairlight/Shark.ts');
+ const {sampleSharkMotion}=await import('../src/places/stairlight/SharkMotion.ts');
+ for(const w of [.153,.5,1])for(const a of [-.1,.02,.08]){
+  const t=pectoralBoneAngle(a,w),eff=Math.atan2(w*Math.sin(t),1-w+w*Math.cos(t));
+  assert.ok(Math.abs(eff-a)<1e-4,`w=${w} a=${a}`);
+ }
+ const model=await load(),shark=createShark(model,true);
+ const fin=model.getObjectByName('PECTORAL_L') as THREE.SkinnedMesh;
+ assert.ok(fin instanceof THREE.SkinnedMesh);
+ const n=fin.geometry.attributes.position.count;
+ const incidence=()=>{fin.skeleton.update();const inv=shark.root.matrixWorld.clone().invert();
+  const pts=Array.from({length:n},(_,i)=>fin.getVertexPosition(i,new THREE.Vector3()).applyMatrix4(fin.matrixWorld).applyMatrix4(inv));
+  const front=pts.reduce((a,b)=>b.x>a.x?b:a),back=pts.reduce((a,b)=>b.x<a.x?b:a);
+  return Math.atan2(front.y-back.y,front.x-back.x);};
+ const xs:number[]=[],ys:number[]=[];
+ for(let t=0;t<120;t+=.5){shark.update(t,.9);xs.push(sampleSharkMotion(t).pectoralAttack.left);ys.push(incidence());}
+ const mx=xs.reduce((a,b)=>a+b)/xs.length,my=ys.reduce((a,b)=>a+b)/ys.length;
+ let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(ys[i]-my);sxx+=(x-mx)**2;});
+ const slope=sxy/sxx;
+ // Leading/trailing vertices also ride the body wave, so allow a loose band.
+ assert.ok(slope>.6&&slope<1.4,`measured fin chord follows requested incidence, slope ${slope.toFixed(3)}`);
+ console.log(`Pectoral_L chord incidence vs requested slope ${slope.toFixed(3)} over 120 s`);
+ shark.dispose();
+});

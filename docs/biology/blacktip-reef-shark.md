@@ -54,3 +54,10 @@
 7. 先跑rig／motion tests，再把clearance測試改成新建築包絡，最後用真實場景檢查rest／轉彎／返程／日夜／暫停。舊場景碰撞通過不代表新場景通過。
 
 修頭部時不要恢復「每段smoothstep歸零斜率」；在無陰影及有陰影下分別看輪廓，辨別截面肩部與shadow acne。嘴、眼睛、鰓須重新貼合新的profile。形體、蒙皮、受光是三個獨立驗收項目。
+
+## 2026-09-27 Q2 A1-5 胸鰭攻角連動（候選待使用者確認）
+
+- `SharkMotion.ts` 新增 `pectoralAttack{left,right}`（弧度，繞身體側向軸，正值為前緣上抬）。共同分量 = `PECTORAL_CLIMB_RATIO(.6) × pitch`；差動分量 = `PECTORAL_TURN_DEG(4°) × tanh(curvature/1.2)`，外側鰭上抬、內側下壓，符號與既有 bank 一致。`PECTORAL_ATTACK_GAIN=0` 即回到原本只跟隨身體的胸鰭。數值是美術值（C 級），方向是「像飛行控制面」的類比，沒有查證黑鰭礁鯊的實測胸鰭角度，不能寫成生物事實。
+- 模型限制：Blender 腳本只給胸鰭骨骼 .18 ADD 權重（GLB 正規化後約 .153），其餘跟隨脊椎。`Shark.ts` 讀取實際權重，用二分法解出線性混合後能得到目標攻角的骨骼角 `pectoralBoneAngle`，上限 75°。目前路線最大需求 6.1°，對應骨骼約 40°，鰭會因線性混合縮短約 3–4%。Q3 重做模型時建議把胸鰭權重綁到 1，就不需要這個補償。
+- 測試：`tests/shark-motion.test.ts`：600 秒取樣，共同分量等於 .6×pitch；pitch>4° 時兩鰭 >2°、pitch<−3° 時 <−1.5°；|curvature|>.4 時差動與 curvature 同號、與 bank 反號；最大 6.11°；每 20 ms 變化 <1°（受既有 body pitch 過渡速率限制，最差約 1.17°/20 ms × .6）。`tests/shark-rig.test.ts`：在實際 GLB 蒙皮上量 Pectoral_L 弦線角對要求攻角的斜率為 0.999（120 秒）。既有 shark 測試全部通過。
+- 連拍：`exports/quality-q2-20260927/A1-A3/after/shark-A1-5-*.jpg`（`tests/shark-model.html`，root 歸零，爬升／平飛／下潛／左右轉與爬升段 0.4 秒間隔）。角度小，視覺差異細微；鰭看起來離身體較遠的情況在攻角≈0 的平飛幀也有，是原本的造型與視角，不是這次改動造成的。
