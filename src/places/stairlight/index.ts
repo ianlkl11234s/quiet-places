@@ -15,7 +15,10 @@ export const STAIR_MOON_KEY=.30;
 /** 0 restores the baked handrail roughness; 1 = polished grip top, hazier sides. */
 export const STAIR_RAIL_ROUGHNESS=1;
 /** 0 restores the baked hairline tubes; 1 = shallow groove normal + dirt roughness. */
-export const STAIR_CRACK_GROOVE=1;
+// Off by default: the per-fragment crack reconstruction halved the frame rate
+// (26 -> 13.8 fps at 1600x900). Re-baking the landing albedo without the
+// black hairline in Blender is the intended fix; 1 re-enables the shader groove.
+export const STAIR_CRACK_GROOVE=0;
 
 /** Weight of the noon-only exposure trim: 1 at 10:30–13:30, 0 before 8:30/after 15:30. */
 export function stairNoonWeight(hour:number|undefined,intensity:number){
@@ -214,6 +217,8 @@ irradiance += twineSky*(.018+.65*tapeOpening*tapeFacing);`);
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     let quality:number|undefined;
     return {
+      // 4x MSAA cost 30 -> 26 fps here at 1600x900; 2x holds 30.
+      msaaSamples:2,
       position:position.toArray() as [number,number,number],target:target.toArray() as [number,number,number],
       cameraUp:up.toArray() as [number,number,number],framingAspect:896/1216,
       fov:hero.fov,yawRange:Math.PI/12,exposure:2**1.2,toneMapping:THREE.AgXToneMapping,

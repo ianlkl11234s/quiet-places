@@ -124,7 +124,7 @@ async function start(){
  function updateAntialiasing(){
   // The composer renders offscreen, so the context's antialias flag never
   // reaches the image; MSAA must be requested on its render targets.
-  const samples=Math.min(preferences.quality==='low'?2:4,renderer.capabilities.maxSamples);
+  const samples=Math.min(place.msaaSamples??(preferences.quality==='low'?2:4),preferences.quality==='low'?2:4,renderer.capabilities.maxSamples);
   for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==samples){target.samples=samples;target.dispose();}
  }
  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
