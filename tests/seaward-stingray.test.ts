@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {prepareTunnelRay,sampleTunnelFlight} from '../src/places/seaward/Stingray.ts';
+import {prepareTunnelRay,sampleTunnelFlight,tunnelFinClock,tunnelTravel} from '../src/places/seaward/Stingray.ts';
 
 function fixture(){
   const root=new THREE.Group(),bone=new THREE.Bone();bone.name='fin';
@@ -34,7 +34,7 @@ test('tunnel ray follows a deterministic low ellipse and releases GLB resources 
     const forward=new THREE.Vector3(0,0,1).applyQuaternion(carrier.quaternion);
     assert.ok(forward.length()> .99999,'the +Z model forward axis is carried along the route');
     const fin=carrier.getObjectByName('fin') as THREE.Bone,finAtFirstTime=fin.position.y;
-    ray.update(17.75);assert.notEqual(fin.position.y,finAtFirstTime,'the original slow cruise clip uses absolute elapsed time');
+    ray.update(17.75);assert.notEqual(fin.position.y,finAtFirstTime,'the slow cruise clip advances with distance swum');
     ray.dispose();ray.dispose();factory.dispose();
     assert.equal(group.children.length,0);assert.equal(geometryDisposals,1);assert.equal(materialDisposals,1);
   }finally{GLTFLoader.prototype.loadAsync=old;}
@@ -70,7 +70,7 @@ test('actual stingray skin stays above the floor through a full turning route',a
  try{
   const factory=await prepareTunnelRay(),group=new THREE.Group(),ray=factory(group),bounds=new THREE.Box3();
   let maximumLift=0;
-  for(let t=0;t<46;t+=.125){
+  for(let t=0;t<90;t+=.125){
    ray.update(t);group.updateMatrixWorld(true);
    const model=group.getObjectByName('tunnel-stingray-model')!;
    bounds.setFromObject(model,true);assert.ok(bounds.min.y>=.0799,`floor clearance at ${t}: ${bounds.min.y}`);
@@ -92,4 +92,23 @@ test('flight rises before rolling and stays level until the roll has settled',()
  assert.ok(Math.abs(sampleTunnelFlight(33).height-.545)<1e-9);
  const period=2*Math.PI/.14;
  assert.ok(Math.abs(sampleTunnelFlight(period-.001).height-sampleTunnelFlight(period+.001).height)<1e-8);
+});
+
+test('fin clock follows distance swum, not a fixed elapsed clock',()=>{
+ const period=2*Math.PI/.14;
+ // Mean cadence over a lap equals the former elapsed clock.
+ assert.ok(Math.abs(tunnelFinClock(period)-period)<1e-6);
+ assert.ok(Math.abs(tunnelFinClock(3*period)-3*period)<1e-5);
+ // Monotonic and pure: the same elapsed always gives the same phase.
+ let previous=tunnelFinClock(0);
+ for(let t=.05;t<2*period;t+=.05){const now=tunnelFinClock(t);assert.ok(now>previous);previous=now;}
+ assert.equal(tunnelFinClock(37.3),tunnelFinClock(37.3));
+ assert.equal(tunnelTravel(Number.NaN),0);
+ // Level cruise at the fast (phase=3π/2, after descent) and slow (phase≈0) ends of the ellipse.
+ const speed=(t:number)=>.14*Math.hypot(.45*Math.cos(.14*t),1.5*Math.sin(.14*t));
+ const fast=1.5*Math.PI/.14,slow=period-1,dt=.25;
+ const advanceFast=tunnelFinClock(fast+dt)-tunnelFinClock(fast-dt),advanceSlow=tunnelFinClock(slow+dt)-tunnelFinClock(slow-dt);
+ const ratio=advanceFast/advanceSlow,expected=speed(fast)/speed(slow);
+ assert.ok(ratio>2.5,'fast stretch beats clearly faster');
+ assert.ok(Math.abs(ratio/expected-1)<.02,`cadence ratio ${ratio} vs speed ratio ${expected}`);
 });
