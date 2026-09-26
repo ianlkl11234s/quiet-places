@@ -94,3 +94,45 @@ glTF 是兩秒 morph + root 動画的 QA 匯出版本；網站仍直接執行同
 水母邊緣觸鬚透明度 .33 → .16，固定 seed 的長度係數 .45..95，PBD guide 按圓周鄰近分配，保留 128 條。A／B 以 113 秒週期、43 秒錯相的平滑事件朝 +z／+x（基準觀察者方向）轉向，前景區域偏好最多 +.45 m；實際位移仍經受力／阻力／邊界，並非固定前進 .45 m。這是美術編舞，不是追蹤目前鏡頭或生物行為實測。
 
 118 個測試通過、build 通過。既有 60 秒 Blender／PC2／GLB 是前一版歸檔，未重烘焙此次觸鬚與路徑；當前網站 TS 為新版權威，不可將舊快取描述為與本版逐幀一致。
+
+## 2026-09-27：J1 外觀與 J2 姿態運動（候選待使用者確認）
+
+依據 [jellyfish-realism-research.md](jellyfish-realism-research.md)。目標是「水族館裡看到的活體」，但不加水槽、藍光、氣泡或 emission；雪景相機、窗、海、雪、光路未動。等級：A 文獻實測、B 模型近似、C 美術。
+
+**J1 外觀**（`src/shared/biology/aurelia/Aurelia.ts`、新增 `AureliaShading.ts`）
+- 傘體改為近無色 `MeshStandardMaterial` + onBeforeCompile：fresnel 邊緣 alpha（中心 .03 → 邊緣 .30）、背光前向散射（Barré-Brisebois 式 wrap/背光項，對 RectAreaLight 取最近點、DirectionalLight、Hemisphere 背面），厚度由頂點 r 推得（薄緣散射較多），邊緣環帶較密。取消 transmission。形態 A（MarLIN：傘無色），數值 C。
+- 所有附加光項都乘場景光，月夜不發光；移除所有 unlit 材質（原白色 LineBasic 觸手、MeshBasic 感覺區）。
+- 放射管：刪除 16+16 條 tube 與環管 tube，改為下傘面 shader 帶狀 alpha：16 條主管，8 條（per/interradial）在 r≈.46 與 .70 後兩次分叉，環管 r≈.90；寬度 .020R→.006R 隨半徑遞減；可見度 ∝（掠射光占比）²，背光下僅 5% 底值。顏色 A（藕紫），寬度與可見度 C。
+- 生殖腺：四個馬蹄形拱形 ribbon（有截面體積），藕紫 `#bfa1b8`，alpha ≤ .35，邊緣柔化、沿長向摺疊紋。A 顏色／C 參數。
+- 固定 renderOrder：外傘背面 1 → 生殖腺 2 → 下傘面 3 → 口腕／觸手／感覺區 4 → 外傘正面 5。三個傘面 pass 共用同一 position／normal／aTissue buffer。未採 WBOIT（成本與改 renderer 範圍）。
+- 觸手：lit ShaderMaterial（lights:true），受光與前向散射，距離 .5–4.6 m 淡出，遠景不再成白色裙邊。
+- 口腕：改為平滑捲曲的溝槽截面（寬度方向連續），邊緣低頻 frill，不再有逐格交錯的摺紙折面。
+
+**J2 姿態與運動**（`Aurelia.ts`、`src/places/snowwindow/CreatureMotion.ts`）
+- 收縮 .20／舒張至 .70／停頓 .30（`AURELIA_PULSE`）。收縮 .20 為 A（Gemmell 2013），舒張與停頓切分為 B。
+- 頻率 A .32／B .37／C .40 Hz（原 .38／.44／.34），落在 20–30 cm 個體建議的 .2–.4 Hz，大者慢。B。
+- 推力係數 PULSE .63、PER .56；負浮力改為各自平均推力的固定比例（.335／.25／.418，保留 09-10 已接受的垂直平衡）。C。
+- 取消「永遠朝上」：每拍開始鎖定轉向（`JELLY_ATTITUDE`）。目標傾角 5–29° 平滑決定性分布 + 每 41／47／53 s 一次約 12 s 的傾斜巡航（C 編舞）；水平方向由漫遊、回家區域與邊界組成。只在收縮期施加扭矩（扇區不對稱 + skid，速度不重新對準）；被動翻正扭矩 .07，傾角 >30° 時加強；|ω| ≤ .4 rad/s。機制 A（Costello 2024、Hoover 2021），數值 B/C。
+- 扇區不對稱：lead 側提前 .07 週期、振幅 +16%（`AURELIA_TURN`），扇區響應延伸到 r≈.4，網格上可見一側先收縮（測試量 margin 半徑）。B。
+- 口腕延遲：PBD 口腕節點受「延遲的尾流」徑向加速度，延遲 = 深度 ÷ (.5 D/s) 的對流時間（`ARM_WAKE`）。B/C。
+- 對 J3 預留：`motion.beatEvents`／`beatEventsSince(t)`，每拍 `contraction` 與 `relaxation` 事件（世界座標位置、軸向、衝量 proxy N·s、直徑、turn、turnDirection、time），倒帶決定性重建，保留最近 64 筆。
+
+**60 秒統計**（`tools/snowwindow-biology/aurelia-motion-stats.ts`，輸出 `exports/quality-j-20260927/J1-J2/aurelia-motion-summary.csv`／`-60s.csv`）
+
+| | A | B | C | 目標 |
+|---|---|---|---|---|
+| 頻率誤差 | .15% | .05% | .58% | <5% |
+| 收縮占比 | .200 | .198 | .201 | .18–.22 |
+| PER 占比（靜水校準） | .323 | .324 | .322 | .25–.35 |
+| PER 占比（場景內，含流／浮力／邊界） | .373 | .360 | .388 | 參考 |
+| 傾角中位數 | 15.4° | 10.4° | 10.8° | 8–20° |
+| >25° 時間 | 14.8% | 6.5% | 7.9% | ≥5% |
+| 單拍最大轉角 | 22.3° | 13.2° | 15.9° | ≤45° |
+| 最大 |ω| | .370 | .215 | .236 rad/s | ≤.4 |
+| 口腕延遲（場景內） | .22 | .27 | .29 拍 | .15–.35（B） |
+
+場景內 PER 占比高於 35%，原因是負浮力、區域力與傾斜；驗收沿用既有的靜水校準定義。
+
+**畫面證據**：`exports/quality-j-20260927/J1-J2/{before,after}/`（近看正面／側面／逆光／俯視、近看決定性連拍 8 張 0.5 s、場景連拍 8 張約 0.55–0.7 s、四時段與四宮格）。近看頁 `tools/snowwindow-biology/aurelia-light.html?view=front|side|back|top&t=&motion=1`，光照只供檢查用。灰階：四時段水母區域無 ≥250 像素；俯視中心 15.3 < 邊緣 23.0，逆光 61.3 < 87.6，正面 26.8 < 30.2。
+
+**未證明／風險**：遠景水母比前版淡很多，辨識度需使用者判斷；傘頂仍是舊幾何的尖錐；三隻水母共用全域 renderOrder，互相重疊時排序可能錯；Blender 匯出（`scripts/export-snow-creatures.ts`）會把共用 geometry 的傘面匯出多次，未重烘；手機 FPS 未測。
