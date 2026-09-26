@@ -19,6 +19,8 @@ export type WindowPlaceState = SceneState;
 
 export interface WindowPlace {
   setOceanLevel(level:OceanLevel):void;
+  /** 1 with the sea below the sill, .35 fully submerged; updated by update(). */
+  readonly apertureFactor:number;
   update(elapsed: number, state: WindowPlaceState): void;
   dispose(): void;
 }
@@ -214,6 +216,7 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind, cre
   volume.visible=kind!=='ocean';volume.position.set(0, 3.5, 4.5); group.add(volume); owned.push(volume);
 
   let oceanLevel:OceanLevel='below';
+  let apertureFactor=1; // window-light scale by water level; shared with the ambient fill.
   const waterLevels={below:.30,half:1.75,submerged:3.35};
   let currentWaterLevel=waterLevels.below, tideFrom=currentWaterLevel;
   let tideStarted=0, lastElapsed:number|undefined, lastPhotonTick=-Infinity;
@@ -281,6 +284,7 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind, cre
   }
 
   return {
+    get apertureFactor(){return apertureFactor;},
     setOceanLevel(level){
       if(level===oceanLevel)return;
       // A URL/scene's initial preset opens directly at the requested level.
@@ -306,7 +310,8 @@ export function createWindowPlace(scene: THREE.Scene, kind: WindowPlaceKind, cre
       }else sunlight.value.set(-.65-state.angle*.18,-.85+state.angle*.12,1).normalize();
       target.position.copy(windowLight.position).addScaledVector(sunlight.value,7);
       skyBounce.color.copy(tint);skyBounce.intensity=.04+strength*(photons?.20:.40);
-      windowLight.intensity = photons?(.04+strength*2.4)*(currentWaterLevel<=waterLevels.half?THREE.MathUtils.lerp(1,.65,(currentWaterLevel-waterLevels.below)/(waterLevels.half-waterLevels.below)):THREE.MathUtils.lerp(.65,.35,(currentWaterLevel-waterLevels.half)/(waterLevels.submerged-waterLevels.half))):.08+strength*4; windowLight.color.copy(tint);
+      apertureFactor=currentWaterLevel<=waterLevels.half?THREE.MathUtils.lerp(1,.65,(currentWaterLevel-waterLevels.below)/(waterLevels.half-waterLevels.below)):THREE.MathUtils.lerp(.65,.35,(currentWaterLevel-waterLevels.half)/(waterLevels.submerged-waterLevels.half));
+      windowLight.intensity = photons?(.04+strength*2.4)*apertureFactor:.08+strength*4; windowLight.color.copy(tint);
       volumeUniforms.uTime.value = elapsed; volumeUniforms.uWarmth.value = state.warmth; volumeUniforms.uActivity.value = state.activity; volumeUniforms.uStrength.value = strength * (kind==='ocean'?.18:1) * (state.beamStrength ?? 1) * (state.lowQuality ? .56 : 1);
       animated(photons?lightTime.value:elapsed, state);
       rays?.update(elapsed);
