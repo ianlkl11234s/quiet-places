@@ -69,3 +69,51 @@
 GLB 與 clip 未改（Q3 會重做模型）。海光：巡航時鰭骨相對 rest 的偏移按 radial 縮放（盤緣 .65、內側 .40，surge 時回 1），見[海光](../scenes/oceanlight.md)。隧道：翻滾改轉彎側傾（≤25°）、上升抬頭（≤20°）、路徑避開視軸、runtime 背深腹淺，見[隧道](../scenes/seaward.md)。皆為美術近似，非生物力學量測；各有常數開關可退回。
 
 > 2026-09-27 主 agent 修正：整圈翻滾是使用者 2026-09-09 明確要求的動作，所以預設保留（`A7_KEEP_ROLL=1`）。轉彎側傾（`A7_TURN_BANK`）和翻滾互相獨立、可以並存。要不要移除翻滾，等使用者決定。
+
+## 2026-09-27 Q3 B2 南方魟模型重做（候選待使用者確認）
+
+狀態：**候選待使用者確認**。只做了 Blender 背景算圖與 Node 測試，尚未做瀏覽器／場景四時段驗收（V 期）。
+
+### 形態依據（A＝來源明載，B＝依來源的形態近似，C＝美術值／查無）
+
+| 特徵 | 等級 | 來源 | 模型做法 |
+|---|---|---|---|
+| 盤菱形、寬約 1.2 倍長 | A | [Florida Museum](https://www.floridamuseum.ufl.edu/discover-fish/species-profiles/southern-stingray/)（"diamond-shaped"、"approximately 1.2 times as broad as it is long"）；[STRI Shorefishes](https://biogeodb.stri.si.edu/caribbean/en/thefishes/species/2740) 則寫 "about as wide as long" | W=1.34、L=1.117（1.2，未改尺度） |
+| 吻角約 135°、吻端不突出；前緣微凸；外角窄圓或近尖 | A | STRI（"snout angular but not protruding… angle ~135 degrees"、"outer edge abruptly angular"）；[sharksandrays.com](https://www.sharksandrays.com/southern-stingray/)（"anterior margins mildly convex"，該頁無引用，信度較低）；[NCFishes](https://ncfishes.com/marine-fishes-of-north-carolina/hypanus-americanus/)（"narrowly rounded or subangular"）；[FishBase](https://www.fishbase.se/summary/Hypanus-americanus.html)（"sharp outer corners"） | `outline()`：前緣 `1.6s-.6s²`（吻端半角 67.5°）、外角在盤長 40%，smooth-min 半徑 3 cm；後緣微凸 |
+| 眼與噴水孔在背面 | A | Florida Museum、[Wikipedia](https://en.wikipedia.org/wiki/Southern_stingray) | 眼窩隆起寫進盤面高度函式，眼球沉入、只露約 3.5 mm；眼緣薄皮覆蓋交界；噴水孔在眼後淺凹內 |
+| 眼「relatively large and protruding」 | B | sharksandrays.com（無引用） | 以「連續的眼窩隆起」調和，不做獨立突起 |
+| 吻長 < 眼間距 | A | STRI | 眼 x=±.095、y=.38，吻長 .18 < 眼間距 .19 |
+| 背中線一列結節（頸到尾基）、中央小齒帶 | A | STRI、NCFishes、FishBase | 中線 2.5 mm 低脊＋貼圖點列與粗糙度帶 |
+| 盤緣薄、中央厚 | B（方向）／C（數值） | 查無本種厚度數值 | 盤緣總厚約 4 mm；中央背高約 .07 m、腹深約 .03 m |
+| 腹鰭小、端部緊圓 | B（該頁無引用）| sharksandrays.com。「突出盤後緣約 1/3」在該頁**查無**，不採用 | 盤後緣下方一對小葉，尖端略超出後緣 |
+| 尾細長、末端尖，尾基寬扁 | A | STRI（"tail long and slender… base broad, depressed"） | 截面半寬 `.05(1-t)^2.2+.0012` m：由 10×6 cm 收到約 2 mm |
+| 尾長 | A（長度）／B（受骨架限制為 1.5 倍） | Florida Museum：尾可達體長 2 倍；sharksandrays.com：完整時約 2.5×盤寬；[mexican-fish.com](https://mexican-fish.com/southern-stingray/)：可達盤長 2 倍 | 主 agent 修正任務書，改以來源為準：`TAIL_MESH=TL`=1.65 m（約 1.5 倍盤長），蓋滿既有尾骨，是不改骨架時最接近約 2 倍的長度 |
+| 腹側尾褶長而高（約等於尾高），自尾刺下方到近尾端；背褶退化為低脊 | A | Florida Museum、STRI、NCFishes、FishBase | 腹褶 t=.14–.94、深度≈2×截面半高；尾刺後方低背脊 |
+| 尾刺：鋸齒、長度約等於兩眼外緣距離 | A | Florida Museum | 21 cm 扁刺、兩側鋸齒；位置固定在尾根後 .11 m（Wikipedia 寫 base、mexican-fish 寫 mid-length，取近端為 B） |
+| 背灰褐／橄欖、腹白帶灰褐邊 | A | FishBase、STRI、Florida Museum | 貼圖：背 sRGB (.37,.355,.285)；腹 (.90,.89,.85)，v>.8 漸變到 (.55,.50,.43) |
+| 吻中線眼前淡斑；眼間與眼下較暗 | A | STRI（pale spot）；sharksandrays.com（dusky areas） | 貼圖 |
+| 細微斑駁 | C | 來源多寫 "uniform"／"no markings" | value noise ±7%，刻意壓低 |
+| 盤緣略透光 | C | 查無 | **不是真透射**：背面最外 10% 略亮略暖、粗糙度 −.08。未用 transmission／specular 擴充，否則 three 會改用 MeshPhysicalMaterial，也會繞過兩個場景的 onBeforeCompile 光路 |
+
+### 契約（未改）
+
+- 骨架、72 joints、8 clips、node 名稱／順序／階層／rest TRS、inverse bind、`SRAY_ROOT__Three_Z_Forward` 前向軸與尺度，全部沿用 B2 前的版本。`rig_width()`（舊輪廓）凍結，只給骨架與 clip 用；mesh 用新的 `outline()`，權重以新輪廓正規化的 (u,v) 對回同一格骨。
+- 尾骨仍以 1.65 m 排 10 節；尾巴 mesh 蓋滿全段，tail_01–tail_10 都有權重，所以 oceanlight 的延遲彎曲可以作用到尾端。
+- 97 個 node 全部保留（含 `SRAY_Eye.001`、`SRAY_Gill.009` 等）；眼、眼緣、噴水孔、口、鰓都改成貼著盤面的薄片，並用盤面同一套權重蒙皮，不再是整塊綁在 `body_mid` 的球。
+- `tests/stingray-contract.test.ts` 對照 `tests/fixtures/stingray-contract.json`（從原 GLB sha256 `e5909d09…` 抽出），比對 node、skin、每個 channel 的 key 數與數值摘要、`extensionsUsed`，以及 `SRAY_Disc` 至少兩個 primitive 與盤尺度 ±2%。不改 mesh 直接重生時，契約項目逐項一致，但檔案位元組不完全相同（Blender 5.1.2）。拿其他 GLB（鯊魚）測試會失敗，確認測試確實有檢出能力。
+
+### 數值與重建
+
+- 重建：`/opt/homebrew/bin/blender -b --factory-startup --python assets/blender/scripts/stingray.py`。`STINGRAY_GLB_OUT`／`STINGRAY_BLEND_OUT` 可先輸出候選；`STINGRAY_REVIEW_DIR` 設定時才產生舊的 review PNG。測試用 `STINGRAY_GLB=<path>` 指向候選。
+- 三角面 11,126 → 13,562；GLB 1,859,344 → 1,941,492 bytes；sha256 `e5909d09…` → `1b8c8338…`。其中凍結的 clip 資料約 1.12 MB、JSON 約 .34 MB，所以盤面網格限制在 64×39，才能維持 ≤2 MB。
+- 貼圖：一張 1024² 的 baseColor atlas（上半背面、下半腹面，平面 XY 投影），JPEG q85，27 KB；另一張 256² 的 metallicRoughness，只用 G 通道，4 KB。粗糙度：背面 .70±、小齒帶 +.07、結節 +.08、盤緣 −.08；腹面 .56。尾巴、尾褶是單色（sRGB .345,.33,.265，粗糙度 .72）；眼、口、鰓、刺用 `SRAY_Detail`（粗糙度 .48）。不再使用 `COLOR_0`。
+- metadata 放在 GLB 的 `scenes[0].extras.q3_b2`。
+
+### 驗收（本機）
+
+- `stingray-contract` 2/2、`stingrays` 2/2、`seaward-stingray` 9/9、`stingray-motion` PASS；`npx tsc --noEmit` 通過；`npm test` 206/207，唯一失敗是原本就有的 manta。
+- 變形檢查：SLOW_CRUISE 第 15、45 幀與 TURN_LEFT 第 15 幀的背景算圖（只放在 scratch）中，眼、口、鰓等薄片沒有掀起或陷進盤面，腹鰭也沒有穿過後緣。
+- 隧道 90 秒最低點：原 .128 m → .144 m。整個蒙皮模型到相機視軸的最近距離：原 .324 m → .328 m（離線取樣檢查，不是測試斷言）。
+- 尾巴彎曲：`after/anim-turn-left-f15-top.jpg` 是 TURN_LEFT 第 15 幀，clip 裡尾巴保持中性，所以是直的。`after/anim-turn-left-f15-tail-bend-top.jpg` 在同一幀上，對 tail_02–10 各加 .08 rad，模擬執行時的彎曲，可以看到尾端跟著彎。
+- 算圖放在 `exports/quality-b-20260927/B2/{before,after}/`（俯視、仰視、側面、45°、尾刺特寫、眼部特寫、clay 俯／側／45°），用 `assets/blender/scripts/stingray_review.py` 在中性光 EEVEE 下以 rest pose 算圖，不是場景光。原檔備份在 repo 外的 `.local-backups/quality-b-20260927/B2-original/`。
+- 尚未做：場景內四時段、真 WebGL 下貼圖在 oceanlight／seaward 光路中的外觀、實機效能。

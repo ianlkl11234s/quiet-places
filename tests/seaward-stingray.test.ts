@@ -4,6 +4,15 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {A7_CAMERA_CLEAR,A7_CLIMB_PITCH,A7_KEEP_ROLL,A7_TURN_BANK,TUNNEL_MAX_BANK,prepareTunnelRay,sampleTunnelFlight,tunnelAttitude,tunnelFinClock,tunnelTravel} from '../src/places/seaward/Stingray.ts';
+// Q3 B2 embeds JPEG textures. Node tests inspect geometry/skin/clips only; this stub
+// checks the JPEG SOI marker instead of decoding pixels (the browser does the real decode).
+Object.assign(globalThis,{self:globalThis,createImageBitmap:async(blob:Blob)=>{
+  const bytes=new Uint8Array(await blob.arrayBuffer());
+  if(bytes[0]!==0xff||bytes[1]!==0xd8)throw new Error('expected an embedded JPEG texture');
+  return {width:1,height:1,close(){}};
+}});
+// STINGRAY_GLB lets a Blender candidate be tested before it replaces the shipped model.
+const STINGRAY_GLB=process.env.STINGRAY_GLB??new URL('../public/models/stingray.glb',import.meta.url);
 
 function fixture(){
   const root=new THREE.Group(),bone=new THREE.Bone();bone.name='fin';
@@ -65,7 +74,7 @@ test('missing slow cruise is rejected and releases the loaded template',async()=
 
 
 test('actual stingray skin stays above the floor through a full turning route',async()=>{
- const bytes=await readFile(new URL('../public/models/stingray.glb',import.meta.url));
+ const bytes=await readFile(STINGRAY_GLB);
  const gltf=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
  const old=GLTFLoader.prototype.loadAsync;GLTFLoader.prototype.loadAsync=async()=>gltf;
  try{

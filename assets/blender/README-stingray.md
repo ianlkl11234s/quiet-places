@@ -3,7 +3,7 @@
 Rebuild with:
 
 ```sh
-/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup --python assets/blender/scripts/stingray.py
+/opt/homebrew/bin/blender --background --factory-startup --python assets/blender/scripts/stingray.py
 ```
 
 Native Blender coordinates are +Y anterior and +Z dorsal. `SRAY_ROOT__Three_Z_Forward` applies the explicit export correction for Three.js local +Z forward and +Y up.
@@ -14,4 +14,4 @@ Fin weights interpolate the longitudinal/radial grid; their native-metre surface
 
 The export explicitly selects all asset meshes and excludes the review studio. `tests/stingrays.test.ts` loads the actual GLB and checks skinning, changing fin tracks and matching loop endpoints.
 
-Only the disc uses the `SRAY_Mottle` vertex colour (`COLOR_0` in GLB). Tail, folds, eye sockets and lids use the separate solid upper material.
+Q3 B2 (2026-09-27): the disc, pelvic lobes, eye margins and lids use one embedded JPEG atlas (dorsal upper half, ventral lower half) plus a roughness map; no `COLOR_0`. The tail mesh spans the full 1.65 m tail chain (`TAIL_MESH=TL`). Tail and fold use the plain upper material; eyes, spiracles, mouth, gills and spine use `SRAY_Detail`. The rig and clips are frozen (`rig_width`); `tests/stingray-contract.test.ts` guards them. `STINGRAY_GLB_OUT` / `STINGRAY_BLEND_OUT` write a candidate elsewhere; `STINGRAY_REVIEW_DIR` enables the legacy review PNGs. Details: `docs/biology/southern-stingray.md`.
