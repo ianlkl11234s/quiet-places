@@ -77,7 +77,7 @@ Q1 已經完成的部分不重做：seaward 天空、oceanlight 窗景、雪景�
 
 | # | 生物 | 來源 | 內容 |
 |---|---|---|---|
-| B1 | 黑鰭礁鯊（stairlight） | `assets/blender/scripts/blacktip_shark.py` → `public/models/blacktip-shark.glb` | 身體細分、平滑法線；鰭加厚度、尾鰭平滑；背深腹淺配色，黑色鰭尖。骨架契約不變，`SharkMotion` 不用改 |
+| B1 | 烏翅真鯊（*Carcharhinus melanopterus*，stairlight；舊稱黑鰭礁鯊，同種） | `assets/blender/scripts/blacktip_shark.py` → `public/models/blacktip-shark.glb` | 身體細分、平滑法線；鰭加厚度、尾鰭平滑；背深腹淺配色。物種辨識特徵要做到位（形態依據要附可查來源）：第一背鰭與尾鰭下葉的明顯黑尖，黑尖下方的淺色帶，短而圓的吻部。骨架契約不變，`SharkMotion` 不用改 |
 | B2 | 南方魟（oceanlight、seaward 共用） | `assets/blender/scripts/stingray.py` → `public/models/stingray.glb` | 依參考照片重整鼻端、眼窩、胸鰭輪廓；細長的錐形鞭尾（約等於盤長）；腹面淺色。要注意 clip 契約，兩個場景都要回歸測試 |
 | B3 | 裸海蝶（snowwindow） | `src/shared/biology/clione/` | 透射、頭錐、翼足透光 |
 
