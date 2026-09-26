@@ -45,7 +45,9 @@ async function start(){
   savePreferences(preferences);
  };
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.4:1.75));
+ // One cap for canvas and composer targets; resize() applies it to both.
+ const pixelRatioCap=()=>Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5);
+ renderer.setPixelRatio(pixelRatioCap());
  renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  el('space').append(renderer.domElement);
@@ -120,7 +122,9 @@ async function start(){
  });
  const composer=new EffectComposer(renderer);
  function updateAntialiasing(){
-  const samples=currentPlace==='oceanlight'?Math.min(preferences.quality==='low'?2:4,renderer.capabilities.maxSamples):0;
+  // The composer renders offscreen, so the context's antialias flag never
+  // reaches the image; MSAA must be requested on its render targets.
+  const samples=Math.min(preferences.quality==='low'?2:4,renderer.capabilities.maxSamples);
   for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==samples){target.samples=samples;target.dispose();}
  }
  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
@@ -379,7 +383,7 @@ async function start(){
  function resize(){
   updateAntialiasing();
   camera.aspect=innerWidth/innerHeight;camera.fov=placeFov();camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
-  renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
+  renderer.setPixelRatio(pixelRatioCap());composer.setPixelRatio(pixelRatioCap());
   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();
  }
  window.addEventListener('resize',resize);resize();
