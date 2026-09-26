@@ -14,3 +14,13 @@ test('seaward light crosses the opening and uses weaker cool moonlight at night'
  assert.ok(evening.tint.b<noon.tint.b);
  assert.deepEqual(seawardDaylight(sampleTime(0)),seawardDaylight(sampleTime(24)));
 });
+
+test('seaward sky warms at dusk, darkens blue at night and stays below white at noon',()=>{
+ const noon=seawardDaylight(sampleTime(12)),dusk=seawardDaylight(sampleTime(17.5)),night=seawardDaylight(sampleTime(23));
+ const luma=(c:{r:number;g:number;b:number})=>.2126*c.r+.7152*c.g+.0722*c.b;
+ assert.ok(dusk.horizon.r>dusk.horizon.b,'dusk horizon is warm, not neutral grey');
+ assert.ok(noon.horizon.b>noon.horizon.r&&luma(noon.horizon)<.56,'noon horizon stays cool and below the former flat grey');
+ assert.ok(night.horizon.b>night.horizon.r*1.8&&night.zenith.b>night.zenith.r,'night sky is blue');
+ assert.ok(luma(night.horizon)<luma(noon.horizon)*.12,'night sky is its own dark, not a scaled day sky');
+ assert.ok(luma(noon.zenith)<luma(noon.horizon));
+});

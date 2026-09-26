@@ -14,5 +14,12 @@ export function seawardDaylight(state:SceneState){
  const moon=new THREE.Vector3(.65+.12*Math.sin(phase),.38+.08*Math.cos(phase),-1).normalize();
  sun.lerp(moon,night).normalize();
  tint.lerp(new THREE.Color(.72,.83,1),night);
- return {sun,direct:solar+.5*night,tint,solar,moonlight:.5*night};
+ // Q1-1 sky (linear, pre-exposure): noon slightly bluer and lower than the
+ // former flat grey so it does not clip white; low sun warms the horizon;
+ // night is its own dark blue, not the day sky scaled down.
+ const level=.10+.90*THREE.MathUtils.clamp(state.intensity??1,0,1);
+ const horizon=new THREE.Color(.45,.53,.59).lerp(new THREE.Color(.72,.50,.33),warmth*.72).multiplyScalar(level);
+ const zenith=new THREE.Color(.29,.40,.50).lerp(new THREE.Color(.42,.37,.41),warmth*.50).multiplyScalar(level);
+ horizon.lerp(new THREE.Color(.035,.05,.085),night);zenith.lerp(new THREE.Color(.018,.03,.06),night);
+ return {sun,direct:solar+.5*night,tint,solar,moonlight:.5*night,horizon,zenith};
 }
