@@ -243,3 +243,11 @@
 - 與 Q1-1 不同，ambient 在 14:00 基準時段也會生效（非恆等；14:00 約為正午量測的 .9 倍）。
 - 限制：牆面是整面同一張 IBL，沒有距離衰減與遮蔽（非 GI）；魟魚背面仍主要由既有 photon／直射決定，形體改善有限。
 - **AO 延後**：本場景房間是程式生成的 box，沒有 Blender 母檔可烘 AO／lightMap；要做需先建立母檔與 UV，或另評估 SSAO／GTAO pass 的成本，不在本批。
+
+## 2026-09-27：Q2-A5 魟魚巡航盤緣振幅（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。問題：巡航時盤緣 1 秒內由橢圓變尖角菱形，像布在翻折。
+- 做法：`StingrayMotion.ts` 新增 `cruiseFinGain(radial,surge)` 並回傳 `surge`；`Stingrays.ts` 在 mixer 更新後，把每根 `*_FIN_U*_V*` 骨相對 rest 的位移／旋轉按比例縮小（radial = V/4）。巡航（surge 0）盤緣 V04 保留 .65（降 35%），內側 V01–V02 保留 .40（降 60%），V03 約 .53 → 波動集中外側 1/3；surge → 1 時全部回到 1（加速時振幅回升）。GLB 與 clip 未改。
+- 實作細節：three 的 PropertyMixer 值不變時不重寫骨頭，故每幀先還原上一幀 clip 姿勢再更新，避免同 elapsed 重複縮放（暫停凍結測試通過）。
+- 退回：`CRUISE_FIN_CALM = 0`（`StingrayMotion.ts`）即完全回到已確認振幅。
+- 證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/oceanlight-*`、連拍局部放大 `ol-burst-zoom.jpg`。美術校準，非量測值；形狀仍有變化，只是幅度較小。

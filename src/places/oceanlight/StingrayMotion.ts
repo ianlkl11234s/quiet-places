@@ -13,6 +13,8 @@ export interface StingrayMotionSample {
   yawRate: number;
   /** Broad local roll in radians. */
   bank: number;
+  /** Drive pulse, 0 during calm cruise and 1 at the peak of a surge. */
+  surge: number;
 }
 
 // The asset is authored facing +Z with +Y up. The Southern rig is 1.34 m across
@@ -26,6 +28,25 @@ const DISC_LENGTH = 1.117;
 const FIN_SLIP = .65;
 const FIN_WAVES_PER_LENGTH = 1.25;
 const ARC_LENGTHS = buildArcLengths();
+
+// Q2-A5 (candidate): calm cruise. The accepted clip read as a cloth fold at
+// cruise (oval to pointed diamond within a second). Each fin bone's offset from
+// rest is scaled; the margin keeps more motion than the inner disc so the wave
+// sits in the outer third. Surges restore the full clip. 0 restores the
+// accepted amplitude exactly. Art calibration, not a measured stingray value.
+export const CRUISE_FIN_CALM = 1;
+const CRUISE_MARGIN_REDUCTION = .35;
+const CRUISE_INNER_REDUCTION = .60;
+
+/**
+ * Multiplier on a fin bone's clip offset from its rest pose.
+ * `radial` is 0 at the body and 1 at the disc margin (rig V index / 4).
+ */
+export function cruiseFinGain(radial: number, surge: number, calm = CRUISE_FIN_CALM): number {
+  const outer = THREE.MathUtils.smoothstep(radial, .5, 1);
+  const reduction = CRUISE_MARGIN_REDUCTION + (CRUISE_INNER_REDUCTION - CRUISE_MARGIN_REDUCTION) * (1 - outer);
+  return 1 - calm * reduction * (1 - THREE.MathUtils.clamp(surge, 0, 1));
+}
 const LOOP_LENGTH = ARC_LENGTHS[LOOP_STEPS];
 
 function modulo(value: number, divisor: number): number {
@@ -150,6 +171,6 @@ export function sampleStingrayMotion(elapsed: number, index: 0 | 1): StingrayMot
     // higher fin cadence at the same swim speed; .65 is art calibration.
     finPhase: state.distance * Math.PI * 2 * FIN_WAVES_PER_LENGTH / (DISC_LENGTH * RAY_SCALE[index] * FIN_SLIP) + index * 1.37,
     finAmplitude: .8 + .3 * surge,
-    turn, yawRate, bank,
+    turn, yawRate, bank, surge,
   };
 }
