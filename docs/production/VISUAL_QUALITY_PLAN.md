@@ -1,6 +1,24 @@
 # 畫面精緻度與生物擬真改善計劃
 
-更新：2026-09-26。狀態：**評估完成、尚未實作**。本頁是候選清單與執行順序，不代表任何項目已採用；每一項改動都以可回退實驗處理，並由使用者看圖確認。新場景的長期準則另見[場景品質準則](SCENE_QUALITY_GUIDE.md)。
+更新：2026-09-26。狀態：**Q0／Q1 已實作為候選，待使用者確認**（見下方實作狀態）；Q2／Q3 尚未開始。本頁是候選清單與執行順序，不代表任何項目已採用；每一項改動都以可回退實驗處理，並由使用者看圖確認。新場景的長期準則另見[場景品質準則](SCENE_QUALITY_GUIDE.md)。
+
+## 實作狀態（2026-09-26，分支 `claude/visual-quality`）
+
+Q0 與 Q1 已全部實作為**候選**，每個 commit 只對應一個 Q 項目（2026-09-26 重排），都待使用者看圖確認；尚未推送或合併。證據在 `exports/quality-q0q1-20260926/`：`00-after-msaa/`、`01-dawn-warmth-compare.jpg`，以及 `lighting-A/`、`lighting-B/`、`biology/` 各自的 before／after。測試 185/186，唯一失敗的是 main 上原本就有的 kuroshio manta 遭遇測試。
+
+| 項目 | commit | 備註 |
+|---|---|---|
+| Q0-1、Q0-2 MSAA 與 pixelRatio | `9abc92c` | composer 原本維持 1.75，現在與 canvas 同為 1.5 |
+| 共用晨曦 warmth .35→.66 | `a30b927` | 屬於 Q1-1 的共同根因；afterlight、last-arcade 有自己的日照循環，幾乎不受影響，留到 Q2 |
+| Q0-3 leaflight 月夜窗景 | `192cb1b` | |
+| Q0-4／Q1-1／Q1-2 seaward | `7b0d16d`／`26b50ec`／`49f1f34` | 每項一個 commit，各自通過 tsc 與 seaward 測試 |
+| Q0-5 seaward 魟魚鰭相位 | `be17279` | 慢段可能看起來像停住，需要看動態 |
+| Q0-6 waterlight 長鰭錦鯉 | `214caec` | 轉彎動畫比例 17%→31%；最小間距 .465 m |
+| Q1-1 oceanlight 窗景 | `ea37787` | |
+| Q1-1 snowwindow／snowhall | `316c03b`／`946faf6` | 細微；正午與月夜不變 |
+| Q1-2 oceanlight PMREM／waterlight 反彈光 | `bf928e3`／`0a2e26b` | AO 烘焙延後：房間是程式生成，沒有 Blender 母檔 |
+| Q1-3 locomotion（模組／各魚種接入） | `857af4f`／`23b13a0` | 懸停只有青鱂一個消費者；leaflight 側傾改為朝轉彎內側 |
+| Q1-4 魚類材質層（模組／各魚種接入） | `077d08c`／`0d35909` | 三份各自重寫的補光尚未收斂；鰭沒有 UV，只做依視角的 alpha；強日光下白鰭仍可能碰到 bloom 門檻 |
 
 ## 依據與限制
 

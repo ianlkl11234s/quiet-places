@@ -9,6 +9,8 @@
 | 波場、折射 | `src/shared/water/Optics.ts` | waterlight／oceanlight；各自水體校準，不當通用海水常數 |
 | 模型資源釋放 | `src/shared/resources/ModelResources.ts` | shared 所有权契約；借用貼圖不自行釋放 |
 | 可重現亂數 | `src/shared/math/seededRandom.ts` | 使用者各持 seed／序列；抽取不得改變生成順序 |
+| 魚類運動 | `src/shared/biology/locomotion/` | stepHeading／turnPose／f=f0+U/(k·BL)／hover；單位 rad、rad/s、m、Hz；物種參數留在 adapter。消費者：waterlight 長鰭錦鯉、leaflight 錦鯉、青鱂、chromis／fusilier。2026-09-26 候選待確認 |
+| 魚類材質層 | `src/shared/biology/fish-surface/` | onBeforeCompile 串接既有 hook；只縮放已接收的光、無 emissive；背深腹淺／掠射光澤／鰭膜。每個物種 1–2 行 `installFishSurface` 接入。2026-09-26 候選待確認 |
 | 時間、偏好、音訊 | `src/systems/` | 保留既有系統；音訊來源與授權見 [AUDIO](../AUDIO.md) |
 | 光與材質 | [共同原則](../MATERIALS_AND_LIGHTING.md) | 知識可沿用；烘焙 GI、光子投影、散射分場景校準 |
 | 生物本體 | [biology 索引](../biology/README.md) | 查模型、rig／clips、動態策略及來源；場景尺度、路徑及受光仍須 adapter |
