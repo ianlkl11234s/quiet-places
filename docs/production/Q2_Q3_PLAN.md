@@ -24,6 +24,13 @@ MASTER 明文禁止 aquarium appearance、glowing magic、colorful particles，�
 - **虛擬水流**：歸在雪落海窗既有的「不可能現象」底下，也就是生物在室內的不可見水介質中游動。可視化方式只允許不發光、無彩度、只在受光處可見的手段。至少要做 A/B 讓使用者選，而且保留「不顯示水流」這個選項。
 - 若使用者之後明確表示要偏離 MASTER（例如接受更明顯的水體感），就記進 [偏好](PREFERENCES.md)，並取代本段解讀。
 
+## 本機資源規則（2026-09-27 使用者提醒）
+
+- 同一時間最多 **2 條**會開瀏覽器的工作線；純程式、純測試的工作不限。
+- 每條工作線只開 1 個 `agent-browser --session`，截完圖立刻 `close`，不保留閒置分頁。
+- 各自的 dev server 用完即 kill；主 agent 在每批驗收後確認 `agent-browser session list` 為空。
+- 截圖只保留 jpg，大 png 留在 scratchpad，定期清理。
+
 ## 分期
 
 | 期 | 內容 | 依賴 | 使用者檢視點 |
