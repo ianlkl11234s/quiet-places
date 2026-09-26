@@ -3,7 +3,14 @@ import assert from 'node:assert/strict';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {readFileSync} from 'node:fs';
 import {createShark} from '../src/places/stairlight/Shark.ts';
-const bytes=readFileSync('public/models/blacktip-shark.glb');
+// Q3 B1 embeds JPEG textures. Node tests inspect geometry/skin only; this stub
+// checks the JPEG SOI marker instead of decoding pixels (browser does the real decode).
+Object.assign(globalThis,{self:globalThis,createImageBitmap:async(blob:Blob)=>{
+ const bytes=new Uint8Array(await blob.arrayBuffer());
+ if(bytes[0]!==0xff||bytes[1]!==0xd8)throw new Error('expected an embedded JPEG texture');
+ return {width:1,height:1,close(){}};
+}});
+const bytes=readFileSync(process.env.SHARK_GLB??'public/models/blacktip-shark.glb');
 const gltf=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
 const shark=createShark(gltf.scene,true),point=new THREE.Vector3();
 const worst={wall:Infinity,floor:Infinity,rail:Infinity};const times={wall:0,floor:0,rail:0};

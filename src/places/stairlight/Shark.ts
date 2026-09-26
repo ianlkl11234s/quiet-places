@@ -29,9 +29,10 @@ export function createShark(model:THREE.Group,rearWindow:boolean){
     const position=bone.getWorldPosition(new THREE.Vector3());
     return {bone,s:THREE.MathUtils.clamp((.45-position.x)/.9,0,1),restPosition:bone.position.clone(),restQuaternion:bone.quaternion.clone(),parentRotation,inverseParent,lateral:new THREE.Vector3(0,0,1).applyQuaternion(inverseParent)};
   });
-  // Pectoral fins carry only a small blend weight (Blender script: .18 ADD, ~.153
-  // after normalisation) on their control bone. Solve the bone angle whose linear
-  // blend yields the requested fin incidence; bounded to avoid visible fin shrink.
+  // Read each pectoral's actual blend weight on its control bone and solve the bone
+  // angle whose linear blend yields the requested fin incidence. Since Q3 B1 the fins
+  // are bound rigidly (weight 1), so the solve is the identity; the older .153 skin
+  // (Blender .18 ADD) still resolves correctly, bounded to avoid visible fin shrink.
   const pectoralWeight=new Map<string,number>();
   model.traverse(object=>{
     if(!(object instanceof THREE.SkinnedMesh))return;
