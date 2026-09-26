@@ -92,3 +92,9 @@
   - 樹葉：同一條 `leafDay` gate；`directDiffuse/Specular × mix(.22,1,leafDay)`，天光填充 `× leafDay`，夜間加 `vec3(.20,.26,.36) × rim³ × .010` 的冷色邊緣（量級刻意極小，避免 glow）。
 - 界線：warmth ≤ .5 且 daylight ≥ .55 時所有新項為恆等；因晨曦段另以 angle 限定在早晨，依 `sampleTime` 算 14:00–16:00 golden 與 dusk 皆為 0（16:00 dusk .016），使用者確認的午後基準（14:00：warmth .48、day 1）數學上不變，17:00 起才進入暮色 palette。本次未另拍 14:00 截圖。晨曦只改天空色溫，光角度仍是 Blender 基準的 ±.2 yaw，沒有做低角度長影。不是天文夜空、沒有星空，月光仍是既有 directional light 的 10%。
 - 驗收（本機 Vite 6181、1600×900、四時段；證據 `exports/quality-q0q1-20260926/lighting-A/{before,after}/leaflight-*`，窗景放大 `leaflight-window-crops.jpg`）：月夜天空 luminance 78.5 → 16.5（sRGB 約 (11,17,26)）；同窗樹冠 49.2 → 10.7，樹冠低於天空 → 剪影成立。室內暗部（room box）四時段變化 ≤ 0.2。晨曦天空轉灰玫瑰、暮色轉桃琥珀，正午不變（137.5 → 137.6）。量測腳本 `measure.py`、數字 `luminance-before-after.txt`。
+
+## 2026-09-27：Q2-A4 bloom threshold（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。`index.ts` 回傳 `bloom:{threshold:LEAFLIGHT_BLOOM_THRESHOLD}`，值 2.4（共用預設 1.05；strength／radius 不變）。設為 `undefined` 或刪欄位即退回。
+- 量測（reduced-motion 凍結 elapsed、正午，三張同幀）：≥235 像素 1.05: 336、1.6: 334、2.4: 327（這些主要是日斑中白錦鯉的鱗面本身，不是光暈）；錦鯉周圍光暈單點最多減 50 階；天空窗景均值 120.33→120.32（不變）；地面日斑 171.2→169.6（−0.9%）。1.6 仍可見紅白光暈，2.4 消除。
+- 證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/leaflight-*`、`leaf-bloom-1.05-1.6-2.4-zoom.jpg`。
