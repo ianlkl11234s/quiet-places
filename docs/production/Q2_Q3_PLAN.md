@@ -56,7 +56,11 @@ Q1 已經完成的部分不重做：seaward 天空、oceanlight 窗景、雪景�
 
 ## J 期：水母專案
 
-研究報告：[jellyfish-realism-research.md](../biology/jellyfish-realism-research.md)，完成後依結論修訂本節。
+研究報告：[jellyfish-realism-research.md](../biology/jellyfish-realism-research.md)（2026-09-27 完成）。J1–J4 的驗收以報告「實作分期與驗收」的數值為準，重點如下：
+- 外觀：傘體無色，放射管、生殖腺是淡藕紫；放射管從實體 tube 改成下傘面的淡色帶。
+- 運動：收縮占週期約 .20；允許 0–35° 的常態傾斜；轉向靠不對稱收縮加滑移，角速度上限約 .4 rad/s。
+- 流場：量級維持 0.5–2 cm/s，重點是「讓它看得見」。尾流用每拍兩個 Lagrangian 渦環（starting／stopping）。
+- 可視化：以「只在光錐內可見的 marine snow」為主、細塵為輔。折射扭曲和流線不採用：前者容易變成魔法感，後者違反寫實。因此 J4 的 A/B 改為「顆粒 vs 不顯示」，另加「顆粒密度」一個變因。
 
 | # | 階段 | 內容 | 驗收 |
 |---|---|---|---|
@@ -97,4 +101,6 @@ Q1 已經完成的部分不重做：seaward 天空、oceanlight 窗景、雪景�
 
 | 日期 | 期／項目 | 狀態 | commit／證據 |
 |---|---|---|---|
-| 2026-09-27 | 計劃建立、J0 研究啟動 | 進行中 | — |
+| 2026-09-27 | 計劃建立 | 完成 | `36bdfe1` |
+| 2026-09-27 | A4 播放器 bloom 覆寫 | 完成（場景尚未採用） | `13d0808` |
+| 2026-09-27 | J0 研究 | 完成 | `docs/biology/jellyfish-realism-research.md` |
