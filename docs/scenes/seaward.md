@@ -123,3 +123,16 @@ check:project、方向／高度／暮色／夜間與24小時接縫 focused test�
 ## PR 整合驗收
 
 依使用者要求建立PR並合併；整合origin/main階光之間，保留cameraUp／framingAspect與資產，相機提示接入metadata。整合後90/90 tests、build、check:project（六景）通過。亦包含本分支繼承的P0–P6共用製作流程，未加入主工作區未提交檔案。
+
+## 2026-09-27：Q2-A7 魟魚抬頭、轉彎側傾、避鏡頭、淺腹（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。注意：16–24 秒整圈翻滾原為 2026-09-09 使用者指定（「飛上去、轉圈、變回平面」）；本項依 Q2 計畫 A7 改為側傾，需使用者重新拍板。
+- 權威：`src/places/seaward/Stingray.ts` 的 `tunnelAttitude`／`sampleTunnelFlight`，四個開關各自可設 0 退回：
+  - `A7_TURN_BANK`：翻滾移除，改依橢圓路徑解析偏航率側傾，`bank = 0.9 s × yawRate`，上限 25°，實測峰值 24.1°（兩端轉彎處），直線段 <3°。
+  - `A7_CLIMB_PITCH`：機首跟隨飛行路徑角 ×.4，上限 20°；上升峰值 +18.1°、下降 −17.3°，平飛為 0。
+  - `A7_CAMERA_CLEAR`：路徑中心往 −x 移 .5 m（x ∈ [−1.85, −.95]）。相機（2.6,1.35,2.8）→ target（−1.6,1.5,−11）視軸到魟魚中心的最小距離 .62 m → 1.03 m（半翼展 .60 m + .4 m 餘裕，測試門檻 1.0 m）。
+  - `A7_BELLY`：runtime 依世界法線 y 做背深腹淺：朝下表面 albedo 混向 (.66,.62,.54)（×.7），並加弱地面反彈 (.20,.19,.17)×albedo×day（非自發光）。GLB 腹面材質本已偏淺，此項主要讓尾／盤緣下側與側傾時腹面不再是黑剪影。
+- `index.ts` 只多傳 `day.value` 給 `ray.update`。真 GLB 離地測試（≥.08 m）在側傾後仍通過。
+- 證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/seaward-*`、晨曦連拍 `sw-burst-strip.jpg`。美術近似，非魟魚運動學量測。
+
+> 2026-09-27 主 agent 修正：整圈翻滾是使用者 2026-09-09 明確要求的動作，所以預設保留（`A7_KEEP_ROLL=1`）。轉彎側傾（`A7_TURN_BANK`）和翻滾互相獨立、可以並存。要不要移除翻滾，等使用者決定。

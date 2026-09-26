@@ -79,7 +79,7 @@ export async function prepareSeaward():Promise<PlaceFactory>{
     }
     // Cap .30; follows the sun, so moonlight leaves only a trace on a dark-blue dome.
     scene.environmentIntensity=.30*(.12+.88*light.solar);
-    grass.update(elapsed);ray.update(elapsed);
+    grass.update(elapsed);ray.update(elapsed,day.value);
     shadow.position.set(visitor.position.x,.012,visitor.position.z);shadow.scale.setScalar(1+visitor.position.y*.25);shadowMaterial.uniforms.uOpacity.value=.16/(1+visitor.position.y);
    },
    disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
