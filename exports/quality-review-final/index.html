@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>靜隅畫質總驗收</title>
+<style>
+:root{--bg:#f4f2ee;--fg:#1d1f21;--muted:#6b6b66;--line:#d9d5cc;--card:#fff;--accent:#8a6d3b}
+@media (prefers-color-scheme:dark){:root{--bg:#121416;--fg:#e8e6e1;--muted:#9a9891;--line:#2c2f33;--card:#1a1d20;--accent:#d2b27a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.65 -apple-system,"PingFang TC","Noto Sans TC",sans-serif}
+main{max-width:1320px;margin:0 auto;padding:32px 16px 80px}
+h1{font-weight:500;letter-spacing:.04em;margin:0 0 4px}h2{font-weight:500;margin:48px 0 12px;border-bottom:1px solid var(--line);padding-bottom:6px}
+h2 small{color:var(--muted);font-size:.6em;margin-left:8px}.lede{color:var(--muted);max-width:70ch}
+nav{position:sticky;top:0;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--line);z-index:2}
+nav a{color:var(--fg);text-decoration:none;font-size:13px}nav a:hover{color:var(--accent)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media (max-width:760px){.pair{grid-template-columns:1fr}}
+figure{margin:0}img{width:100%;display:block;border-radius:4px;background:#000}figcaption{font-size:12px;color:var(--muted);margin-top:4px}
+.changes{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:6px}
+.changes li{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:6px 10px}
+.item{flex:1 1 320px}.note{color:var(--muted);font-size:13px}code{font-size:12px;color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right}th:first-child,td:first-child{text-align:left}
+.scroll{overflow-x:auto}.decisions{display:grid;gap:10px;padding:0;list-style:none}.decisions li{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:4px;padding:10px 14px}
+.decisions p{margin:4px 0}.meta{color:var(--muted);font-size:13px}
+</style></head><body><main>
+<h1>靜隅畫質總驗收</h1>
+<p class=lede>Q0–Q3 與水母專案的所有候選改動，main 與分支 <code>claude/visual-quality-split</code> 並排比較。四宮格順序：晨曦、正午（上）／暮色、月夜（下）；1600×900、本機 headed Chrome。所有畫面改動都是候選，等你決定。</p>
+<p class=meta>測試 209/210（唯一失敗為 main 既有 manta 測試）；build、check:project 通過；未做實機、手機、部署驗證。</p>
+<nav><a href="#waterlight">水光之間</a><a href="#leaflight">樹影午後</a><a href="#oceanlight">海光之室</a><a href="#afterlight">雨後天井</a><a href="#seaward">向海的隧道</a><a href="#stairlight">階光之間</a><a href="#snowwindow">雪落海窗</a><a href="#snowhall">雪光長廊</a><a href="#last-arcade">潮風商店街</a><a href="#closeups">生物近看</a><a href="#perf">效能</a><a href="#decisions">待決定</a></nav>
+
+<section id="waterlight">
+  <h2>水光之間 <small>waterlight</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/waterlight.jpg" alt="水光之間 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/waterlight.jpg" alt="水光之間 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>抗鋸齒</span><span class=note>2x MSAA（4x 會掉到 16.7 fps）</span><code>9abc92c、491391d</code></li><li><span class=item>光柱落點反彈光</span><span class=note>下牆微亮，月夜歸零</span><code>0a2e26b</code></li><li><span class=item>地面光斑柔邊、月夜天窗降飽和</span><code>8e6da01</code></li><li><span class=item>長鰭錦鯉不再打轉或垂直</span><span class=note>俯仰 ±20°、偏航 ≤40°/s、轉彎側傾</span><code>214caec</code></li><li><span class=item>魚類材質</span><span class=note>背深腹淺、光澤、鰭膜</span><code>0d35909</code></li></ul>
+</section>
+<section id="leaflight">
+  <h2>樹影午後 <small>leaflight</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/leaflight.jpg" alt="樹影午後 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/leaflight.jpg" alt="樹影午後 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>月夜窗景變成夜景</span><span class=note>天空深藍、樹成剪影</span><code>192cb1b</code></li><li><span class=item>錦鯉轉彎側傾約 6°（方向改為朝內，待決定）</span><code>23b13a0</code></li><li><span class=item>bloom 門檻 2.4，錦鯉鰭邊光暈消失</span><code>1ec4d05</code></li></ul>
+</section>
+<section id="oceanlight">
+  <h2>海光之室 <small>oceanlight</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/oceanlight.jpg" alt="海光之室 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/oceanlight.jpg" alt="海光之室 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>晨曦、暮色窗景暖色</span><code>ea37787</code></li><li><span class=item>弱窗向環境光</span><span class=note>月夜歸零</span><code>bf928e3</code></li><li><span class=item>魟魚盤緣巡航減幅</span><code>1d902ae</code></li><li><span class=item>魟魚模型重做（與向海的隧道共用）</span><code>a6789e6</code></li></ul>
+</section>
+<section id="afterlight">
+  <h2>雨後天井 <small>afterlight</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/afterlight.jpg" alt="雨後天井 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/afterlight.jpg" alt="雨後天井 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>右牆雜訊（lightmap 取樣）平滑</span><code>4732ff1</code></li><li><span class=item>晨間暖色</span><code>9943814</code></li><li><span class=item>青鱂懸停尾巴靜止、背深腹淺</span><code>23b13a0、0d35909</code></li></ul>
+</section>
+<section id="seaward">
+  <h2>向海的隧道 <small>seaward</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/seaward.jpg" alt="向海的隧道 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/seaward.jpg" alt="向海的隧道 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>地面倒影黑斑消除</span><code>7b0d16d</code></li><li><span class=item>天空隨時段變化</span><code>26b50ec</code></li><li><span class=item>弱環境光、牆面反彈重分配</span><code>49f1f34</code></li><li><span class=item>魟魚拍鰭跟游速</span><code>be17279</code></li><li><span class=item>魟魚側傾、抬頭、避鏡頭、腹面淺；整圈翻滾依 9/9 指定保留</span><code>f78136b</code></li><li><span class=item>魟魚模型重做</span><code>a6789e6</code></li></ul>
+</section>
+<section id="stairlight">
+  <h2>階光之間 <small>stairlight</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/stairlight.jpg" alt="階光之間 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/stairlight.jpg" alt="階光之間 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>月光斑、正午降一檔、扶手粗糙度</span><span class=note>裂縫凹槽因效能預設關閉，待 Blender 重烘</span><code>e4e284d、491391d</code></li><li><span class=item>烏翅真鯊胸鰭攻角</span><code>3fed6d3</code></li><li><span class=item>烏翅真鯊模型重做（黑鰭尖、淺色帶、短圓吻）</span><code>74c9db2</code></li></ul>
+</section>
+<section id="snowwindow">
+  <h2>雪落海窗 <small>snowwindow</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/snowwindow.jpg" alt="雪落海窗 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/snowwindow.jpg" alt="雪落海窗 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>晨曦、暮色細微暖色</span><span class=note>正午、月夜不變</span><code>316c03b</code></li><li><span class=item>積雪閃光與軟邊</span><code>414f407</code></li><li><span class=item>水母外觀（無色傘體、淡藕紫器官）與傾斜、滑移轉向</span><code>3067b0b</code></li><li><span class=item>流場與尾流渦環</span><code>1612e1d</code></li><li><span class=item>光錐內細塵（marine snow）</span><span class=note>推開效果場景距離約 3 px，偏弱</span><code>50780a9</code></li><li><span class=item>裸海蝶透明體、頭錐</span><code>30be470</code></li></ul>
+</section>
+<section id="snowhall">
+  <h2>雪光長廊 <small>snowhall</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/snowhall.jpg" alt="雪光長廊 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/snowhall.jpg" alt="雪光長廊 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>窗景隨時段色溫</span><span class=note>選配；走廊暗度與銀魚未動</span><code>946faf6</code></li><li><span class=item>窗光地面光斑</span><span class=note>評估後不做（北窗漫射光）</span><code>9943814</code></li></ul>
+</section>
+<section id="last-arcade">
+  <h2>潮風商店街 <small>last-arcade</small></h2>
+  <div class=pair>
+    <figure><img loading=lazy src="grids/main/last-arcade.jpg" alt="潮風商店街 main 四時段"><figcaption>main（改動前）</figcaption></figure>
+    <figure><img loading=lazy src="grids/branch/last-arcade.jpg" alt="潮風商店街 分支四時段"><figcaption>分支（改動後）</figcaption></figure>
+  </div>
+  <ul class=changes><li><span class=item>月夜路燈、夜空壓暗</span><code>39dc97a</code></li><li><span class=item>對側樓房立面</span><code>39dc97a</code></li><li><span class=item>鐵捲門 1K 貼圖</span><code>6d7bba7</code></li><li><span class=item>小魚群運動與材質</span><code>23b13a0、0d35909</code></li></ul>
+</section>
+<section id=closeups><h2>生物近看</h2><div class=pair><figure><img loading=lazy src="../quality-b-20260927/B1/before/side.jpg" alt=""><figcaption>烏翅真鯊（Blender 中性光）：改動前</figcaption></figure>
+<figure><img loading=lazy src="../quality-b-20260927/B1/after/side.jpg" alt=""><figcaption>烏翅真鯊（Blender 中性光）：改動後</figcaption></figure></div><div class=pair><figure><img loading=lazy src="../quality-b-20260927/B2/before/top.jpg" alt=""><figcaption>南方魟（Blender 中性光）：改動前</figcaption></figure>
+<figure><img loading=lazy src="../quality-b-20260927/B2/after/top.jpg" alt=""><figcaption>南方魟（Blender 中性光）：改動後</figcaption></figure></div><div class=pair><figure><img loading=lazy src="../quality-j-20260927/J1-J2/before/near-back.jpg" alt=""><figcaption>海月水母近看（逆光）：改動前</figcaption></figure>
+<figure><img loading=lazy src="../quality-j-20260927/J1-J2/after/near-back.jpg" alt=""><figcaption>海月水母近看（逆光）：改動後</figcaption></figure></div><div class=pair><figure><img loading=lazy src="../quality-b-20260927/B3/before/near-front.jpg" alt=""><figcaption>裸海蝶近看：改動前</figcaption></figure>
+<figure><img loading=lazy src="../quality-b-20260927/B3/after/near-front.jpg" alt=""><figcaption>裸海蝶近看：改動後</figcaption></figure></div></section>
+<section id=perf><h2>效能（正午，1600×900，dpr 1，真實 composer，5 秒暖機 + 15 秒取樣）</h2>
+<p class=lede>網站上限 30 fps。CPU 為 composer 提交時間，不是 GPU 時間。量測中發現水光之間與階光之間掉到 16.7／13.8 fps，已修正（<code>491391d</code>）；以下為修正後數字。p95 幀間隔約 35→40 ms 屬 30 fps 節拍下的抖動（main 各場景自身介於 35–43 ms）。</p>
+<div class=scroll><table><thead><tr><th>場景</th><th>fps main</th><th>fps 分支</th><th>p95 ms main</th><th>p95 ms 分支</th><th>CPU p95 main</th><th>CPU p95 分支</th><th>三角面 main</th><th>三角面 分支</th><th>draw calls main</th><th>draw calls 分支</th></tr></thead>
+<tbody><tr><td>水光之間</td><td>30.0</td><td>29.7</td><td>38.9</td><td>39.8</td><td>1.8</td><td>4.1</td><td>309,266</td><td>309,266</td><td>157</td><td>157</td></tr>
+<tr><td>樹影午後</td><td>30.0</td><td>30.0</td><td>39.4</td><td>35.4</td><td>3.0</td><td>4.8</td><td>453,826</td><td>302,154</td><td>287</td><td>196</td></tr>
+<tr><td>海光之室</td><td>30.0</td><td>30.0</td><td>43.3</td><td>44.2</td><td>1.0</td><td>1.0</td><td>137,618</td><td>142,490</td><td>80</td><td>80</td></tr>
+<tr><td>雨後天井</td><td>30.0</td><td>30.0</td><td>35.4</td><td>39.0</td><td>5.0</td><td>5.7</td><td>115,720</td><td>115,720</td><td>747</td><td>747</td></tr>
+<tr><td>向海的隧道</td><td>30.0</td><td>30.0</td><td>35.4</td><td>36.1</td><td>1.2</td><td>2.6</td><td>14,776</td><td>17,212</td><td>206</td><td>206</td></tr>
+<tr><td>階光之間</td><td>30.0</td><td>30.0</td><td>35.3</td><td>39.6</td><td>1.1</td><td>1.8</td><td>445,562</td><td>516,302</td><td>170</td><td>65</td></tr>
+<tr><td>雪落海窗</td><td>30.0</td><td>30.0</td><td>39.4</td><td>40.6</td><td>4.3</td><td>2.0</td><td>330,860</td><td>228,556</td><td>423</td><td>191</td></tr>
+<tr><td>雪光長廊</td><td>30.0</td><td>30.0</td><td>35.3</td><td>39.9</td><td>1.1</td><td>1.8</td><td>8,954</td><td>8,954</td><td>152</td><td>152</td></tr>
+<tr><td>潮風商店街</td><td>30.0</td><td>30.0</td><td>35.4</td><td>39.8</td><td>1.1</td><td>1.2</td><td>563,540</td><td>563,726</td><td>235</td><td>242</td></tr></tbody></table></div></section>
+<section id=decisions><h2>需要你決定的事</h2><ul class=decisions><li><b>向海的隧道魟魚整圈翻滾</b><p>你在 9/9 指定的動作，預設保留；Q2 提議改成只做轉彎側傾。要保留還是移除？</p><code>`A7_KEEP_ROLL`</code></li><li><b>樹影午後錦鯉側傾方向</b><p>原本（幾乎看不出來地）朝外，現在朝內、約 6°，和鯊魚一致。</p><code>`23b13a0`</code></li><li><b>水光之間錦鯉轉彎動畫</b><p>播放比例 17% → 31%。太頻繁可把門檻從 .6 提到 .75。</p><code>`FishSchool.ts actionFor`</code></li><li><b>水母細塵（透明水流）</b><p>符合風格準則，但收縮推開細塵在場景距離只有約 3 px。要加強推力、加密度，還是維持含蓄？</p><code>`MarineSnow.ts`</code></li><li><b>水母遠景辨識度</b><p>拿掉白邊後遠景變淡。可接受，或要提高邊緣亮度？</p><code>`AureliaShading.ts`</code></li><li><b>裸海蝶辨識度</b><p>場景距離只有 7–13 px，翼足看不到。</p><code>`ClioneShading.ts`</code></li><li><b>階光之間裂縫</b><p>凹槽 shader 讓幀率減半，已預設關閉。要不要排 Blender 重烘平台貼圖？</p><code>`STAIR_CRACK_GROOVE`</code></li><li><b>階光之間 4K → 2K 貼圖</b><p>畫質幾乎無差，GLB 約 26 → 9 MB，已評估未套用。</p><code>`exports/quality-q2-20260927/A1-A3/texture-2k-candidate/`</code></li><li><b>潮風商店街暮色天空</b><p>舊 bug：暮色天空快取從未更新，目前維持你看過的樣子。要修嗎？</p><code>`last-arcade/index.ts`</code></li><li><b>魟魚尾長</b><p>受骨架限制只到約 1.5 倍盤長，文獻約 2 倍。要不要改骨架（兩個場景都要回歸）？</p><code>`stingray.py TAIL_MESH`</code></li></ul></section>
+</main></body></html>

@@ -130,3 +130,9 @@ Q1 已經完成的部分不重做：seaward 天空、oceanlight 窗景、雪景�
 | 2026-09-27 | V 期：main 效能基準已量 | 完成 | `exports/quality-review-final/perf-main.jsonl` |
 | 2026-09-27 | B1 烏翅真鯊模型重做（Blender 算圖驗收；場景內四時段待 V 期） | 候選待確認 | `74c9db2`、`exports/quality-b-20260927/B1/` |
 | 2026-09-27 02:25 | 使用者要求：目前三條工作線完成後暫停，05:50 恢復（J3/J4、B2、B3、V） | 排程 | session 內一次性排程；若 session 已結束，從本表接手 |
+| 2026-09-27 | J3 流場與尾流渦環 | 候選待確認 | `1612e1d` |
+| 2026-09-27 | J4 光錐內 marine snow（推開效果場景距離約 3 px，偏弱） | 候選待確認 | `50780a9` |
+| 2026-09-27 | V：效能 main vs 分支，發現並修正兩個退步（waterlight 4x MSAA、stairlight 裂縫 shader），修正後 9 景皆 30 fps | 完成 | `491391d`、`exports/quality-review-final/perf-compare.txt` |
+| 2026-09-27 | V：9 景四時段 main vs 分支矩陣、比較頁、10 項待決定 | 完成，待使用者 G5 | `exports/quality-review-final/index.html` |
+| 2026-09-27 | 測試 209/210（唯一失敗為 main 既有 manta）、build、check:project | 通過 | — |
+| — | 未完成：實機／手機、部署、裂縫 Blender 重烘、魟魚尾長受骨架限制、雪景 Blender 快取重烘（裸海蝶頂點變動） | 待後續 | — |
