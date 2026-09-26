@@ -90,3 +90,17 @@ test('gathered curtain extends along the wall with full height, cloth depth and 
  for(let i=1;i<=192;i++){const point=gatheredCurtainPoint(i/192,.5,0);arc+=Math.hypot(point.x-previous.x,point.z-previous.z);previous=point;}
  assert.ok(arc>3,'folds hold more cloth than the projected gathered width');
 });
+
+test('snow window adds only a faint dawn rose / dusk gold cast and leaves noon and moonlight unchanged',()=>{
+ const dawn=snowWindowDaylight(sampleTime(6.5)),noon=snowWindowDaylight(sampleTime(12)),dusk=snowWindowDaylight(sampleTime(17.5)),night=snowWindowDaylight(sampleTime(23));
+ const warm=(c:{r:number;b:number})=>c.r-c.b;
+ assert.equal(noon.horizon.getHexString(),'a2adb0');assert.equal(noon.tint.getHexString(),'d9e0df');
+ assert.ok(warm(dawn.horizon)>warm(noon.horizon)&&warm(dusk.horizon)>warm(noon.horizon));
+ assert.ok(dawn.horizon.b>dusk.horizon.b,'dawn leans rose, dusk leans gold');
+ for(const light of [dawn,dusk])for(const key of ['horizon','sky','tint'] as const){
+  const a=light[key],b=noon[key];assert.ok(Math.abs(a.r-b.r)+Math.abs(a.g-b.g)+Math.abs(a.b-b.b)<.3,`${key} stays a subtle cast`);
+ }
+ assert.equal(night.solar,0);
+ const moonTint=noon.tint.clone().set('#d9e0df').lerp(noon.tint.clone().set('#9fb6cf'),night.night*.58);
+ assert.equal(night.tint.getHexString(),moonTint.getHexString());
+});
