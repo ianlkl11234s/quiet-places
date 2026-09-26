@@ -10,6 +10,10 @@
 - 正式入口 `/?place=snowhall`；可重現檢查 `/tests/snowhall-biology.html` 使用同一 `prepareSnowhall`、模型和模擬，可改 seed、elapsed、日夜，近看本體並逐項開 debug，正式播放器不加入這些控制。
 - 新模型以 TypeScript 程序曲面／變形為可編輯來源，沒有新增外部貼圖、下載模型、Blender 母檔或烘焙資產。是否需要 Blender 依本次形態驗收決定，不能把程序幾何稱為 Blender 製作。
 
+## 2026-09-26：Q1-1 窗景色溫（選配，候選待使用者確認）
+
+只讓窗景（`scene.background` 與 fog 色）帶很淡的晨曦玫瑰灰（#978d97）／暮色暖灰（#968e82），混合量為 `√day·(1−max(0,cos φ))^1.5·.8`：晨曦約 .41、暮色約 .48，正午與月夜為 0。`tint`、`sky`、窗面 RectAreaLight、Hemisphere fill、雪、銀魚、構圖與暗度一律不動；新的 `windowSky` 欄位只接到 background／fog（`Daylight.ts`、`index.ts` 一行）。fog 也會對室內遠處牆面有約 4% 的色混，實測室內暗部不變。平均 sRGB 前→後：窗（x740–860、y340–480）晨曦 (145,154,159)→(149,152,157)、暮色 (143,153,157)→(148,151,150)、正午與月夜差 ≤2；走廊牆與地暗部各時段完全相同（4–7）。評估：差異很小，不會破壞已確認的暗廊效果，所以保留為可單獨退回的候選。窗口投到地面的光斑加強不在本輪（會改動已確認的暗度）。AO 延後：沒有 bake 管線，SSAO 屬共用 renderer。證據：`exports/quality-q0q1-20260926/lighting-B/before|after/snowhall-*.jpg`。
+
 ## 目前採用：只以銀魚為中心（2026-09-13）
 
 - 使用者先要求低處近景魷魚及更活躍銀魚，接著明確改為「魷魚拿掉，空間有一個重心就好」，並要求保留建模資料。最終設定 `squid.countMin/countMax = 0`，正式 factory 不建立魷魚 mesh；`AntarcticModels.ts/createGlassSquid`、模型近看試片、測試與 references 均保留。低處近景候選的設定／截圖留作未採用歷史，不是現行場景內容。
