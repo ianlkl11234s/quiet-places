@@ -7,6 +7,31 @@ import {createWindowTransport} from './WindowTransport.ts';
 import type {PlaceInstance} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 
+// Q2 A1 candidates (2026-09-27, pending user review). Each switch reverts alone.
+/** Stops removed around 12:00 only (hour-gated); 0 restores the confirmed noon. */
+export const STAIR_NOON_STOPS=1;
+/** Relative moon key through the window; .10 restores the confirmed moonlight. */
+export const STAIR_MOON_KEY=.30;
+/** 0 restores the baked handrail roughness; 1 = polished grip top, hazier sides. */
+export const STAIR_RAIL_ROUGHNESS=1;
+/** 0 restores the baked hairline tubes; 1 = shallow groove normal + dirt roughness. */
+export const STAIR_CRACK_GROOVE=1;
+
+/** Weight of the noon-only exposure trim: 1 at 10:30–13:30, 0 before 8:30/after 15:30. */
+export function stairNoonWeight(hour:number|undefined,intensity:number){
+  if(hour===undefined)return THREE.MathUtils.smoothstep(intensity,.85,.98);
+  return 1-THREE.MathUtils.smoothstep(Math.abs(hour-12),1.5,3.5);
+}
+
+// Blender stairlight.py Landing_Hairline_0..2 (random.Random(28)), converted to
+// Three xz = (x,-y). The tubes stay in the GLB; the shader re-reads them as grooves.
+const CRACKS=[
+  [[-1.18,.04],[-1.22201,.08],[-1.26196,.12],[-1.24828,.16],[-1.2828,.2],[-1.32256,.24],[-1.32419,.28],[-1.33117,.32],[-1.36164,.36],[-1.3716,.4],[-1.32974,.44],[-1.36966,.48],[-1.40309,.52],[-1.45489,.56]],
+  [[-.8,.35],[-.84408,.39],[-.78583,.43],[-.80466,.47],[-.74592,.51],[-.78604,.55],[-.73708,.59],[-.73383,.63],[-.70942,.67],[-.68826,.71],[-.71213,.75],[-.74039,.79],[-.71725,.83],[-.75714,.87]],
+  [[.7,.48],[.73367,.52],[.75147,.56],[.72638,.6],[.73122,.64],[.78086,.68],[.75794,.72],[.71718,.76],[.71016,.8],[.67443,.84],[.66176,.88],[.61051,.92],[.64334,.96],[.68108,1]],
+];
+const CRACK_SEGMENTS=CRACKS.flatMap(line=>line.slice(1).map((b,i)=>new THREE.Vector4(line[i][0],-line[i][1],b[0],-b[1])));
+
 /** The window, frame, room and railing all participate in the same shadow pass. */
 function windowSun(root:THREE.Object3D){
   const sun=new THREE.DirectionalLight(new THREE.Color().setRGB(1,.82,.60),3.5);
@@ -62,6 +87,66 @@ export async function prepareStairlight(){
   indirect.repeat.y=-1;indirect.offset.y=1;
   const skyTint={value:new THREE.Color(1,1,1)};
   const materials:THREE.MeshStandardMaterial[]=[];
+  const crackSegments={value:CRACK_SEGMENTS};
+  // A1-3/A1-4 runtime material detail on the single baked atlas material.
+  // Rail: albedo-hue mask (oxblood linear r/max(g,b) >= 3.5; other atlas colours
+  // stay below 1.5 except island borders). Crack: analytic distance to the
+  // authored hairline polylines, only on the landing top face (y=0).
+  const applySurfaceDetail=(shader:THREE.WebGLProgramParametersWithUniforms)=>{
+    shader.uniforms.stairCracks=crackSegments;
+    shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 stairWorld;').replace('#include <project_vertex>','#include <project_vertex>\nstairWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+varying vec3 stairWorld;
+uniform vec4 stairCracks[${CRACK_SEGMENTS.length}];`)
+      .replace('#include <map_fragment>',`#include <map_fragment>
+vec3 stairGeoNormal=normalize(inverseTransformDirection(normalize(vNormal),viewMatrix))*(gl_FrontFacing?1.:-1.);
+float stairRail=0.;float stairGroove=0.;vec2 stairGrooveTilt=vec2(0.);
+#if ${STAIR_RAIL_ROUGHNESS>0?1:0}
+{vec3 c=diffuseColor.rgb;stairRail=smoothstep(2.6,3.4,c.r/max(max(c.g,c.b),1e-4))*step(.02,c.r);}
+#endif
+#if ${STAIR_CRACK_GROOVE>0?1:0}
+// World-xz -> atlas-UV Jacobian from screen derivatives, taken in uniform control flow.
+mat2 stairUvPerWorld=mat2(dFdx(vMapUv),dFdy(vMapUv))*inverse(mat2(dFdx(stairWorld.xz),dFdy(stairWorld.xz))+mat2(1e-9,0.,0.,1e-9));
+// Landing top face (normal up) or the raised hairline tube itself (any normal, y<2.5 mm).
+bool stairOnTube=stairWorld.y>.0002&&stairWorld.y<.0025;
+if(abs(stairWorld.y)<.003&&(stairGeoNormal.y>.9||stairOnTube)&&stairWorld.z>-1.12&&stairWorld.z<.02){
+  float best=1e3;vec2 away=vec2(0.);
+  for(int i=0;i<${CRACK_SEGMENTS.length};i++){
+    vec2 a=stairCracks[i].xy,b=stairCracks[i].zw,p=stairWorld.xz-a,e=b-a;
+    vec2 q=p-e*clamp(dot(p,e)/dot(e,e),0.,1.);float d=length(q);
+    vec2 side=normalize(vec2(-e.y,e.x));
+    if(d<best){best=d;away=d>1e-6?q/d:side;}
+  }
+  // The PBR bake carried the hairline into the floor albedo as a near-black line.
+  // Inpaint it from terrazzo 9 mm off the line on the same side, then shade the groove.
+  if(best<.007){
+    vec3 clean=diffuse*texture2D(map,vMapUv+stairUvPerWorld*(away*(.009-best))).rgb;
+    diffuseColor.rgb=mix(diffuseColor.rgb,clean,(1.-smoothstep(.004,.007,best))*${STAIR_CRACK_GROOVE.toFixed(3)});
+  }
+  // Groove half-width 4.5 mm (chipped edge), depth 1.2 mm: parabolic profile, walls
+  // tilt toward the centre line.
+  float w=.0045;float u=clamp(best/w,0.,1.);
+  stairGroove=(1.-u*u)*float(best<w)*${STAIR_CRACK_GROOVE.toFixed(3)};
+  // The authored tube's own tiny lightmap island bakes near-black; hide it and let
+  // the floor underneath (0.35 mm below) carry the groove shading instead.
+  if(stairOnTube&&best<.003)discard;
+  stairGrooveTilt=-away*(2.*.0012*u/w)*float(best<w)*${STAIR_CRACK_GROOVE.toFixed(3)};
+  // Dirt-filled groove: darker than terrazzo, never the old near-black line.
+  diffuseColor.rgb=mix(diffuseColor.rgb,max(diffuseColor.rgb,vec3(.18,.16,.132)*.62)*.72,stairGroove);
+}
+#endif`)
+      .replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
+// Grip top polished by hands; sides, underside and folded bars keep a light haze.
+float stairGrip=smoothstep(.45,.8,stairGeoNormal.y);
+roughnessFactor=mix(roughnessFactor,mix(min(roughnessFactor+.16,.72),clamp(roughnessFactor-.12,.22,1.),stairGrip),stairRail*${STAIR_RAIL_ROUGHNESS.toFixed(3)});
+roughnessFactor=mix(roughnessFactor,max(roughnessFactor,.93),stairGroove);`)
+      .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
+if(stairGroove>0.){
+  vec3 stairN=inverseTransformDirection(normal,viewMatrix);
+  stairN=normalize(stairN+vec3(stairGrooveTilt.x,0.,stairGrooveTilt.y));
+  normal=normalize((viewMatrix*vec4(stairN,0.)).xyz);
+}`);
+  };
   let surfaces=0;
   root.traverse(object=>{
     if(!(object instanceof THREE.Mesh))return;
@@ -75,8 +160,9 @@ export async function prepareStairlight(){
         shader.uniforms.stairSkyTint=skyTint;
         shader.fragmentShader='uniform vec3 stairSkyTint;\n'+shader.fragmentShader;
         shader.fragmentShader=shader.fragmentShader.replace('#include <lights_fragment_maps>',THREE.ShaderChunk.lights_fragment_maps.replace('lightMapTexel.rgb * lightMapIntensity','lightMapTexel.rgb * lightMapIntensity * stairSkyTint'));
+        if(STAIR_RAIL_ROUGHNESS>0||STAIR_CRACK_GROOVE>0)applySurfaceDetail(shader);
       };
-      material.customProgramCacheKey=()=> 'stairlight-sky-tint-v1';
+      material.customProgramCacheKey=()=> `stairlight-sky-tint-v1-detail-${STAIR_RAIL_ROUGHNESS}-${STAIR_CRACK_GROOVE}`;
       material.needsUpdate=true;materials.push(material);surfaces++;
     }
   });
@@ -138,12 +224,16 @@ irradiance += twineSky*(.018+.65*tapeOpening*tapeFacing);`);
         else incoming.set(1.1+state.angle*.35,-(2.8-Math.abs(state.angle)*1.6),-(2+state.angle*1.2)).normalize();
         sun.position.copy(center).addScaledVector(incoming,-14);
         sun.color.setRGB(1,1-.32*state.warmth,1-.62*state.warmth).lerp(moonTint,1-Math.min(1,daylight*4));
-        sun.intensity=(3.5*daylight+.10*(1-daylight))*(state.beamStrength??1);
+        // Noon trim is a pre-tonemap light scale (one stop = x.5), hour-gated so dawn/dusk stay identical.
+        const noonScale=2**(-STAIR_NOON_STOPS*stairNoonWeight(state.hour,state.intensity));
+        // The extra moon key is gated to full night (daylight<.12), so dawn/dusk keep the confirmed .10 blend.
+        const moonKey=.10+(STAIR_MOON_KEY-.10)*(1-THREE.MathUtils.smoothstep(daylight,0,.12));
+        sun.intensity=(3.5*daylight+moonKey*(1-daylight))*(state.beamStrength??1)*noonScale;
         transport.update(incoming,!!state.lowQuality,elapsed);
         skyTint.value.copy(nightTint).lerp(dayTint,Math.min(1,daylight*3));
-        for(const material of materials)material.lightMapIntensity=Math.PI*THREE.MathUtils.clamp(state.intensity/.9,.18,1.2);
-        twineSky.value.copy(skyTint.value).multiplyScalar(.65*THREE.MathUtils.clamp(state.intensity/.9,.09,1.2));
-        shark.update(elapsed,state.intensity);
+        for(const material of materials)material.lightMapIntensity=Math.PI*THREE.MathUtils.clamp(state.intensity/.9,.18,1.2)*noonScale;
+        twineSky.value.copy(skyTint.value).multiplyScalar(.65*THREE.MathUtils.clamp(state.intensity/.9,.09,1.2)*noonScale);
+        shark.update(elapsed,state.intensity*noonScale);
         if(lastElapsed!==elapsed||lastAngle!==state.angle){
           twine.update(elapsed,state.activity);sun.shadow.needsUpdate=true;lastElapsed=elapsed;lastAngle=state.angle;
         }

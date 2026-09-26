@@ -248,3 +248,17 @@ Build與GPU通過；新增實際GLB射線檢查下層兩梯、−3.5m平台、�
 ## PR 整合（2026-09-09）
 
 以最新main f01ea56建立codex/stairlight-pr，僅移入樓梯間資產、模組、測試、來源與文件。正式CSS完全不改，index.html只新增無圖片場景文字及select option；保留afterlight、深灰dock與既有輸出流程。移除舊worktree中未再使用的fixedHour播放器修改。預設window=rear；window=side才載入舊比較資產。可再生web.blend、大型舊版備份及私人参考圖只留本地，不納入PR。
+
+
+## 2026-09-27 Q2 A1 候選（候選待使用者確認）
+
+分支 `claude/visual-quality-split`，只改 `src/places/stairlight/`；未重烘、未改 public 資產。每項各自一個開關，設回舊值即回到原畫面。證據：`exports/quality-q2-20260927/A1-A3/`（before／after 同名 jpg，四時段 1600×900 與局部裁切）。量測為 8-bit sRGB luma（0.2126R+0.7152G+0.0722B），鯊魚位置因 elapsed 不同會變，對照區避開鯊魚。
+
+- **A1-1 月光斑**：`STAIR_MOON_KEY=.30`（舊 .10）。原本同一支窗光 DirectionalLight 在夜間只有 .10，月光斑幾乎看不出來。改為只在全夜（daylight<.12 起漸入）提高到 .30，晨曦／暮色仍用 .10 的混合；色溫仍是既有 moonTint(.38,.55,1)。沒有加 ambient、沒有改烘焙天空 lightmap。月夜台階光斑 11.2→27.0，暗牆 9.6→9.6，全畫面 p1 2.07→2.07（黑位不變）。光斑經過窗框與鯊魚投影，來源是後窗。
+- **A1-2 正午降一檔**：`STAIR_NOON_STOPS=1`。以 hour 做權重 `1-smoothstep(|h-12|,1.5,3.5)`（10:30–13:30 全額，8:30 前／15:30 後為 0），同倍率 2^-1 乘在太陽、烘焙 lightMapIntensity、紅繩窗光與鯊魚窗光上，等於 tone map 前降一檔；`exposure` 是播放器啟動時讀的固定值，因此不在場景裡改。正午亮台階 147.7→117.0、畫面平均 63.8→43.4；晨曦 48.9→49.2、暮色 54.6→53.7（差異來自鯊魚位置）。14:00 仍有約 .84 檔的降幅，這是權重設計的副作用，待看圖。
+- **A1-3 扶手粗糙度**：`STAIR_RAIL_ROUGHNESS=1`。模型是單一烘焙 atlas 材質，扶手以 albedo 色相遮罩辨識（線性 r/max(g,b)≥3.5；atlas 其他顏色都在 1.5 以下）。幾何法線朝上的握持面 roughness −.12（下限 .22），側面、底面與紅色折線飾條 +.16（上限 .72）。效果是頂面高光變窄、側面變霧；整體亮度中位數不變（晨曦 63.0→63.2）。仍是 runtime 近似，沒有沿扶手長度的磨損分布。
+- **A1-4 裂縫**：先查來源。裂縫是 `stairlight.py` 的 `Landing_Hairline_0..2` 幾何細管（半徑 0.65 mm、Recess dirt albedo .038），**而且 PBR 烘焙把這條線一起烘進平台 albedo**；lightmap 也有很淡的殘影。改法 `STAIR_CRACK_GROOVE=1`：shader 內以同一亂數種子重現的 39 段折線計算距離；隱藏細管本身；平台 albedo 在線旁 7 mm 內用 UV Jacobian 取 9 mm 外的磨石子補掉黑線；再加半寬 4.5 mm、深 1.2 mm 的拋物線凹槽 normal，中心 albedo ×0.72、roughness≥.93。受光時看得出一側亮一側暗的凹痕；陰影中只剩較淡的粗糙度與色差。只處理 y=0 平台，向下複製的 `Below_` 層未處理（主鏡頭看不到）。根治方式是在 Blender 以凹槽 normal 或 boolean 重烘，這需重烘與覆寫 public 資產，不在本批。
+- **A1-5 鯊魚胸鰭**：見 [生物頁](../biology/blacktip-reef-shark.md) 同日段落。
+- **A1-6 貼圖 2K 評估（只評估，未替換）**：用暫時的 debug hook 在瀏覽器把 GLB 內嵌的 albedo／normal／roughness 縮成 2048² 後拍照（hook 已移除）。1600×900 主鏡頭近景的 PSNR：扶手／平台 45.9–53.2 dB、近台階 50.2–55.6、平台左側 49.4–50.5；高頻能量下降 0–7%，放大兩倍才看得出磨石子細顆粒稍軟。檔案：albedo 10.86→2.68 MB、normal 9.97→1.57 MB（已重新正規化）、roughness 0.70→0.45 MB；GLB 內嵌同樣這三張，估計 26.05→約 9.3 MB；GPU 記憶體約 268→67 MB（RGBA＋mipmap 估算）。建議改成 2K；DPR 2 的高解析螢幕沒有測。候選檔在 `exports/quality-q2-20260927/A1-A3/texture-2k-candidate/`，是否重新匯出由主 agent 決定。
+
+驗收：`npx tsc --noEmit` 通過；`npm test` 188 項中 187 通過，唯一失敗是 main 原有的 manta 測試；`tests/stairlight-gpu.html` 通過（牆角白線 legacy 670→fixed 0）；`npm run check:project` 通過。未測手機，未發布。
