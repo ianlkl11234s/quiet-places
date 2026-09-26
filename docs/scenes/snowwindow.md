@@ -150,3 +150,12 @@
 水母邊緣觸鬚透明度 .33 → .16，固定 seed 的長度係數 .45..95，PBD guide 按圓周鄰近分配，保留 128 條。A／B 以 113 秒週期、43 秒錯相的平滑事件朝 +z／+x（基準觀察者方向）轉向，前景區域偏好最多 +.45 m；實際位移仍經受力／阻力／邊界，並非固定前進 .45 m。這是美術編舞，不是追蹤目前鏡頭或生物行為實測。
 
 118 個測試通過、build 通過。既有 60 秒 Blender／PC2／GLB 是前一版歸檔，未重烘焙此次觸鬚與路徑；當前網站 TS 為新版權威，不可將舊快取描述為與本版逐幀一致。
+
+## 2026-09-27：Q2-A8 窗台積雪閃光與軟邊（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。權威：`Materials.ts` 的 `refineSillSnow`；`Exterior.ts` 只多一行呼叫（積雪材質原本定義在 Exterior）。
+- 閃光：平台局部座標 1 cm 格、12% 格帶 ±30° 冰面，反射「海面上方最亮陰天天空」方向 (0,.8,−.6)，`pow(N·H,40)×.9×albedo` 加到 directSpecular（不寫 emissive）；乘 `smoothstep(.30,.90,visibility)`，月夜 visibility≈.25 → 0。
+- 軟邊：外露邊（海側、兩端）10–18 cm 內頂面法線滾向外側，並以 ½+½·n.y 作為天空可見度（本積雪用平坦天空 proxy 照明，只改法線看不出差異）；側面同樣套用。
+- 座標注意：room root 會依視角在 x 平移，必須用平台局部座標；第一版誤用世界座標產生大片硬邊暗區，已修正。
+- 亮度：凍結 elapsed 正午，積雪像素均值 191.02 → 191.19、整幀 104.55 → 104.56（未改變已確認亮度）；亮點 >8 階 637 px。
+- 退回：`SILL_SNOW_SPARKLE=0`、`SILL_SNOW_SOFT_EDGE=0`（皆 0 時不注入任何 shader）。證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/snowwindow-*`、`snow-noon-zoom.jpg`。
