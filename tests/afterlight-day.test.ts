@@ -25,3 +25,11 @@ test('twilight lasts four hours',()=>{
  assert.equal(sampleAfterlightDay(19).daylight,.5);
  assert.equal(sampleAfterlightDay(21).daylight,0);
 });
+
+test('Q2-A6 dawn is warm while noon and night keep their previous warmth',()=>{
+ assert.ok(sampleAfterlightDay(6.5).warmth>.7,'06:30 low sun is warm');
+ assert.ok(Math.abs(sampleAfterlightDay(12).warmth-.3)<1e-9);
+ assert.ok(Math.abs(sampleAfterlightDay(23).warmth-.3)<1e-9);
+ let last=sampleAfterlightDay(0).warmth;
+ for(let minute=1;minute<=1440;minute++){const now=sampleAfterlightDay(minute/60).warmth;assert.ok(Math.abs(now-last)<.02,'warmth stays continuous');last=now;}
+});

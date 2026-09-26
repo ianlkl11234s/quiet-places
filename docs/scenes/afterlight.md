@@ -1,5 +1,22 @@
 # 雨後天井／Afterlight：場景製作規劃
 
+## 2026-09-27：Q2-A6 右牆雜訊與晨曦暖色（候選待使用者確認）
+
+分支 `claude/visual-quality-split`，兩項可各自退回。
+
+1. **右牆雜訊**（`src/places/afterlight/SurfaceMaterials.ts`，遮罩 `afterlightRightWallSoft` 只涵蓋法線 −x、x>1.2–1.5 m 的右牆）
+   - 查證：用紅色 debug 遮罩確認範圍後，發現把 albedo 換成純紅，斑點依然存在。所以主因是 512² 的整室烘焙間接光 EXR（每 texel 約 2–3 cm，帶 Cycles 取樣雜訊），不是 2K 的 albedo／normal。
+   - 做法：右牆的 lightmap 向 5×5 box 平均（±2 texel）移動 85%，保留能量；normal 向幾何法線混合 45%；albedo 有 30% 取自 mip bias 2 的樣本。
+   - 結果：右牆區域平均亮度不變（差 ≤.15），8-bit 亮度標準差：晨曦 4.27→3.36、正午 5.75→4.44、暮色 5.57→4.29、月夜 2.82→2.40。風險：近看可能偏平。可調的數值是 `.85／.45／.3`。
+   - 退回方式：刪除三段 `Q2-A6` 注解區塊，並把 cache key 改回 `-v1`。
+2. **晨曦暖色**（`DayCycle.ts`、`Lighting.ts`）
+   - warmth 加上晨間 bump：`+.5·smooth(4.8,6.2,h)·(1−smooth(7.2,9.5,h))`。06:30 從 .30 升到 .80，正午與夜間仍為 .30（新增連續性測試）。
+   - 中午以前，太陽光色改用 √daylight 混合，06:30 不再有大半是月光藍；0 與 1 兩端的值與原本相同，午後與暮色分支不動。
+   - 結果：06:30 地面光斑 RGB (83,87,83)→(88,87,74)，亮度 86.0→86.0，天井光束偏暖。
+   - 退回方式：刪除 bump 項，把 `sunColorMix` 改回 `night`。
+
+驗收：`npx tsc --noEmit` 通過，afterlight 相關 tests 全部通過（新增 1 項）。四時段截圖在 `exports/quality-q2-20260927/A2-A6-A9/before|after/afterlight-*.jpg`，放大圖在 `after/crop-A6-*.jpg`（左為 before）。各時段全畫面平均亮度差 ≤.5，1st percentile 不變。本機 browser 驗收，尚未經使用者確認。
+
 ## 目前摘要（2026-09-09 P0–P6）
 
 - 本地重構位於獨立 worktree `/private/tmp/quiet-places-production-p0-p6`，分支 `codex/production-p0-p6`，起點 `f01ea56`。原工作區保留；未合併／發布。
