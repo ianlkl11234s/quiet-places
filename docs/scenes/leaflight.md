@@ -80,3 +80,15 @@
 - Blender +Y 朝頭 → glTF -Z 朝頭。`KoiMotion.ts` 保留約 78 s 路徑範圍，加獨立平滑速度變化、細小升降與轉向；距離驅動慢游 clock，轉彎時後半身有輕微偏移。這是運動學編舞，不新增水體或自主魚群。
 - 房間、樹、相機、曝光、天空、日照、間接光與設定面板保持原參數。補光使用蒙皮後世界座標，投影使用相同骨架。
 - 本機驗收：21/21 tests、build；實際模型兩圈變形頂點最低離地 0.0873 m、最高 0.4913 m，維持房間界限。Browser 中性三視角／36 s 三圈及樹影 1280×720、14:00 檢查；暫停 screenshot 一致。[場景圖](../../exports/koi-integration/leaflight.png)。使用者已於 2026-09-07 確認「這樣可以」並授權提交，作為新錦鯉美術基準；不是發布或實體裝置效能驗收。
+
+## 2026-09-26：Q0-3 月夜窗景與晨暮天空（候選待使用者確認）
+
+- 分支 `claude/visual-quality`；狀態：**候選待使用者確認**，可單獨退回（只動 `Lighting.ts` sky shader 與 `FoliageMotion.ts` 樹材質注入）。
+- 根因：`uDaylight` 其實有接上（月夜 `intensity .09 → day .1`），但 sky 以 `mix(night, daySky, uDaylight)` **線性**混合，月夜仍帶 10% 正午藍；夜色 `nightHigh (.018,.036,.068)` 本身偏藍偏亮，再經 exposure `2**.8`＋AgX（OutputPass）抬暗部，實測月夜天空 sRGB 約 (61,82,98)。樹葉則仍受 `sun.intensity = 20×.1 = 2` 的白藍光與線性 10% 天光填充照亮，讀起來像「白天壓暗」。晨曦 warmth .66 只得到 `smoothstep(.6,1)≈.02` 暖化；暮色 palette 為中性灰。
+- 改法（皆為美術值）：
+  - `dayMix = smoothstep(.10,.55,uDaylight)` 取代線性 `uDaylight` 作為日／夜混合、雲、霧與日暈權重；月夜 → 0，daylight ≥ .55 → 1。
+  - 夜色 `nightLow (.0030,.0042,.0062)`、`nightHigh (.0042,.0060,.0105)`：深藍低彩度。日暈改 `.004 + .053×dayMix`（日間總量與原本相同 .057），夜間留一點月暈指向窗外月光來源；地板月光斑（`sun` 2）保留，是月夜可指認的光源。
+  - 暖色兩段：`golden = smoothstep(.50,.70,warmth) × (1 - smoothstep(0,.3,angle))`（晨曦桃／玫瑰，只在早晨負 angle 生效；sky shader 新增 `uAngle`）、`dusk = smoothstep(.75,.95,warmth)`（暮色琥珀低空＋暗玫瑰天頂），另加寬前向散射 `pow(dot(d,toSun),4) × (golden×.16 + dusk×.30) × dayMix`。
+  - 樹葉：同一條 `leafDay` gate；`directDiffuse/Specular × mix(.22,1,leafDay)`，天光填充 `× leafDay`，夜間加 `vec3(.20,.26,.36) × rim³ × .010` 的冷色邊緣（量級刻意極小，避免 glow）。
+- 界線：warmth ≤ .5 且 daylight ≥ .55 時所有新項為恆等；因晨曦段另以 angle 限定在早晨，依 `sampleTime` 算 14:00–16:00 golden 與 dusk 皆為 0（16:00 dusk .016），使用者確認的午後基準（14:00：warmth .48、day 1）數學上不變，17:00 起才進入暮色 palette。本次未另拍 14:00 截圖。晨曦只改天空色溫，光角度仍是 Blender 基準的 ±.2 yaw，沒有做低角度長影。不是天文夜空、沒有星空，月光仍是既有 directional light 的 10%。
+- 驗收（本機 Vite 6181、1600×900、四時段；證據 `exports/quality-q0q1-20260926/lighting-A/{before,after}/leaflight-*`，窗景放大 `leaflight-window-crops.jpg`）：月夜天空 luminance 78.5 → 16.5（sRGB 約 (11,17,26)）；同窗樹冠 49.2 → 10.7，樹冠低於天空 → 剪影成立。室內暗部（room box）四時段變化 ≤ 0.2。晨曦天空轉灰玫瑰、暮色轉桃琥珀，正午不變（137.5 → 137.6）。量測腳本 `measure.py`、數字 `luminance-before-after.txt`。
