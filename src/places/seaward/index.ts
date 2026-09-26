@@ -8,7 +8,7 @@ import {tunnelMaterial,seaMaterial} from './Materials.ts';
 
 export async function prepareSeaward():Promise<PlaceFactory>{
  const createRay=await prepareTunnelRay();
- const factory:PlaceFactory=(scene)=>{
+ const factory:PlaceFactory=(scene,renderer)=>{
   const root=new THREE.Group();root.name='seaward-tunnel';scene.add(root);
   const time={value:0},day={value:1},beam={value:1},sun={value:new THREE.Vector3()},tint={value:new THREE.Color()},direct={value:1};
   const horizon={value:new THREE.Color()},zenith={value:new THREE.Color()};
@@ -49,6 +49,16 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   const shadow=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.1),shadowMaterial);shadow.rotation.x=-Math.PI/2;root.add(shadow);
   const visitor=root.getObjectByName('tunnel-stingray')!;
   const background=new THREE.Color('#c0ccd0');scene.background=background;
+  // Q1-2: weak image-based bounce for standard materials (handrail, ray, grass).
+  // A low-res PMREM of the same time-driven sky over a dark tunnel-coloured
+  // lower hemisphere; regenerated only when the sky colour moves, at most 5×/s.
+  const envScene=new THREE.Scene(),envDome=new THREE.Mesh(new THREE.SphereGeometry(1,24,12),new THREE.ShaderMaterial({
+   side:THREE.BackSide,depthWrite:false,uniforms:{uHorizon:horizon,uZenith:zenith},
+   vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+   fragmentShader:'varying vec3 direction;uniform vec3 uHorizon,uZenith;void main(){float e=normalize(direction).y;vec3 up=mix(uHorizon,uZenith,smoothstep(0.,.65,e));vec3 down=mix(uHorizon*.30,uHorizon*.06,smoothstep(0.,-.35,e));gl_FragColor=vec4(e>0.?up:down,1.);}'}));
+  envScene.add(envDome);
+  const pmrem=new THREE.PMREMGenerator(renderer),envKey=new THREE.Color(-1,-1,-1),oldEnvironment={map:scene.environment,intensity:scene.environmentIntensity};
+  let envTarget:THREE.WebGLRenderTarget|null=null,envAge=Infinity;
   let disposed=false;
   return {position:[2.6,1.35,2.8],target:[-1.6,1.5,-11],cameraMode:'fixed-position',yawRange:Math.PI/12,get fov(){return typeof window!=='undefined'&&window.innerWidth<700?90:53;},exposure:1.15,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
@@ -63,10 +73,16 @@ export async function prepareSeaward():Promise<PlaceFactory>{
     sky.intensity=.14*day.value;
     // Distant ridges sit in the same air as the horizon: a slightly darker, bluer share of it.
     mountainMaterial.color.copy(light.horizon).lerp(light.zenith,.3).multiplyScalar(.9);
+    envAge+=Math.max(0,_dt);
+    if(envAge>=.2&&Math.abs(envKey.r-light.horizon.r)+Math.abs(envKey.g-light.horizon.g)+Math.abs(envKey.b-light.horizon.b)>.006){
+     const next=pmrem.fromScene(envScene,0,.1,10);envTarget?.dispose();envTarget=next;envKey.copy(light.horizon);envAge=0;scene.environment=next.texture;
+    }
+    // Cap .30; follows the sun, so moonlight leaves only a trace on a dark-blue dome.
+    scene.environmentIntensity=.30*(.12+.88*light.solar);
     grass.update(elapsed);ray.update(elapsed);
     shadow.position.set(visitor.position.x,.012,visitor.position.z);shadow.scale.setScalar(1+visitor.position.y*.25);shadowMaterial.uniforms.uOpacity.value=.16/(1+visitor.position.y);
    },
-   disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
+   disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
   };
  };
  return Object.assign(factory,{dispose:createRay.dispose});

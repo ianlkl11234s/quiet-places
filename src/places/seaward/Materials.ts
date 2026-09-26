@@ -38,7 +38,13 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
   concrete*=1.-crack*smoothstep(.9,1.3,uv.y)*(1.-smoothstep(1.5,1.8,uv.y))*.15;
  }
  float ambient=.012+exitLight*(uKind==2?.09:.30);
- vec3 col=concrete*(vec3(.87,.94,1.)*ambient+direct*1.5*uDirect*uTint)*uDay;
+ // Q1-2: redistribute, not add, the existing exit bounce. Its hue leans to the
+ // time-driven horizon, and walls read as turned toward the lit floor
+ // (x1.18 at the base, x.82 at the ceiling line; mean unchanged).
+ vec3 skyHue=min(uHorizon/max(dot(uHorizon,vec3(.2126,.7152,.0722)),1e-3),vec3(1.6));
+ vec3 bounceHue=mix(vec3(.87,.94,1.),skyHue*.93,.6);
+ float lift=uKind==0?mix(1.18,.82,smoothstep(0.,4.2,p.y)):1.;
+ vec3 col=concrete*(bounceHue*ambient*lift+direct*1.5*uDirect*uTint)*uDay;
  // Project the existing pattern in the light frame, rather than revealing a
  // fixed wall decal. At grazing incidence its energy must also tend to zero.
  vec3 lightU=normalize(cross(vec3(0.,1.,0.),sun));
