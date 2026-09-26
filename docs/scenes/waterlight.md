@@ -177,3 +177,10 @@ PR整合驗收：已合併origin/main的房間導覽與字體更新，保留其�
 - 量測（sRGB luminance，before → after；`exports/quality-q0q1-20260926/lighting-A/`）：正午 光柱旁下牆 65.9→68.3、左下牆角 23.1→25.9、近地板 22.5→24.4；遠右牆 16.2→16.3、左上牆 23.9→24.0（對照區不變）；月夜不變。
 - 注意：拍 after 時同一 worktree 另有 agent 在改 `FishSchool.ts`／`LongFinKoiMotion.ts`，魚的差異不屬本項。
 - **AO 延後**：房間是程式平面，沒有 Blender 母檔可烘 AO／lightMap；牆角接觸暗化需另建母檔或評估 SSAO pass，不在本批。
+
+## 2026-09-27：Q2 A3 候選（候選待使用者確認）
+
+- 分支 `claude/visual-quality-split`；只改 `Environment.ts`。證據：`exports/quality-q2-20260927/A1-A3/`（`waterlight-*` 四時段、`crop-A3-*`）。
+- **A3-1 光斑邊緣柔化**：`WATER_PATCH_EDGE_SOFT=1`（0 回到原本的方形邊）。caustic overlay 與 room shader 共用 `softAperture`：Chebyshev 方形距離改為 p=6 超橢圓，讓角變圓；邊緣帶再依落差加寬 .10–.30 m（落差 0→7 m），與 volume shader 既有的「深度越大邊越軟」一致。這是美術近似，不是實際的波面散射解算。正午地面光斑右緣 90→10% 過渡寬 31→45 px；因焦散紋路會隨時間移動，這個數字只作參考，主要看裁切圖。
+- **A3-2 月夜天窗降飽和**：`WATER_MOON_SKY_DESAT=1`（0 回到原本）。天窗 shader 的最終色在 intensity<.30 時漸入夜間調色：往 luma×(.82,.92,1.08) 拉 72%，並乘 .62。晨曦 intensity .36 以上完全不受影響。月夜天窗 RGB (7,45,56)→(20,29,33)，HSV 飽和度 .874→.391，luma 37.9→27.2；房間暗部 5.4／7.0 不變。晨曦、正午、暮色的天窗色差 ≤2.6（波紋時間不同）。
+- 驗收：tsc、water 單元測試、`tests/water-gpu.html`（PASS）通過；四時段在瀏覽器看過圖。未測手機，未發布。
