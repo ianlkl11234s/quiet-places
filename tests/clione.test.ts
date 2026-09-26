@@ -45,3 +45,16 @@ test('closed Clione body faces point outward for opaque silhouette and glTF rend
  for(let i=0;i<idx.count;i+=3){a.fromBufferAttribute(p,idx.getX(i));b.fromBufferAttribute(p,idx.getX(i+1));c.fromBufferAttribute(p,idx.getX(i+2));volume+=a.dot(b.cross(c))/6;}
  assert.ok(volume>0,'positive signed volume is required for outward faces');clione.dispose();
 });
+
+test('B3 tissue look: no transmission or emission, head cone within the former head extent, thin wing margins',()=>{
+ const L=.036,clione=createClione({length:L,frequency:1.35,phase:0,seed:4});
+ for(const name of ['CLIONE_TRANSPARENT_BODY','CLIONE_SMALL_HEAD','L_WING_SURFACE','CLIONE_VISCERAL_MASS']){
+  const material=(clione.group.getObjectByName(name) as THREE.Mesh).material as THREE.MeshPhysicalMaterial;
+  assert.equal(material.emissive.getHex(),0,name);assert.ok(!(material.transmission>0),`${name} uses alpha, not a transmission pass`);assert.ok(material.userData.tissue,`${name} has tissue shading`);
+ }
+ const head=clione.group.getObjectByName('CLIONE_SMALL_HEAD') as THREE.Mesh;head.geometry.computeBoundingBox();const box=head.geometry.boundingBox!;
+ const tip=box.max.z,widest=Math.max(box.max.x,box.max.y);assert.ok(L*.49+tip<=L*.566,'no size growth beyond the former sphere');assert.ok(tip>widest,'head tapers to a cone rather than a sphere');
+ clione.update(0,{gait:'slowhover',phase:0});const p=vertices(clione.group.getObjectByName('L_WING_SURFACE') as THREE.Mesh),layer=11*7;
+ const thick=(u:number,v:number)=>Math.abs(p[(u*7+v)*3+1]-p[((u*7+v)+layer)*3+1]);assert.ok(thick(2,0)<thick(2,3)*.4&&thick(10,3)<thick(0,3)*.6,'leading edge and tip thinner than mid-chord root');
+ clione.dispose();
+});
