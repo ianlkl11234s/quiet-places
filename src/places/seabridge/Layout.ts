@@ -21,8 +21,10 @@ export function stairProfile(){
  return {f1Run,f2Run,f1Top,f1End,landingEnd,f2End,deckStart,deckLandingEnd};
 }
 
-/** Two standpoint candidates for S1; chosen with ?seabridgeView=a|b. */
+/** Standpoints. `user` is the default (set by the user in the camera tool, 2026-09-27); a/b stay for comparison via ?seabridgeView=a|b. */
 export const VIEWS={
+ // User pick: on the right verge at eye height, looking up across at the covered stair.
+ user:{position:[5.96,1.37,5.46],target:[0,3.08,-5.47],fov:56.8},
  // A: close to the reference — at the stair foot, near its axis, looking up the flight.
  a:{position:[.5,1.55,5.6],target:[-.1,3.3,-8],fov:60},
  // B: observational — off to the left on the footpath, stair seen obliquely on the right, sea and low sun open on the left.

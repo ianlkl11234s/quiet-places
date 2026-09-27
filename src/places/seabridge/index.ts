@@ -49,7 +49,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
 
   const background=new THREE.Color();scene.background=background;
   const requested=typeof location==='undefined'?null:new URLSearchParams(location.search).get('seabridgeView');
-  const view=VIEWS[(requested==='b'?'b':'a') as SeabridgeView];
+  const view=VIEWS[(requested==='a'||requested==='b'?requested:'user') as SeabridgeView];
   let disposed=false;
   return {position:[...view.position],target:[...view.target],cameraMode:'fixed-position',yawRange:Math.PI/12,
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?78:view.fov;},exposure:1.05,hasSimulation:false,waterMode:'',

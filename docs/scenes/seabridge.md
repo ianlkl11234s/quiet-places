@@ -48,7 +48,7 @@
 - 空間：`Layout.ts`（尺寸）、`Graybox.ts`（S1 用純色方塊與斜切幾何）。
 - 光：`Daylight.ts` → 一盞投影平行光（2048² 陰影）、半球光、4 盞日光燈 PointLight（無陰影）。燈管 emissive 只在點燈時亮。
 - 水：沿用 seaward 海面 shader，海面 y=-2.9。
-- 相機：`?seabridgeView=a|b`，fixed-position，yawRange π/12；窄螢幕 FOV 78。調整工具：`/tools/snowwindow-camera/?place=seabridge`（沿用雪景的鏡頭試片工具，可調位置、注視點、FOV、時刻，複製 JSON 後由 agent 寫回 `Layout.ts` 的 `VIEWS`）；加 `&seabridgeView=b` 從 B 開始。
+- 相機：預設站位 `user`（使用者用鏡頭工具選的：位置 (5.96,1.37,5.46)、注視點 (0,3.08,−5.47)、FOV 56.8°）；`?seabridgeView=a|b` 可切回舊候選比較；fixed-position，yawRange π/12；窄螢幕 FOV 78。調整工具：`/tools/snowwindow-camera/?place=seabridge`（沿用雪景的鏡頭試片工具，可調位置、注視點、FOV、時刻，複製 JSON 後由 agent 寫回 `Layout.ts` 的 `VIEWS`）；加 `&seabridgeView=b` 從 B 開始。
 - 草：`Grass.ts`，原創程序草，不是特定物種。GPU instancing 的摺疊葉片（5 段）加低矮草皮，另有少量帶下垂小穗的穗莖。葉片長的彎得多；顏色是基部深、葉尖偏乾，約一成是乾草色。低太陽在葉後方時有薄葉透光，強度跟直射光連動，所以夜間會消失（不是自發光）。風是向岸微風：大部分時間接近靜止，每 83 秒有兩次陣風，越往內陸越晚到，根部固定。分布在 `Layout.ts` 的 `GRASS_PATCHES`，`grassKeepOut` 讓步道和階梯保持乾淨。
 - 生物、聲音：未做。
 
@@ -72,3 +72,4 @@
 - 2026-09-27：使用者要可以自己調的站位模式，並指出「草會在遠處的海裡」。
   - 鏡頭工具：`SnowwindowCamera.ts` 加上 seabridge 分支（範圍：位置 x ±14、y 0.3–8、z −14–16），預設時刻 17:30。
   - 草浮在海上的原因：軌道那一層（y=−1.3）的草，以及堤岸邊（y=0）偏高的草，從人行道看過去地面被堤岸擋住，只剩葉尖疊在海面上。處理方式：拿掉軌道層的草；堤岸那一帶的草改矮（0.35 m）並往後退到 z≈−9.8，讓葉尖落在堤岸邊線以下；新增 `grassBlocked(x,z,y)`，限定每一層可以長草的範圍。
+- 2026-09-27：使用者用鏡頭工具選定站位（右側草地、視高 1.37 m，斜看整座跨線橋），設為預設 `VIEWS.user`。四時段截圖：`exports/seabridge-s1/round3/user-grid.jpg`。使用者先貼過一組視高 0.81 m 的版本，後來換成這組。
