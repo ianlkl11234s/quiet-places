@@ -7,6 +7,10 @@ import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
 import {createSardineSchools} from './Sardines.ts';
+import {installFullMoon} from '../../shared/sky/FullMoon.ts';
+
+/** Full-moon switch: 0 restores the moonless night sky. */
+const SEABRIDGE_FULL_MOON = 1;
 
 // Sky dome: time-driven horizon/zenith with subtropical fair-weather cumulus
 // (Okinawa-like: deep blue zenith, pale horizon haze, white clouds low on the
@@ -75,8 +79,15 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
    fragmentShader:'varying vec3 d;uniform vec3 uHorizon,uZenith,uGround;void main(){float e=normalize(d).y;vec3 up=mix(uHorizon,uZenith,smoothstep(0.,.6,e));vec3 down=mix(uHorizon*.35,uGround,smoothstep(0.,-.3,e));gl_FragColor=vec4(e>0.?up:down,1.);}'}));
   envScene.add(envDome);
   const pmrem=new THREE.PMREMGenerator(renderer),envKey=new THREE.Color(-1,-1,-1);let envTarget:THREE.WebGLRenderTarget|null=null,envAge=Infinity;
+  // Laid out in the user-chosen default view: rises out of the sea (hidden by the ocean's
+  // depth) into the open sky right of the covered stair. Moonlight is the authored Daylight
+  // moon turned by the moon's offset from its default ('relative', as in seaward).
+  const moon=installFullMoon({position:[...VIEWS.user.position],target:[...VIEWS.user.target],verticalFov:VIEWS.user.fov,enabled:!!SEABRIDGE_FULL_MOON,name:'seabridge-full-moon',
+   defaults:{size:2.4,brightness:1,x:.55,y:.62},riseFrom:{x:-.08,y:-1.05}});
+  root.add(moon.mesh);
+  const moonTurn=new THREE.Quaternion();
   let disposed=false;
-  return {position:[...view.position],target:[...view.target],cameraMode:'fixed-position',yawRange:Math.PI/12,
+  return {position:[...view.position],target:[...view.target],moonDefaults:moon.defaults,setMoon(settings){moon.setSettings(settings);},cameraMode:'fixed-position',yawRange:Math.PI/12,
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?78:view.fov;},exposure:1.05,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
     const light=seabridgeDaylight(state);
@@ -84,8 +95,15 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);background.copy(light.horizon);
     skyUniforms.uGlow.value=.4+1.6*light.low;skyUniforms.uNight.value=light.night;
     skyUniforms.uDay.value=light.level*(1-light.night)*(1-.7*light.low);skyUniforms.uTime.value=elapsed;
-    sun.position.copy(sun.target.position).addScaledVector(light.sun,45);
-    sun.color.copy(light.tint);sun.intensity=(2.5*light.solar*light.level+.35*light.night)*(state.beamStrength??1);
+    moon.update(light.night,_dt);
+    const lightDir=light.sun.clone();
+    if(moon.mesh.visible){
+     // Blend in with the moon's fade-in; a moon still low over the sea gives weaker light.
+     lightDir.lerp(light.sun.clone().applyQuaternion(moonTurn.setFromUnitVectors(moon.defaultDirection,moon.direction)),THREE.MathUtils.smoothstep(light.night,.2,1)).normalize();
+    }
+    sun.position.copy(sun.target.position).addScaledVector(lightDir,45);
+    sunU.value.copy(lightDir); // sea glint and grass transmission follow the moon at night
+    sun.color.copy(light.tint);sun.intensity=(2.5*light.solar*light.level+.35*light.night*(moon.mesh.visible?.45+.55*moon.risen:1))*(state.beamStrength??1);
     // Soil albedo ~(.26,.23,.18) lit by the sun: the warm light bounced up into shaded undersides.
     groundBounce.value.setRGB(.26,.23,.18).multiply(light.tint).multiplyScalar(.9*light.solar*light.level+.02);
     hemi.color.copy(light.horizon).lerp(new THREE.Color(1,1,1),.45);hemi.groundColor.copy(groundBounce.value).multiplyScalar(2.2).lerp(new THREE.Color('#3a352d'),.3);
@@ -102,7 +120,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     renderer.shadowMap.enabled=true;
    },
    disturb(){},resetWater(){},
-   dispose(){if(disposed)return;disposed=true;if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}sardines.dispose();envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
+   dispose(){if(disposed)return;disposed=true;moon.dispose();if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}sardines.dispose();envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
   };
  };
  return factory;

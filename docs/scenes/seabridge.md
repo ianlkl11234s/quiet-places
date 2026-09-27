@@ -110,3 +110,9 @@
     - 半球光的天空色改用地平線色混白，地面色改成同一個暖反彈。
     - 沙丁魚仍用同一張環境貼圖，強度 1。
     - 前後比較：`exports/seabridge-s3-sardines/round2/ambient-before-after-noon.jpg`。
+- 2026-09-27：使用者要求比照 main 的中秋滿月（PR #24）加上滿月。
+  - 先把 main 合進 `claude/seabridge`（`metadata.ts` 衝突：保留 last-arcade 的 `moon` 能力，同時保留 seabridge）。
+  - 沿用共用 `src/shared/sky/FullMoon.ts`：`SEABRIDGE_FULL_MOON = 1` 是開關；以使用者選的預設站位排版，預設 size 2.4°、x .55、y .62（跨線橋右上方的空天），riseFrom (−.08,−1.05)。進入月夜時，12 秒內從海平面下方（被海面遮住）升起。
+  - 設定面板的四個月亮滑桿隨 `moon` 能力自動出現。
+  - 月光採 seaward 的 relative 做法：`Daylight.ts` 原本的月光方向，依月亮偏離預設位置的量一起旋轉；月亮還低時較弱（.45→1）。海面閃光和草的透光也跟著月光方向。
+  - 證據：`exports/seabridge-moon/`（`rise-4s.jpg` 每 4 秒一張、`moon-default.jpg`）。
