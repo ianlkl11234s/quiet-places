@@ -1,5 +1,7 @@
 # 渲染效能調查（2026-09-27）
 
+整理後的完整紀錄（採用／不採用的原因、量測時踩過的坑、未來候選）見 [RENDER_PERFORMANCE](../../docs/production/RENDER_PERFORMANCE.md)。本頁只放原始數據。
+
 條件：Apple M3、Chrome（ANGLE→Metal）、畫面 1600×900 × 解析度 1.5 倍（或等像素量的 2400×1350 × 1 倍）。
 量法：連續 composer.render() 16–20 次後 readPixels 同步，得到每幀含 GPU 的耗時。WebGL timer query 在這個平台給出的數字不合理，沒有採用。
 
