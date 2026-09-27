@@ -38,7 +38,8 @@
 - **接觸處**：物體接地、接牆的地方要有接觸陰影或 AO，不能看起來像浮著。
 - **剪影**：主要輪廓和生物在正式視距下不能看得出面數。鰭、葉要有厚度，或邊緣透光。
 - **抗鋸齒**：
-  - 經過 EffectComposer 的畫面，必須在 render target 上開 MSAA，或加一個 AA pass。只設 `antialias:true` 沒有效果。
+  - 經過 EffectComposer 的畫面，MSAA 由 `src/player/RenderPipeline.ts` 的 `SceneRenderPass` 負責：只有畫場景那一步做多重取樣，後處理的畫布是單取樣。只設 `antialias:true` 沒有效果，畫布本身已經改成 false。
+  - MSAA 在 Apple／Chrome 上的成本大約和取樣數成正比，而且集中在特定物件；SMAA 會讓比像素還細的細節斷裂。調查與數據見 `exports/render-perf/README.md`。
   - 驗收時放大檢查細欄杆、遠方小魚、倒影邊緣。
 - **反射與倒影**：擾動要隨距離和掠射角衰減，不可以出現塊狀黑斑。
 

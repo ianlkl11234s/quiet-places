@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
-import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {SMAAPass} from 'three/addons/postprocessing/SMAAPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -14,6 +14,7 @@ import afterlightStudy from '../assets/config/afterlight-study.json';
 import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences,PREFERENCES_STORAGE_KEY,LEGACY_PREFERENCES_STORAGE_KEY} from './systems/Preferences.ts';
 import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
 import {createSceneClock} from './player/SceneClock.ts';
+import {SceneRenderPass,parseAntialiasing} from './player/RenderPipeline.ts';
 import {chooseInitialPlace,layoutMemoryBubbles,ROOM_ENTRY_SESSION_KEY} from './ui/RoomBrowser.ts';
 import {createRoomBubbleMotionController,ROOM_BUBBLE_SEED_KEY} from './ui/RoomBubbleMotion.ts';
 import './style.css';
@@ -58,7 +59,9 @@ async function start(){
   saveRoomPreferences(preferences,currentPlace,{hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,oceanLevel});
   savePreferences(preferences);
  };
- const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});
+ // The composer renders offscreen and handles antialiasing itself, so the canvas's own
+ // multisampled backbuffer was never used: dropping it saves memory and a resolve.
+ const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power'});
  // One cap for canvas and composer targets; resize() applies it to both.
  const pixelRatioCap=()=>Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5);
  renderer.setPixelRatio(pixelRatioCap());
@@ -135,14 +138,18 @@ async function start(){
   if(raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)place.disturb(u,v);}
  });
  const composer=new EffectComposer(renderer);
- function updateAntialiasing(){
-  // The composer renders offscreen, so the context's antialias flag never
-  // reaches the image; MSAA must be requested on its render targets.
-  const samples=Math.min(place.msaaSamples??(preferences.quality==='low'?2:4),preferences.quality==='low'?2:4,renderer.capabilities.maxSamples);
-  for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==samples){target.samples=samples;target.dispose();}
- }
- updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
+ const renderPass=new SceneRenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
+ // SMAA runs last, on the tone-mapped image; only for the opt-in ?aa=smaa comparison.
+ const smaa=new SMAAPass();smaa.enabled=false;composer.addPass(smaa);
+ const antialiasing=parseAntialiasing(new URLSearchParams(location.search).get('aa'));
+ const msaaSamples=()=>Math.min(place.msaaSamples??(preferences.quality==='low'?2:4),preferences.quality==='low'?2:4,antialiasing==='msaa2'?2:4,renderer.capabilities.maxSamples);
+ function updateAntialiasing(){
+  // Post-processing targets stay single-sample; only the scene pass multisamples (SceneRenderPass).
+  for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==0){target.samples=0;target.dispose();}
+  renderPass.samples=antialiasing==='smaa'?0:msaaSamples();smaa.enabled=antialiasing==='smaa';
+ }
+ updateAntialiasing();
  function applyBloom(){bloom.strength=place.bloom?.strength??.19;bloom.radius=place.bloom?.radius??.65;bloom.threshold=place.bloom?.threshold??1.05;}
  applyBloom();
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,last=performance.now(),lastPresented=last,raf=0,lost=false;
@@ -226,6 +233,7 @@ async function start(){
    const sceneRain=weatherProfile==='water'?preferences.weather==='rain':weatherProfile==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain);
    place.update(0,sceneClock.elapsed,{...state,intensity:state.intensity*(waterRain?.72:1),warmth:state.warmth*(waterRain?.45:1),beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
    composer.render();
+   updateAntialiasing();
    // Retiring scenes must not undo the candidate renderer state after its first frame.
    const candidateShadow={enabled:renderer.shadowMap.enabled,type:renderer.shadowMap.type};
    committed=true;old.place.dispose();
