@@ -1,4 +1,4 @@
-export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'seaward' | 'stairlight' | 'snowwindow' | 'snowhall' | 'last-arcade';
+export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'seaward' | 'stairlight' | 'snowwindow' | 'snowhall' | 'last-arcade' | 'seabridge';
 
 export type PlaceCapability = 'weather' | 'ocean-level' | 'water-interaction' | 'camera-distance';
 export type WeatherProfile = 'water' | 'afterlight' | 'seaward';
@@ -23,6 +23,7 @@ export const places = [
   {id:'snowwindow',name:'雪落海窗',subtitle:'海雪與白色亞麻',capabilities:[],cameraHint:'窗邊可左右微轉共約 15°；雪與亞麻隨時間緩慢變化。',cameraAriaLabel:'雪落海窗左右拖曳或方向鍵微轉；Home重設'},
   {id:'snowhall',name:'雪光長廊',subtitle:'銀魚巡游的雪光長廊',capabilities:[],cameraHint:'銀魚在走廊中巡游、緩停與繞圈；可左右微轉約 6°。',cameraAriaLabel:'雪光長廊左右拖曳或方向鍵微轉；Home重設'},
   {id:'last-arcade',name:'潮風商店街',subtitle:'海邊長廊與微風藤葉',capabilities:[],cameraHint:'站定在長廊入口，向左右微轉觀看海光與藤葉。',cameraAriaLabel:'潮風商店街左右拖曳或方向鍵微轉；Home重設'},
+  {id:'seabridge',name:'海邊小站',subtitle:'無人小站的跨線橋與海',capabilities:[],cameraHint:'站在跨線橋的階梯下，左右微轉看海。',cameraAriaLabel:'海邊小站左右拖曳或方向鍵微轉；Home重設'},
 ] as const satisfies readonly PlaceMetadata[];
 export const isPlaceId=(value:unknown):value is PlaceId=>places.some(place=>place.id===value);
 export const getPlaceMetadata=(id:PlaceId):PlaceMetadata=>places.find(place=>place.id===id)!;
