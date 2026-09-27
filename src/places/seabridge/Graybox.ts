@@ -16,7 +16,6 @@ export function createGraybox(){
  const rockMat=new THREE.MeshStandardMaterial({color:'#2f2f30',roughness:.95,flatShading:true});
  const railMat=new THREE.MeshStandardMaterial({color:'#4a4541',roughness:.55,metalness:.6});
  const pipeMat=new THREE.MeshStandardMaterial({color:'#bdb6a8',roughness:.45,metalness:.45});
- const grassMat=new THREE.MeshStandardMaterial({color:'#4f5a3a',roughness:.9,flatShading:true});
  const tubeMat=new THREE.MeshStandardMaterial({color:'#f4efe2',emissive:new THREE.Color('#fff1d6'),emissiveIntensity:0,roughness:.4});
  const roofMat=new THREE.MeshStandardMaterial({color:'#cfcabd',roughness:.66,metalness:.12,side:THREE.DoubleSide});
 
@@ -142,7 +141,6 @@ export function createGraybox(){
  sleepers.name='sleepers';sleepers.receiveShadow=true;group.add(sleepers);
  const pw=PLATFORM.xMax-PLATFORM.xMin,pz=(PLATFORM.zNear+PLATFORM.zFar)/2;
  box('platform',[pw,PLATFORM.topY-B+.2,PLATFORM.zNear-PLATFORM.zFar],[(PLATFORM.xMin+PLATFORM.xMax)/2,(PLATFORM.topY+B-.2)/2,pz],concrete);
- railing('platform-sea-rail',new THREE.Vector3(PLATFORM.xMin,PLATFORM.topY,PLATFORM.zFar+.08),new THREE.Vector3(PLATFORM.xMax,PLATFORM.topY,PLATFORM.zFar+.08),1.0,2);
  // A small open waiting shelter at the left end of the platform, echoing the reference's booth.
  const shelterX=PLATFORM.xMin+2.2;
  box('shelter-back',[3.2,2.3,.08],[shelterX,PLATFORM.topY+1.15,PLATFORM.zFar+.3],steel);
@@ -156,13 +154,8 @@ export function createGraybox(){
  const wallH=PLATFORM.topY+.05-(SHORE.seaY-.3);
  box('sea-wall',[306,wallH,.5],[147,SHORE.seaY-.3+wallH/2,SHORE.wallZ],concrete);
  box('coast-edge-left',[294,B-SHORE.seaY+.3,.5],[-153,(B+SHORE.seaY-.3)/2,-19.5],concrete);
- // Track-side boundary fence on the town side (rusted pipe fence in the reference).
- const fenceX0=-40,fenceX1=40;
- for(let x=fenceX0;x<=fenceX1;x+=2)box(`fence-post-${x}`,[.06,1.1,.06],[x,.55,SHORE.fenceZ],pipeMat);
- pipe('fence-top',new THREE.Vector3(fenceX0,1.08,SHORE.fenceZ),new THREE.Vector3(fenceX1,1.08,SHORE.fenceZ),.03);
- pipe('fence-mid',new THREE.Vector3(fenceX0,.6,SHORE.fenceZ),new THREE.Vector3(fenceX1,.6,SHORE.fenceZ),.022);
 
- // Rocks along the revetment and seaward of the wall; grass tufts on the town side.
+ // Rocks along the revetment and seaward of the wall.
  const random=seededRandom(20260927);
  const rockGeometry=new THREE.IcosahedronGeometry(1,0);
  const rocks=new THREE.InstancedMesh(rockGeometry,rockMat,90);
@@ -176,19 +169,6 @@ export function createGraybox(){
   rocks.setMatrixAt(i,m.compose(at,q,scale));
  }
  rocks.name='shore-rocks';rocks.castShadow=true;rocks.receiveShadow=true;group.add(rocks);
- const tuftGeometry=new THREE.ConeGeometry(.11,.3,5);tuftGeometry.translate(0,.15,0);
- const tufts=new THREE.InstancedMesh(tuftGeometry,grassMat,420);
- for(let i=0;i<420;i++){
-  let x:number,z:number;
-  const band=random();
-  if(band<.45){x=-40+random()*80;z=SHORE.fenceZ+.3+random()*1.4;}
-  else if(band<.8){const side=random()<.5?-1:1;x=side*(hw+.25+random()*2.6);z=1.2-random()*3.8;}
-  else{x=-70+random()*64;z=-14.5-random()*5;}
-  const sc=.6+random()*1.1;
-  at.set(x,band>=.8?B:0,z);e.set((random()-.5)*.3,random()*6.28,(random()-.5)*.3);q.setFromEuler(e);scale.set(sc,sc*(.8+random()*.8),sc);
-  tufts.setMatrixAt(i,m.compose(at,q,scale));
- }
- tufts.name='grass-tufts';tufts.receiveShadow=true;group.add(tufts);
 
  return {group,tubeMat,tubes};
 }

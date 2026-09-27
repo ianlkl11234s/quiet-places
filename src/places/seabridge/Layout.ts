@@ -24,8 +24,31 @@ export function stairProfile(){
 /** Two standpoint candidates for S1; chosen with ?seabridgeView=a|b. */
 export const VIEWS={
  // A: close to the reference — at the stair foot, near its axis, looking up the flight.
- a:{position:[.45,1.5,1.7],target:[-.1,3.9,-8],fov:64},
+ a:{position:[.5,1.55,5.6],target:[-.1,3.3,-8],fov:60},
  // B: observational — off to the left on the footpath, stair seen obliquely on the right, sea and low sun open on the left.
- b:{position:[-4.6,1.55,3.4],target:[1.6,2.9,-11],fov:58},
+ b:{position:[-6.4,1.55,6.6],target:[1.4,2.8,-11],fov:58},
 } as const;
 export type SeabridgeView=keyof typeof VIEWS;
+
+/** Weed patches (centre, ground y, spread radius, clumps, blades per clump, height m). */
+/** The walked line from the footpath up the stair stays clear of weeds. */
+export const grassKeepOut=(x:number,z:number)=>Math.abs(x)<1.25&&z>-12.4&&z<8;
+
+export const GRASS_PATCHES=[
+ // Around the stair foot and along the paving edges, where weeds push through.
+ {x:-2.1,z:.8,y:0,radius:1.2,clumps:44,density:30,height:.5},
+ {x:2.1,z:.6,y:0,radius:1.2,clumps:44,density:30,height:.5},
+ {x:-1.35,z:-3,y:0,radius:.35,clumps:12,density:22,height:.42},
+ {x:1.35,z:-3.4,y:0,radius:.35,clumps:12,density:22,height:.42},
+ // Foreground verges framing the bottom corners.
+ {x:-3.6,z:4.6,y:0,radius:1.8,clumps:60,density:32,height:.55},
+ {x:3.8,z:4.9,y:0,radius:1.8,clumps:60,density:32,height:.55},
+ {x:-6,z:1.8,y:0,radius:2.6,clumps:60,density:26,height:.6},
+ {x:6,z:1.6,y:0,radius:2.6,clumps:60,density:26,height:.6},
+ {x:-7.5,z:6.5,y:0,radius:2.2,clumps:40,density:26,height:.55},
+ // The bank edge above the retaining wall.
+ {x:-10,z:-12.6,y:0,radius:5.5,clumps:80,density:14,height:.7},
+ {x:9,z:-12.6,y:0,radius:5.5,clumps:80,density:14,height:.7},
+ // Shore bench left of the platform.
+ {x:-14,z:-17.5,y:TRACK.bedY,radius:6,clumps:60,density:10,height:.7},
+] as const;
