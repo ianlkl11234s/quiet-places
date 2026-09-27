@@ -8,6 +8,9 @@ import {installTornCloth} from './TornCloth.ts';
 import {installCreatureAmbient} from './biology/CreatureAmbient.ts';
 import {installArcadeSea} from './Sea.ts';
 import {installArcadeMoon} from './Moon.ts';
+
+/** 1: moonlight comes from the moon as shown (follows its rise and the sliders); 0: the Q2-A2 authored night direction. */
+const ARCADE_MOONLIGHT_FOLLOWS_MOON = 1;
 import {createArcadeBiology} from './biology/index.ts';
 import arcadeConfig from '../../../assets/config/last-arcade.json' with {type:'json'};
 
@@ -334,6 +337,7 @@ export async function prepareLastArcade() {
         // Night factor for the Q2-A2 candidate: 1 at 23:00 (intensity .09),
         // 0 at dawn/noon/dusk moments (daylight ≥ .4), so those stay unchanged.
         const night = 1-THREE.MathUtils.smoothstep(daylight,.12,.38);
+        moon.update(night,_dt);
         // Three caches the equirect→cube conversion of a background texture and
         // does not watch its version, so the old dusk-only updates never reached
         // the visible sky. Invalidate only when the night step changes: the
@@ -350,14 +354,18 @@ export async function prepareLastArcade() {
         // sampleTime(14:00) has angle .25, which is the authored config baseline.
         const sunDirection = afternoonSunDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (state.angle-.25)*.55).normalize();
         sunDirection.y *= 1-.38*dusk; sunDirection.normalize();
-        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight)*(1-.45*night);
+        // Blend by the moon's own visibility so dusk → night turns the light
+        // toward the moon together with its fade-in and rise.
+        if(ARCADE_MOONLIGHT_FOLLOWS_MOON&&moon.mesh.visible)sunDirection.lerp(moon.direction,THREE.MathUtils.smoothstep(night,.2,1)).normalize();
+        // A moon still low behind the roofs gives weaker light than a risen one.
+        const moonRise = ARCADE_MOONLIGHT_FOLLOWS_MOON ? 1-night*(1-(.45+.55*moon.risen)) : 1;
+        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight)*(1-.45*night)*moonRise;
         const targetSkyIntensity = .025 + .22*Math.min(1, daylight);
         // The night palette is already dark, so its intensities converge to a
         // fixed value instead of being scaled down a second time.
         scene.environmentIntensity=THREE.MathUtils.lerp(.025+.50*Math.min(1,daylight),.9,night);
         scene.backgroundIntensity=THREE.MathUtils.lerp(.06+.94*Math.min(1,daylight),1,night);
         streetLamps.forEach(lamp=>lamp.update(night,!!state.lowQuality));
-        moon.update(night);
         for(const light of groundBounces){
           // Sun-on-road bounce; at night the moon's share of it is negligible.
           light.intensity=(.02+.38*Math.min(1,daylight))*(1-.85*night);
