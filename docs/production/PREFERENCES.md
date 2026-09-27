@@ -82,3 +82,17 @@
 - 其餘候選（烏翅真鯊、oceanlight 魟魚、各場景光照、裂縫重烘等）尚未表示意見，仍屬候選。
 - 範圍：使用者視覺確認，不代表實機、手機或部署驗收。
 
+## 2026-09-27：Q2–Q3 全部候選採用
+
+使用者看過比較頁與本機預覽後表示：「其他候選都可以一起處理，目前狀態 ok」，並要求開 PR、以一般 merge 合併。
+
+- 採用範圍：`claude/visual-quality-split` 上 Q0–Q3 與水母 J1–J4 的所有候選，全部維持目前的預設值。包括：
+  - seaward 翻滾保留
+  - marine snow 預設 `particles`
+  - stairlight 裂縫凹槽關閉
+  - waterlight、stairlight 使用 2x MSAA
+- 取代上一段「其餘候選尚未表示意見」的描述。
+- 流程偏好：之後的畫質改善一律照 [畫質迭代工作流程](QUALITY_WORKFLOW.md)。
+- 仍未驗證：實機／手機、部署結果。
+- 仍未做：裂縫 Blender 重烘、魟魚尾長受骨架限制、雪景 Blender 快取重烘、composer CPU +1–2 ms 原因。
+
