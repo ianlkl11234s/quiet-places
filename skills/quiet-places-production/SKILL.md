@@ -7,6 +7,7 @@ description: 在 Quiet Places repo 新增或修改房間、光水材質、生物
 
 所有專案路徑相對 repo 根；先確認目前工作區是 Quiet Places。本 skill 由根 AGENTS.md 指向，不依賴全域安裝或 Claude hook。
 
+0. 開新場景時，先讀 `docs/production/NEW_SCENE_PLAYBOOK.md` 並照它執行；畫質改善輪照 `docs/production/QUALITY_WORKFLOW.md`。
 1. 讀 `docs/production/README.md`、`docs/prompts/quiet-places-master.txt`、`docs/production/PREFERENCES.md` 和目標 `docs/scenes/<id>.md` 頂部。目前使用者指示優先；不要把 MASTER 當成重調已確認畫面的授權。
 2. 查 `docs/production/CAPABILITIES.md` 與相關生物頁，找到真正消費者、設定及生成入口。新房間用 `docs/production/templates/scene.md`；不要先複製整個房間或建立第二套 registry。
 3. 確認 Git dirty work、基準與此次範圍。本專案重構必須在獨立 worktree 執行；快照不是 worktree，原主工作區不寫入。固定相機、viewport、光／天氣、品質、seed／elapsed 和資產版本；無基準就明示。只有獨立有界工作才委派，主 agent 保有美術整合與驗收。

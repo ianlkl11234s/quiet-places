@@ -14,6 +14,8 @@
 
 ## 長期製作 harness
 
+- **使用者說要開新場景時**，先讀 `docs/production/NEW_SCENE_PLAYBOOK.md` 並照它執行。使用者只負責描述場景和做選擇，playbook 已經回答的事不要再問。畫質改善輪照 `docs/production/QUALITY_WORKFLOW.md` 執行。
+
 - 製作入口：`docs/production/README.md`；新增或修改房間先讀 `docs/prompts/quiet-places-master.txt`、`docs/production/PREFERENCES.md`，再按任務讀場景／生物頁與能力索引，不載入全歷史。
 - 專案製作 skill：`skills/quiet-places-production/SKILL.md`。本 repo 明確以此路徑使用；尚未安裝為全域 skill，不假設工具自動載入。
 - MASTER 是美術語言；本次明確指示與已確認場景基準優先。不得因整理架構順便重新調光、換模型或抹去歷史。
