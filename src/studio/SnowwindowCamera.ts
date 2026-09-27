@@ -6,9 +6,10 @@ import {sampleTime,formatHour} from '../systems/TimeOfDay.ts';
 
 type VectorKey='position'|'target';type Axis='x'|'y'|'z';
 type Draft={version:1;position:number[];target:number[];fov:number;hour:number};
-const isArcade=new URLSearchParams(location.search).get('place')==='last-arcade';
-const sceneId=isArcade?'last-arcade':'snowwindow';
-const sceneLabel=isArcade?'潮風商店街':'雪落海窗';
+const requestedPlace=new URLSearchParams(location.search).get('place');
+const isArcade=requestedPlace==='last-arcade',isSeabridge=requestedPlace==='seabridge';
+const sceneId=isArcade?'last-arcade':isSeabridge?'seabridge':'snowwindow';
+const sceneLabel=isArcade?'潮風商店街':isSeabridge?'海邊小站':'雪落海窗';
 const draftKey=`quiet-places:${sceneId}-camera:draft:v1`;
 const $=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const stage=$<HTMLDivElement>('stage'),status=$<HTMLParagraphElement>('status');
@@ -19,6 +20,16 @@ if(isArcade){
  document.querySelector('.preview')!.setAttribute('aria-label','潮風商店街即時預覽');
  $('loading').textContent='正在準備商店街。';
  const bounds:Record<string,[number,number]>={'position:x':[.2,2.7],'position:y':[.4,2.8],'position:z':[-26,5],'target:x':[-12,12],'target:y':[-3,8],'target:z':[-60,5]};
+ document.querySelectorAll<HTMLInputElement>('input[data-group][data-axis][type=range]').forEach(input=>{const [min,max]=bounds[`${input.dataset.group}:${input.dataset.axis}`];input.min=String(min);input.max=String(max);});
+}
+if(isSeabridge){
+ document.title='海邊小站 · 鏡頭調整';
+ document.querySelector('.tool-header span')!.textContent='海邊小站 / 鏡頭調整';
+ document.querySelector<HTMLAnchorElement>('.tool-header a')!.href='/?place=seabridge';
+ document.querySelector('.preview')!.setAttribute('aria-label','海邊小站即時預覽');
+ $('loading').textContent='正在準備小站與海。';
+ // Footpath and stair area (m): the stair climbs toward -Z, the sea is beyond z≈-22.
+ const bounds:Record<string,[number,number]>={'position:x':[-14,14],'position:y':[.3,8],'position:z':[-14,16],'target:x':[-20,20],'target:y':[-3,12],'target:z':[-40,10]};
  document.querySelectorAll<HTMLInputElement>('input[data-group][data-axis][type=range]').forEach(input=>{const [min,max]=bounds[`${input.dataset.group}:${input.dataset.axis}`];input.min=String(min);input.max=String(max);});
 }
 const renderer=new THREE.WebGLRenderer({antialias:true});
@@ -49,4 +60,4 @@ setupInputs();
 $<HTMLButtonElement>('pause').onclick=pause;$<HTMLButtonElement>('reset').onclick=()=>{if(baseline)apply(structuredClone(baseline));};$<HTMLButtonElement>('copy').onclick=()=>void copy();$<HTMLButtonElement>('save-draft').onclick=saveDraft;$<HTMLButtonElement>('restore-draft').onclick=restoreDraft;
 $<HTMLButtonElement>('panel-toggle').onclick=()=>{document.body.classList.toggle('panel-hidden');const hidden=document.body.classList.contains('panel-hidden'),button=$<HTMLButtonElement>('panel-toggle');button.textContent=hidden?'顯示控制':'收起控制';button.setAttribute('aria-expanded',String(!hidden));requestAnimationFrame(resize);};
 const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden&&!clock.paused)pause();});window.addEventListener('pagehide',dispose,{once:true});
-try{const factory=isArcade?await (await import('../places/last-arcade/index.ts')).prepareLastArcade():await prepareSnowwindow();place=factory(scene,renderer);renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=place.exposure??1;const initial:Draft={version:1,position:[...place.position],target:[...place.target],fov:place.fov??56,hour:12};baseline=structuredClone(initial);apply(initial,false);resize();raf=requestAnimationFrame(tick);setStatus(`${sceneLabel}已就緒，拖曳滑桿即可調整鏡頭。`);}catch(error){setStatus(`載入失敗：${String(error)}`);dispose();}
+try{const factory=isArcade?await (await import('../places/last-arcade/index.ts')).prepareLastArcade():isSeabridge?await (await import('../places/seabridge/index.ts')).prepareSeabridge():await prepareSnowwindow();place=factory(scene,renderer);renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=place.exposure??1;const initial:Draft={version:1,position:[...place.position],target:[...place.target],fov:place.fov??56,hour:isSeabridge?17.5:12};baseline=structuredClone(initial);apply(initial,false);resize();raf=requestAnimationFrame(tick);setStatus(`${sceneLabel}已就緒，拖曳滑桿即可調整鏡頭。`);}catch(error){setStatus(`載入失敗：${String(error)}`);dispose();}

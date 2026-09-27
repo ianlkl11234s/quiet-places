@@ -4,6 +4,7 @@ export {places,moments,isPlaceId,type PlaceId} from './metadata.ts';
 
 // Loading the catalog creates no scene resources. Each adapter owns its assets.
 export async function preparePlace(id:PlaceId):Promise<PlaceFactory>{
+  if(id==='seabridge')return (await import('./seabridge/index.ts')).prepareSeabridge();
   if(id==='last-arcade')return (await import('./last-arcade/index.ts')).prepareLastArcade();
   if(id==='snowhall')return (await import('./snowhall/index.ts')).prepareSnowhall();
   if(id==='snowwindow')return (await import('./snowwindow/index.ts')).prepareSnowwindow();
