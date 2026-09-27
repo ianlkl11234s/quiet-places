@@ -9,8 +9,15 @@
 | 波場、折射 | `src/shared/water/Optics.ts` | waterlight／oceanlight；各自水體校準，不當通用海水常數 |
 | 模型資源釋放 | `src/shared/resources/ModelResources.ts` | shared 所有权契約；借用貼圖不自行釋放 |
 | 可重現亂數 | `src/shared/math/seededRandom.ts` | 使用者各持 seed／序列；抽取不得改變生成順序 |
-| 魚類運動 | `src/shared/biology/locomotion/` | stepHeading／turnPose／f=f0+U/(k·BL)／hover；單位 rad、rad/s、m、Hz；物種參數留在 adapter。消費者：waterlight 長鰭錦鯉、leaflight 錦鯉、青鱂、chromis／fusilier。2026-09-26 候選待確認 |
-| 魚類材質層 | `src/shared/biology/fish-surface/` | onBeforeCompile 串接既有 hook；只縮放已接收的光、無 emissive；背深腹淺／掠射光澤／鰭膜。每個物種 1–2 行 `installFishSurface` 接入。2026-09-26 候選待確認 |
+| 魚類運動 | `src/shared/biology/locomotion/` | stepHeading／turnPose／f=f0+U/(k·BL)／hover；單位 rad、rad/s、m、Hz；物種參數留在 adapter。消費者：waterlight 長鰭錦鯉、leaflight 錦鯉、青鱂、chromis／fusilier。2026-09-27 使用者採用（PR #22） |
+| 魚類材質層 | `src/shared/biology/fish-surface/` | onBeforeCompile 串接既有 hook；只縮放已接收的光、無 emissive；背深腹淺／掠射光澤／鰭膜。每個物種 1–2 行 `installFishSurface` 接入。2026-09-27 使用者採用（PR #22） |
+| 虛擬水流與尾流 | `src/shared/biology/VirtualFluid.ts`（`backgroundCurrent`、`createWakeField`）、`src/places/snowwindow/CreatureMotion.ts` 的 `sampleFlow` | 解析無散度背景流加每拍 starting／stopping 渦環（Biot–Savart）；附肢、裸海蝶、顆粒都讀同一個 `sampleFlow`；本體阻力排除自己的環。環量是美術增益（C） |
+| 光錐內懸浮顆粒 | `src/places/snowwindow/MarineSnow.ts` | 只在美術定義的光錐內可見（錐外 alpha=0）、灰階、無 emission，沿流場平流；`?marineSnow=off｜particles｜particles-dense` 做 A/B。換場景要重新定義光錐 |
+| 半透明生物 shading | `src/shared/biology/aurelia/AureliaShading.ts`、`src/shared/biology/clione/ClioneShading.ts` | fresnel 邊緣 alpha 加背光散射，所有加項都乘場景光；不用 transmission（亮背景前會反而變暗）。適合水母、翼足類等透明生物 |
+| 播放器畫質覆寫 | `src/player/contracts.ts` 的 `bloom?`、`msaaSamples?` | 各場景可覆寫 bloom 門檻與 MSAA 上限。填充率重的場景（體積光、全螢幕水面、大貼圖）先用 2x，4x 曾讓幀率減半 |
+| 時刻曲線 | `src/systems/TimeOfDay.ts` 的 `frames` | 全場景共用 intensity／warmth／angle；晨曦 warmth .66、暮色 .95。有自己日照循環的場景（afterlight `DayCycle.ts`、last-arcade）不吃這條，要各自調 |
+| 生物模型重建範本 | `assets/blender/scripts/blacktip_shark.py`（烏翅真鯊）、`stingray.py`（南方魟） | Blender 背景重建、JPEG 內嵌貼圖、metadata 寫在 GLB extras；環境變數（`SHARK_GLB_OUT`／`STINGRAY_GLB`）先輸出候選，測試過了才替換。骨架不可變時要先寫契約測試（`tests/stingray-contract.test.ts` 加 fixture） |
+| 驗收腳本 | `scripts/review/`（`capture.sh`、`perf.sh`、`perfcmp.py`） | 四時段四宮格、main vs 分支效能比較，用法見 [README](../../scripts/review/README.md) |
 | 時間、偏好、音訊 | `src/systems/` | 保留既有系統；音訊來源與授權見 [AUDIO](../AUDIO.md) |
 | 光與材質 | [共同原則](../MATERIALS_AND_LIGHTING.md) | 知識可沿用；烘焙 GI、光子投影、散射分場景校準 |
 | 生物本體 | [biology 索引](../biology/README.md) | 查模型、rig／clips、動態策略及來源；場景尺度、路徑及受光仍須 adapter |
