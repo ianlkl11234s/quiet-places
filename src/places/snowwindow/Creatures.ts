@@ -16,14 +16,22 @@ export function createSnowCreatures(options:{clioneCount?:number;controls?:Parti
    if(object instanceof THREE.Mesh){const materials=Array.isArray(object.material)?object.material:[object.material];for(const material of materials)if(material instanceof THREE.MeshStandardMaterial){material.envMap=options.environment??null;material.envMapIntensity=.45;lit.add(material);}}
   });
  });
- const relativeFlow=new THREE.Vector3(),inverseOrientation=new THREE.Quaternion();
+ const inverseOrientation=new THREE.Quaternion(),world=new THREE.Vector3();
+ // J3: one sampler per jelly maps local nodes to world with the frame's pose, reads the unified field
+ // (own rings included — only root drag excludes them), subtracts body velocity and returns local flow.
+ const samplers=jellies.map((_,index)=>(x:number,y:number,z:number,time:number,out:THREE.Vector3)=>{
+  const state=motion.states[index];
+  world.set(x,y,z).applyQuaternion(state.orientation).add(state.position);
+  motion.sampleFlow(world,time,undefined,out).sub(state.velocity);
+  return out.applyQuaternion(inverseOrientation.copy(state.orientation).invert());
+ });
  let disposed=false;
  const update=(elapsed:number,visibility=1)=>{
   if(disposed)return;
   const states=motion.update(elapsed);
   states.forEach((state,index)=>{
    const holder=group.children[index];holder.position.copy(state.position);holder.quaternion.copy(state.orientation);
-   if(index<3){relativeFlow.copy(state.current).sub(state.velocity).applyQuaternion(inverseOrientation.copy(state.orientation).invert());jellies[index].update(elapsed,{activity:state.activity,turn:state.turn,turnDirection:state.turnDirection,relativeFlow});}
+   if(index<3)jellies[index].update(elapsed,{activity:state.activity,turn:state.turn,turnDirection:state.turnDirection,sampleFlow:samplers[index]});
    else clione[index-3].update(elapsed,{gait:state.gait,frequency:state.frequency,phase:state.phase,turn:state.turn,previousGait:state.previousGait,gaitBlend:state.gaitBlend});
   });
   for(const material of lit)material.envMapIntensity=.45*visibility;

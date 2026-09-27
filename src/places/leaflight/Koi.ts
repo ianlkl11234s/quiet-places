@@ -3,6 +3,10 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
 import {sampleKoiMotion, type KoiIndex} from './KoiMotion.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
+import {FISH_FIN_MEMBRANE, installFishSurface, prepareFinMembrane, type FishBodySurface} from '../../shared/biology/fish-surface/index.ts';
+
+/** Q1-4 candidate: shared fish surface on the Kohaku body (art calibration). */
+const KOI_BODY_SURFACE: FishBodySurface = {role: 'body', countershade: .06, sheen: .20, sheenTint: new THREE.Color(1, .95, .86)};
 
 export type BlenderKoi = {
   /** `elapsed` is the single animation clock; supplying the same value restores the same pose. */
@@ -21,6 +25,13 @@ type KoiInstance = {
 };
 
 const STEERING_BONES = ['spine_02', 'spine_03', 'spine_04', 'spine_05', 'peduncle'];
+/**
+ * Bone gain profile (rad per unit) and the tail-tip offset it produces, in body
+ * lengths, measured on koi.glb (tests/koi.test.ts). A positive rotation about
+ * the dorsal axis swings the tail toward +X, so bone angle = gain * bend / this.
+ */
+const STEERING_GAINS = [.012, .016, .020, .024, .028] as const;
+export const STEERING_BEND_PER_UNIT = .0075;
 
 function disposeTemplateResources(root: THREE.Object3D) {
   const resources = collectModelResources(root);
@@ -80,7 +91,12 @@ function cloneMaterialsAndConfigure(root: THREE.Object3D, daylight: {value: numb
     const materials = source.map(material => {
       const instance = material.clone();
       ownedMaterials.add(instance);
+      // Q1-4: membranes drop the transmission pass (fin-edge halo) and use the
+      // shared fin layer; rays keep their opaque shading but trimmed specular.
+      if (instance.name === 'KOI_MAT_FIN') prepareFinMembrane(instance);
       if (isOpaque(instance)) installDiffuseFill(instance, daylight, sun);
+      if (instance.name.startsWith('KOI_MAT_FIN')) installFishSurface(instance, FISH_FIN_MEMBRANE);
+      else if (instance.name === 'KOI_MAT_KOHAKU') installFishSurface(instance, KOI_BODY_SURFACE);
       return instance;
     });
     object.material = Array.isArray(object.material) ? materials : materials[0];
@@ -142,7 +158,7 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
         // Store the exported bone-local dorsal axis, rather than assuming
         // Blender bone roll matches a Three Euler component.
         const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(new THREE.Quaternion()).invert());
-        return {bone, axis, gain: .012 + .004 * i, baked: bone.quaternion.clone()};
+        return {bone, axis, gain: STEERING_GAINS[i], baked: bone.quaternion.clone()};
       });
       carrier.name = `koi-${index + 1}`;
       const length = sampleKoiMotion(0, index).length;
@@ -175,11 +191,12 @@ export async function prepareBlenderKoi(): Promise<BlenderKoiFactory> {
           // restores exactly the same skin/shadow pose when paused or seeking.
           for (const control of steering) control.bone.quaternion.copy(control.baked);
           mixer.setTime(pose.animationTime);
-          // A gentle posterior steering bias follows path curvature; the head
-          // remains stable, and every update starts from the baked pose.
+          // Shared-locomotion C-bend: the posterior follows the arc (tail inside
+          // the turn); the head remains stable, and every update starts from the
+          // baked pose.
           for (const {bone, axis, gain, baked} of steering) {
             baked.copy(bone.quaternion);
-            bone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(axis, pose.turn * gain));
+            bone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(axis, gain * pose.bend / STEERING_BEND_PER_UNIT));
           }
         });
       },

@@ -10,18 +10,28 @@ export function createArcadeEnvironment(){
  return texture;
 }
 
-/** Quantized dusk radiance avoids rebuilding the environment on every animation frame. */
-export function updateArcadeEnvironment(texture:THREE.DataTexture,dusk:number){
- const step=Math.round(THREE.MathUtils.clamp(dusk,0,1)*20);
+/**
+ * Quantized dusk/night radiance avoids rebuilding the environment on every
+ * animation frame. `night` (Q2-A2 candidate) blends toward a dark, low-chroma
+ * moonlit sky so 23:00 no longer reads as a dimmed noon; 0 keeps the old sky.
+ */
+export function updateArcadeEnvironment(texture:THREE.DataTexture,dusk:number,night=0){
+ const nightStep=Math.round(THREE.MathUtils.clamp(night,0,1)*20);
+ const step=Math.round(THREE.MathUtils.clamp(dusk,0,1)*20)+nightStep*21;
  if(texture.userData.duskStep===step)return;
  texture.userData.duskStep=step;
- const warmth=step/20;
+ const warmth=(step%21)/20,dark=nightStep/20;
  const {width,height,data}=texture.image;
  const pixels=data as Float32Array;
  const zenith=new THREE.Color('#83afd1'),horizon=new THREE.Color('#d8e0df'),ground=new THREE.Color('#99866b');
  zenith.lerp(new THREE.Color('#8295b5'),warmth);
  horizon.lerp(new THREE.Color('#efbc83'),warmth);
  ground.lerp(new THREE.Color('#ad8259'),warmth);
+ // Moonlit sky: blue-grey, far below daylight radiance; the horizon stays a
+ // touch lighter than the zenith (airglow/sea haze), never a saturated blue.
+ zenith.lerp(new THREE.Color('#151d29'),dark);
+ horizon.lerp(new THREE.Color('#2f3843'),dark);
+ ground.lerp(new THREE.Color('#2a2824'),dark);
  const color=new THREE.Color();
  for(let y=0;y<height;y++){
   const altitude=-Math.cos(Math.PI*y/(height-1));

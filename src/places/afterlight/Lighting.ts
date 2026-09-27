@@ -130,7 +130,11 @@ export function createAfterlightLighting(scene:THREE.Scene,renderer:THREE.WebGLR
    if(study?.incoming)incoming.set(...study.incoming).normalize();
    sun.position.copy(center).addScaledVector(incoming,-15);
    sun.intensity=(6*clearDay*cycle.sunStrength+1.2*cycle.moonStrength)*weatherScale*(study?.intensityScale??1);
-   sun.color.setRGB(THREE.MathUtils.lerp(.45,1,night),THREE.MathUtils.lerp(.61,.88-warmth*.12,night),THREE.MathUtils.lerp(1,.62-warmth*.22,night));
+   // Q2-A6 candidate: before noon the sun's own colour takes over faster
+   // (√daylight), so the 06:30 low sun is not mostly moon-blue. Equal to the
+   // old mix at 0 and 1, and the afternoon/dusk branch is untouched.
+   const sunColorMix=((hour%24)+24)%24<12?Math.sqrt(night):night;
+   sun.color.setRGB(THREE.MathUtils.lerp(.45,1,sunColorMix),THREE.MathUtils.lerp(.61,.88-warmth*.12,sunColorMix),THREE.MathUtils.lerp(1,.62-warmth*.22,sunColorMix));
    fill.intensity=(.10+.08*day)*night+.10*(1-night);
    const shadowSize=low?1024:2048;
    if(sun.shadow.mapSize.x!==shadowSize){sun.shadow.mapSize.set(shadowSize,shadowSize);sun.shadow.map?.dispose();sun.shadow.map=null;}

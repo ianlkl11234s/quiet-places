@@ -45,7 +45,9 @@ async function start(){
   savePreferences(preferences);
  };
  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.4:1.75));
+ // One cap for canvas and composer targets; resize() applies it to both.
+ const pixelRatioCap=()=>Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5);
+ renderer.setPixelRatio(pixelRatioCap());
  renderer.setSize(innerWidth,innerHeight);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  el('space').append(renderer.domElement);
@@ -120,11 +122,15 @@ async function start(){
  });
  const composer=new EffectComposer(renderer);
  function updateAntialiasing(){
-  const samples=currentPlace==='oceanlight'?Math.min(preferences.quality==='low'?2:4,renderer.capabilities.maxSamples):0;
+  // The composer renders offscreen, so the context's antialias flag never
+  // reaches the image; MSAA must be requested on its render targets.
+  const samples=Math.min(place.msaaSamples??(preferences.quality==='low'?2:4),preferences.quality==='low'?2:4,renderer.capabilities.maxSamples);
   for(const target of [composer.renderTarget1,composer.renderTarget2])if(target.samples!==samples){target.samples=samples;target.dispose();}
  }
  updateAntialiasing();const renderPass=new RenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
+ function applyBloom(){bloom.strength=place.bloom?.strength??.19;bloom.radius=place.bloom?.radius??.65;bloom.threshold=place.bloom?.threshold??1.05;}
+ applyBloom();
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,last=performance.now(),lastPresented=last,raf=0,lost=false;
  const bubbleSeed=(()=>{try{const stored=Number(sessionStorage.getItem(ROOM_BUBBLE_SEED_KEY));if(Number.isInteger(stored)&&stored>=0)return stored>>>0;const value=crypto.getRandomValues(new Uint32Array(1))[0];sessionStorage.setItem(ROOM_BUBBLE_SEED_KEY,String(value));return value;}catch{return Date.now()>>>0;}})();
  const roomButtons=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-place]'));
@@ -171,7 +177,7 @@ async function start(){
   if(resetAfterlightDistance)afterlightCameraDistance=0;
   updateAntialiasing();
   renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=place.exposure??1.1;
+  renderer.toneMappingExposure=place.exposure??1.1;applyBloom();
   camera.fov=placeFov();camera.updateProjectionMatrix();
   controls.enableDamping=false;controls.update();
   controls.minAzimuthAngle=-Infinity;controls.maxAzimuthAngle=Infinity;controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;
@@ -379,7 +385,7 @@ async function start(){
  function resize(){
   updateAntialiasing();
   camera.aspect=innerWidth/innerHeight;camera.fov=placeFov();camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
-  renderer.setPixelRatio(Math.min(devicePixelRatio,preferences.quality==='low'?1:innerWidth<700?1.25:1.5));
+  renderer.setPixelRatio(pixelRatioCap());composer.setPixelRatio(pixelRatioCap());
   renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();
  }
  window.addEventListener('resize',resize);resize();

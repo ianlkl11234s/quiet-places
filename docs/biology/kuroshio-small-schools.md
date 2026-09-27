@@ -60,3 +60,14 @@
 - 驗收：synthetic通過事件有41/50隻在40秒進柱內（無威脅對照7/50）；警戒解除後回到巡游。兩項互動測試與兩項材質／shader陰影測試通過；另5項既有schooling測試通過。固定步進重播比較允許1e-9內插值餘數，魚的模擬狀態完全一致。
 - 實際adapter900秒抽樣建築穿入0；828秒browser畫面47/50隻在柱內，836秒略向道路轉頭可同時看到低空Manta與走廊魚群。`exports/last-arcade-recovery/encounter-review.html?time=836&road=1` 可直接播放該時刻後30秒；它使用正式場景與正式controller，不是合成動畫。
 - Browser陰影、變形與pause檢查／build／check:project通過；未做實機驗收、未commit／發布。證據在 `exports/last-arcade-recovery/encounter-*`。
+
+
+## 2026-09-26：Q1-3a/b 轉向與擺尾頻率、Q1-4 材質候選（待使用者確認）
+
+- 生物事實（一般觀察，本次未重新核對原始文獻，不引用數值）：身體-尾鰭推進魚類的擺尾頻率大致隨游速線性上升；轉彎時身體呈 C 形彎曲、常向轉彎內側傾斜；懸停時多以胸鰭維持姿態。
+- 美術近似（`src/systems/schooling/index.ts` `HEADING`／`TAIL`）：偏航／俯仰限制與時間常數沿用舊值（38/28°/s、18/14°），改由共用 `stepHeading` 計算；新增側傾（Chromis 8°、Fusilier 10°，tanh 尺度 20/15°/s，τ .5 s）與尾部 C 形彎曲（3.5%／4.5% BL，新 instanced attribute `aBend`）。
+- 擺尾頻率 f = f0 + U/(k·BL)：Chromis f0 .60、k 1.0（舊 .65+.55U/BL）；Fusilier f0 .60、k .8（舊 .70+.95U/BL）；巡游頻率約 +30%／+14%。相位仍以 12 Hz 固定步進積分（單位：cycles）。
+- 90 秒實測（seed 808）：Chromis 最大側傾 7.65°、彎曲 .033 BL、向內側 94.6%；Fusilier 9.53°、.043 BL、95.5%；相位增量與公式誤差 <1e-12 Hz。
+- 導航不受尾相位與側傾影響：遭遇測試（seed 91626，40 s）柱內 18／對照 3，與改動前完全相同；該測試在 main 原本就失敗（門檻 +20），失敗訊息不變。
+- 材質（Q1-4）：身體 countershade .10／.12、sheen .25；鰭套共用鰭層；金帶未套。
+- 證據：`exports/quality-q0q1-20260926/biology/`。

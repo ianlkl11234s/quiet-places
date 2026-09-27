@@ -24,6 +24,10 @@ export interface PlaceInstance {
   /** Keep the viewer in place while turning their head. Default remains orbit. */
   cameraMode?:'fixed-position';
   fov?:number; exposure?:number; toneMapping?:THREE.ToneMapping;
+  /** Optional per-place bloom; omitted fields keep the shared defaults (strength .19, radius .65, threshold 1.05). */
+  bloom?:{strength?:number;radius?:number;threshold?:number};
+  /** Optional MSAA cap for fill-rate-heavy places; never exceeds the quality default (4, low 2). */
+  msaaSamples?:number;
   /** Optional authored up axis and portrait framing for architectural scenes. */
   cameraUp?:[number,number,number];
   framingAspect?:number;

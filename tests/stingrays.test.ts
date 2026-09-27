@@ -3,6 +3,15 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {prepareStingrays} from '../src/places/oceanlight/Stingrays.ts';
+// Q3 B2 embeds JPEG textures. Node tests inspect geometry/skin/clips only; this stub
+// checks the JPEG SOI marker instead of decoding pixels (the browser does the real decode).
+Object.assign(globalThis,{self:globalThis,createImageBitmap:async(blob:Blob)=>{
+  const bytes=new Uint8Array(await blob.arrayBuffer());
+  if(bytes[0]!==0xff||bytes[1]!==0xd8)throw new Error('expected an embedded JPEG texture');
+  return {width:1,height:1,close(){}};
+}});
+// STINGRAY_GLB lets a Blender candidate be tested before it replaces the shipped model.
+const STINGRAY_GLB=process.env.STINGRAY_GLB??new URL('../public/models/stingray.glb',import.meta.url);
 
 test('two skeletal rays animate independently, freeze and release shared model resources once',async()=>{
   const template=new THREE.Group(),bone=new THREE.Bone();bone.name='L_FIN_U01_V02';
@@ -40,7 +49,7 @@ test('two skeletal rays animate independently, freeze and release shared model r
 
 test('shipped GLB contains weighted body and genuinely animated seamless swim clips',async()=>{
   const {readFile}=await import('node:fs/promises');
-  const bytes=await readFile(new URL('../public/models/stingray.glb',import.meta.url));
+  const bytes=await readFile(STINGRAY_GLB);
   const gltf=await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
   assert.equal(gltf.animations.length,8);
   let body:THREE.SkinnedMesh|undefined;

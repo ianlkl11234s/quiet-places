@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkinned} from 'three/addons/utils/SkeletonUtils.js';
-import {sampleStingrayMotion} from './StingrayMotion.ts';
+import {cruiseFinGain,sampleStingrayMotion} from './StingrayMotion.ts';
 import {oceanWaveGLSL} from '../../shared/water/Optics.ts';
 import {oceanAirTransmissionGLSL} from './LightMaterial.ts';
 
@@ -81,6 +81,14 @@ export async function prepareStingrays():Promise<StingrayFactory>{
         }
       });
       tails.sort((a,b)=>a.bone.name.localeCompare(b.bone.name));
+      // Q2-A5: rest pose of each fin bone (= the mixer's blend origin) and its radial row V01..V04.
+      // PropertyMixer skips writing unchanged values, so the clip pose is kept
+      // and restored before each update; the same elapsed then scales exactly once.
+      const fins:{bone:THREE.Bone;position:THREE.Vector3;quaternion:THREE.Quaternion;radial:number;clipPosition:THREE.Vector3;clipQuaternion:THREE.Quaternion}[]=[];
+      model.traverse(node=>{
+        const row=node instanceof THREE.Bone?/_FIN_U\d+_V(\d+)$/.exec(node.name):null;
+        if(row)fins.push({bone:node as THREE.Bone,position:node.position.clone(),quaternion:node.quaternion.clone(),radial:Number(row[1])/4,clipPosition:node.position.clone(),clipQuaternion:node.quaternion.clone()});
+      });
       model.traverse(node=>{
         if(!(node instanceof THREE.Mesh))return;
 
@@ -96,7 +104,7 @@ export async function prepareStingrays():Promise<StingrayFactory>{
         vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
         fragmentShader:'varying vec2 vUv;uniform float uOpacity;void main(){float r=length((vUv-.5)*2.);gl_FragColor=vec4(0.,0.,0.,(1.-smoothstep(.15,1.,r))*uOpacity);}' });
       const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2,2),shadowMaterial);shadow.rotation.x=-Math.PI/2;school.add(shadow);
-      return {index,carrier,model,mixer,actions,clips,tails,shadow,shadowMaterial};
+      return {index,carrier,model,mixer,actions,clips,tails,fins,shadow,shadowMaterial};
     });
     let released=false;
     return {
@@ -114,7 +122,14 @@ export async function prepareStingrays():Promise<StingrayFactory>{
             // Every exported locomotion clip has one complete cycle. Absolute time preserves pause/replay.
             action.time=((pose.finPhase/(Math.PI*2)*duration)%duration+duration)%duration;
           });
+          for(const fin of ray.fins){fin.bone.position.copy(fin.clipPosition);fin.bone.quaternion.copy(fin.clipQuaternion);}
           ray.mixer.update(0);
+          for(const fin of ray.fins){
+            fin.clipPosition.copy(fin.bone.position);fin.clipQuaternion.copy(fin.bone.quaternion);
+            const gain=cruiseFinGain(fin.radial,pose.surge);
+            fin.bone.position.lerpVectors(fin.position,fin.clipPosition,gain);
+            fin.bone.quaternion.copy(fin.quaternion).slerp(fin.clipQuaternion,gain);
+          }
           const orientation=(t:number)=>{
             const f=new THREE.Vector3(0,0,1).applyQuaternion(sampleStingrayMotion(t,ray.index).quaternion);
             return {yaw:Math.atan2(f.x,f.z),elevation:Math.asin(THREE.MathUtils.clamp(f.y,-1,1))};

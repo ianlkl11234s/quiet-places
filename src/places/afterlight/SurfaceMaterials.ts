@@ -88,19 +88,46 @@ export function installSurfaceMaterials(materials: Iterable<THREE.MeshStandardMa
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
 // Existing concrete normal maps remain the source detail. Wet film softens,
 // rather than adds, 1–10 mm normal contrast so the close floor stays quiet.
-normal = normalize(mix(normal, normalize((viewMatrix * vec4(vAfterlightSurfaceNormal, 0.)).xyz), afterlightWet * .24));`)
+normal = normalize(mix(normal, normalize((viewMatrix * vec4(vAfterlightSurfaceNormal, 0.)).xyz), afterlightWet * .24));
+// Q2-A6 candidate: the right wall is seen at 0.5–3 m, where the 2K room atlas
+// normal reads as pixel noise. Keep 55 % of its relief there; floor and the
+// other walls are unchanged.
+normal = normalize(mix(normal, normalize((viewMatrix * vec4(vAfterlightSurfaceNormal, 0.)).xyz), afterlightRightWallSoft * .45));`)
+        .replace('#include <lights_fragment_maps>', `#include <lights_fragment_maps>
+#ifdef USE_LIGHTMAP
+// Q2-A6 candidate: the baked indirect EXR is 512² for the whole room (≈2–3 cm
+// per texel on this wall) and carries Cycles sample noise that reads as
+// mottling at 0.5–3 m. On the right wall only, move 85 % toward a 5×5 box
+// average (±2 texels). Energy is preserved; other surfaces are unchanged.
+if (afterlightRightWallSoft > .001) {
+  vec2 afterlightLmTexel = 1. / vec2(textureSize(lightMap, 0));
+  vec3 afterlightLmBlur = vec3(0.);
+  for (int i = -2; i <= 2; i++) for (int j = -2; j <= 2; j++)
+    afterlightLmBlur += texture2D(lightMap, vLightMapUv + vec2(float(i), float(j)) * afterlightLmTexel).rgb;
+  afterlightLmBlur /= 25.;
+  irradiance += (afterlightLmBlur - texture2D(lightMap, vLightMapUv).rgb) * lightMapIntensity * afterlightRightWallSoft * .85;
+}
+#endif`)
         .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 float afterlightFloor = smoothstep(.68, .94, normalize(vAfterlightSurfaceNormal).y);
 roughnessFactor *= 1. - afterlightWet * (.16 + .12 * afterlightFloor);
 roughnessFactor = max(roughnessFactor, mix(.0, .30, afterlightFloor));`)
         .replace('#include <map_fragment>', `#include <map_fragment>
 float afterlightWet = afterlightSurfaceWetness(vAfterlightSurfaceWorld, normalize(vAfterlightSurfaceNormal));
+// Q2-A6 candidate: right wall (x≈1.71 m, normal −x) only. 30 % of the albedo
+// comes from a 2-mip-lower sample, which removes texel-scale speckle while the
+// 5–50 cm stains in the bake stay. Mask is 0 everywhere else.
+float afterlightRightWallSoft = smoothstep(.72, .94, -normalize(vAfterlightSurfaceNormal).x) * smoothstep(1.2, 1.5, vAfterlightSurfaceWorld.x);
+#ifdef USE_MAP
+vec3 afterlightSoftAlbedo = texture2D(map, vMapUv, 2.0).rgb;
+diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb / max(sampledDiffuseColor.rgb, vec3(.001)) * afterlightSoftAlbedo, afterlightRightWallSoft * .3);
+#endif
 // Moisture shifts the existing base hue down only slightly; it never paints
 // directional sunlight or a black stain into the material.
 diffuseColor.rgb *= 1. + afterlightMacroColor(vAfterlightSurfaceWorld, normalize(vAfterlightSurfaceNormal));
 diffuseColor.rgb *= 1. - afterlightWet * .055;`);
     };
-    material.customProgramCacheKey = () => `${previousCacheKeyValue}|afterlight-surface-wetness-v1`;
+    material.customProgramCacheKey = () => `${previousCacheKeyValue}|afterlight-surface-wetness-v2`;
     material.needsUpdate = true;
     restores.push(() => {
       material.onBeforeCompile = previousCompile;

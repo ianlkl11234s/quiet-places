@@ -64,3 +64,15 @@ test('target-only studio changes rebuild the camera-relative biology and dispose
   place.dispose();
  }finally{Object.assign(globalThis,{document:oldDocument});}
 });
+
+test('snowhall window view takes only a faint low-sun cast; interior light colours are unchanged',()=>{
+ const at=(hour:number)=>snowHallDaylight({hour,intensity:1,warmth:0,angle:0,activity:0});
+ const dawn=at(6.5),noon=at(12),dusk=at(17.5),night=at(23);
+ assert.equal(noon.windowSky.getHexString(),noon.sky.getHexString());
+ assert.equal(night.windowSky.getHexString(),night.sky.getHexString());
+ for(const light of [dawn,dusk]){
+  assert.ok(light.windowSky.r-light.windowSky.b>light.sky.r-light.sky.b,'warmer than the confirmed sky');
+  assert.ok(Math.abs(light.windowSky.r-light.sky.r)+Math.abs(light.windowSky.g-light.sky.g)+Math.abs(light.windowSky.b-light.sky.b)<.12);
+  assert.equal(light.tint.getHexString(),'d3dde1');
+ }
+});

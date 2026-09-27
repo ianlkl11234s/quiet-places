@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {refineSillSnow} from './Materials.ts';
 
 export interface WinterExteriorLight {
  sky: THREE.Color;
@@ -195,6 +196,7 @@ export function createWinterExterior(): WinterExterior {
    diffuseColor.rgb*=.92+.08*(.5+.5*snowGrainA);`);
  };
  snowMaterial.customProgramCacheKey=()=> 'snowwindow-frost-grain-v2';
+ refineSillSnow(snowMaterial,skyUniforms.uVisibility,WINTER_EXTERIOR_PLATFORM);
  const snow=new THREE.Mesh(snowPlatformGeometry(),snowMaterial);snow.name='snowwindow-thin-snow-platform';snow.receiveShadow=true;group.add(snow);
  let disposed=false;
  return {group,update(elapsed,light){

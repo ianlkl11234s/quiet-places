@@ -1,0 +1,24 @@
+ M src/places/leaflight/FoliageMotion.ts
+ M src/places/leaflight/Koi.ts
+ M src/places/leaflight/KoiMotion.ts
+ M src/places/leaflight/Lighting.ts
+ M src/places/oceanlight/Surface.ts
+ M src/places/oceanlight/WindowRoom.ts
+ M src/places/oceanlight/index.ts
+ M src/places/seaward/Daylight.ts
+ M src/places/seaward/Materials.ts
+ M src/places/seaward/Stingray.ts
+ M src/places/seaward/index.ts
+ M src/places/waterlight/Environment.ts
+ M src/places/waterlight/FishSchool.ts
+ M src/places/waterlight/LongFinKoiMotion.ts
+ M src/systems/schooling/index.ts
+ M tests/koi.test.ts
+ M tests/long-fin-koi-motion.test.ts
+ M tests/seaward-daylight.test.ts
+ M tests/seaward-stingray.test.ts
+?? exports/quality-q0q1-20260926/
+?? src/places/oceanlight/Ambient.ts
+?? src/shared/biology/locomotion/
+?? tests/locomotion.test.ts
+?? tests/ocean-ambient.test.ts

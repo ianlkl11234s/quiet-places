@@ -7,6 +7,11 @@ import {createLeaflightLighting} from './Lighting.ts';
 import {prepareBlenderKoi} from './Koi.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 
+// Q2-A4 (candidate): raise the bloom threshold above the sunlit white koi so its
+// fins stop haloing; strength/radius stay at the shared defaults. Remove the
+// `bloom` field (or set this to undefined) to restore the shared 1.05.
+const LEAFLIGHT_BLOOM_THRESHOLD:number|undefined=2.4;
+
 function disposeModel(root:THREE.Object3D){
   disposeModelResources(collectModelResources(root),['textures','materials','geometries','skeletons']);
   root.removeFromParent();
@@ -82,6 +87,7 @@ export async function prepareLeaflight(){
     return {
       position:position.toArray() as [number,number,number],target:target.toArray() as [number,number,number],
       yawRange:Math.PI/12,fov,exposure:2**.8,toneMapping:THREE.AgXToneMapping,
+      bloom:{threshold:LEAFLIGHT_BLOOM_THRESHOLD},
       hasSimulation:false,waterMode:'',
       update(_dt,elapsed,state){
         skyDaylight.value=THREE.MathUtils.clamp(state.intensity/.9,.03,1);

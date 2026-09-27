@@ -83,3 +83,11 @@ Blender正式檔 `assets/blender/medaka_quiet_rain_shoal.blend` 已完成烘焙�
 `src/shared/biology/medaka/` 現在是母魚 GLB、骨架 clone、尾／胸鰭的時間取樣，以及 motion cache decode 的共用入口。`prepareMedaka()` 載入一份不可變 GLB；每個 `factory.create(parent, { route, phaseOffsetSeconds, ... })` 取得獨立 skeleton 和 material，`dispose()` 只釋放該 instance，factory 在最後釋放來源資源。第二個 studio 消費者直接使用此 API；Afterlight 也以它建立 rig，但仍用原 26 尾 cache 驅動，並在 adapter 保有既有的 bounds、尺度、bounce 和 room-specific lighting。
 
 `createMedakaRoute(controlPoints, options)` 的 control points 是 Three 世界座標、單位 metre。`speed` 是 m/s，`tempo` 是無量綱倍率，`pauseSeconds` 是秒；個體以 `phaseOffsetSeconds` 錯開同一條路徑。closed 路徑至少 3 點並沿 Catmull-Rom 切線取向；open 路徑至少 2 點，抵達終點後停住，絕不循環瞬移。路徑、停駐、姿態和尾鰭皆由 absolute elapsed 決定，暫停／seek 可重現。這是用於預覽與編舞的運動學近似，不是避碰、群游或流體物理解算。
+
+
+## 2026-09-26：Q1-3c 懸停／Q1-4 材質候選（待使用者確認）
+
+- 生物事實（一般觀察，本次未重新核對原始文獻，不引用數值）：身體-尾鰭推進魚類的擺尾頻率大致隨游速線性上升；轉彎時身體呈 C 形彎曲、常向轉彎內側傾斜；懸停時多以胸鰭維持姿態。
+- 美術近似（`src/shared/biology/medaka/Medaka.ts` `MEDAKA_HOVER`）：快取中 30% 樣本低於 .3 BL/s，但尾頻仍 ≥2 Hz。改為 .2 BL/s 以下尾巴振幅歸零、.5 BL/s 以上完全游動；懸停時胸鰭以快取相位左右交替划動（±.22 rad），暫停／seek 仍由快取相位決定、完全可重現。26 尾 120 秒中 20.8% 樣本完全懸停、17.4% 過渡。快取、位置與 Blender 資料不變；studio route 停駐時也會套用（其相位在停駐時凍結，胸鰭靜止）。
+- 材質（Q1-4）：身體 countershade .15（背深腹淺）、sheen .30（冷銀）；鰭套共用鰭層。`src/places/afterlight/Medaka.ts` 的局部補光改為串接前一個 hook（GLSL 內容不變），否則會覆蓋共用層。
+- 證據：`exports/quality-q0q1-20260926/biology/`。未做：Blender 端同步（懸停只在網站層）、使用者確認。

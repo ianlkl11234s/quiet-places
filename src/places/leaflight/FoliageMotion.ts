@@ -61,7 +61,15 @@ function injectWind(material: THREE.Material, uniforms: ShaderUniforms, atmosphe
       shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>
         uniform float uLeaflightDaylight;
       `).replace('#include <lights_fragment_end>', `#include <lights_fragment_end>
-        reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.36, .44, .50) * .32 * uLeaflightDaylight;
+        // Same non-linear gate as the sky: at the moon keyframe the canopy is a
+        // dark silhouette with only a thin cool edge, not a dimmed daytime tree.
+        // leafDay is 1 for daylight >= .55, so noon/afternoon are unchanged.
+        float leafDay = smoothstep(.10, .55, uLeaflightDaylight);
+        reflectedLight.directDiffuse *= mix(.22, 1.0, leafDay);
+        reflectedLight.directSpecular *= mix(.22, 1.0, leafDay);
+        reflectedLight.indirectDiffuse += diffuseColor.rgb * vec3(.36, .44, .50) * .32 * uLeaflightDaylight * leafDay;
+        float leafRim = pow(1.0 - saturate(abs(dot(geometryNormal, geometryViewDir))), 3.0);
+        reflectedLight.indirectDiffuse += vec3(.20, .26, .36) * leafRim * .010 * (1.0 - leafDay);
       `).replace('#include <opaque_fragment>', `
         float aerial = min(.025, (1.0 - exp(-length(vViewPosition) * .002))) * uLeaflightDaylight;
         outgoingLight = mix(outgoingLight, vec3(.32, .39, .43), aerial);

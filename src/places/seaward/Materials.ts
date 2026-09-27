@@ -3,10 +3,10 @@ import {oceanWaveGLSL} from '../../shared/water/Optics.ts';
 
 // Procedural concrete and reflected opening. These are art-directed transport
 // approximations, not baked GI or a water/caustic solver. World coordinates: metres.
-export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number},day:{value:number},beam:{value:number},sun:{value:THREE.Vector3},tint:{value:THREE.Color},direct:{value:number}){
- return new THREE.ShaderMaterial({uniforms:{uTime:time,uDay:day,uBeam:beam,uSun:sun,uTint:tint,uDirect:direct,uKind:{value:kind==='floor'?1:kind==='ceiling'?2:0}},
+export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number},day:{value:number},beam:{value:number},sun:{value:THREE.Vector3},tint:{value:THREE.Color},direct:{value:number},horizon:{value:THREE.Color}){
+ return new THREE.ShaderMaterial({uniforms:{uTime:time,uDay:day,uBeam:beam,uSun:sun,uTint:tint,uDirect:direct,uHorizon:horizon,uKind:{value:kind==='floor'?1:kind==='ceiling'?2:0}},
  vertexShader:`varying vec3 p;varying vec3 n;void main(){p=(modelMatrix*vec4(position,1.)).xyz;n=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`,
- fragmentShader:`varying vec3 p;varying vec3 n;uniform float uTime,uDay,uBeam;uniform int uKind;uniform vec3 uSun,uTint;uniform float uDirect;
+ fragmentShader:`varying vec3 p;varying vec3 n;uniform float uTime,uDay,uBeam;uniform int uKind;uniform vec3 uSun,uTint,uHorizon;uniform float uDirect;
  float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
  float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}
  void main(){
@@ -38,7 +38,13 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
   concrete*=1.-crack*smoothstep(.9,1.3,uv.y)*(1.-smoothstep(1.5,1.8,uv.y))*.15;
  }
  float ambient=.012+exitLight*(uKind==2?.09:.30);
- vec3 col=concrete*(vec3(.87,.94,1.)*ambient+direct*1.5*uDirect*uTint)*uDay;
+ // Q1-2: redistribute, not add, the existing exit bounce. Its hue leans to the
+ // time-driven horizon, and walls read as turned toward the lit floor
+ // (x1.18 at the base, x.82 at the ceiling line; mean unchanged).
+ vec3 skyHue=min(uHorizon/max(dot(uHorizon,vec3(.2126,.7152,.0722)),1e-3),vec3(1.6));
+ vec3 bounceHue=mix(vec3(.87,.94,1.),skyHue*.93,.6);
+ float lift=uKind==0?mix(1.18,.82,smoothstep(0.,4.2,p.y)):1.;
+ vec3 col=concrete*(bounceHue*ambient*lift+direct*1.5*uDirect*uTint)*uDay;
  // Project the existing pattern in the light frame, rather than revealing a
  // fixed wall decal. At grazing incidence its energy must also tend to zero.
  vec3 lightU=normalize(cross(vec3(0.,1.,0.),sun));
@@ -50,11 +56,19 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
  col+=vec3(.65,.72,.69)*caustic*exitLight*opening*smoothstep(.015,.32,max(dot(n,sun),0.))*(uKind==2?0.:.22)*uDay*uBeam*uDirect*uTint;
  if(uKind==1){
   float wet=smoothstep(.32,.62,noise(uv*.8)*.6+noise(uv*3.)*.4);
-  vec3 v=normalize(p-cameraPosition);vec3 normal=normalize(vec3((noise(uv*18.)-.5)*.055,1.,(noise(uv*17.+9.)-.5)*.07));
+  vec3 v=normalize(p-cameraPosition);
+  // Q0-4: the ripple tilt is an angle, so its offset on the exit plane grows
+  // with travel. Bound that offset (~.4 m near the camera) and fade ripples at grazing view,
+  // then widen the mask edge with travel like the direct-light penumbra.
+  vec3 r0=reflect(v,vec3(0.,1.,0.));float d0=max((-11.-p.z)/min(r0.z,-.001),0.);
+  float ripple=1./(1.+d0*.12)*smoothstep(.02,.25,-v.y);
+  vec2 tilt=vec2(noise(uv*6.)*.5+noise(uv*14.)*.5-.5,noise(uv*5.5+9.)*.5+noise(uv*13.+4.)*.5-.5);
+  vec3 normal=normalize(vec3(tilt.x*.055*ripple,1.,tilt.y*.07*ripple));
   vec3 r=reflect(v,normal);float d=(-11.-p.z)/r.z;vec3 q=p+r*d;
-  float mask=step(0.,d)*smoothstep(-3.6,-3.25,q.x)*(1.-smoothstep(3.25,3.6,q.x))*smoothstep(0.,.3,q.y)*(1.-smoothstep(3.9,4.3,q.y));
+  float edge=.18+d0*.03;
+  float mask=step(0.,d)*smoothstep(-3.4-edge,-3.4+edge,q.x)*(1.-smoothstep(3.4-edge,3.4+edge,q.x))*smoothstep(-edge*.5,edge,q.y)*(1.-smoothstep(4.1-edge,4.1+edge,q.y));
   float fresnel=.045+.50*pow(1.-max(dot(-v,normal),0.),5.);
-  col=mix(col,col*.65,wet);col+=vec3(.48,.59,.65)*mask*fresnel*wet*uDay;
+  col=mix(col,col*.65,wet);col+=uHorizon*1.02*mask*fresnel*wet;
  }
  gl_FragColor=vec4(col,1.);
  #include <tonemapping_fragment>
@@ -62,10 +76,10 @@ export function tunnelMaterial(kind:'wall'|'floor'|'ceiling',time:{value:number}
  }`});
 }
 
-export function seaMaterial(time:{value:number},day:{value:number},sun:{value:THREE.Vector3},tint:{value:THREE.Color},direct:{value:number}){
- return new THREE.ShaderMaterial({uniforms:{uTime:time,uDay:day,uSun:sun,uTint:tint,uDirect:direct},side:THREE.DoubleSide,
+export function seaMaterial(time:{value:number},day:{value:number},sun:{value:THREE.Vector3},tint:{value:THREE.Color},direct:{value:number},horizon:{value:THREE.Color},zenith:{value:THREE.Color}){
+ return new THREE.ShaderMaterial({uniforms:{uTime:time,uDay:day,uSun:sun,uTint:tint,uDirect:direct,uHorizon:horizon,uZenith:zenith},side:THREE.DoubleSide,
  vertexShader:`varying vec3 p;void main(){p=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(p,1.);}`,
- fragmentShader:`varying vec3 p;uniform float uTime,uDay,uDirect;uniform vec3 uSun,uTint;
+ fragmentShader:`varying vec3 p;uniform float uTime,uDay,uDirect;uniform vec3 uSun,uTint,uHorizon,uZenith;
  ${oceanWaveGLSL}
  void main(){
  vec2 slope=oceanSlope(p.xz,uTime);
@@ -75,13 +89,14 @@ export function seaMaterial(time:{value:number},day:{value:number},sun:{value:TH
  vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
  vec3 view=normalize(cameraPosition-p),reflected=reflect(-view,normal);
  float fresnel=.025+.975*pow(1.-max(dot(normal,view),0.),5.);
- vec3 sky=mix(mix(vec3(.49,.56,.58),uTint*.60,.28*uDirect),vec3(.28,.39,.45),sqrt(max(reflected.y,0.)));
- vec3 col=mix(vec3(.075,.14,.16),sky,fresnel);
+ // Q1-1: reflect the same time-driven sky as the dome (already day-scaled).
+ vec3 sky=mix(uHorizon*.93,uZenith*.88,sqrt(max(reflected.y,0.)));
+ vec3 col=mix(vec3(.075,.14,.16)*uDay,sky,fresnel);
  vec3 light=uSun;
  float sparkle=pow(max(dot(normal,normalize(view+light)),0.),180.);
- col+=vec3(.55,.56,.52)*sparkle*.7*uDirect*uTint;
- col=mix(col,vec3(.40,.48,.50),smoothstep(150.,650.,distanceToEye)*.75);
- gl_FragColor=vec4(col*uDay,1.);
+ col+=vec3(.55,.56,.52)*sparkle*.7*uDirect*uTint*uDay;
+ col=mix(col,uHorizon*.78,smoothstep(150.,650.,distanceToEye)*.75);
+ gl_FragColor=vec4(col,1.);
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`});

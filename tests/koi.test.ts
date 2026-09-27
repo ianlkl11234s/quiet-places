@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {prepareBlenderKoi} from '../src/places/leaflight/Koi.ts';
+import {prepareBlenderKoi, STEERING_BEND_PER_UNIT} from '../src/places/leaflight/Koi.ts';
+import {sampleKoiMotion} from '../src/places/leaflight/KoiMotion.ts';
 import {collectModelResources} from '../src/shared/resources/ModelResources.ts';
 
 // Node's pose tests inspect the embedded PNG header but do not render/decode
@@ -165,4 +166,43 @@ test('real koi clones animate, freeze without accumulated steering, stay above f
   } finally {
     GLTFLoader.prototype.loadAsync = original;
   }
+});
+
+test('shared-locomotion turn bend: unit bone gains move the koi tail tip ~STEERING_BEND_PER_UNIT BL toward +X, and route turns bank/bend inside', async () => {
+  const {gltf} = await loadAsset();
+  const scene = gltf.scene;
+  let body: THREE.SkinnedMesh | undefined;
+  scene.traverse(object => { if (object instanceof THREE.SkinnedMesh && object.name.includes('BODY')) body = object; });
+  assert.ok(body);
+  const tailTip = () => {
+    scene.updateMatrixWorld(true); body!.skeleton.update();
+    const vertex = new THREE.Vector3(); let tip = new THREE.Vector3(0, 0, -Infinity), min = Infinity;
+    for (let i = 0; i < body!.geometry.attributes.position.count; i++) {
+      body!.getVertexPosition(i, vertex).applyMatrix4(body!.matrixWorld);
+      min = Math.min(min, vertex.z); if (vertex.z > tip.z) tip = vertex.clone();
+    }
+    return {tip, length: tip.z - min};
+  };
+  const rest = tailTip();
+  const gains = [.012, .016, .020, .024, .028];
+  ['spine_02', 'spine_03', 'spine_04', 'spine_05', 'peduncle'].forEach((name, i) => {
+    const bone = scene.getObjectByName(name) as THREE.Bone;
+    const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(new THREE.Quaternion()).invert());
+    bone.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(axis, gains[i]));
+  });
+  const bent = tailTip();
+  const perUnit = (bent.tip.x - rest.tip.x) / rest.length;
+  console.log(JSON.stringify({koiSteeringTailOffsetPerUnitBL: perUnit}));
+  assert.ok(perUnit > 0, 'positive steering angle swings the tail to +X');
+  assert.ok(Math.abs(perUnit - STEERING_BEND_PER_UNIT) / STEERING_BEND_PER_UNIT < .25, `calibration constant within 25%: ${perUnit}`);
+  let maxBank = 0, maxBend = 0, into = 0, samples = 0;
+  for (let time = 0; time < 240; time += .5) for (const index of [0, 1, 2] as const) {
+    const pose = sampleKoiMotion(time, index);
+    maxBank = Math.max(maxBank, Math.abs(pose.bank)); maxBend = Math.max(maxBend, Math.abs(pose.bend));
+    if (Math.abs(pose.yawRate) > .03) { samples++; if (Math.sign(pose.bank) === Math.sign(pose.yawRate) && Math.sign(pose.bend) === -Math.sign(pose.yawRate)) into++; }
+  }
+  console.log(JSON.stringify({koiTurn: {maxBankDeg: THREE.MathUtils.radToDeg(maxBank), maxBendBL: maxBend, intoFraction: into / samples}}));
+  assert.ok(maxBank > THREE.MathUtils.degToRad(4.5) && maxBank <= THREE.MathUtils.degToRad(6.5), 'bank reaches ~6 deg, capped at 6.5');
+  assert.ok(maxBend <= .02 + 1e-12);
+  assert.equal(into, samples, 'every turning sample banks into the turn and trails the tail inside it');
 });

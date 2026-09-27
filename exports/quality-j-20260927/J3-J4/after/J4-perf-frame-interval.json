@@ -1,0 +1,38 @@
+{
+ "method": "main page ?place=snowwindow&marineSnow=<mode>, headed Chromium (agent-browser), viewport 1600x900 dpr 1, wait 20 s after load, then 60 s requestAnimationFrame deltas collected in-page; p50/p95 of frame interval (ms). Same build; off = before (no particles).",
+ "runs": [
+  {
+   "mode": "off",
+   "frames": 7441,
+   "p50": 8.2,
+   "p95": 10,
+   "p99": 11,
+   "mean": 8.06,
+   "dpr": 1,
+   "w": 1600,
+   "h": 900
+  },
+  {
+   "mode": "particles",
+   "frames": 7462,
+   "p50": 8.1,
+   "p95": 9.9,
+   "p99": 10.9,
+   "mean": 8.04,
+   "dpr": 1,
+   "w": 1600,
+   "h": 900
+  },
+  {
+   "mode": "particles-dense",
+   "frames": 7415,
+   "p50": 8.1,
+   "p95": 10,
+   "p99": 12.1,
+   "mean": 8.09,
+   "dpr": 1,
+   "w": 1600,
+   "h": 900
+  }
+ ]
+}

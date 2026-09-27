@@ -14,6 +14,16 @@
 
 可回退記錄：`ef9bb96`為整套真實感試驗前基準；`f980c92`完整試驗未採用、保留在本地 `codex/seaward-realism-candidate`；`14b309c`撤回整套；`345756b`只加回指定項；`740d2e6`修波光投影；`0dabfea`加月光；`8a68e8d`共用順向時刻。後面日期段為歷史，不得用舊數值覆蓋本節與程式。
 
+## 2026-09-26：畫質候選 Q0-4／Q0-5／Q1-1／Q1-2（候選待使用者確認）
+
+分支 `claude/visual-quality`，worktree `.worktrees/visual-quality`。四項各自可單獨退回；上節「目前狀態」仍是已確認基準。證據：`exports/quality-q0q1-20260926/lighting-B/before/`、`exports/quality-q0q1-20260926/lighting-B/after/`（1600×900，capture.sh 四時段；elapsed 未固定，魟魚位置不可逐像素比）。
+
+- **Q0-4 倒影黑斑**（`Materials.ts` floor 區塊）。成因：本景**沒有倒影 render target**，倒影是 floor shader 的解析射線（法線擾動 → reflect → 與出口平面 z=-11 求交 → 矩形 mask），所以與解析度無關。黑斑來自三者疊加：擾動是固定角度（.055／.07），近景 travel 約 14 m，在出口平面上位移約 ±1 m，遠大於 0.3–0.4 m 的 mask 邊寬，同一塊地在 mask 內外跳；`noise(uv*18)` 的 5.5 cm value-noise 格子在近景可見，形成鋸齒；濕區 `col*.65` 在 mask=0 處變成黑塊。改法：先以平坦法線求未擾動 travel `d0`，擾動乘 `1/(1+.12·d0)` 與掠射衰減 `smoothstep(.02,.25,-v.y)`，出口平面位移約限制在 0.4 m；擾動改為 6／14 m⁻¹ 兩層較平滑噪聲；mask 邊寬 `.18+.03·d0` m，照直射光 penumbra 的做法隨 travel 加寬。濕區壓暗保留。近似界線：仍是單一平面矩形的解析反射，不反射魟魚、扶手或草。比較圖：`exports/quality-q0q1-20260926/lighting-B/after/seaward-reflection-q04-before-after.jpg`（左 before、右 after，正午近景放大）。
+- **Q0-5 魟魚鰭相位**（`Stingray.ts`）。原本 `action.time=elapsed`，和游速無關。現在模組載入時把一個 CYCLE（≈44.9 s）的路線（橢圓 .45×1.5 m 加升降）弧長表列 2048 段，`tunnelTravel(elapsed)` 為展開後的累積游距（純函數，暫停與重播結果相同，跨圈不跳）；`tunnelFinClock=游距/平均速度`，所以一整圈平均拍鰭頻率和舊版相同，快段（≈.21 m/s）拍得快，慢段（≈.063 m/s，約 1:3.3）拍得慢。沿用 oceanlight `StingrayMotion` 用游距推相位的概念，沒有沿用它的 FIN_WAVES／DISC_LENGTH 常數；對應是美術校準，不是測得的步幅。翻身路線、高度、防穿模不變；實體 GLB 離地測試掃描兩個 CYCLE。未處理：慢段是否看起來太像停住，需要使用者看動態；連拍 `exports/quality-q0q1-20260926/lighting-B/after/seaward-stingray-burst-crops.jpg` 的魟魚在正式視距只有數十像素，看得出拍鰭的變化，但無法從像素量出頻率，所以驗證主要依靠測試（快／慢段相位推進比與速度比差 2% 內）。
+- **Q1-1 天空隨時段**（`Daylight.ts` horizon／zenith；`index.ts` sky shell、background、山；`Materials.ts` 海面與地面倒影色）。天空、海面反射、地面倒影、遠山都讀同一組 `horizon`／`zenith`（線性值，已乘時段亮度 `.10+.90·intensity`）。正午 horizon (.45,.53,.59)，比舊的固定灰 (.53,.59,.61) 略低也略藍；低太陽時朝 (.72,.50,.33) 混入 `warmth·.72`（warmth 沿用本景既有的低太陽公式）；夜晚改用獨立深藍 horizon (.035,.05,.085)／zenith (.018,.03,.06)，不再是白天天空壓暗。遠山=horizon 往 zenith 混 .3 再乘 .9。天空區平均 sRGB（x740–1100、y280–420）：晨曦 (154,159,159)→(157,151,145)；正午 (207,210,212)→(197,205,210)；暮色 (168,171,171)→(176,164,155)；月夜 (91,98,102)→(43,57,82)。副作用：地面倒影改讀 horizon 後，倒影區（x720–1100、y620–800）月夜 (17,20,22)→(8,12,18)，變暗、偏藍，但仍讀得出濕地（`exports/quality-q0q1-20260926/lighting-B/after/seaward-moon-reflection-before-after.jpg`）；暮色 (43,50,53)→(52,46,41)。正午遠山由線性約 (.41,.49,.49) 變成 (.37,.45,.51)，略暗略藍。正午天空只刻意降一檔（207→197），若仍嫌白，下一檔可把正午 horizon 改成 (.42,.51,.58)。
+- **Q1-2 弱間接光**（`index.ts` PMREM；`Materials.ts` ambient 行）。`scene.environment` 改用同一組天空 uniforms 產生的低解析 PMREM：上半球是天空，下半球是 horizon 的 .30→.06 暗色。只在 horizon 變化超過 .006 時重生，最多每 0.2 s 一次。`environmentIntensity=.30·(.12+.88·solar)`，上限 .30，月夜約 .036，而且此時天空本身就是深藍，所以月夜的間接光幾乎是 0。這只影響 MeshStandard：扶手、魟魚、草。牆、地、天花是 ShaderMaterial，改用「重分配、不加總量」的方式：既有出口 ambient 的色相 60% 偏向 horizon；牆面乘 1.18（地面）→.82（天花線）的垂直梯度，平均不變，讀作牆面下半部朝向受光地面。dispose 時還原原本的 `scene.environment`／`environmentIntensity`，並釋放 PMREMGenerator、render target 與 dome。暗部平均 sRGB 前→後：左牆下段（正午）(37,40,41)→(39,43,44)；左牆上段（正午）(25,28,29)→(22,25,27)；近景地面（月夜）(4,4,4)→(4,4,5)；天花（月夜）(4,4,4)→(4,4,4)；扶手區（正午）(18,20,21)→(20,24,25)。黑位沒有被抬高。
+- **AO 延後**：本景是程序 ShaderMaterial，沒有 Blender 母檔，也沒有 lightMap／AO bake 管線；SSAO／GTAO pass 屬 `src/main.ts`／`src/systems`，不在本輪可改範圍。
+
 ## Brief 與來源
 
 使用者提供 `ChatGPT Image Sep 9, 2026, 02_16_08 PM.png`（Downloads）與「通往海邊的隧道、遠處若隱若現的山、先放魟魚」要求。圖片只作構圖參考，未當作貼圖或對其中內容執行指令，未複製至公開資產。
@@ -113,3 +123,16 @@ check:project、方向／高度／暮色／夜間與24小時接縫 focused test�
 ## PR 整合驗收
 
 依使用者要求建立PR並合併；整合origin/main階光之間，保留cameraUp／framingAspect與資產，相機提示接入metadata。整合後90/90 tests、build、check:project（六景）通過。亦包含本分支繼承的P0–P6共用製作流程，未加入主工作區未提交檔案。
+
+## 2026-09-27：Q2-A7 魟魚抬頭、轉彎側傾、避鏡頭、淺腹（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。注意：16–24 秒整圈翻滾原為 2026-09-09 使用者指定（「飛上去、轉圈、變回平面」）；本項依 Q2 計畫 A7 改為側傾，需使用者重新拍板。
+- 權威：`src/places/seaward/Stingray.ts` 的 `tunnelAttitude`／`sampleTunnelFlight`，四個開關各自可設 0 退回：
+  - `A7_TURN_BANK`：翻滾移除，改依橢圓路徑解析偏航率側傾，`bank = 0.9 s × yawRate`，上限 25°，實測峰值 24.1°（兩端轉彎處），直線段 <3°。
+  - `A7_CLIMB_PITCH`：機首跟隨飛行路徑角 ×.4，上限 20°；上升峰值 +18.1°、下降 −17.3°，平飛為 0。
+  - `A7_CAMERA_CLEAR`：路徑中心往 −x 移 .5 m（x ∈ [−1.85, −.95]）。相機（2.6,1.35,2.8）→ target（−1.6,1.5,−11）視軸到魟魚中心的最小距離 .62 m → 1.03 m（半翼展 .60 m + .4 m 餘裕，測試門檻 1.0 m）。
+  - `A7_BELLY`：runtime 依世界法線 y 做背深腹淺：朝下表面 albedo 混向 (.66,.62,.54)（×.7），並加弱地面反彈 (.20,.19,.17)×albedo×day（非自發光）。GLB 腹面材質本已偏淺，此項主要讓尾／盤緣下側與側傾時腹面不再是黑剪影。
+- `index.ts` 只多傳 `day.value` 給 `ray.update`。真 GLB 離地測試（≥.08 m）在側傾後仍通過。
+- 證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/seaward-*`、晨曦連拍 `sw-burst-strip.jpg`。美術近似，非魟魚運動學量測。
+
+> 2026-09-27 主 agent 修正：整圈翻滾是使用者 2026-09-09 明確要求的動作，所以預設保留（`A7_KEEP_ROLL=1`）。轉彎側傾（`A7_TURN_BANK`）和翻滾互相獨立、可以並存。要不要移除翻滾，等使用者決定。

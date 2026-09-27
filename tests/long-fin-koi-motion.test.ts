@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {createLongFinKoiSchool, LONG_FIN_KOI_COUNT, LONG_FIN_KOI_STEP} from '../src/places/waterlight/LongFinKoiMotion.ts';
+import {createLongFinKoiSchool, LONG_FIN_KOI_COUNT, LONG_FIN_KOI_HEADING, LONG_FIN_KOI_STEP} from '../src/places/waterlight/LongFinKoiMotion.ts';
 
 function snapshot(school: ReturnType<typeof createLongFinKoiSchool>) {
   return school.poses().map(fish => ({
@@ -19,6 +19,9 @@ test('sixteen long-fin koi use deterministic fixed-step loose-shoal steering for
   assert.equal(LONG_FIN_KOI_COUNT, 16);
   let minimumSpacing = Infinity, maximumSpeed = 0, maximumBeamRadius = 0;
   let maxActiveBursts = 0, mixedPaceFrames = 0, darkFrames = 0;
+  // Q0-6 presented-body contract (shared locomotion heading controller).
+  let maxPitch = 0, maxYawStep = 0, maxBank = 0, maxCruiseSlip = 0, holdFrames = 0, maxHoldYawRate = 0, bankSamples = 0, bankInto = 0;
+  let previousYaw = school.poses().map(fish => fish.heading.yaw);
   const darkVisitors = new Set<number>(), returnedVisitors = new Set<number>();
   let previous = school.poses().map(fish => fish.position.clone());
   for (let frame = 0; frame < 60 * 20 * 60; frame++) {
@@ -43,12 +46,30 @@ test('sixteen long-fin koi use deterministic fixed-step loose-shoal steering for
       if (apertureRadius < 1.5 && darkVisitors.has(i)) returnedVisitors.add(i);
       assert.ok(current.position.x > -3.7 && current.position.x < 3.7 && current.position.z > -4.7 && current.position.z < 10.7, 'fish stay clear of room walls');
       const nose = new THREE.Vector3(0, 0, -1).applyQuaternion(current.quaternion);
-      if (current.velocity.length() > .004) assert.ok(nose.dot(current.velocity.clone().normalize()) > .97, 'head follows velocity with a deliberately soft turn response');
+      const speed = current.velocity.length();
+      maxPitch = Math.max(maxPitch, Math.abs(Math.asin(THREE.MathUtils.clamp(nose.y, -1, 1))));
+      const yawStep = Math.abs(Math.atan2(Math.sin(current.heading.yaw - previousYaw[i]), Math.cos(current.heading.yaw - previousYaw[i])));
+      maxYawStep = Math.max(maxYawStep, yawStep); previousYaw[i] = current.heading.yaw;
+      maxBank = Math.max(maxBank, Math.abs(current.bank));
+      if (speed > .03) {
+        const travelYaw = Math.atan2(-current.velocity.x, -current.velocity.z), noseYaw = Math.atan2(-nose.x, -nose.z);
+        maxCruiseSlip = Math.max(maxCruiseSlip, Math.abs(Math.atan2(Math.sin(travelYaw - noseYaw), Math.cos(travelYaw - noseYaw))));
+      }
+      if (speed < LONG_FIN_KOI_HEADING.holdSpeed) { holdFrames++; maxHoldYawRate = Math.max(maxHoldYawRate, Math.abs(current.yawRate)); }
+      if (Math.abs(current.yawRate) > THREE.MathUtils.degToRad(20)) { bankSamples++; if (Math.sign(current.bank) === Math.sign(current.yawRate)) bankInto++; }
       for (let j = i + 1; j < fish.length; j++) minimumSpacing = Math.min(minimumSpacing, current.position.distanceTo(fish[j].position));
     }
     previous = fish.map(fish => fish.position.clone());
   }
-  console.log(JSON.stringify({longFinMotion: {minimumSpacing, maximumSpeed, maximumBeamRadius, maxActiveBursts, mixedPaceFrames, darkFrames, returningVisitors: returnedVisitors.size, seconds: 1200}}));
+  const deg = (value: number) => Number(THREE.MathUtils.radToDeg(value).toFixed(3));
+  console.log(JSON.stringify({longFinMotion: {minimumSpacing, maximumSpeed, maximumBeamRadius, maxActiveBursts, mixedPaceFrames, darkFrames, returningVisitors: returnedVisitors.size, seconds: 1200},
+    longFinHeading: {maxPitchDeg: deg(maxPitch), maxYawRateDegPerS: deg(maxYawStep / LONG_FIN_KOI_STEP), maxBankDeg: deg(maxBank), maxCruiseSlipDeg: deg(maxCruiseSlip), holdFrames, maxHoldYawRateDegPerS: deg(maxHoldYawRate), bankIntoTurnFraction: bankInto / Math.max(1, bankSamples)}}));
+  assert.ok(maxPitch <= LONG_FIN_KOI_HEADING.maxPitch + 1e-9, `no vertical posture: body pitch stays within 20 deg (${deg(maxPitch)})`);
+  assert.ok(maxYawStep <= LONG_FIN_KOI_HEADING.maxYawRate * LONG_FIN_KOI_STEP + 1e-9, 'presented yaw rate is capped at 40 deg/s');
+  assert.ok(holdFrames > 0 && maxHoldYawRate === 0, 'below hold speed the heading does not spin on the spot');
+  assert.ok(maxCruiseSlip <= LONG_FIN_KOI_HEADING.maxSlip + 1e-6, `cruising travel stays within 30 deg of the nose (${deg(maxCruiseSlip)})`);
+  assert.ok(maxBank > THREE.MathUtils.degToRad(5) && maxBank <= LONG_FIN_KOI_HEADING.maxBank + 1e-9, `turn bank reaches 5-8 deg (${deg(maxBank)})`);
+  assert.ok(bankInto / bankSamples > .95, 'fish bank into the turn');
   const check = school.inspect();
   assert.ok(check.finite);
   assert.ok(maxActiveBursts > 0 && maxActiveBursts <= 2);

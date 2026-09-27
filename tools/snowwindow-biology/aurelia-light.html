@@ -1,0 +1,33 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>海月水母 · 光向檢查</title><style>
+body{margin:0;background:#07090b;color:#c9d1d6;font:13px system-ui}canvas{display:block}#note{position:fixed;left:12px;bottom:10px;opacity:.7}
+</style><div id="note"></div><script type="module">
+// Inspection-only lighting (dark field + one light). It is not the snowwindow room light.
+// ?view=front|side|back|top  &t=seconds  &motion=1 follows JELLY_A attitude from CreatureMotion.
+import * as THREE from 'three';
+import {RectAreaLightUniformsLib} from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import {createAurelia} from '/src/shared/biology/aurelia/index.ts';
+import {JELLY_PRESETS,createCreatureMotion} from '/src/places/snowwindow/CreatureMotion.ts';
+RectAreaLightUniformsLib.init();
+const q=new URLSearchParams(location.search),view=q.get('view')??'front',motionOn=q.get('motion')==='1';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(1);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.02;
+document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#07090b');
+const camera=new THREE.PerspectiveCamera(30,1,.01,50);
+scene.add(new THREE.HemisphereLight('#c1ccd2','#171b20',.06));
+const p=JELLY_PRESETS[0],jelly=createAurelia(p),holder=new THREE.Group();holder.add(jelly.group);scene.add(holder);
+const up=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(0,1,0));
+const motion=motionOn?createCreatureMotion(5):null;
+// Light: front/side use a grazing key from the upper left; back puts a window-like rect light behind the animal.
+if(view==='back'){const rect=new THREE.RectAreaLight('#d5dfe1',1.4,3,2);rect.position.set(0,0,-.9);rect.lookAt(0,0,0);scene.add(rect);}
+else{const key=new THREE.DirectionalLight('#eef2f4',1.5);key.position.set(-2,1.2,.4);scene.add(key);}
+const cams={front:[0,.0,.6],side:[.36,.33,.40],back:[0,.0,.6],top:[0,.62,.001]};
+function render(t){
+ if(motion){const s=motion.update(t)[0];holder.quaternion.copy(s.orientation);jelly.update(t,{activity:s.activity,turn:s.turn,turnDirection:s.turnDirection});}else{holder.quaternion.copy(up);jelly.update(t);}
+ const c=cams[view]??cams.front;camera.position.set(...c);camera.lookAt(0,view==='top'?0:-.05,0);
+ renderer.render(scene,camera);
+ document.getElementById('note').textContent=`${view} t=${t.toFixed(2)}s ${motionOn?'motion':'upright'} · 檢查用光，非雪景光`;
+}
+const resize=()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();};
+addEventListener('resize',()=>{resize();render(Number(q.get('t')??6));});resize();
+window.__render=render;render(Number(q.get('t')??6));
+</script></html>

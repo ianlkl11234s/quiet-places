@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {sampleStingrayMotion} from '../src/places/oceanlight/StingrayMotion.ts';
+import {CRUISE_FIN_CALM,cruiseFinGain,sampleStingrayMotion} from '../src/places/oceanlight/StingrayMotion.ts';
 
 function assert(ok: boolean, message: string): void { if (!ok) throw new Error(message); }
 const forward = new THREE.Vector3(0, 0, 1);
@@ -75,4 +75,21 @@ for (const index of [0, 1] as const) {
   const lapFinTurn = Math.hypot(Math.sin(beforeLap.finPhase) - Math.sin(afterLap.finPhase), Math.cos(beforeLap.finPhase) - Math.cos(afterLap.finPhase));
   assert(lapFinTurn < .12 && afterLap.finPhase > beforeLap.finPhase, 'Fin sine/cosine stays continuous across an actual path lap');
 }
+// Q2-A5: calm cruise concentrates fin motion in the outer third of the disc.
+assert(CRUISE_FIN_CALM === 1, 'A5 cruise calm is enabled');
+const margin = cruiseFinGain(1, 0), inner = cruiseFinGain(.25, 0), middle = cruiseFinGain(.5, 0);
+assert(margin >= .6 && margin <= .7, `Cruise margin amplitude is reduced 30–40% (${margin})`);
+assert(inner < margin && middle < margin && Math.abs(inner - .4) < 1e-9, 'Inner disc is calmer than the margin');
+for (const radial of [.25, .5, .75, 1]) {
+  assert(Math.abs(cruiseFinGain(radial, 1) - 1) < 1e-12, 'A full surge restores the authored clip');
+  assert(cruiseFinGain(radial, .5) > cruiseFinGain(radial, 0), 'Amplitude rises with surge');
+  assert(cruiseFinGain(radial, 0, 0) === 1, 'Calm 0 restores the accepted amplitude');
+}
+let calmSamples = 0;
+for (let elapsed = 0; elapsed < 60; elapsed += .5) {
+  const surge = sampleStingrayMotion(elapsed, 0).surge;
+  assert(surge >= 0 && surge <= 1, 'Surge is normalized');
+  if (surge < .1) calmSamples++;
+}
+assert(calmSamples > 40, 'Most of the loop is calm cruise');
 console.log(`PASS min separation=${minimumSeparation.toFixed(3)}m peak speed=${highestSpeed.toFixed(3)}m/s`);

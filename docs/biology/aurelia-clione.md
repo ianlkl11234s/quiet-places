@@ -94,3 +94,136 @@ glTF 是兩秒 morph + root 動画的 QA 匯出版本；網站仍直接執行同
 水母邊緣觸鬚透明度 .33 → .16，固定 seed 的長度係數 .45..95，PBD guide 按圓周鄰近分配，保留 128 條。A／B 以 113 秒週期、43 秒錯相的平滑事件朝 +z／+x（基準觀察者方向）轉向，前景區域偏好最多 +.45 m；實際位移仍經受力／阻力／邊界，並非固定前進 .45 m。這是美術編舞，不是追蹤目前鏡頭或生物行為實測。
 
 118 個測試通過、build 通過。既有 60 秒 Blender／PC2／GLB 是前一版歸檔，未重烘焙此次觸鬚與路徑；當前網站 TS 為新版權威，不可將舊快取描述為與本版逐幀一致。
+
+## 2026-09-27：J1 外觀與 J2 姿態運動（候選待使用者確認）
+
+依據 [jellyfish-realism-research.md](jellyfish-realism-research.md)。目標是「水族館裡看到的活體」，但不加水槽、藍光、氣泡或 emission；雪景相機、窗、海、雪、光路未動。等級：A 文獻實測、B 模型近似、C 美術。
+
+**J1 外觀**（`src/shared/biology/aurelia/Aurelia.ts`、新增 `AureliaShading.ts`）
+- 傘體改為近無色 `MeshStandardMaterial` + onBeforeCompile：fresnel 邊緣 alpha（中心 .03 → 邊緣 .30）、背光前向散射（Barré-Brisebois 式 wrap/背光項，對 RectAreaLight 取最近點、DirectionalLight、Hemisphere 背面），厚度由頂點 r 推得（薄緣散射較多），邊緣環帶較密。取消 transmission。形態 A（MarLIN：傘無色），數值 C。
+- 所有附加光項都乘場景光，月夜不發光；移除所有 unlit 材質（原白色 LineBasic 觸手、MeshBasic 感覺區）。
+- 放射管：刪除 16+16 條 tube 與環管 tube，改為下傘面 shader 帶狀 alpha：16 條主管，8 條（per/interradial）在 r≈.46 與 .70 後兩次分叉，環管 r≈.90；寬度 .020R→.006R 隨半徑遞減；可見度 ∝（掠射光占比）²，背光下僅 5% 底值。顏色 A（藕紫），寬度與可見度 C。
+- 生殖腺：四個馬蹄形拱形 ribbon（有截面體積），藕紫 `#bfa1b8`，alpha ≤ .35，邊緣柔化、沿長向摺疊紋。A 顏色／C 參數。
+- 固定 renderOrder：外傘背面 1 → 生殖腺 2 → 下傘面 3 → 口腕／觸手／感覺區 4 → 外傘正面 5。三個傘面 pass 共用同一 position／normal／aTissue buffer。未採 WBOIT（成本與改 renderer 範圍）。
+- 觸手：lit ShaderMaterial（lights:true），受光與前向散射，距離 .5–4.6 m 淡出，遠景不再成白色裙邊。
+- 口腕：改為平滑捲曲的溝槽截面（寬度方向連續），邊緣低頻 frill，不再有逐格交錯的摺紙折面。
+
+**J2 姿態與運動**（`Aurelia.ts`、`src/places/snowwindow/CreatureMotion.ts`）
+- 收縮 .20／舒張至 .70／停頓 .30（`AURELIA_PULSE`）。收縮 .20 為 A（Gemmell 2013），舒張與停頓切分為 B。
+- 頻率 A .32／B .37／C .40 Hz（原 .38／.44／.34），落在 20–30 cm 個體建議的 .2–.4 Hz，大者慢。B。
+- 推力係數 PULSE .63、PER .56；負浮力改為各自平均推力的固定比例（.335／.25／.418，保留 09-10 已接受的垂直平衡）。C。
+- 取消「永遠朝上」：每拍開始鎖定轉向（`JELLY_ATTITUDE`）。目標傾角 5–29° 平滑決定性分布 + 每 41／47／53 s 一次約 12 s 的傾斜巡航（C 編舞）；水平方向由漫遊、回家區域與邊界組成。只在收縮期施加扭矩（扇區不對稱 + skid，速度不重新對準）；被動翻正扭矩 .07，傾角 >30° 時加強；|ω| ≤ .4 rad/s。機制 A（Costello 2024、Hoover 2021），數值 B/C。
+- 扇區不對稱：lead 側提前 .07 週期、振幅 +16%（`AURELIA_TURN`），扇區響應延伸到 r≈.4，網格上可見一側先收縮（測試量 margin 半徑）。B。
+- 口腕延遲：PBD 口腕節點受「延遲的尾流」徑向加速度，延遲 = 深度 ÷ (.5 D/s) 的對流時間（`ARM_WAKE`）。B/C。
+- 對 J3 預留：`motion.beatEvents`／`beatEventsSince(t)`，每拍 `contraction` 與 `relaxation` 事件（世界座標位置、軸向、衝量 proxy N·s、直徑、turn、turnDirection、time），倒帶決定性重建，保留最近 64 筆（J3 起改為 128 筆，見下）。
+
+**60 秒統計**（`tools/snowwindow-biology/aurelia-motion-stats.ts`，輸出 `exports/quality-j-20260927/J1-J2/aurelia-motion-summary.csv`／`-60s.csv`）
+
+| | A | B | C | 目標 |
+|---|---|---|---|---|
+| 頻率誤差 | .15% | .05% | .58% | <5% |
+| 收縮占比 | .200 | .198 | .201 | .18–.22 |
+| PER 占比（靜水校準） | .323 | .324 | .322 | .25–.35 |
+| PER 占比（場景內，含流／浮力／邊界） | .373 | .360 | .388 | 參考 |
+| 傾角中位數 | 15.4° | 10.4° | 10.8° | 8–20° |
+| >25° 時間 | 14.8% | 6.5% | 7.9% | ≥5% |
+| 單拍最大轉角 | 22.3° | 13.2° | 15.9° | ≤45° |
+| 最大 |ω| | .370 | .215 | .236 rad/s | ≤.4 |
+| 口腕延遲（場景內） | .22 | .27 | .29 拍 | .15–.35（B） |
+
+場景內 PER 占比高於 35%，原因是負浮力、區域力與傾斜；驗收沿用既有的靜水校準定義。
+
+**畫面證據**：`exports/quality-j-20260927/J1-J2/{before,after}/`（近看正面／側面／逆光／俯視、近看決定性連拍 8 張 0.5 s、場景連拍 8 張約 0.55–0.7 s、四時段與四宮格）。近看頁 `tools/snowwindow-biology/aurelia-light.html?view=front|side|back|top&t=&motion=1`，光照只供檢查用。灰階：四時段水母區域無 ≥250 像素；俯視中心 15.3 < 邊緣 23.0，逆光 61.3 < 87.6，正面 26.8 < 30.2。
+
+**未證明／風險**：遠景水母比前版淡很多，辨識度需使用者判斷；傘頂仍是舊幾何的尖錐；三隻水母共用全域 renderOrder，互相重疊時排序可能錯；Blender 匯出（`scripts/export-snow-creatures.ts`）會把共用 geometry 的傘面匯出多次，未重烘；手機 FPS 未測。
+
+### 2026-09-27 J3 流場與耦合（候選待使用者確認）
+
+- **統一取樣**：`createCreatureMotion().sampleFlow(p,t,excludeSource?,out?)`（`src/places/snowwindow/CreatureMotion.ts`）＝ 背景 `backgroundCurrent`（原 J2 三個解析模態 ＋ 三個低頻 curl-noise 模態，`src/shared/biology/VirtualFluid.ts`）＋ 所有 `time ≤ t` 的尾流渦環。背景在預設 gain .494 下 p50 .55、p95 .97、max 1.31 cm/s（研究帶 0.5–2 cm/s）。curl 層振幅 C。
+- **渦環**（`WAKE`、`ringFromBeat`、`addRingVelocity`、`createWakeField`）：每個 `beatEvents` 事件產生一個 Lagrangian 環。收縮 → starting ring（半徑 .40 D，於 −.20 D，沿 −axis 漂移）；舒張 → stopping ring（.34 D，於 −.10 D，傘下不漂移，方向相反）。Rosenhead–Moore 平滑 Biot–Savart，12 段中點積分；Γ(age) = 行程內平滑上升 × exp(−age/.8T) × 窗函數，3 拍時恰為 0。環心為年齡的解析函數，因此可在任意過去時刻取樣（倒帶、顆粒重算）。機制 A（Gemmell 2013）、幾何 B、強度 C。
+- **強度誠實說明**：由衝量 proxy 換算 Γ_I = I/(ρπR²) ≈ 9e-5 m²/s，傘下軸向流 < .05 cm/s，看不見。`circulationGain` 120（C）把 Γ0 提到 ≈ .0105 m²/s（JELLY_A）。這不是 Aurelia 實測環量；`driftGain` 3 也是 C。
+- **單向耦合**：水母 root 阻力排除自己的環（推進已在 PULSE/PER）；裸海蝶 root 阻力讀完整場（未動 `clione/*`）。口腕與觸手導引鏈每個 120 Hz 步、每個節點透過 `AureliaControls.sampleFlow` 讀場（含自己的環，扣掉本體速度，轉到局部座標）：加速度 = drag·u − restore·(x − 下垂靜止姿態)（`APPENDAGE_FLOW` arm 90/28、tentacle 16/26，B 機制／C 數值）。**J2 的 `ARM_WAKE` 已移除**，延遲只來自真實渦環。沒有 sampler 的呼叫端仍用舊的常數 `relativeFlow`。
+- `beatEvents` 與環保留上限改為 `BEAT_EVENT_CAPACITY` = 128（約 60 s）；事件新增 `frequency`、`activity`。獨立測試用 `createLocalWakeSampler`（同一組 `ringFromBeat`／`addRingVelocity`，不是第二套模型）。
+
+| 驗收 | 數值 | 目標 |
+|---|---|---|
+| 散度（有限差分，含環附近） | 最大相對值 8.0e-6 | ≈ 0 |
+| 環量衰減 | 2 拍 .082，3 拍 = 0 | 2–3 拍內 |
+| 傘下 .5 D 向下峰值（每拍中位） | A 2.24、B 2.62、C 2.79 cm/s | 可量測 |
+| 口腕延遲（場景內，60 s） | .272／.253／.193 拍（相關 .83／.84／.79） | .15–.35 |
+| 口腕延遲（獨立，D .30、.38 Hz） | .272 拍（相關 .97） | .15–.35 |
+| J2 統計 | 頻率誤差 ≤ .6%、傾角中位 15.7／10.9／11.0°、>25° 14.9／7.0／8.1% | 維持 J2 |
+| 決定性 | 倒帶／暫停／不同 frame 切分下 `sampleFlow` 完全相同 | 測試 |
+
+證據：`exports/quality-j-20260927/J3-J4/after/J3-flow-summary.json`、`J3-ring-decay.csv`、`J3-below-bell-60s.csv`、`J3-aurelia-motion/`（工具 `tools/snowwindow-biology/flow-stats.ts`、`aurelia-motion-stats.ts`）。
+風險：口腕相關係數比 J2 低（.79–.84 對 .82–.98）；restore 彈簧讓口腕比 J1 更挺，需使用者看動態確認；Γ 增益 120 是美術值。
+
+### 2026-09-27 J4 光錐內 marine snow（候選待使用者確認）
+
+- `src/places/snowwindow/MarineSnow.ts`：模式 `off`／`particles`（1800）／`particles-dense`（3000），節能品質 60%；目前預設 `particles`，最終預設由主 agent／使用者決定。場景 URL `?marineSnow=`。
+- 平流：固定 1/30 s Euler 格點，壽命 14 s（淡入淡出 1.6 s），沉降 .3 mm/s（C）。60% 生成在水母最近一次拍動位置附近（σ .34 m），其餘均勻分布。粒子位置只依（編號、世代、elapsed）決定；倒帶或跳時間時從世代起點重算。模式只改數量，同一編號的軌跡在各模式相同。
+- 可見範圍：`WINDOW_SHAFT` 是美術定義的窗光體積（C，不是陰影計算）：窗面 z = −4.42 上 x −.95..2.45、y 2.55..4.45 的開口，光向 (.22,−.42,1)，內側軟邊 .32 m、深度衰減 2.1 m。開口外 mask = 0，shader 直接 clip＋discard；TS 與 GLSL 兩份實作。在水母區域內約 25–80% 的體積是暗的。
+- 外觀：R=G=B 灰（.92 × 光量），NormalBlending，無 emission，不寫深度，亮度低於 bloom 門檻；點 1.3–2.4 px，距離越遠越淡，鏡頭前 1 m 內淡出；alpha × (.1 + .9 × visibility)。
+
+| 驗收 | 結果 |
+|---|---|
+| 光錐外 alpha 0 | 單元測試（開口外、玻璃後都是 0）；像素：327／534 個錐外粒子位置在開／關兩張渲染間 0 個像素改變；所有改變的像素都在錐內粒子 3 px 內 |
+| 灰階 | 粒子像素飽和度平均 .04–.25，四時段都低於同位置背景（.11–.48），也就是只會降低飽和度；shader 為 R=G=B |
+| 月夜 | 亮度差平均 10.4／最大 27 階（正午 20.0／113） |
+| 被推開 | 測試：多拍平均，傘下 1 D 內示蹤粒子收縮後 .3 拍沿 −axis 位移 < −3 mm；場景畫面 JELLY_A 43.30→44.30 s 中位 −6.7 mm ≈ 3.1 px（dense）、−4.7 mm ≈ 2.4 px（particles） |
+| 效能（桌機 1600×900，dpr 1，60 s rAF） | off p50 8.2／p95 10.0 ms；particles 8.1／9.9；dense 8.1／10.0。Node：dense 每幀 CPU 約 1.0 ms；進場／倒帶一次重算約 .47 s（dense）|
+
+**判讀**：在場景相機距離（2.2–3.3 m）下，每拍把傘下粒子推開約 2–3 px，靜態截圖看不太出來，要看連續動態；畫面中主要的運動是背景流造成的整體漂移。證據：`exports/quality-j-20260927/J3-J4/after/J4-*`（裁切前後與差異合成、8 張連拍與軌跡合成、off／particles／dense、四時段、`J4-pixel-checks-four-moments.json`、`J4-perf-frame-interval.json`），`before/J4-off-*`。固定 elapsed 的檢視頁：`tools/snowwindow-biology/flow-scene.html?t=&hour=&marineSnow=`（沒有 bloom pass）。
+未完成：手機 FPS 未測；J1 後續（傘頂圓弧、每幀 renderOrder）未做。
+
+## B3 裸海蝶外觀（2026-09-27，候選待確認）
+
+> 給主 agent 合併進 `docs/biology/aurelia-clione.md` 的段落。數值權威在 `src/shared/biology/clione/index.ts` 與 `ClioneShading.ts`。
+
+### 形態依據（A 層，可查）
+
+| 特徵 | 來源 | 用法 |
+|---|---|---|
+| 物種與分類 | [WoRMS *Clione limacina* (Phipps, 1774), AphiaID 139178](https://www.marinespecies.org/aphia.php?p=taxdetails&id=139178) | 學名約束 |
+| 身體透明、膠質 | [Maoka, Kuwahara & Narita 2014, *Mar. Drugs* 12:1460（PMC3967221）](https://pmc.ncbi.nlm.nih.gov/articles/PMC3967221/)：「body is gelatinous and transparent」 | 身體近乎無色，靠邊緣成形 |
+| 生殖腺／內臟亮橘紅，來自 keto-carotenoid | 同上：「gonads and viscera are a bright orange-red color」；主要色素 pectenolone、7,8-didehydroastaxanthin、adonixanthin | 內臟保留橘紅；色素是吸收，不是發光 |
+| 頭與內臟帶淡橘紅 | [SeaSlug.World *Clione limacina*](https://en.seaslug.world/species/clione_limacina)：「translucent body, often tinged with pale orange-red on the head and visceral mass」 | 頭錐尖端淡橘 |
+| 三對口錐平時收在頭內，捕食時外翻 | SeaSlug.World（同上）；[Wikipedia *Clione limacina*](https://en.wikipedia.org/wiki/Clione_limacina)（引其 ref 12） | slowhover 不外翻口錐，因此只做頭部外形 |
+| 頭觸手、頭與口位置 | [*J. Molluscan Stud.* 83(1):19（Okhotsk 海 *Clione* 新種記載，比較 *C. limacina*）](https://academic.oup.com/mollus/article/83/1/19/2528038)：「gap between the head tentacles where the mouth is situated」 | 僅作背景；本版未建頭觸手 |
+| 一對翼狀 parapodia | SeaSlug.World、Wikipedia（同上） | 既有翼足 rig 不變 |
+
+**查無**：翼足邊緣實際厚度、身體折射率或透射率的實測值、頭錐長寬比。這些都是 C 層。
+
+### 「頭錐」的解讀
+
+「頭錐」有兩種讀法：(a) 頭部外形呈錐狀、有頸部；(b) 口錐（buccal cones）。依來源，口錐只在捕食的瞬間外翻，場景只會用到 hover、swim、sink、turn、罕見 escape，**不會用到 hunt**，所以本版採 (a)。若使用者指的是 (b)，要另外做 hunt 時才外翻的六根口錐。
+
+### 做法（B 層：即時近似）
+
+- 移除 body、head、wing 的 `transmission`。場景 before 的量測顯示，transmission 版在正午亮天前是**比背景暗的點**（CLIONE_4 局部最暗 71，背景 122）。改用 fresnel 邊緣 alpha，加上前向（背光）散射（Barré-Brisebois & Bouchard, GDC 2011 的做法），所有加項都乘上場景光，沒有 emission。這一族做法與 Aurelia J1 相同，但放在獨立檔 `ClioneShading.ts`，不與 aurelia 耦合。
+- 頭錐：`CLIONE_SMALL_HEAD` 從球改為 lathe 錐（仍是同一個 mesh、同一個名稱），最寬 .073L，尖端在 .565L 內，**不超過舊球的外緣**。身體前端改成頸部收縮（profile s=0 從 .58 改為 .46）。身體前端的圓頂位在透明頭內，因此在 shader 裡淡出，避免出現雙線。
+- 翼足：厚度改為 `.014L·(1-.55u)·(.22+.78·sin πv)`，前緣、後緣與翼尖都比根部中弦薄；另有 margin alpha 讓外緣呈細線，翼面本身維持透明。
+- 內臟：`CLIONE_VISCERAL_MASS` 的名稱與形狀不變。中心 alpha .40，外緣 .05；背光只染色，不增加 alpha（上限 .45），所以強光下也維持半透明。
+- 渲染順序：內臟 1 → 身體、頭 2 → 翼 3。
+
+### C 層（美術值）
+
+body 中心／邊緣 alpha .035／.50，散射 2.4；head .05／.45，尖端淡橘 `#cf6a4c`×.55；wing .03／.26，margin .30，散射 .9，alpha 上限 .42；viscera 色 `#c2583c`，散射 3.4。
+
+### 驗收（本機）
+
+- 近看工具：`tools/snowwindow-biology/clione-light.html?view=front|side|back&gray=1&light=moon`，只用來檢查光，不是雪景光。截圖在 `exports/quality-b-20260927/B3/{before,after}/`。
+- PIL 量測：
+  - 近看正面：身體中心亮度 ÷ 邊緣帶亮度，before 1.32 → after 0.85。
+  - 逆光：after 0.67，中心比邊緣暗。
+  - 內臟飽和度 S：正面 .51、逆光 .43、月光級 .64；before 為 .67。
+  - 場景正午（背景約 122／145）：before 是暗點，局部最暗 71／81；after 是淡色膠囊加橘芯，局部最亮 153／174，最暗 112／136。
+  - 場景月夜：裸海蝶局部最亮 63／52，背景 40／17；同一幀 aurelia 區域最亮 120。
+- 測試：`tests/clione.test.ts` 新增 B3 測試（無 transmission 與 emission、頭錐不超出舊外緣、翼緣較薄）。
+
+### 尚未證明
+
+- 使用者尚未確認外觀。
+- 場景距離下，裸海蝶只有 7–13 px，翼足幾乎看不到。辨識只靠「淡色膠囊 + 橘芯」。
+- 月夜時，背光邊緣約為背景亮度的 3 倍，但仍低於 aurelia。這算不算「發光感」需要人眼確認。
+- 未確認 Blender bake／GLB：頭的頂點數已改變，需要重跑 `scripts/export-snow-creatures.ts`。

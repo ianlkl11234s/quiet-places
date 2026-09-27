@@ -8,10 +8,11 @@ import {tunnelMaterial,seaMaterial} from './Materials.ts';
 
 export async function prepareSeaward():Promise<PlaceFactory>{
  const createRay=await prepareTunnelRay();
- const factory:PlaceFactory=(scene)=>{
+ const factory:PlaceFactory=(scene,renderer)=>{
   const root=new THREE.Group();root.name='seaward-tunnel';scene.add(root);
   const time={value:0},day={value:1},beam={value:1},sun={value:new THREE.Vector3()},tint={value:new THREE.Color()},direct={value:1};
-  const wall=tunnelMaterial('wall',time,day,beam,sun,tint,direct),floor=tunnelMaterial('floor',time,day,beam,sun,tint,direct),ceiling=tunnelMaterial('ceiling',time,day,beam,sun,tint,direct);
+  const horizon={value:new THREE.Color()},zenith={value:new THREE.Color()};
+  const wall=tunnelMaterial('wall',time,day,beam,sun,tint,direct,horizon),floor=tunnelMaterial('floor',time,day,beam,sun,tint,direct,horizon),ceiling=tunnelMaterial('ceiling',time,day,beam,sun,tint,direct,horizon);
   const box=(name:string,size:[number,number,number],pos:[number,number,number],material:THREE.Material)=>{
    const mesh=new THREE.Mesh(new THREE.BoxGeometry(...size),material);mesh.name=name;mesh.position.set(...pos);root.add(mesh);return mesh;
   };
@@ -20,11 +21,11 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   box('right-wall',[.35,4.5,20],[3.575,2.1,-1],wall);
   box('low-ceiling',[7.5,.3,20],[0,4.35,-1],ceiling);
   box('seaward-parapet',[15,.62,.4],[0,.16,-13.6],wall);
-  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1100,1000),seaMaterial(time,day,sun,tint,direct));ocean.rotation.x=-Math.PI/2;ocean.position.set(0,-.32,-513);root.add(ocean);
+  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1100,1000),seaMaterial(time,day,sun,tint,direct,horizon,zenith));ocean.rotation.x=-Math.PI/2;ocean.position.set(0,-.32,-513);root.add(ocean);
   const skyShell=new THREE.Mesh(new THREE.SphereGeometry(600,24,12),new THREE.ShaderMaterial({
-   side:THREE.BackSide,depthWrite:false,uniforms:{uDay:day,uTint:tint,uDirect:direct},
+   side:THREE.BackSide,depthWrite:false,uniforms:{uHorizon:horizon,uZenith:zenith},
    vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-   fragmentShader:`varying vec3 direction;uniform float uDay,uDirect;uniform vec3 uTint;void main(){float elevation=max(normalize(direction).y,0.);vec3 horizon=mix(vec3(.53,.59,.61),uTint*.62,.25*uDirect);vec3 color=mix(horizon,vec3(.32,.43,.51),smoothstep(0.,.65,elevation));gl_FragColor=vec4(color*uDay,1.);
+   fragmentShader:`varying vec3 direction;uniform vec3 uHorizon,uZenith;void main(){float elevation=max(normalize(direction).y,0.);vec3 color=mix(uHorizon,uZenith,smoothstep(0.,.65,elevation));gl_FragColor=vec4(color,1.);
    #include <tonemapping_fragment>
    #include <colorspace_fragment>
    }`}));skyShell.renderOrder=-100;root.add(skyShell);
@@ -48,10 +49,40 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   const shadow=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.1),shadowMaterial);shadow.rotation.x=-Math.PI/2;root.add(shadow);
   const visitor=root.getObjectByName('tunnel-stingray')!;
   const background=new THREE.Color('#c0ccd0');scene.background=background;
+  // Q1-2: weak image-based bounce for standard materials (handrail, ray, grass).
+  // A low-res PMREM of the same time-driven sky over a dark tunnel-coloured
+  // lower hemisphere; regenerated only when the sky colour moves, at most 5×/s.
+  const envScene=new THREE.Scene(),envDome=new THREE.Mesh(new THREE.SphereGeometry(1,24,12),new THREE.ShaderMaterial({
+   side:THREE.BackSide,depthWrite:false,uniforms:{uHorizon:horizon,uZenith:zenith},
+   vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+   fragmentShader:'varying vec3 direction;uniform vec3 uHorizon,uZenith;void main(){float e=normalize(direction).y;vec3 up=mix(uHorizon,uZenith,smoothstep(0.,.65,e));vec3 down=mix(uHorizon*.30,uHorizon*.06,smoothstep(0.,-.35,e));gl_FragColor=vec4(e>0.?up:down,1.);}'}));
+  envScene.add(envDome);
+  const pmrem=new THREE.PMREMGenerator(renderer),envKey=new THREE.Color(-1,-1,-1),oldEnvironment={map:scene.environment,intensity:scene.environmentIntensity};
+  let envTarget:THREE.WebGLRenderTarget|null=null,envAge=Infinity;
   let disposed=false;
   return {position:[2.6,1.35,2.8],target:[-1.6,1.5,-11],cameraMode:'fixed-position',yawRange:Math.PI/12,get fov(){return typeof window!=='undefined'&&window.innerWidth<700?90:53;},exposure:1.15,hasSimulation:false,waterMode:'',
-   update(_dt,elapsed,state){const light=seawardDaylight(state);sun.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.direct;time.value=elapsed;beam.value=state.beamStrength??1;day.value=.10+.90*Math.min(1,Math.max(0,state.intensity));background.set('#c0ccd0').multiplyScalar(day.value);opening.intensity=65*day.value;opening.color.copy(tint.value);opening.position.x=THREE.MathUtils.clamp(sun.value.x/-sun.value.z*4,-3,3);opening.position.y=1+sun.value.y*3;sky.intensity=.14*day.value;mountainMaterial.color.set('#abb9bb').multiplyScalar(day.value);grass.update(elapsed);ray.update(elapsed);shadow.position.set(visitor.position.x,.012,visitor.position.z);shadow.scale.setScalar(1+visitor.position.y*.25);shadowMaterial.uniforms.uOpacity.value=.16/(1+visitor.position.y);},
-   disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
+   update(_dt,elapsed,state){
+    const light=seawardDaylight(state);
+    sun.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.direct;
+    time.value=elapsed;beam.value=state.beamStrength??1;
+    day.value=.10+.90*Math.min(1,Math.max(0,state.intensity));
+    horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);
+    background.copy(light.horizon);
+    opening.intensity=65*day.value;opening.color.copy(tint.value);
+    opening.position.x=THREE.MathUtils.clamp(sun.value.x/-sun.value.z*4,-3,3);opening.position.y=1+sun.value.y*3;
+    sky.intensity=.14*day.value;
+    // Distant ridges sit in the same air as the horizon: a slightly darker, bluer share of it.
+    mountainMaterial.color.copy(light.horizon).lerp(light.zenith,.3).multiplyScalar(.9);
+    envAge+=Math.max(0,_dt);
+    if(envAge>=.2&&Math.abs(envKey.r-light.horizon.r)+Math.abs(envKey.g-light.horizon.g)+Math.abs(envKey.b-light.horizon.b)>.006){
+     const next=pmrem.fromScene(envScene,0,.1,10);envTarget?.dispose();envTarget=next;envKey.copy(light.horizon);envAge=0;scene.environment=next.texture;
+    }
+    // Cap .30; follows the sun, so moonlight leaves only a trace on a dark-blue dome.
+    scene.environmentIntensity=.30*(.12+.88*light.solar);
+    grass.update(elapsed);ray.update(elapsed,day.value);
+    shadow.position.set(visitor.position.x,.012,visitor.position.z);shadow.scale.setScalar(1+visitor.position.y*.25);shadowMaterial.uniforms.uOpacity.value=.16/(1+visitor.position.y);
+   },
+   disturb(){},resetWater(){},dispose(){if(disposed)return;disposed=true;if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();ray.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);root.removeFromParent();if(scene.background===background)scene.background=null;},
   };
  };
  return Object.assign(factory,{dispose:createRay.dispose});

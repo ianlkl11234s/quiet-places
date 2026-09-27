@@ -90,3 +90,24 @@ test('out-and-back patrol crosses flights only at the shared landing',()=>{
  }
  assert.ok(ascending&&descending&&upperTurn&&lowerTurn,'must retrace upper stairs and turn on both physical platforms');
 });
+
+test('pectoral incidence follows climb and turn, bounded and continuous (Q2 A1-5)',()=>{
+ const deg=Math.PI/180;let climbs=0,dives=0,turns=0,maxAbs=0;
+ for(let t=0;t<600;t+=.1){
+  const p=sampleSharkMotion(t),{left,right}=p.pectoralAttack;
+  const common=(left+right)/2,differential=(right-left)/2;
+  maxAbs=Math.max(maxAbs,Math.abs(left),Math.abs(right));
+  // Common mode is exactly the climb share of the body pitch.
+  assert.ok(Math.abs(common-.6*p.pitch)<1e-9,'common incidence tracks body pitch');
+  if(p.pitch>4*deg){assert.ok(common>2*deg,'climbing raises both leading edges');climbs++;}
+  if(p.pitch<-3*deg){assert.ok(common<-1.5*deg,'descending lowers both leading edges');dives++;}
+  // Differential agrees in sign with curvature (and therefore with the bank).
+  if(Math.abs(p.turnCurvature)>.4){assert.ok(Math.sign(differential)===Math.sign(p.turnCurvature),'outer fin raises in a turn');assert.ok(Math.sign(differential)===-Math.sign(p.bank),'differential agrees with bank');turns++;}
+  const n=sampleSharkMotion(t+.02).pectoralAttack;
+  // Bounded by the existing body-pitch transition rate (worst ~1.17 deg per 20 ms).
+  assert.ok(Math.abs(n.left-left)<1*deg&&Math.abs(n.right-right)<1*deg,'fin incidence never snaps');
+ }
+ assert.ok(climbs>50&&dives>50&&turns>50,`route exercises climb ${climbs}, dive ${dives}, turn ${turns}`);
+ assert.ok(maxAbs<=9*deg,`fin incidence stays restrained (${(maxAbs/deg).toFixed(2)} deg)`);
+ console.log(`pectoral max |incidence| ${(maxAbs/deg).toFixed(2)} deg; climb/dive/turn samples ${climbs}/${dives}/${turns}`);
+});

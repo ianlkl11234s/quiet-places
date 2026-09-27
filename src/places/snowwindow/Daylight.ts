@@ -13,6 +13,14 @@ export function snowWindowDaylight(state:SceneState){
  const sky=new THREE.Color('#788994').lerp(new THREE.Color('#121d2a'),night*.92);
  const horizonColor=new THREE.Color('#a2adb0').lerp(new THREE.Color('#223141'),night*.86);
  const tint=new THREE.Color('#d9e0df').lerp(new THREE.Color('#9fb6cf'),night*.58);
+ // Q1-1 candidate: a faint low-sun cast through overcast. Dawn leans rose,
+ // dusk warm grey-gold, noon stays neutral cool white. Zero at noon and at
+ // night (solar=0), so the confirmed moonlight frame is unchanged.
+ const lowSun=Math.sqrt(solar)*Math.pow(1-Math.max(0,Math.cos(phase)),1.5)*.8;
+ const morning=hour<12;
+ sky.lerp(new THREE.Color(morning?'#8f8589':'#8a8479'),lowSun);
+ horizonColor.lerp(new THREE.Color(morning?'#c0aca7':'#b9ac97'),lowSun);
+ tint.lerp(new THREE.Color(morning?'#e8dad6':'#e6dccb'),lowSun);
  return {
   hour,solar,night,direction,sky,horizon:horizonColor,tint,
   directIntensity:.025+.12*solar+.025*night,

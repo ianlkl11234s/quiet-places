@@ -7,6 +7,12 @@
 
 > 最新數量（2026-09-10）：依使用者要求，正式雪景海天使／裸海蝶由 5 隻增為 **7 隻**，水母仍為 3 隻。使用既有 CLIONE_6／7 的獨立位置、相位與頻率，其他材質、鏡頭與動態不變。模型工廠／近看工具預設及先前 Blender 快取仍為 5 隻，以下 5 隻驗收紀錄屬前版。
 
+## 2026-09-26：Q1-1 時段暖冷差（候選待使用者確認）
+
+上節的已接受基準不變；本項可單獨退回（只改 `Daylight.ts`，並新增一則測試）。問題：晨曦、正午、暮色三張幾乎相同。雪天陰光本來差異就小，所以只加很淡的低太陽色偏：`lowSun=√solar·(1−max(0,cos φ))^1.5·.8`，其中 φ=(hour−12)·π/12。正午為 0，夜晚因 solar=0 也為 0，所以正午與已確認最佳的月夜數值完全不變（測試釘住）。晨曦：sky→#8f8589、horizon→#c0aca7、tint→#e8dad6（微暖粉）；暮色：sky→#8a8479、horizon→#b9ac97、tint→#e6dccb（暖灰金），混合量約為晨曦 .48、暮色 .62。tint 同時餵給窗面 RectAreaLight 與雪材質，所以室內也帶到極少量色偏。近似界線：這是美術色偏，不是陰天光譜或太陽高度的計算。
+
+平均 sRGB 前→後（capture.sh 1600×900）：上方天空（x700–1500、y40–250）晨曦 (102,119,129)→(114,117,124)、正午不變 (135,152,162)、暮色 (129,146,156)→(141,144,141)、月夜不變 (11,16,22)；左側窗簾暗部各時段差 ≤1；窗台雪差 ≤2。證據：`exports/quality-q0q1-20260926/lighting-B/before/snowwindow-*.jpg`、`exports/quality-q0q1-20260926/lighting-B/after/snowwindow-*.jpg`。AO 延後：本景的室內沒有 AO bake 管線，SSAO pass 屬共用 renderer，不在本輪範圍。
+
 ## 寬畫幅邊界修正（2026-09-10）
 
 依使用者 12:36 截圖，補足寬畫面左牆外側露海及窗頂黑條。`index.ts` 左牆向左延伸至 120 m，窗下牆向下延伸；窗台／玻璃寬度延伸至約 60 m，窗上緣提升到 y=20 m，側框同步延伸。可見左窗緣與下窗緣、相機、光源強度及生物不變。這是畫框外場景包覆的美術延伸，不是建築實測尺寸；玻璃 normal repeat 保留水滴密度，roughness 不重複以免出現多條霜帶。
@@ -144,3 +150,17 @@
 水母邊緣觸鬚透明度 .33 → .16，固定 seed 的長度係數 .45..95，PBD guide 按圓周鄰近分配，保留 128 條。A／B 以 113 秒週期、43 秒錯相的平滑事件朝 +z／+x（基準觀察者方向）轉向，前景區域偏好最多 +.45 m；實際位移仍經受力／阻力／邊界，並非固定前進 .45 m。這是美術編舞，不是追蹤目前鏡頭或生物行為實測。
 
 118 個測試通過、build 通過。既有 60 秒 Blender／PC2／GLB 是前一版歸檔，未重烘焙此次觸鬚與路徑；當前網站 TS 為新版權威，不可將舊快取描述為與本版逐幀一致。
+
+## 2026-09-27：Q2-A8 窗台積雪閃光與軟邊（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。權威：`Materials.ts` 的 `refineSillSnow`；`Exterior.ts` 只多一行呼叫（積雪材質原本定義在 Exterior）。
+- 閃光：平台局部座標 1 cm 格、12% 格帶 ±30° 冰面，反射「海面上方最亮陰天天空」方向 (0,.8,−.6)，`pow(N·H,40)×.9×albedo` 加到 directSpecular（不寫 emissive）；乘 `smoothstep(.30,.90,visibility)`，月夜 visibility≈.25 → 0。
+- 軟邊：外露邊（海側、兩端）10–18 cm 內頂面法線滾向外側，並以 ½+½·n.y 作為天空可見度（本積雪用平坦天空 proxy 照明，只改法線看不出差異）；側面同樣套用。
+- 座標注意：room root 會依視角在 x 平移，必須用平台局部座標；第一版誤用世界座標產生大片硬邊暗區，已修正。
+- 亮度：凍結 elapsed 正午，積雪像素均值 191.02 → 191.19、整幀 104.55 → 104.56（未改變已確認亮度）；亮點 >8 階 637 px。
+- 退回：`SILL_SNOW_SPARKLE=0`、`SILL_SNOW_SOFT_EDGE=0`（皆 0 時不注入任何 shader）。證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/snowwindow-*`、`snow-noon-zoom.jpg`。
+
+## 2026-09-27：J3 流場、J4 marine snow（候選待使用者確認）
+- 生物、顆粒都讀同一個 `motion.sampleFlow`（背景加尾流渦環）。細節、數值、等級見 `docs/biology/aurelia-clione.md` 的 J3／J4 段。
+- `?marineSnow=off|particles|particles-dense`，預設 `particles`（待定）。只有 `WINDOW_SHAFT` 窗光體積（C）內可見，灰階、無 emission。在 `creatures.update` 之後更新。進場或倒帶時，dense 重算約 .47 s。
+- 檢視頁 `tools/snowwindow-biology/flow-scene.html`：固定 elapsed，提供像素檢查 `__measure` 與傘下位移 `__underBell`。

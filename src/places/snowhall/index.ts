@@ -65,7 +65,7 @@ export async function prepareSnowhall(options?:{layout?:SnowhallDraft;sceneSeed?
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?68:layout.camera.fov;},exposure:1.15,toneMapping:THREE.AgXToneMapping,
    hasSimulation:false,waterMode:'雪落在盡端窗外，銀魚在走廊中巡游、緩停與繞圈',
    update(_dt,elapsed,state){
-    const light=snowHallDaylight(state);background.copy(light.sky);fog.color.copy(light.sky);
+    const light=snowHallDaylight(state);background.copy(light.windowSky);fog.color.copy(light.windowSky);
     windowFill.intensity=light.windowIntensity;windowFill.color.copy(light.tint);fill.intensity=light.fillIntensity;fill.color.copy(light.sky);
     snow.update(elapsed,light.snowVisibility,!!state.lowQuality,root.userData.snowScale??1);life.update(elapsed);
     renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {headingQuaternion, turnPose, type TurnPoseParams} from '../../shared/biology/locomotion/index.ts';
 
 const TAU = Math.PI * 2;
 const PERIOD = 78;
@@ -8,6 +9,17 @@ const HEIGHTS = [.28, .25, .31] as const;
 const PHASES = [.3, 2.1, 4.5] as const;
 
 export type KoiIndex = 0 | 1 | 2;
+
+/**
+ * Q1-3a candidate (art calibration). The route's yaw rate is 0.05-0.14 rad/s
+ * (p10-max); at 0.10 rad/s tanh() reaches 76% of the maxima, so a typical
+ * corner reads as ~4 deg of bank (max ~6 deg) into the turn, with the tail
+ * trailing inside the arc by up to 2% of body length (body-mesh tip; ~15 deg
+ * summed over five posterior bones). The former pose rolled -turn * .025 rad
+ * (turn = yawRate/.25, <=1.4 deg, i.e. out of the turn) and bent the bones by
+ * turn * (.012-.028) rad (tail outside, <=0.75% BL). Revert: restore both.
+ */
+export const KOI_TURN: TurnPoseParams = {maxBank: THREE.MathUtils.degToRad(6.5), maxBend: .02, yawRateScale: .10};
 
 function point(u: number, index: KoiIndex): THREE.Vector3 {
   return new THREE.Vector3(
@@ -67,12 +79,12 @@ export function sampleKoiMotion(elapsed: number, index: KoiIndex) {
   const after = samplePath(time + .02, index).velocity;
   const delta = Math.atan2(after.x, after.z) - Math.atan2(before.x, before.z);
   const yawRate = Math.atan2(Math.sin(delta), Math.cos(delta)) / .04;
-  const turn = THREE.MathUtils.clamp(yawRate / .25, -1, 1);
-  const quaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(
-    Math.asin(THREE.MathUtils.clamp(direction.y, -1, 1)), yaw, -turn * .025, 'YXZ',
-  ));
+  const {turn, bank, bend} = turnPose(yawRate, KOI_TURN);
+  const quaternion = headingQuaternion({pitch: Math.asin(THREE.MathUtils.clamp(direction.y, -1, 1)), yaw, bank});
   return {
-    position: state.position, quaternion, turn,
+    position: state.position, quaternion, turn, yawRate, bank,
+    /** Signed tail-tip C-bend toward the fish's right, body lengths. */
+    bend,
     speed: state.velocity.length(), length: LENGTHS[index],
     // A visual stride of 17% displayed length per beat links the tail clock
     // to distance. The exported hero action contains nine beats in 12 s.

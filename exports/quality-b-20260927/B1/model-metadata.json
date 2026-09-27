@@ -1,0 +1,49 @@
+{
+  "asset": "blacktip-shark.glb",
+  "species": "Carcharhinus melanopterus (烏翅真鯊)",
+  "revision": "Q3 B1 2026-09-27",
+  "triangles": 27128,
+  "textures": {
+    "baseColor": [
+      1024,
+      512
+    ],
+    "metallicRoughness": [
+      512,
+      256
+    ],
+    "format": "JPEG q85"
+  },
+  "pectoral_weight": 1.0,
+  "clips": [],
+  "glb_bytes": 936488,
+  "glb_sha256": "819a6cfad71917ba8c1c28872c92bc3f7d2a807fbbbe080213d00ece8b7dc1e9",
+  "bones": [
+    "Root",
+    "Spine_00",
+    "Spine_01",
+    "Spine_02",
+    "Spine_03",
+    "Spine_04",
+    "Spine_05",
+    "Spine_06",
+    "Spine_07",
+    "Spine_08",
+    "Spine_09",
+    "Spine_10",
+    "Spine_11",
+    "Spine_12",
+    "Spine_13",
+    "Spine_14",
+    "Spine_15",
+    "Pectoral_R",
+    "Pectoral_L"
+  ],
+  "draw_meshes": [
+    "BLACKTIP_BODY",
+    "FINS_MEDIAN_PELVIC",
+    "EYES",
+    "PECTORAL_R",
+    "PECTORAL_L"
+  ]
+}

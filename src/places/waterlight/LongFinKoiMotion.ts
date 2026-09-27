@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {seededRandom} from '../../shared/math/seededRandom.ts';
+import {constrainTravelToHeading, createHeadingState, headingQuaternion, stepHeading, type HeadingParams, type HeadingState, type SlipParams} from '../../shared/biology/locomotion/index.ts';
 import {WATER_ROOM} from './Room.ts';
 import {shallowSeaSunDirection} from './ShallowSea.ts';
 
@@ -20,6 +21,12 @@ export type LongFinKoiPose = {
   actionClock: number;
   motionPhase: number;
   burst: number;
+  /** Actual presented yaw rate, rad/s; positive = turning left. */
+  yawRate: number;
+  /** Roll into the turn, rad (shared locomotion convention). */
+  bank: number;
+  /** Normalised actual turn strength, -1..1, positive = left; drives TURN_* clips. */
+  turn: number;
 };
 
 export type LongFinKoiSchool = {
@@ -28,10 +35,25 @@ export type LongFinKoiSchool = {
   inspect: () => {steps: number; finite: boolean; maxSpeed: number; maxBeamRadius: number; minSpacing: number};
 };
 
-type Fish = LongFinKoiPose & {preferredHeight: number; preferredSpeed: number; turn: number; nextChange: number; phase: number; nextBurst: number; burstStart: number; burstDuration: number};
+type Fish = LongFinKoiPose & {heading: HeadingState; preferredHeight: number; preferredSpeed: number; nextChange: number; phase: number; nextBurst: number; burstStart: number; burstDuration: number};
 
-const FORWARD = new THREE.Vector3(0, 0, -1);
 const UP = new THREE.Vector3(0, 1, 0);
+const DEG = Math.PI / 180;
+/**
+ * Q0-6 candidate (art calibration). Below ~1 cm/s the heading holds instead of
+ * spinning on the spot; yaw is capped at 40 deg/s, pitch at +/-20 deg, and the
+ * actual yaw rate produces up to 8 deg of bank. While tracking, travel stays
+ * within 30 deg of the nose (climb <= 30 deg) so the fish turns through its
+ * heading instead of sliding sideways. Steering forces are unchanged. Revert =
+ * restore the former slerp(rate 70/s) toward velocity and drop the travel clamp.
+ */
+export const LONG_FIN_KOI_HEADING: HeadingParams & SlipParams = {
+  maxSlip: 30 * DEG, maxClimb: 30 * DEG,
+  maxYawRate: 40 * DEG, yawTau: .25,
+  maxPitch: 20 * DEG, maxPitchRate: 20 * DEG, pitchTau: .6,
+  holdSpeed: .010, trackSpeed: .022,
+  maxBank: 8 * DEG, maxBend: .06, yawRateScale: 35 * DEG, bankTau: .4,
+};
 
 function clampFinite(value: number | undefined, fallback = 0) { return Number.isFinite(value) ? value! : fallback; }
 function beamCenter(height: number, angle: number, target = new THREE.Vector3()) {
@@ -81,15 +103,16 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
     const position = center.add(new THREE.Vector3(Math.cos(theta) * (.68 + random() * .38), 0, Math.sin(theta) * (.52 + random() * .30)));
     const heading = theta + Math.PI * .5 + (random() - .5) * .45;
     const velocity = new THREE.Vector3(Math.cos(heading), (random() - .5) * .06, Math.sin(heading)).multiplyScalar(.048 + random() * .012);
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(FORWARD, velocity.clone().normalize());
-    return {index, length, position, velocity, quaternion, behavior: index % 3 === 0 ? 'hover' : 'slow', actionClock: random() * 8, motionPhase: random() * Math.PI * 2,
+    const bodyHeading = createHeadingState(velocity, LONG_FIN_KOI_HEADING.maxPitch);
+    const quaternion = headingQuaternion(bodyHeading);
+    return {index, length, position, velocity, quaternion, heading: bodyHeading, yawRate: 0, bank: 0, turn: 0, behavior: index % 3 === 0 ? 'hover' : 'slow', actionClock: random() * 8, motionPhase: random() * Math.PI * 2,
       burst: 0, nextBurst: 4 + index * 2.1 + random() * 8, burstStart: -10, burstDuration: 0,
-      preferredHeight: height, preferredSpeed: .044 + random() * .022, turn: 0, nextChange: 4 + random() * 8, phase: random() * Math.PI * 2};
+      preferredHeight: height, preferredSpeed: .044 + random() * .022, nextChange: 4 + random() * 8, phase: random() * Math.PI * 2};
   });
   let accumulator = 0, simulationTime = 0, steps = 0, lastAngle = 0;
   const center = new THREE.Vector3(), desired = new THREE.Vector3(), separation = new THREE.Vector3(), alignment = new THREE.Vector3();
   const excursion = new THREE.Vector3();
-  const toOther = new THREE.Vector3(), beam = new THREE.Vector3(), horizontal = new THREE.Vector3(), targetQuaternion = new THREE.Quaternion();
+  const toOther = new THREE.Vector3(), beam = new THREE.Vector3(), horizontal = new THREE.Vector3();
 
   function step(angle: number, activity: number, reducedMotion: boolean) {
     simulationTime += LONG_FIN_KOI_STEP;
@@ -167,12 +190,13 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
       if (desired.length() > maximum) desired.setLength(maximum);
       current.velocity.lerp(desired, 1 - Math.exp(-LONG_FIN_KOI_STEP * 1.35));
       if (current.velocity.length() > maximum) current.velocity.setLength(maximum);
+      // Shared heading controller: hold at low speed, capped yaw/pitch, bank from actual yaw rate.
+      current.heading = stepHeading(current.heading, current.velocity, current.velocity.length(), LONG_FIN_KOI_STEP, LONG_FIN_KOI_HEADING);
+      headingQuaternion(current.heading, current.quaternion);
+      current.yawRate = current.heading.yawRate; current.bank = current.heading.bank;
+      current.turn = LONG_FIN_KOI_HEADING.maxBank > 0 ? current.heading.bank / LONG_FIN_KOI_HEADING.maxBank : 0;
+      constrainTravelToHeading(current.velocity, current.heading, LONG_FIN_KOI_HEADING);
       current.position.addScaledVector(current.velocity, LONG_FIN_KOI_STEP);
-      if (current.velocity.lengthSq() > 1e-8) {
-        targetQuaternion.setFromUnitVectors(FORWARD, current.velocity.clone().normalize());
-        current.quaternion.slerp(targetQuaternion, 1 - Math.exp(-LONG_FIN_KOI_STEP * 70));
-      }
-      current.turn = THREE.MathUtils.lerp(current.turn, current.behavior === 'left' ? .18 : current.behavior === 'right' ? -.18 : 0, .06);
       current.actionClock += LONG_FIN_KOI_STEP * (current.behavior === 'pause' && current.burst === 0 ? 1.05 : .65 + current.velocity.length() * 6.5);
       current.motionPhase += LONG_FIN_KOI_STEP * (.65 + current.index * .027);
     }

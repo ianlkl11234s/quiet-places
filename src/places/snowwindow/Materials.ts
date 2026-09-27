@@ -81,3 +81,73 @@ export function createWinterGlassMaterial(){
  material.name='winter-glass-condensation-and-edge-frost';
  return material;
 }
+
+// Q2-A8 (candidate, awaiting user confirmation). Each switch set to 0 restores
+// the accepted sill snow exactly (no shader change is injected).
+/** Sparse specular glints: sky reflected by tilted ice facets. Specular only, never emissive. */
+export const SILL_SNOW_SPARKLE=1;
+/** Rounded shading over the last few centimetres of the platform's exposed rims. */
+export const SILL_SNOW_SOFT_EDGE=1;
+
+export interface SnowPlatformBounds {xMin:number;xMax:number;zNear:number;zFar:number}
+
+/**
+ * Adds glints and a soft rim to the exterior sill snow. `visibility` is the
+ * shared daylight uniform (moonlight ≈ .25, so glints vanish at night).
+ * Rims and facets use platform-local coordinates: the room root slides in x
+ * with the viewer's yaw, so world x is not the platform's x.
+ * Art approximation, not a snow-crystal BRDF.
+ */
+export function refineSillSnow(material:THREE.MeshStandardMaterial,visibility:{value:number},bounds:SnowPlatformBounds){
+ if(!SILL_SNOW_SPARKLE&&!SILL_SNOW_SOFT_EDGE)return;
+ const base=material.onBeforeCompile.bind(material),baseKey=material.customProgramCacheKey();
+ const edge={value:new THREE.Vector4(bounds.xMin,bounds.xMax,bounds.zFar,bounds.zNear)};
+ material.onBeforeCompile=(shader,renderer)=>{
+  base(shader,renderer);
+  Object.assign(shader.uniforms,{uSparkleSky:visibility,uSnowEdge:edge,uSparkle:{value:SILL_SNOW_SPARKLE},uSoftEdge:{value:SILL_SNOW_SOFT_EDGE}});
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vSnowWorld,vSnowLocal;')
+   .replace('#include <project_vertex>','#include <project_vertex>\nvSnowWorld=(modelMatrix*vec4(transformed,1.)).xyz;vSnowLocal=transformed;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+   varying vec3 vSnowWorld,vSnowLocal;uniform float uSparkleSky,uSparkle,uSoftEdge;uniform vec4 uSnowEdge;
+   float sillHash(vec2 p){return fract(sin(dot(p,vec2(41.3,289.1)))*15731.743);}`)
+   .replace('#include <normal_fragment_begin>',`#include <normal_fragment_begin>
+   vec3 snowWorldNormal=inverseTransformDirection(normal,viewMatrix);
+   {
+    // Soft rim: over 10–18 cm the top normal rolls toward the open edge (sea side
+    // and both ends). The sill snow is lit by a flat sky proxy, so the rolled
+    // normal is also used for its sky view (½+½·n.y); the lip then shades off
+    // instead of cutting as a ruled line. Exposed side faces get the same sky term.
+    float wobble=.5+.5*sin(vSnowLocal.x*23.)*sin(vSnowLocal.x*7.3+1.7);
+    float width=.10+.08*wobble;
+    float farRim=1.-smoothstep(0.,width,vSnowLocal.z-uSnowEdge.z);
+    float leftRim=1.-smoothstep(0.,width,vSnowLocal.x-uSnowEdge.x);
+    float rightRim=1.-smoothstep(0.,width,uSnowEdge.y-vSnowLocal.x);
+    vec3 outward=vec3(rightRim-leftRim,0.,-farRim);
+    float top=step(.5,snowWorldNormal.y);
+    float rim=uSoftEdge*max(farRim,max(leftRim,rightRim))*top;
+    if(rim>0.){
+     snowWorldNormal=normalize(mix(snowWorldNormal,normalize(outward+vec3(0.,.35,0.)),rim*.75));
+     normal=normalize((viewMatrix*vec4(snowWorldNormal,0.)).xyz);
+    }
+    float skyView=.5+.5*clamp(snowWorldNormal.y,-1.,1.);
+    diffuseColor.rgb*=mix(1.,skyView,uSoftEdge*max(rim,1.-top));
+   }`)
+   .replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
+   if(uSparkle>0.){
+    // ~1 cm cells; ~12% carry a flat ice facet tilted up to ~30°.
+    vec2 cell=floor(vSnowLocal.xz*100.);
+    vec2 local=fract(vSnowLocal.xz*100.)-.5;
+    float seed=sillHash(cell);
+    float present=step(.88,seed)*step(.5,snowWorldNormal.y)*(1.-smoothstep(.30,.42,length(local)));
+    vec2 tilt=vec2(sillHash(cell+3.1),sillHash(cell+7.7))*2.-1.;
+    vec3 facet=normalize(vec3(tilt.x*.55,1.,tilt.y*.55));
+    // Brightest overcast sky sits above the sea beyond the sill.
+    vec3 skyDir=normalize(vec3(0.,.8,-.6));
+    vec3 toEye=normalize(cameraPosition-vSnowWorld);
+    float glint=pow(max(dot(facet,normalize(skyDir+toEye)),0.),40.);
+    float lit=smoothstep(.30,.90,uSparkleSky);
+    reflectedLight.directSpecular+=diffuseColor.rgb*(.90*uSparkle*present*glint*lit);
+   }`);
+ };
+ material.customProgramCacheKey=()=>`${baseKey}|sill-snow-a8-${SILL_SNOW_SPARKLE}${SILL_SNOW_SOFT_EDGE}`;
+}

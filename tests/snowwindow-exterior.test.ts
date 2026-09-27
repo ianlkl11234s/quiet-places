@@ -28,3 +28,24 @@ test('winter platform keeps its shortened closed, positive-thickness snow volume
  assert.ok([...edges.values()].every(count=>count===2),'closed snow shell has no open edge');
  exterior.dispose();
 });
+
+test('sill snow adds sky glints and a soft rim on top of the accepted frost grain (Q2-A8)',async()=>{
+ const THREE=await import('three');
+ const {SILL_SNOW_SPARKLE,SILL_SNOW_SOFT_EDGE}=await import('../src/places/snowwindow/Materials.ts');
+ assert.equal(SILL_SNOW_SPARKLE,1);assert.equal(SILL_SNOW_SOFT_EDGE,1);
+ const exterior=createWinterExterior();
+ const snow=exterior.group.getObjectByName('snowwindow-thin-snow-platform') as import('three').Mesh;
+ const material=snow.material as import('three').MeshStandardMaterial;
+ const shader={uniforms:{} as Record<string,{value:unknown}>,vertexShader:THREE.ShaderLib.physical.vertexShader,fragmentShader:THREE.ShaderLib.physical.fragmentShader};
+ material.onBeforeCompile(shader as never,null as never);
+ assert.ok(shader.fragmentShader.includes('snowGrainA'),'accepted frost grain is kept');
+ assert.ok(shader.fragmentShader.includes('uSnowSky'),'accepted sky proxy is kept');
+ assert.ok(shader.fragmentShader.includes('glint')&&shader.fragmentShader.includes('directSpecular'),'glints are specular, not emissive');
+ assert.ok(!/emissive\w*\s*[+*]?=/.test(shader.fragmentShader.split('vSnowLocal')[1]??''),'A8 never writes emissive');
+ assert.ok(shader.vertexShader.includes('vSnowLocal=transformed'),'rim and facets use platform-local coordinates');
+ const edge=shader.uniforms.uSnowEdge.value as import('three').Vector4;
+ assert.deepEqual(edge.toArray(),[WINTER_EXTERIOR_PLATFORM.xMin,WINTER_EXTERIOR_PLATFORM.xMax,WINTER_EXTERIOR_PLATFORM.zFar,WINTER_EXTERIOR_PLATFORM.zNear]);
+ assert.equal(shader.uniforms.uSparkleSky,shader.uniforms.uSnowSky,'glints share the daylight visibility uniform (≈0 in moonlight)');
+ assert.match(material.customProgramCacheKey(),/snowwindow-frost-grain-v2\|sill-snow-a8-11/);
+ exterior.dispose();
+});

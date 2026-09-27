@@ -2,6 +2,20 @@ import * as THREE from 'three';
 import {sampleSharkMotion} from './SharkMotion.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 
+const PECTORAL_BONE_LIMIT=THREE.MathUtils.degToRad(75);
+/**
+ * Bone rotation whose linear-blend result tilts a vertex with weight w by
+ * `attack`: atan2(w sin t, 1-w+w cos t)=attack. Monotonic on [0,75deg]; bisection.
+ */
+export function pectoralBoneAngle(attack:number,weight:number){
+  const w=THREE.MathUtils.clamp(weight,1e-3,1),target=Math.abs(attack);
+  const effective=(t:number)=>Math.atan2(w*Math.sin(t),1-w+w*Math.cos(t));
+  if(target>=effective(PECTORAL_BONE_LIMIT))return Math.sign(attack)*PECTORAL_BONE_LIMIT;
+  let lo=0,hi=PECTORAL_BONE_LIMIT;
+  for(let i=0;i<24;i++){const mid=(lo+hi)/2;if(effective(mid)<target)lo=mid;else hi=mid;}
+  return Math.sign(attack)*(lo+hi)/2;
+}
+
 /** A single owned, Blender-skinned juvenile; no mixer clock or independent RAF. */
 export function createShark(model:THREE.Group,rearWindow:boolean){
   const root=new THREE.Group();root.name='BlacktipReefShark';
@@ -15,6 +29,21 @@ export function createShark(model:THREE.Group,rearWindow:boolean){
     const position=bone.getWorldPosition(new THREE.Vector3());
     return {bone,s:THREE.MathUtils.clamp((.45-position.x)/.9,0,1),restPosition:bone.position.clone(),restQuaternion:bone.quaternion.clone(),parentRotation,inverseParent,lateral:new THREE.Vector3(0,0,1).applyQuaternion(inverseParent)};
   });
+  // Read each pectoral's actual blend weight on its control bone and solve the bone
+  // angle whose linear blend yields the requested fin incidence. Since Q3 B1 the fins
+  // are bound rigidly (weight 1), so the solve is the identity; the older .153 skin
+  // (Blender .18 ADD) still resolves correctly, bounded to avoid visible fin shrink.
+  const pectoralWeight=new Map<string,number>();
+  model.traverse(object=>{
+    if(!(object instanceof THREE.SkinnedMesh))return;
+    const weights=object.geometry.getAttribute('skinWeight'),indices=object.geometry.getAttribute('skinIndex');
+    if(!weights||!indices)return;
+    for(let i=0;i<weights.count;i++)for(let j=0;j<4;j++){
+      const name=object.skeleton.bones[indices.getComponent(i,j)]?.name;
+      if(name?.startsWith('Pectoral_'))pectoralWeight.set(name,Math.max(pectoralWeight.get(name)??0,weights.getComponent(i,j)));
+    }
+  });
+  const attack=new THREE.Quaternion(),lateralAxis=new THREE.Vector3(0,0,1);
   const sky={value:.12},windowCenter={value:rearWindow?new THREE.Vector3(-.269,3.0,4.10):new THREE.Vector3(-1.679,3.4,2.5)},windowArea={value:rearWindow?5.0:7.84};
   // Match the stairwell's slope-aware packed depth on the skinned animal.
   // Back-face depth alone leaves contour-like self-shadow bands on the snout.
@@ -61,12 +90,14 @@ irradiance += (vec3(.48,.59,.70)*sharkOpening*sharkFacing + vec3(.014,.012,.01))
         const mix=b.s>a.s?(control.s-a.s)/(b.s-a.s):0;
         const lateral=THREE.MathUtils.lerp(a.offset.z,b.offset.z,mix);
         tangent.copy(a.tangent).lerp(b.tangent,mix).normalize();delta.setFromUnitVectors(forward,tangent);
+        const side=control.bone.name==='Pectoral_L'?pose.pectoralAttack.left:control.bone.name==='Pectoral_R'?pose.pectoralAttack.right:0;
+        if(side!==0){attack.setFromAxisAngle(lateralAxis,pectoralBoneAngle(side,pectoralWeight.get(control.bone.name)??1));delta.multiply(attack);}
         control.bone.position.copy(control.restPosition).addScaledVector(control.lateral,lateral);
         converted.copy(control.inverseParent).multiply(delta).multiply(control.parentRotation);
         control.bone.quaternion.copy(converted).multiply(control.restQuaternion);
       }
       sky.value=THREE.MathUtils.clamp(intensity/.9,.08,1.2)*.8;
-      root.userData={speed:pose.speed,frequency:pose.frequency,pitch:pose.pitch,bank:pose.bank,phase:pose.phase};
+      root.userData={speed:pose.speed,frequency:pose.frequency,pitch:pose.pitch,bank:pose.bank,phase:pose.phase,pectoralAttack:pose.pectoralAttack};
       root.updateMatrixWorld(true);
     },
     dispose(){if(disposed)return;disposed=true;shadowDepth.dispose();root.removeFromParent();disposeModelResources(collectModelResources(model));},

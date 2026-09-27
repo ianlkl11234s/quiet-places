@@ -18,6 +18,7 @@
 
 ## 驗收
 - 固定條件：viewport／camera／hour／exposure／weather／quality／seed／elapsed。
+- 對照 [場景品質準則](../SCENE_QUALITY_GUIDE.md)：四時段四宮格、暗部形體、生物四層（模型／材質／動作／行為）、抗鋸齒、效能數字。
 - 測試、runtime、browser、使用者確認、實機、發布分開記錄。
 
 ## 歷史與實驗

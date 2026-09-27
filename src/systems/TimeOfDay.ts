@@ -2,8 +2,9 @@ import {moments} from '../places/metadata.ts';
 import type {LightingState} from '../player/contracts.ts';
 export type LightState=LightingState;
 // Art-directed keyframes; local time is device time, not astronomical solar position.
+// Dawn warmth sits well above noon so low morning sun reads warm, not as a dimmer noon.
 const frames = [
-  [0,.09,0,-.15,.3],[5,.11,.1,-.3,.3],[6.5,.36,.35,-.7,.5],
+  [0,.09,0,-.15,.3],[5,.11,.1,-.3,.3],[6.5,.36,.66,-.7,.5],
   [9,.77,.45,-.4,.72],[12,1,.3,0,.85],[14,.9,.48,.25,.8],
   [17.5,.47,.95,.75,.55],[19,.12,.22,.35,.35],[21,.09,0,-.15,.3],[24,.09,0,-.15,.3],
 ];

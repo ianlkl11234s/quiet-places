@@ -26,6 +26,7 @@ const skyFragment = /* glsl */ `
   uniform float uTime;
   uniform float uDaylight;
   uniform float uWarmth;
+  uniform float uAngle;
   uniform vec3 uSun;
   varying vec3 vWorld;
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -44,21 +45,34 @@ const skyFragment = /* glsl */ `
     vec3 d = normalize(vWorld - cameraPosition);
     float horizon = smoothstep(-.16, .82, d.y);
     float zenith = smoothstep(-.12, .48, d.y);
-    vec3 nightLow = vec3(.010, .016, .028);
-    vec3 nightHigh = vec3(.018, .036, .068);
-    float sunset = smoothstep(.6, 1.0, uWarmth);
+    // Night stays deep, cool and low-chroma. AgX plus the room exposure lifts
+    // small linear values strongly, so these are calibrated from screenshots.
+    vec3 nightLow = vec3(.0030, .0042, .0062);
+    vec3 nightHigh = vec3(.0042, .0060, .0105);
+    // Non-linear day gate: the moon keyframe (.1) no longer carries 10% of the
+    // noon sky; afternoon/noon (1.0) are unchanged.
+    float dayMix = smoothstep(.10, .55, uDaylight);
+    // Two warm stages: low-sun peach/rose for dawn, amber and dusky violet for
+    // sunset. Both are zero at warmth <= .5, preserving the approved afternoon.
+    // The dawn stage is limited to the morning (negative keyframe angle), so
+    // the warming 15:00-16:00 afternoon (warmth .57-.77) stays on its palette.
+    float golden = smoothstep(.50, .70, uWarmth) * (1.0 - smoothstep(0.0, .3, uAngle));
+    float dusk = smoothstep(.75, .95, uWarmth);
+    float sunset = max(golden * .45, dusk);
     // A cool, low-contrast sky keeps the window view natural without turning it
     // into a flat white panel at the room’s exposure.
-    vec3 low = mix(vec3(.40, .49, .56), vec3(.67, .62, .55), sunset);
-    vec3 high = mix(vec3(.13, .29, .47), vec3(.38, .34, .35), sunset);
+    vec3 low = mix(vec3(.40, .49, .56), vec3(.66, .50, .40), golden);
+    low = mix(low, vec3(.70, .36, .14), dusk);
+    vec3 high = mix(vec3(.13, .29, .47), vec3(.28, .25, .31), golden);
+    high = mix(high, vec3(.30, .18, .17), dusk);
     vec3 daySky = mix(low, high, zenith);
-    vec3 color = mix(mix(nightLow, nightHigh, horizon), daySky, uDaylight);
+    vec3 color = mix(mix(nightLow, nightHigh, horizon), daySky, dayMix);
 
     // Broad near-horizon scattering makes the pale, grey-white band read as
     // atmospheric haze rather than a hard graphic gradient.
     float haze = pow(1.0 - smoothstep(-.10, .58, d.y), 1.45);
     vec3 hazeColor = mix(vec3(.72, .75, .74), vec3(.76, .69, .59), sunset);
-    color = mix(color, hazeColor, haze * .035 * uDaylight);
+    color = mix(color, hazeColor, haze * .035 * dayMix);
 
     // Three inexpensive value-noise octaves make only a barely visible, slowly
     // drifting cloud veil; keeping the contrast low preserves the room mood.
@@ -66,10 +80,15 @@ const skyFragment = /* glsl */ `
     float cloudBand = smoothstep(-.10, .62, d.y) * (1.0 - smoothstep(.62, .96, d.y) * .55);
     float clouds = smoothstep(.38, .74, cloudField(cloudP)) * cloudBand;
     vec3 cloudColor = mix(vec3(.70, .73, .73), vec3(.74, .69, .60), sunset);
-    color = mix(color, cloudColor, clouds * .20 * uDaylight);
+    color = mix(color, cloudColor, clouds * .20 * dayMix);
     vec3 toSun = normalize(-uSun);
     float softSun = pow(max(dot(d, toSun), 0.0), 32.0);
-    color += mix(vec3(.62, .72, .78), vec3(.90, .72, .48), uWarmth) * softSun * (.012 + .045 * uDaylight);
+    // Broad forward scattering around the low sun warms the visible upper sky
+    // at dawn/sunset only (golden = dusk = 0 at warmth <= .5).
+    float sunLobe = pow(max(dot(d, toSun), 0.0), 4.0);
+    color += vec3(.55, .34, .18) * sunLobe * (golden * .16 + dusk * .30) * dayMix;
+    // At night the same lobe is a faint moon halo: the source of the floor patch.
+    color += mix(vec3(.62, .72, .78), vec3(.90, .72, .48), uWarmth) * softSun * (.004 + .053 * dayMix);
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
@@ -198,7 +217,7 @@ export function createLeaflightLighting(scene: THREE.Scene): LeaflightLighting {
 
   const skyMaterial = new THREE.ShaderMaterial({
     vertexShader: skyVertex, fragmentShader: skyFragment, side: THREE.BackSide,
-    uniforms: {uTime: {value: 0}, uBeam: {value: 1}, uDaylight: {value: 1}, uWarmth: {value: .48}, uSun: {value: incomingSun.clone()}},
+    uniforms: {uTime: {value: 0}, uBeam: {value: 1}, uDaylight: {value: 1}, uWarmth: {value: .48}, uAngle: {value: .25}, uSun: {value: incomingSun.clone()}},
     depthWrite: false,
   });
   const sky = new THREE.Mesh(new THREE.SphereGeometry(48, 32, 20), skyMaterial);
@@ -250,6 +269,7 @@ export function createLeaflightLighting(scene: THREE.Scene): LeaflightLighting {
       skyMaterial.uniforms.uBeam.value = beam;
       skyMaterial.uniforms.uDaylight.value = day;
       skyMaterial.uniforms.uWarmth.value = warm;
+      skyMaterial.uniforms.uAngle.value = angle;
       skyMaterial.uniforms.uSun.value.copy(sunDirection);
       volumeUniforms.uTime.value = time;
       volumeUniforms.uBeam.value = beam;

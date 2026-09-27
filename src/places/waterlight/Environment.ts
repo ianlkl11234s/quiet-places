@@ -8,6 +8,28 @@ import {disturbedSurfaceGLSL, disturbedSurfaceSlopeGLSL} from './SurfaceSampling
 import {SHALLOW_SEA_BOTTOM, SHALLOW_SEA_DEPTH, shallowSeaSunDirection} from './ShallowSea.ts';
 
 
+/** Peak linear strength of the candidate floor-patch bounce; 0 reverts to the confirmed room. */
+export const WATER_ROOM_BOUNCE = .04;
+/** Q2 A3-1 candidate: 0 keeps the confirmed square-edged patch; 1 rounds the corners and widens the penumbra with receiver distance. */
+export const WATER_PATCH_EDGE_SOFT = 1;
+/** Q2 A3-2 candidate: 0 keeps the confirmed moon skylight; 1 desaturates and dims it toward a moonlit blue-grey at night. */
+export const WATER_MOON_SKY_DESAT = 1;
+
+// Shared soft aperture: a superellipse (p=6) replaces the Chebyshev square so corners
+// round off, and the edge band widens with the fall height below the seal, like the
+// wave-scattered penumbra the volume shader already uses. soft=0 is the old square.
+const softApertureGLSL = /* glsl */ `
+  float softAperture(vec2 roof,float inner,float outer,float fall,float soft){
+    vec2 q=abs(vec2(roof.x,roof.y+.2));
+    float square=max(q.x,q.y);
+    float rounded=pow(pow(q.x,6.)+pow(q.y,6.),1./6.);
+    float d=mix(square,rounded,soft);
+    float mid=(inner+outer)*.5,band=(outer-inner)*.5;
+    band=mix(band,band+mix(.10,.30,clamp(fall/7.,0.,1.)),soft);
+    return 1.-smoothstep(mid-band,mid+band,d);
+  }
+`;
+
 export interface WaterlightEnvironment {
   update(elapsed: number, state: SceneState, dt?: number): void;
   disturb(u: number, v: number): void;
@@ -48,9 +70,11 @@ const causticFragment = /* glsl */ `
   uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
   uniform vec3 uSunDirection;
   uniform float uWarmth;
+  uniform float uEdgeSoft;
   varying vec3 vWorld;
   ${oceanWaveGLSL}
   ${disturbedSurfaceSlopeGLSL}
+  ${softApertureGLSL}
   vec2 refractedOffset(vec2 p,float receiverDepth){
     vec2 slope=surfaceSlope(p);
     vec3 normal=normalize(vec3(-slope.x,1.,-slope.y));
@@ -65,7 +89,7 @@ const causticFragment = /* glsl */ `
     vec3 sun=-uSunDirection;
     float rise = ${SEA_BOTTOM.toFixed(1)} - vWorld.y;
     vec2 roof = vec2(vWorld.x, vWorld.z) - sun.xz / sun.y * (vWorld.y - ${SEA_BOTTOM.toFixed(1)});
-    float aperture = 1.0 - smoothstep(1.70, 2.03, max(abs(roof.x), abs(roof.y + .2)));
+    float aperture = softAperture(roof, 1.70, 2.03, rise, uEdgeSoft);
     // Estimate irradiance concentration from the Jacobian of the same Snell
     // mapping used for the incoming solar ray. This is a local approximation,
     // not a photon/path-traced caustic solver.
@@ -92,10 +116,18 @@ const causticFragment = /* glsl */ `
 // alpha blending or a second, accidental refraction pass.
 const shallowSeaFragment = /* glsl */ `
   uniform float uTime; uniform float uWarmth; uniform float uIntensity; uniform float uRain;
-  uniform vec3 uSunDirection; uniform vec3 uAbsorption;
+  uniform vec3 uSunDirection; uniform vec3 uAbsorption; uniform float uMoonDesat;
   uniform sampler2D uWaves; uniform vec2 uWaveTexel; uniform float uUseSimulation;
   varying vec3 vWorld;
   ${waterField}
+  // Night grade (A3-2): below dusk intensity, pull the opening toward a low-chroma
+  // moonlit blue-grey and dim it, so it stays the brightest source without a flat cyan card.
+  vec3 moonGrade(vec3 c){
+    float night=(1.-smoothstep(.10,.30,uIntensity))*uMoonDesat;
+    float luma=dot(c,vec3(.2126,.7152,.0722));
+    vec3 moon=luma*vec3(.82,.92,1.08);
+    return mix(c,mix(c,moon,.72)*.62,night);
+  }
   ${oceanWaveGLSL}
   ${disturbedSurfaceGLSL}
   vec3 skyAt(vec3 d){
@@ -137,11 +169,11 @@ const shallowSeaFragment = /* glsl */ `
     vec3 attenuation=exp(-uAbsorption*travel);
     vec3 waterTint=mix(vec3(.018,.32,.40),vec3(.20,.36,.33),uWarmth)*(.18+uIntensity*.46);
     vec3 reflected=vec3(.012,.027,.032)+skyAt(reflect(incoming,vec3(0.,-1.,0.)))*lowerF*.12;
-    if(length(airRay)<.01){ gl_FragColor=vec4(reflected+waterTint*.32,1.); return; }
+    if(length(airRay)<.01){ gl_FragColor=vec4(moonGrade(reflected+waterTint*.32),1.); return; }
     vec3 transmitted=mix(waterTint,skyAt(normalize(airRay)),attenuation);
     vec3 topReflection=skyAt(reflect(waterRay,surfaceNormal));
     vec3 throughTop=mix(transmitted,topReflection,upperF);
-    gl_FragColor=vec4(mix(throughTop,reflected,lowerF),1.);
+    gl_FragColor=vec4(moonGrade(mix(throughTop,reflected,lowerF)),1.);
   }
 `;
 
@@ -243,14 +275,15 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   const add = (mesh: THREE.Object3D) => { root.add(mesh); return mesh; };
   // A dark, but readable mineral surface. The small hemisphere term acts as bounced
   // skylight and keeps the architecture from collapsing into a pure silhouette.
-  const roomUniforms = {uIntensity:{value:1},uAngle:{value:.25},uWarmth:{value:.48}};
+  const roomUniforms = {uIntensity:{value:1},uAngle:{value:.25},uWarmth:{value:.48},uBounce:{value:WATER_ROOM_BOUNCE},uEdgeSoft:{value:WATER_PATCH_EDGE_SOFT}};
   const roomMaterial = new THREE.ShaderMaterial({uniforms:roomUniforms,vertexShader:causticVertex,fragmentShader:/* glsl */ `
     varying vec3 vWorld;
-    uniform float uIntensity; uniform float uAngle; uniform float uWarmth;
+    uniform float uIntensity; uniform float uAngle; uniform float uWarmth; uniform float uBounce; uniform float uEdgeSoft;
+    ${softApertureGLSL}
     void main(){
       vec2 slope=vec2(-.45+sin(uAngle)*.14,-.30+sin(uAngle*.7)*.10);
       vec2 roof=vWorld.xz-slope*(7.-vWorld.y);
-      float aperture=1.-smoothstep(1.6,2.15,max(abs(roof.x),abs(roof.y+.2)));
+      float aperture=softAperture(roof,1.6,2.15,7.-vWorld.y,uEdgeSoft);
       float floorFace=1.-smoothstep(0.,.03,vWorld.y);
       float leftFace=1.-smoothstep(0.,.03,abs(vWorld.x+4.));
       float nearOpening=exp(-length(vWorld-vec3(0.,7.,-.2))*.3);
@@ -259,6 +292,14 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
       base*=.92+mineral*.16;
       vec3 light=mix(vec3(.38,.66,.79),vec3(1.,.83,.56),uWarmth);
       vec3 color=base*(.23+uIntensity*.77)+light*aperture*uIntensity*.09;
+      // Candidate one-bounce approximation (Q1-2): the lit floor patch under the
+      // skylight returns a little light to the nearby lower walls and floor.
+      // Distance/height falloff keeps far walls and the upper room dark; the gate
+      // removes it at the moon keyframe. Not a GI solve.
+      vec3 patchCenter=vec3(clamp(slope.x*7.,-3.4,3.4),0.,clamp(-.2+slope.y*7.,-4.4,10.4));
+      float bounce=exp(-length(vWorld-patchCenter)*.50)*(1.-smoothstep(.5,4.5,vWorld.y));
+      float bounceGate=smoothstep(.10,.45,uIntensity);
+      color+=light*bounce*uIntensity*bounceGate*uBounce;
       gl_FragColor=vec4(color,1.);
     }`});
   disposable.push(roomMaterial);
@@ -280,11 +321,11 @@ export function createEnvironment(scene: THREE.Scene, renderer?: THREE.WebGLRend
   makePlane(3.6,-2-minZ,new THREE.Vector3(0,height,(minZ-2)/2),new THREE.Euler(Math.PI/2,0,0));
 
   const sealGeometry = new THREE.PlaneGeometry(3.6,3.6,32,32); disposable.push(sealGeometry);
-  const shallowSeaUniforms={...waveUniforms,uRain:{value:0},uTime:{value:0},uWarmth:{value:.5},uIntensity:{value:1},uSunDirection:{value:shallowSeaSunDirection(0)},uAbsorption:{value:new THREE.Vector3(.22,.065,.035)}};
+  const shallowSeaUniforms={...waveUniforms,uRain:{value:0},uTime:{value:0},uWarmth:{value:.5},uIntensity:{value:1},uSunDirection:{value:shallowSeaSunDirection(0)},uAbsorption:{value:new THREE.Vector3(.22,.065,.035)},uMoonDesat:{value:WATER_MOON_SKY_DESAT}};
   const sealMaterial=new THREE.ShaderMaterial({uniforms:shallowSeaUniforms,vertexShader:causticVertex,fragmentShader:shallowSeaFragment,side:THREE.DoubleSide}); disposable.push(sealMaterial);
   const seal=new THREE.Mesh(sealGeometry,sealMaterial);seal.rotation.x=-Math.PI/2;seal.position.set(0,SEA_BOTTOM,-.2);seal.name='shallow-sea-seal';add(seal);
 
-  const causticUniforms = { ...waveUniforms, uTime: { value: 0 }, uStrength: { value: 1 }, uSunDirection:{value:shallowSeaSunDirection(0)}, uWarmth: { value: .5 } };
+  const causticUniforms = { ...waveUniforms, uTime: { value: 0 }, uStrength: { value: 1 }, uSunDirection:{value:shallowSeaSunDirection(0)}, uWarmth: { value: .5 }, uEdgeSoft:{value:WATER_PATCH_EDGE_SOFT} };
   const causticMaterial = new THREE.ShaderMaterial({ uniforms: causticUniforms, vertexShader: causticVertex, fragmentShader: causticFragment, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }); disposable.push(causticMaterial);
   const overlay = (w: number, h: number, pos: THREE.Vector3, rot: THREE.Euler) => { const g = new THREE.PlaneGeometry(w,h); disposable.push(g); const m = new THREE.Mesh(g, causticMaterial); m.position.copy(pos); m.rotation.copy(rot); add(m); };
   overlay(LIGHT_CHAMBER.width, LIGHT_CHAMBER.depth, new THREE.Vector3(0,.014,0), new THREE.Euler(-Math.PI/2,0,0));

@@ -223,3 +223,31 @@
 整合期間，來源場景筆記追加使用者已確認造型／游姿、受光與潮汐效果「很好」，並授權來源工作區保存本地基準。本整合保留同一份模型與程式；來源工作區的提交和本整理分支的提交／發布狀態分開記錄。
 
 來源完成版已保存為 `6a2533f`（`feat(oceanlight): add rigged stingrays and smooth tidal transitions`）；本整理已由 PR #2 合併至 `main`（`27e597f`）。
+
+## 2026-09-26：Q1-1 時段驅動窗景（候選待使用者確認）
+
+分支 `claude/visual-quality`；狀態：**候選待使用者確認**，只改 `Surface.ts` 的 `oceanSkyGLSL`，可單獨退回。證據：`exports/quality-q0q1-20260926/lighting-A/{before,after}/oceanlight-*`，數字 `luminance-before-after.txt`。
+
+- 問題：horizon 為 `mix(藍, 米色(.77,.61,.43), warmth)`，晨曦 .66 與暮色 .95 都落在米色帶；低角度太陽（晨曦 y≈.235、暮色 y≈.19）在窄窗視野之外，`pow(…,360)` 日盤對畫面無貢獻。
+- 改法：warmth ≤ .5 仍用原線性 palette（`baseWarm = min(warmth,.5)`，午後／正午／月夜不變）。其上 `golden = smoothstep(.50,.70) × (1 - smoothstep(0,.3,angle))`（只在早晨負 angle 生效，避免 15:00–16:00 warmth .57–.77 的午後借用晨曦色）往桃色低空 `(.80,.56,.42)`／藍灰天頂 `(.17,.21,.34)`，`dusk = smoothstep(.75,.95)` 往琥珀 `(.92,.47,.20)`／暗紫 `(.21,.15,.25)`；另加寬前向散射 `pow(dot(d,sun),8) × lowSun × (golden×.30 + dusk×.45)`，`lowSun = 1 - smoothstep(.25,.60,sun.y)`（14:00 angle .25 時 sun.y≈.66 → 0）。天空背板與海面反射共用 `skyColor()`，海面自動跟著轉暖。
+- 界線：依 `sampleTime` 算，14:00–16:00 golden 與 dusk 皆為 0（16:00 dusk .016），17:00 dusk .95 已進入暮色；即午後 palette 維持到 16:00 左右。月夜未改（已偏暗藍，before/after 相同）。美術 palette，不是大氣散射解算。
+
+## 2026-09-26：Q1-2 弱窗向 IBL（候選待使用者確認）
+
+分支 `claude/visual-quality`；狀態：**候選待使用者確認**。檔案：新檔 `Ambient.ts`、`index.ts` 接線（刪除 `createOceanAmbient` 一行與兩個呼叫即退回）、`WindowRoom.ts` 只抽出 `apertureFactor`、`tests/ocean-ambient.test.ts`。
+
+
+- 做法：64×32 float equirect，只含房內一點看得到的東西：-Z 窗向的天空／海色帶（方位 ±~34°、仰角 −12°..+8°）與 `.07` 的地板微弱回光；牆、天花板方向為 0，不含日盤與直射，避免與 photon map 重複計算。`PMREMGenerator.fromEquirectangular` → `scene.environment`；warmth 20 階 × 晨曦權重 10 階量化，變了才重生，舊 render target 立即 dispose；場景 dispose 時釋放 render target、generator 與來源貼圖並還原 `scene.environment`。
+- 強度：`scene.environmentIntensity = 1.0(cap) × intensity × smoothstep(.10,.45,intensity) × apertureFactor`；月夜（.09）= 0，全淹窗時隨窗光降到 .35。方向校驗：暫時把 cap 提高 4 倍時，側牆與天花板亮起、窗所在前牆維持暗 → 方向正確（`tests/ocean-ambient.test.ts` 另以 three 的 equirectUv 公式驗證）。
+- 量測（sRGB luminance，before → after）：正午 左牆 11.8→13.2、右牆 21.4→22.9、天花板 6.8→9.8；晨曦 左牆 5.4→5.7；暮色 左牆 6.5→7.2；月夜全部不變（3.6–3.9）。暗部只小幅上升；cap .32 時變化 < 1、看不出，故取 1.0。
+- 與 Q1-1 不同，ambient 在 14:00 基準時段也會生效（非恆等；14:00 約為正午量測的 .9 倍）。
+- 限制：牆面是整面同一張 IBL，沒有距離衰減與遮蔽（非 GI）；魟魚背面仍主要由既有 photon／直射決定，形體改善有限。
+- **AO 延後**：本場景房間是程式生成的 box，沒有 Blender 母檔可烘 AO／lightMap；要做需先建立母檔與 UV，或另評估 SSAO／GTAO pass 的成本，不在本批。
+
+## 2026-09-27：Q2-A5 魟魚巡航盤緣振幅（候選待使用者確認）
+
+分支 `claude/visual-quality-split`；狀態：**候選待使用者確認**。問題：巡航時盤緣 1 秒內由橢圓變尖角菱形，像布在翻折。
+- 做法：`StingrayMotion.ts` 新增 `cruiseFinGain(radial,surge)` 並回傳 `surge`；`Stingrays.ts` 在 mixer 更新後，把每根 `*_FIN_U*_V*` 骨相對 rest 的位移／旋轉按比例縮小（radial = V/4）。巡航（surge 0）盤緣 V04 保留 .65（降 35%），內側 V01–V02 保留 .40（降 60%），V03 約 .53 → 波動集中外側 1/3；surge → 1 時全部回到 1（加速時振幅回升）。GLB 與 clip 未改。
+- 實作細節：three 的 PropertyMixer 值不變時不重寫骨頭，故每幀先還原上一幀 clip 姿勢再更新，避免同 elapsed 重複縮放（暫停凍結測試通過）。
+- 退回：`CRUISE_FIN_CALM = 0`（`StingrayMotion.ts`）即完全回到已確認振幅。
+- 證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/oceanlight-*`、連拍局部放大 `ol-burst-zoom.jpg`。美術校準，非量測值；形狀仍有變化，只是幅度較小。
