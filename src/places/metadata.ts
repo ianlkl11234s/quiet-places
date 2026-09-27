@@ -1,6 +1,6 @@
 export type PlaceId = 'waterlight' | 'leaflight' | 'oceanlight' | 'afterlight' | 'seaward' | 'stairlight' | 'snowwindow' | 'snowhall' | 'last-arcade';
 
-export type PlaceCapability = 'weather' | 'ocean-level' | 'water-interaction' | 'camera-distance';
+export type PlaceCapability = 'weather' | 'ocean-level' | 'water-interaction' | 'camera-distance' | 'moon';
 export type WeatherProfile = 'water' | 'afterlight' | 'seaward';
 
 export interface PlaceMetadata {
@@ -18,11 +18,11 @@ export const places = [
   {id:'leaflight',name:'樹影午後',subtitle:'微風穿過枝葉',capabilities:[],cameraHint:'微風帶動枝葉與光影。拖曳微調視角，左右各 15°。',cameraAriaLabel:'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設'},
   {id:'oceanlight',name:'海光之室',subtitle:'緩慢起伏的海',capabilities:['ocean-level'],cameraHint:'窗外海面三種水位。拖曳微調視角，左右各 15°。',cameraAriaLabel:'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設'},
   {id:'afterlight',name:'雨後天井',subtitle:'雨後的光與新葉',capabilities:['weather','camera-distance'],weatherProfile:'afterlight',cameraHint:'青鱂在植物與陰影間聚散。拖曳微調視角，左右各 6°。',cameraAriaLabel:'拖曳觀看雨後天井，左右各6度；滾輪拉近拉遠，方向鍵旋轉，Home重設'},
-  {id:'seaward',name:'向海的隧道',subtitle:'海風與一隻魟魚',capabilities:[],cameraHint:'魟魚緩緩穿過明暗交界。拖曳微調視角。',cameraAriaLabel:'拖曳觀看海邊隧道；方向鍵旋轉，Home重設'},
+  {id:'seaward',name:'向海的隧道',subtitle:'海風與一隻魟魚',capabilities:['moon'],cameraHint:'魟魚緩緩穿過明暗交界。拖曳微調視角。',cameraAriaLabel:'拖曳觀看海邊隧道；方向鍵旋轉，Home重設'},
   {id:'stairlight',name:'階光之間',subtitle:'窗光與紅繩',capabilities:[],cameraHint:'窗光隨時刻變化，紅繩隨風輕擺。拖曳微調視角，左右各 15°。',cameraAriaLabel:'拖曳觀看窗景，左右各15度；方向鍵旋轉，Home重設'},
   {id:'snowwindow',name:'雪落海窗',subtitle:'海雪與白色亞麻',capabilities:[],cameraHint:'窗邊可左右微轉共約 15°；雪與亞麻隨時間緩慢變化。',cameraAriaLabel:'雪落海窗左右拖曳或方向鍵微轉；Home重設'},
   {id:'snowhall',name:'雪光長廊',subtitle:'銀魚巡游的雪光長廊',capabilities:[],cameraHint:'銀魚在走廊中巡游、緩停與繞圈；可左右微轉約 6°。',cameraAriaLabel:'雪光長廊左右拖曳或方向鍵微轉；Home重設'},
-  {id:'last-arcade',name:'潮風商店街',subtitle:'海邊長廊與微風藤葉',capabilities:[],cameraHint:'站定在長廊入口，向左右微轉觀看海光與藤葉。',cameraAriaLabel:'潮風商店街左右拖曳或方向鍵微轉；Home重設'},
+  {id:'last-arcade',name:'潮風商店街',subtitle:'海邊長廊與微風藤葉',capabilities:['moon'],cameraHint:'站定在長廊入口，向左右微轉觀看海光與藤葉。',cameraAriaLabel:'潮風商店街左右拖曳或方向鍵微轉；Home重設'},
 ] as const satisfies readonly PlaceMetadata[];
 export const isPlaceId=(value:unknown):value is PlaceId=>places.some(place=>place.id===value);
 export const getPlaceMetadata=(id:PlaceId):PlaceMetadata=>places.find(place=>place.id===id)!;

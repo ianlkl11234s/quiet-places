@@ -7,6 +7,12 @@ import {createArcadeEnvironment,updateArcadeEnvironment,installArcadeAmbient} fr
 import {installTornCloth} from './TornCloth.ts';
 import {installCreatureAmbient} from './biology/CreatureAmbient.ts';
 import {installArcadeSea} from './Sea.ts';
+import {installFullMoon} from '../../shared/sky/FullMoon.ts';
+
+/** Mid-Autumn candidate switch: 0 restores the confirmed moonless night sky. */
+const ARCADE_FULL_MOON = 1;
+/** 1: moonlight comes from the moon as shown (follows its rise and the sliders); 0: the Q2-A2 authored night direction. */
+const ARCADE_MOONLIGHT_FOLLOWS_MOON = 1;
 import {createArcadeBiology} from './biology/index.ts';
 import arcadeConfig from '../../../assets/config/last-arcade.json' with {type:'json'};
 
@@ -307,12 +313,16 @@ export async function prepareLastArcade() {
     // Broad, upward-facing patches represent sunlight reflected by the open road.
     // RectAreaLight has no occlusion; keep the emitting planes outside the arcade.
     const groundBounces=[-5,-18].map(z=>{const light=new THREE.RectAreaLight('#e8c99a',.8,3.4,12);light.name='arcade-road-bounce';light.position.set(4.8,-.10,z);light.rotation.x=-Math.PI/2;return light;});
-    scene.add(root, sky, sun, sun.target,...groundBounces); scene.background = background;
+    const position:[number,number,number]=[arcadeConfig.camera.position[0], arcadeConfig.camera.position[2], -arcadeConfig.camera.position[1]];
+    const target:[number,number,number]=[arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]];
+    // Rises from behind the opposite roofs into the upper-right sky.
+    const moon=installFullMoon({position,target,verticalFov:arcadeConfig.camera.verticalFov,enabled:!!ARCADE_FULL_MOON,name:'arcade-full-moon',
+      defaults:{size:2.4, brightness:1, x:.70, y:.76}, riseFrom:{x:.12, y:-.55}});
+    scene.add(root, sky, sun, sun.target, moon.mesh,...groundBounces); scene.background = background;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
     let disposed = false, quality: number | undefined;
     return {
-      position: [arcadeConfig.camera.position[0], arcadeConfig.camera.position[2], -arcadeConfig.camera.position[1]],
-      target: [arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]],
+      position, target,
       fov: arcadeConfig.camera.verticalFov,
       cameraMode: 'fixed-position', yawRange: Math.PI / 30, exposure: 1.08, toneMapping: THREE.AgXToneMapping,
       hasSimulation: true, waterMode: '黑潮生物在乾燥街道間巡游；遠海與藤葉隨時間流動',
@@ -331,6 +341,7 @@ export async function prepareLastArcade() {
         // Night factor for the Q2-A2 candidate: 1 at 23:00 (intensity .09),
         // 0 at dawn/noon/dusk moments (daylight ≥ .4), so those stay unchanged.
         const night = 1-THREE.MathUtils.smoothstep(daylight,.12,.38);
+        moon.update(night,_dt);
         // Three caches the equirect→cube conversion of a background texture and
         // does not watch its version, so the old dusk-only updates never reached
         // the visible sky. Invalidate only when the night step changes: the
@@ -347,7 +358,12 @@ export async function prepareLastArcade() {
         // sampleTime(14:00) has angle .25, which is the authored config baseline.
         const sunDirection = afternoonSunDirection.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), (state.angle-.25)*.55).normalize();
         sunDirection.y *= 1-.38*dusk; sunDirection.normalize();
-        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight)*(1-.45*night);
+        // Blend by the moon's own visibility so dusk → night turns the light
+        // toward the moon together with its fade-in and rise.
+        if(ARCADE_MOONLIGHT_FOLLOWS_MOON&&moon.mesh.visible)sunDirection.lerp(moon.direction,THREE.MathUtils.smoothstep(night,.2,1)).normalize();
+        // A moon still low behind the roofs gives weaker light than a risen one.
+        const moonRise = ARCADE_MOONLIGHT_FOLLOWS_MOON ? 1-night*(1-(.45+.55*moon.risen)) : 1;
+        const targetSunIntensity = Math.max(.08, arcadeConfig.sun.energy*daylight)*(1-.45*night)*moonRise;
         const targetSkyIntensity = .025 + .22*Math.min(1, daylight);
         // The night palette is already dark, so its intensities converge to a
         // fixed value instead of being scaled down a second time.
@@ -371,10 +387,11 @@ export async function prepareLastArcade() {
         if (resolution !== quality) { quality = resolution; sun.shadow.map?.dispose(); sun.shadow.map = null; sun.shadow.mapSize.set(resolution, resolution); }
         sun.shadow.needsUpdate = true;
       },
+      moonDefaults: moon.defaults, setMoon(settings) {moon.setSettings(settings);},
       disturb() {biology.disturb();}, resetWater() {},
       dispose() {
         if (disposed) return; disposed = true;
-        clothAmbient.dispose(); tornCloth.dispose(); streetLamps.forEach(lamp=>lamp.dispose()); facade.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
+        moon.dispose(); clothAmbient.dispose(); tornCloth.dispose(); streetLamps.forEach(lamp=>lamp.dispose()); facade.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
         groundBounces.forEach(light=>light.removeFromParent());
         if(scene.environment===environment)scene.environment=priorAmbient.environment;
         if(scene.background===background)scene.background=priorAmbient.background;
