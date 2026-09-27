@@ -24,3 +24,9 @@ test('same seed and elapsed give the same school; pause does not advance',()=>{
  const before=JSON.stringify(a.getDebug().fish);a.update(60);a.update(59);assert.equal(JSON.stringify(a.getDebug().fish),before);
  a.dispose();b.dispose();
 });
+
+test('schools fly low over the weeds and through the covered stair',()=>{
+ const s=createSardineSchools({seed:20260927,count:200});let under=0,low=0;
+ for(let t=0;t<=600;t+=1/30){s.update(t);if(Math.round(t*30)%60===0){for(const f of s.getDebug().fish){const [x,y,z]=f.p;if(Math.abs(x)<1&&z<2.4&&z>-6)under++;if(y<1.3)low++;}}}
+ const d=s.getDebug();assert.ok(d.flythroughs>=6,`flythroughs=${d.flythroughs}`);assert.ok(under>200,`under=${under}`);assert.ok(low>200,`low=${low}`);assert.equal(d.penetrations,0);s.dispose();
+});

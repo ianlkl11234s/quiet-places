@@ -52,9 +52,10 @@ export function setSardineMotion(v:SardineVisuals,i:number,phase:number,speedBL:
  }
 }
 
-/** Slim spindle: depth ~.19, width ~.11 of length; blue-green back to silver-white belly. */
+/** Near-cylindrical spindle (FishBase: "elongated cylindrical"): depth ~.18, width ~.145 of length,
+ * so a turning fish does not read as a flat plate. Blue-green back to silver-white belly. */
 function sardineBody(){
- const rings=14,segments=10,width=.11,height=.19,positions:number[]=[],colors:number[]=[],indices:number[]=[];
+ const rings=14,segments=12,width=.145,height=.18,positions:number[]=[],colors:number[]=[],indices:number[]=[];
  const back=new THREE.Color('#2c5a66'),flank=new THREE.Color('#b9c4c8'),belly=new THREE.Color('#e9eeee');
  for(let i=0;i<=rings;i++){
   const s=i/rings,z=-.5+s*.88,profile=Math.pow(Math.sin(Math.PI*Math.min(1,s*.97+.02)),.55)*(s>.8?Math.max(.08,(1-s)/.2):1);
@@ -92,7 +93,7 @@ function sardineFins(){
 function sardineSpots(){
  const p:number[]=[],idx:number[]=[],r=.011;
  for(const side of [-1,1])for(let k=0;k<7;k++){
-  const s=.2+k*.065,z=-.5+s*.88,prof=Math.pow(Math.sin(Math.PI*s),.55),x=side*(.11*.5*prof*.93+.002),y=.012;
+  const s=.2+k*.065,z=-.5+s*.88,prof=Math.pow(Math.sin(Math.PI*s),.55),x=side*(.145*.5*prof*.93+.002),y=.012;
   const o=p.length/3;p.push(x,y-r,z-r,x,y+r,z-r,x,y+r,z+r,x,y-r,z+r);
   if(side>0)idx.push(o,o+1,o+2,o,o+2,o+3);else idx.push(o,o+2,o+1,o,o+3,o+2);
  }
@@ -102,6 +103,6 @@ function sardineSpots(){
 }
 function pairedEyes(){
  const s=new THREE.SphereGeometry(.014,6,4),pos=s.getAttribute('position') as THREE.BufferAttribute,a:number[]=[],i:number[]=[];
- for(const sign of [-1,1]){const o=a.length/3;for(let k=0;k<pos.count;k++)a.push(pos.getX(k)+sign*.036,pos.getY(k)+.012,pos.getZ(k)-.41);for(const index of s.index!.array)i.push(Number(index)+o);}
+ for(const sign of [-1,1]){const o=a.length/3;for(let k=0;k<pos.count;k++)a.push(pos.getX(k)+sign*.046,pos.getY(k)+.012,pos.getZ(k)-.41);for(const index of s.index!.array)i.push(Number(index)+o);}
  s.dispose();const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));g.setIndex(i);g.computeVertexNormals();return g;
 }
