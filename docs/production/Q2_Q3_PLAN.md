@@ -136,3 +136,4 @@ Q1 已經完成的部分不重做：seaward 天空、oceanlight 窗景、雪景�
 | 2026-09-27 | V：9 景四時段 main vs 分支矩陣、比較頁、10 項待決定 | 完成，待使用者 G5 | `exports/quality-review-final/index.html` |
 | 2026-09-27 | 測試 209/210（唯一失敗為 main 既有 manta）、build、check:project | 通過 | — |
 | — | 未完成：實機／手機、部署、裂縫 Blender 重烘、魟魚尾長受骨架限制、雪景 Blender 快取重烘（裸海蝶頂點變動） | 待後續 | — |
+| 2026-09-27 | 使用者確認：seaward 魟魚（含保留翻滾）、snowwindow 水母 OK；授權 commit 與 push 分支 | 部分確認 | 見 PREFERENCES |
