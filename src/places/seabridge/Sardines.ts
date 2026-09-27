@@ -47,7 +47,7 @@ export function sardineObstacles():Box[]{
  for(let z=0;z>s.deckLandingEnd;z-=step){
   const z1=Math.max(z-step,s.deckLandingEnd),lo=Math.min(stairLine(z),stairLine(z1)),hi=Math.max(stairLine(z),stairLine(z1));
   boxes.push({min:[-hw,0,z1],max:[hw,hi,z]});                                   // treads and the solid mass below
-  for(const side of [-1,1])boxes.push({min:[side<0?-hw-.1:hw-.05,0,z1],max:[side<0?-hw+.05:hw+.1,hi+1.1,z]}); // side panels
+  for(const side of [-1,1])boxes.push({min:[side<0?-hw-.1:hw-.05,0,z1],max:[side<0?-hw+.05:hw+.1,hi+1.25,z]}); // side panels
   boxes.push({min:[-hw-.45,lo+ROOF_H-.05,z1],max:[hw+.45,hi+ROOF_H+.4,z]});       // roof
  }
  const columnZ=[.25,-2.7,s.f1End,s.landingEnd,s.landingEnd-2.55,s.f2End,s.deckLandingEnd];

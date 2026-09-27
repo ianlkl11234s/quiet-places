@@ -4,7 +4,7 @@ Quiet Places 的累積單位是「房間、可重用能力、實驗與偏好」�
 
 後續實作以 [P0–P8 總計畫](ROADMAP.md) 為準：包含依賴、交付、完成條件與回退。文件存在不代表該階段完成。
 
-畫面精緻度與生物擬真的候選與執行順序見 [改善計劃](VISUAL_QUALITY_PLAN.md)；新場景與大改的「怎樣算做到位」見 [場景品質準則](SCENE_QUALITY_GUIDE.md)。一輪畫質改善從評估到 merge 的固定流程見 [畫質迭代工作流程](QUALITY_WORKFLOW.md)。
+畫面精緻度與生物擬真的候選與執行順序見 [改善計劃](VISUAL_QUALITY_PLAN.md)；新場景與大改的「怎樣算做到位」見 [場景品質準則](SCENE_QUALITY_GUIDE.md)。一輪畫質改善從評估到 merge 的固定流程見 [畫質迭代工作流程](QUALITY_WORKFLOW.md)。渲染效能的調查、數據與踩過的坑見 [渲染效能調查紀錄](RENDER_PERFORMANCE.md)。
 
 本輪成果與驗收見 [P0–P6 交付紀錄](P0_P6_ACCEPTANCE.md)；實際試片與候選採用指令見 [製作室操作](STUDIO.md)。
 

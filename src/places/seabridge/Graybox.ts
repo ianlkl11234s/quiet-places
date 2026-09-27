@@ -55,8 +55,9 @@ export function createGraybox(){
   }
  };
  steps('flight1',STAIR.flight1,STAIR.footZ,0);steps('flight2',STAIR.flight2,s.landingEnd,s.f1Top);
- add('flight1-slab',shear(new THREE.BoxGeometry(STAIR.width,.28,s.f1Run),STAIR.footZ,-.3,s.f1End,s.f1Top-.3),steel);
- add('flight2-slab',shear(new THREE.BoxGeometry(STAIR.width,.28,s.f2Run),s.landingEnd,s.f1Top-.3,s.f2End,DECK.y-.3),steel);
+ // Stringer slab deep enough to swallow the bottoms of the tread boxes (they sit up to .38 m below the nosing line).
+ add('flight1-slab',shear(new THREE.BoxGeometry(STAIR.width,.5,s.f1Run),STAIR.footZ,-.35,s.f1End,s.f1Top-.35),steel);
+ add('flight2-slab',shear(new THREE.BoxGeometry(STAIR.width,.5,s.f2Run),s.landingEnd,s.f1Top-.35,s.f2End,DECK.y-.35),steel);
  box('mid-landing',[STAIR.width,.3,STAIR.landing],[0,s.f1Top-.15,(s.f1End+s.landingEnd)/2],concrete);
  const deckLength=s.deckStart-DECK.crossEndZ;
  box('deck',[DECK.width,.5,deckLength],[0,DECK.y-.25,(s.deckStart+DECK.crossEndZ)/2],concrete);
@@ -64,12 +65,14 @@ export function createGraybox(){
  box('deck-girder-right',[.18,.55,deckLength],[hw+.09,DECK.y-.55,(s.deckStart+DECK.crossEndZ)/2],steel);
 
  // Solid side panels along the covered stair (the reference's look); open railings beyond.
+ // They run from .7 m below to 1.2 m above the nosing line so the stepped tread ends and the
+ // slab edge stay hidden (a shallower panel left a saw-tooth of tread ends showing beneath it).
  for(const side of [-1,1]){
   const x=side*(hw+.03);
-  add(`flight1-panel-${side}`,shear(new THREE.BoxGeometry(.06,1.05,s.f1Run),STAIR.footZ,.55,s.f1End,s.f1Top+.55),steel).position.x=x;
-  add(`flight2-panel-${side}`,shear(new THREE.BoxGeometry(.06,1.05,s.f2Run),s.landingEnd,s.f1Top+.55,s.f2End,DECK.y+.55),steel).position.x=x;
-  box(`landing-panel-${side}`,[.06,1.05,STAIR.landing],[x,s.f1Top+.52,(s.f1End+s.landingEnd)/2],steel);
-  box(`top-landing-panel-${side}`,[.06,1.05,DECK.topLandingDepth],[x,DECK.y+.52,(s.deckStart+s.deckLandingEnd)/2],steel);
+  add(`flight1-panel-${side}`,shear(new THREE.BoxGeometry(.06,1.9,s.f1Run),STAIR.footZ,.25,s.f1End,s.f1Top+.25),steel).position.x=x;
+  add(`flight2-panel-${side}`,shear(new THREE.BoxGeometry(.06,1.9,s.f2Run),s.landingEnd,s.f1Top+.25,s.f2End,DECK.y+.25),steel).position.x=x;
+  box(`landing-panel-${side}`,[.06,1.9,STAIR.landing],[x,s.f1Top+.25,(s.f1End+s.landingEnd)/2],steel);
+  box(`top-landing-panel-${side}`,[.06,1.9,DECK.topLandingDepth],[x,DECK.y+.25,(s.deckStart+s.deckLandingEnd)/2],steel);
   const rx=side*(hw-.07);
   pipe(`handrail-f1-${side}`,new THREE.Vector3(rx,.85,STAIR.footZ+.3),new THREE.Vector3(rx,s.f1Top+.85,s.f1End),.022);
   pipe(`handrail-landing-${side}`,new THREE.Vector3(rx,s.f1Top+.85,s.f1End),new THREE.Vector3(rx,s.f1Top+.85,s.landingEnd),.022);
