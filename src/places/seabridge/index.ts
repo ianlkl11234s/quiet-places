@@ -45,6 +45,8 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   sun.target.position.set(0,2.5,-9);root.add(sun,sun.target);
   const hemi=new THREE.HemisphereLight('#b9c7d2','#5c564c',.3);root.add(hemi);
   // Fluorescent tubes under the roof: the sourceable light for dusk and night.
+  // Platform shelter lamp: warm, small, on the same timer; its own shadow shows the bench and walls.
+  const stationLamp=new THREE.PointLight('#ffe2b8',0,8,2);stationLamp.position.copy(graybox.shelterLamp);stationLamp.castShadow=true;stationLamp.shadow.mapSize.set(256,256);stationLamp.shadow.bias=-.002;root.add(stationLamp);
   const lamps=graybox.tubes.filter((_,i)=>i%2===0).map(p=>{const l=new THREE.PointLight('#ffeccc',0,9,2);l.position.copy(p);root.add(l);return l;});
 
   const background=new THREE.Color();scene.background=background;
@@ -59,10 +61,11 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);background.copy(light.horizon);
     skyUniforms.uGlow.value=.4+1.6*light.low;skyUniforms.uNight.value=light.night;
     sun.position.copy(sun.target.position).addScaledVector(light.sun,45);
-    sun.color.copy(light.tint);sun.intensity=(3.2*light.solar*light.level+.35*light.night)*(state.beamStrength??1);
+    sun.color.copy(light.tint);sun.intensity=(2.5*light.solar*light.level+.35*light.night)*(state.beamStrength??1);
     hemi.color.copy(light.zenith).lerp(new THREE.Color(1,1,1),.35);hemi.intensity=.08+.5*light.level*(1-light.night*.8);
     graybox.tubeMat.emissiveIntensity=2.4*light.lamp;
     for(const lamp of lamps)lamp.intensity=5*light.lamp;
+    graybox.shelterLampMat.emissiveIntensity=2.2*light.lamp;stationLamp.intensity=4*light.lamp;
     grass.update(elapsed);
     renderer.shadowMap.enabled=true;
    },

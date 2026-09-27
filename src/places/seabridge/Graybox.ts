@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {seededRandom} from '../../shared/math/seededRandom.ts';
 import {DECK,PLATFORM,SHORE,STAIR,TRACK,stairProfile} from './Layout.ts';
+import {createCorrugatedMaterial,createGroundMaterial,createPlatformMaterial} from './Materials.ts';
 
 /**
  * S1 graybox: covered stair of a small-station footbridge (跨線橋) that climbs
@@ -11,8 +12,6 @@ export function createGraybox(){
  const group=new THREE.Group();group.name='seabridge-graybox';
  const steel=new THREE.MeshStandardMaterial({color:'#d6d1c4',roughness:.62,metalness:.15});
  const concrete=new THREE.MeshStandardMaterial({color:'#7c7a75',roughness:.93});
- const paving=new THREE.MeshStandardMaterial({color:'#696660',roughness:.95});
- const ground=new THREE.MeshStandardMaterial({color:'#4b4a42',roughness:.97});
  const rockMat=new THREE.MeshStandardMaterial({color:'#2f2f30',roughness:.95,flatShading:true});
  const railMat=new THREE.MeshStandardMaterial({color:'#4a4541',roughness:.55,metalness:.6});
  const pipeMat=new THREE.MeshStandardMaterial({color:'#bdb6a8',roughness:.45,metalness:.45});
@@ -129,8 +128,12 @@ export function createGraybox(){
 
  // Ground, fence, track, platform, sea wall.
  const B=TRACK.bedY;
+ // Where structure meets the ground: concrete plinths under each column foot.
+ const feet:[number,number][]=[];
+ for(const side of [-1,1])feet.push([side*(hw+.14),STAIR.footZ+2.25],[side*(hw+.14),STAIR.footZ+.25],[side*(hw-.2),s.landingEnd+.2]);
+ for(const [x,z] of feet)box(`plinth-${x.toFixed(2)}-${z.toFixed(2)}`,[.42,.12,.42],[x,.05,z],concrete);
+ const ground=createGroundMaterial(feet);
  box('town-ground',[600,.2,80],[0,-.1,SHORE.fenceZ+40],ground,false);
- box('footpath-paving',[7,.02,15],[.6,.01,-4.5],paving,false);
  box('retaining-wall',[600,-B+.2,.4],[0,B/2-.1,SHORE.fenceZ-.2],concrete,false);
  box('track-ground',[600,.2,6.1],[0,B-.1,-16.45],ground,false);
  box('platform-ground',[306,.2,2.8],[147,B-.1,-20.9],ground,false);
@@ -140,13 +143,22 @@ export function createGraybox(){
  const m=new THREE.Matrix4();for(let i=0;i<200;i++){m.makeTranslation(-60+i*.6,B+.18,TRACK.centerZ);sleepers.setMatrixAt(i,m);}
  sleepers.name='sleepers';sleepers.receiveShadow=true;group.add(sleepers);
  const pw=PLATFORM.xMax-PLATFORM.xMin,pz=(PLATFORM.zNear+PLATFORM.zFar)/2;
- box('platform',[pw,PLATFORM.topY-B+.2,PLATFORM.zNear-PLATFORM.zFar],[(PLATFORM.xMin+PLATFORM.xMax)/2,(PLATFORM.topY+B-.2)/2,pz],concrete);
+ const platformMat=createPlatformMaterial();
+ box('platform',[pw,PLATFORM.topY-B+.2,PLATFORM.zNear-PLATFORM.zFar],[(PLATFORM.xMin+PLATFORM.xMax)/2,(PLATFORM.topY+B-.2)/2,pz],platformMat);
  // A small open waiting shelter at the left end of the platform, echoing the reference's booth.
  const shelterX=PLATFORM.xMin+2.2;
- box('shelter-back',[3.2,2.3,.08],[shelterX,PLATFORM.topY+1.15,PLATFORM.zFar+.3],steel);
- for(const side of [-1,1])box(`shelter-side-${side}`,[.08,2.3,1.2],[shelterX+side*1.6,PLATFORM.topY+1.15,PLATFORM.zFar+.9],steel);
- box('shelter-roof',[3.6,.1,1.8],[shelterX,PLATFORM.topY+2.36,PLATFORM.zFar+.95],roofMat);
- box('shelter-bench',[2.6,.08,.4],[shelterX,PLATFORM.topY+.45,PLATFORM.zFar+.6],steel);
+ const shelterWall=createCorrugatedMaterial('#9aa49d','wall'),shelterRoof=createCorrugatedMaterial('#6d736f','roof',.62);
+ const wood=new THREE.MeshStandardMaterial({color:'#6a5a46',roughness:.85});
+ box('shelter-back',[3.2,2.3,.08],[shelterX,PLATFORM.topY+1.15,PLATFORM.zFar+.3],shelterWall);
+ for(const side of [-1,1])box(`shelter-side-${side}`,[.08,2.3,1.2],[shelterX+side*1.6,PLATFORM.topY+1.15,PLATFORM.zFar+.9],shelterWall);
+ box('shelter-roof',[3.6,.1,1.8],[shelterX,PLATFORM.topY+2.36,PLATFORM.zFar+.95],shelterRoof);
+ box('shelter-fascia',[3.6,.16,.04],[shelterX,PLATFORM.topY+2.28,PLATFORM.zFar+1.84],steel);
+ box('shelter-bench',[2.6,.05,.36],[shelterX,PLATFORM.topY+.45,PLATFORM.zFar+.6],wood);
+ for(const side of [-1,1])box(`shelter-bench-leg-${side}`,[.05,.43,.3],[shelterX+side*1.1,PLATFORM.topY+.215,PLATFORM.zFar+.6],steel);
+ // One small lamp under the shelter eave: the only light on the platform at night.
+ const shelterLampMat=new THREE.MeshStandardMaterial({color:'#f2eee4',emissive:new THREE.Color('#ffe2b8'),emissiveIntensity:0,roughness:.4});
+ box('shelter-lamp',[.5,.05,.08],[shelterX,PLATFORM.topY+2.25,PLATFORM.zFar+1.55],shelterLampMat,false);
+ const shelterLamp=new THREE.Vector3(shelterX,PLATFORM.topY+2.1,PLATFORM.zFar+1.5);
  // Station name board: blank on purpose (no signage text in the art language).
  const boardX=PLATFORM.xMin+8.5;
  for(const side of [-1,1])box(`board-post-${side}`,[.08,1.9,.08],[boardX+side*.7,PLATFORM.topY+.95,PLATFORM.zNear-.6],steel);
@@ -170,5 +182,5 @@ export function createGraybox(){
  }
  rocks.name='shore-rocks';rocks.castShadow=true;rocks.receiveShadow=true;group.add(rocks);
 
- return {group,tubeMat,tubes};
+ return {group,tubeMat,tubes,shelterLampMat,shelterLamp};
 }
