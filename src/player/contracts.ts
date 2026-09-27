@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type {OceanLevel} from '../places/metadata.ts';
+import type {MoonSettings} from '../shared/sky/FullMoon.ts';
 
 /** Art-directed light state; intensity is relative, angle is not an ephemeris. */
 export interface LightingState {
@@ -33,6 +34,9 @@ export interface PlaceInstance {
   framingAspect?:number;
   hasSimulation:boolean; waterMode:string;
   setOceanLevel?(level:OceanLevel):void;
+  /** Night-sky moon placement; x/y are default-view NDC, size in degrees. */
+  moonDefaults?:MoonSettings;
+  setMoon?(settings:MoonSettings):void;
   update(dt:number,elapsed:number,state:SceneState):void;
   disturb(u:number,v:number):void;
   resetWater():void;

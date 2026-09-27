@@ -93,7 +93,7 @@ body.resting .entry-dock:focus-within{opacity:1;transform:none;pointer-events:au
 #settings option,.music-player option{background:#182023;color:#e6e7e1}
 #settings input[type=range],.music-player input[type=range]{width:100%;height:20px;margin:5px 0;accent-color:#d3d7ce;cursor:pointer}
 #scene-options:empty{display:none}
-#water-options[hidden],#ocean-options[hidden],#rain-controls[hidden],#afterlight-camera-options[hidden]{display:none}
+#water-options[hidden],#ocean-options[hidden],#rain-controls[hidden],#afterlight-camera-options[hidden],#moon-options[hidden]{display:none}
 #scene-options>div{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #ffffff12}
 #ocean-options{margin-bottom:12px}
 .ocean-levels{display:flex;gap:3px;margin-top:6px;padding:3px;border:1px solid #ffffff12;border-radius:11px;background:#0002}
@@ -104,8 +104,8 @@ body.resting .entry-dock:focus-within{opacity:1;transform:none;pointer-events:au
 .check{display:flex!important;align-items:center;justify-content:flex-start!important;gap:7px;margin:10px 0 0;cursor:pointer}
 .check input{accent-color:#cbd1c8}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.actions button,#afterlight-camera-reset,#export-series{min-height:31px;padding:5px;border-radius:9px;background:#ffffff06;color:#ccd1cc;font-size:9px;letter-spacing:.03em}
-.actions button:hover,#afterlight-camera-reset:hover,#export-series:hover{background:#ffffff10;color:#fff}
+.actions button,#afterlight-camera-reset,#moon-reset,#export-series{min-height:31px;padding:5px;border-radius:9px;background:#ffffff06;color:#ccd1cc;font-size:9px;letter-spacing:.03em}
+.actions button:hover,#afterlight-camera-reset:hover,#moon-reset:hover,#export-series:hover{background:#ffffff10;color:#fff}
 .actions button[aria-pressed=true]{background:#ffffff14;color:#fff}
 .settings-more{margin-top:12px;border-top:1px solid #ffffff12}
 .settings-more summary{display:flex;justify-content:space-between;align-items:center;min-height:34px;padding-top:7px;cursor:pointer;list-style:none;color:#aeb5af;font-size:9px;letter-spacing:.09em}
