@@ -8,6 +8,8 @@ export const STAIR={width:2.0,rise:.16,run:.30,flight1:18,flight2:17,landing:1.4
 export const DECK={y:STAIR.rise*(STAIR.flight1+STAIR.flight2),width:2.0,topLandingDepth:2.1,crossEndZ:-20.9} as const;
 // The footpath sits on a bank above the shore bench; the track and platform are
 // 1.3 m lower so the platform railing stays below eye height and the sea opens up.
+/** Roof underside height above the stair nosing line, m. */
+export const ROOF_H=2.55;
 export const TRACK={centerZ:-16.9,gauge:1.067,bedY:-1.3} as const;
 export const PLATFORM={xMin:-6,xMax:13,zNear:-18.7,zFar:-21.9,topY:TRACK.bedY+.92} as const;
 export const SHORE={seaY:-2.9,wallZ:-22.3,fenceZ:-13.4} as const;

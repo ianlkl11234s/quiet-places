@@ -6,6 +6,7 @@ import {seabridgeDaylight} from './Daylight.ts';
 import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
+import {createSardineSchools} from './Sardines.ts';
 
 // Sky dome: time-driven horizon/zenith with subtropical fair-weather cumulus
 // (Okinawa-like: deep blue zenith, pale horizon haze, white clouds low on the
@@ -62,6 +63,15 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const background=new THREE.Color();scene.background=background;
   const requested=typeof location==='undefined'?null:new URLSearchParams(location.search).get('seabridgeView');
   const view=VIEWS[(requested==='a'||requested==='b'?requested:'user') as SeabridgeView];
+  // Sardines keep clear of every authored standpoint so they never fill the lens.
+  const sardines=createSardineSchools({seed:20260927,avoid:Object.values(VIEWS).map(v=>new THREE.Vector3(...v.position))});root.add(sardines.root);
+  // Weak sky-only environment for the sardines' silver flanks (same horizon/zenith as the dome,
+  // dark ground below). Rebuilt only when the sky colour moves, at most 5×/s.
+  const envScene=new THREE.Scene(),envDome=new THREE.Mesh(new THREE.SphereGeometry(1,24,12),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{uHorizon:horizon,uZenith:zenith},
+   vertexShader:'varying vec3 d;void main(){d=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+   fragmentShader:'varying vec3 d;uniform vec3 uHorizon,uZenith;void main(){float e=normalize(d).y;vec3 up=mix(uHorizon,uZenith,smoothstep(0.,.6,e));vec3 down=mix(uHorizon*.35,uHorizon*vec3(.06,.30,.28),smoothstep(0.,-.3,e));gl_FragColor=vec4(e>0.?up:down,1.);}'}));
+  envScene.add(envDome);
+  const pmrem=new THREE.PMREMGenerator(renderer),envKey=new THREE.Color(-1,-1,-1);let envTarget:THREE.WebGLRenderTarget|null=null,envAge=Infinity;
   let disposed=false;
   return {position:[...view.position],target:[...view.target],cameraMode:'fixed-position',yawRange:Math.PI/12,
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?78:view.fov;},exposure:1.05,hasSimulation:false,waterMode:'',
@@ -77,11 +87,15 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     graybox.tubeMat.emissiveIntensity=2.4*light.lamp;
     for(const lamp of lamps)lamp.intensity=5*light.lamp;
     graybox.shelterLampMat.emissiveIntensity=2.2*light.lamp;stationLamp.intensity=4*light.lamp;
-    grass.update(elapsed);
+    envAge+=Math.max(0,_dt);
+    if(envAge>=.2&&Math.abs(envKey.r-light.horizon.r)+Math.abs(envKey.g-light.horizon.g)+Math.abs(envKey.b-light.horizon.b)>.006){
+     const next=pmrem.fromScene(envScene,0,.1,10);envTarget?.dispose();envTarget=next;envKey.copy(light.horizon);envAge=0;sardines.setEnvironment(next.texture,1);
+    }
+    grass.update(elapsed);sardines.update(elapsed);
     renderer.shadowMap.enabled=true;
    },
    disturb(){},resetWater(){},
-   dispose(){if(disposed)return;disposed=true;disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
+   dispose(){if(disposed)return;disposed=true;sardines.dispose();envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
   };
  };
  return factory;

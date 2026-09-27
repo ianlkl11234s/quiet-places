@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {seededRandom} from '../../shared/math/seededRandom.ts';
-import {DECK,PLATFORM,SHORE,STAIR,TRACK,stairProfile} from './Layout.ts';
+import {DECK,PLATFORM,ROOF_H,SHORE,STAIR,TRACK,stairProfile} from './Layout.ts';
 import {createCorrugatedMaterial,createGroundMaterial,createPlatformMaterial} from './Materials.ts';
 
 /**
@@ -80,7 +80,7 @@ export function createGraybox(){
  railing('deck-rail-end',new THREE.Vector3(-hw,DECK.y,DECK.crossEndZ+.02),new THREE.Vector3(hw,DECK.y,DECK.crossEndZ+.02));
 
  // Barrel-vault roof over both flights and the top landing; columns and fluorescent tubes.
- const ROOF_H=2.55,roofWidth=STAIR.width+.8;
+ const roofWidth=STAIR.width+.8;
  const roofGeometry=(length:number)=>{
   const g=new THREE.PlaneGeometry(roofWidth,length,10,1);g.rotateX(-Math.PI/2);
   const position=g.attributes.position as THREE.BufferAttribute;
