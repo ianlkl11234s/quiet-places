@@ -9,8 +9,16 @@ import {installFullMoon} from '../../shared/sky/FullMoon.ts';
 
 /** Mid-Autumn candidate switch: 0 restores the confirmed moonless night sky. */
 const SEAWARD_FULL_MOON = 1;
-/** 1: moonlight comes from the moon as shown (follows its rise and the sliders); 0: the authored Daylight.ts moon path. */
-const SEAWARD_MOONLIGHT_FOLLOWS_MOON = 1;
+/**
+ * How the opening's moonlight relates to the visible moon.
+ * 'relative' (default): the authored Daylight.ts moonlight, turned by however far the
+ *   moon is from its default spot, so rising and the sliders move the light while the
+ *   risen default keeps the confirmed oblique left-wall moonlight.
+ * 'follow': exactly from the moon. Any moon visible through the opening is low (~10°)
+ *   and nearly straight down the tunnel, so light only grazes walls and floor: very dark.
+ * 'authored': the Daylight.ts moon path only; the moon does not affect the light.
+ */
+const SEAWARD_MOONLIGHT:'relative'|'follow'|'authored' = 'relative';
 
 export async function prepareSeaward():Promise<PlaceFactory>{
  const createRay=await prepareTunnelRay();
@@ -69,16 +77,19 @@ export async function prepareSeaward():Promise<PlaceFactory>{
   const moon=installFullMoon({position:[2.6,1.35,2.8],target:[-1.6,1.5,-11],verticalFov:53,enabled:!!SEAWARD_FULL_MOON,name:'seaward-full-moon',
    defaults:{size:2.4,brightness:1,x:.30,y:.29},riseFrom:{x:-.06,y:-.40}});
   root.add(moon.mesh);
+  const moonTurn=new THREE.Quaternion();
   let disposed=false;
   return {position:[2.6,1.35,2.8],target:[-1.6,1.5,-11],moonDefaults:moon.defaults,setMoon(settings){moon.setSettings(settings);},cameraMode:'fixed-position',yawRange:Math.PI/12,get fov(){return typeof window!=='undefined'&&window.innerWidth<700?90:53;},exposure:1.15,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
     const light=seawardDaylight(state);
     const night=light.moonlight/.5;moon.update(night,_dt);
     sun.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.direct;
-    if(SEAWARD_MOONLIGHT_FOLLOWS_MOON&&moon.mesh.visible){
-     // Turn the opening's light toward the moon with its fade-in and rise; a moon
-     // still low over the sea gives weaker light than a risen one.
-     sun.value.lerp(moon.direction,THREE.MathUtils.smoothstep(night,.2,1)).normalize();
+    if(SEAWARD_MOONLIGHT!=='authored'&&moon.mesh.visible){
+     // Blend in with the moon's fade-in; a moon still low over the sea gives
+     // weaker light than a risen one.
+     const moonlight=SEAWARD_MOONLIGHT==='follow'?moon.direction:
+      light.sun.clone().applyQuaternion(moonTurn.setFromUnitVectors(moon.defaultDirection,moon.direction));
+     sun.value.lerp(moonlight,THREE.MathUtils.smoothstep(night,.2,1)).normalize();
      direct.value=light.solar+light.moonlight*(.45+.55*moon.risen);
     }
     time.value=elapsed;beam.value=state.beamStrength??1;

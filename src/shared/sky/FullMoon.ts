@@ -77,11 +77,12 @@ export function installFullMoon({position,target,verticalFov,defaults,riseFrom,e
   // 0 = at the rise start, 1 = at the chosen spot. Starts risen so a room opened
   // at night shows the moon in place; only a transition into night replays the rise.
   let rise = 1, wasVisible = true, initialized = false;
+  const directionAt = (x:number,y:number,out:THREE.Vector3) =>
+    out.copy(forward).addScaledVector(right, x*tanV*FRAME_ASPECT).addScaledVector(up, y*tanV).normalize();
+  const defaultDirection = directionAt(defaults.x, defaults.y, new THREE.Vector3());
   function place(){
     const e = rise*rise*(3-2*rise); // eases out of the rise start and settles into the chosen spot
-    direction.copy(forward)
-      .addScaledVector(right, (settings.x+riseFrom.x*(1-e))*tanV*FRAME_ASPECT)
-      .addScaledVector(up, (settings.y+riseFrom.y*(1-e))*tanV).normalize();
+    directionAt(settings.x+riseFrom.x*(1-e), settings.y+riseFrom.y*(1-e), direction);
     // Parallel to the default image plane, not facing the eye: a billboard this
     // far off-axis would project as a stretched ellipse in the 62° lens.
     mesh.position.copy(eye).addScaledVector(direction, DISTANCE/direction.dot(forward));
@@ -95,6 +96,8 @@ export function installFullMoon({position,target,verticalFov,defaults,riseFrom,e
     setSettings(next:MoonSettings){Object.assign(settings,next);place();},
     /** Unit direction from the viewer to the moon as currently shown. */
     direction,
+    /** The same direction for the place's defaults, fully risen: the reference for relative moonlight. */
+    defaultDirection,
     /** 0 while hidden or at the rise start, 1 once it has risen. */
     get risen(){return mesh.visible?rise*rise*(3-2*rise):0;},
     update(night:number,dt:number){
