@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type {PlaceFactory} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
-import {seaMaterial} from '../seaward/Materials.ts';
+import {createSeaMaterial} from './Sea.ts';
 import {seabridgeDaylight} from './Daylight.ts';
 import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
@@ -41,7 +41,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const graybox=createGraybox();root.add(graybox.group);
   const time={value:0},day={value:1},sunU={value:new THREE.Vector3()},tint={value:new THREE.Color()},direct={value:1};
   const horizon={value:new THREE.Color()},zenith={value:new THREE.Color()};
-  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1400,1000),seaMaterial(time,day,sunU,tint,direct,horizon,zenith));
+  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1400,1000),createSeaMaterial(time,day,sunU,tint,direct,horizon,zenith));
   ocean.name='seabridge-sea';ocean.rotation.x=-Math.PI/2;ocean.position.set(0,SHORE.seaY,-520);root.add(ocean);
   const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0},uDay:{value:1},uTime:{value:0}};
   const sky=new THREE.Mesh(new THREE.SphereGeometry(650,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,
@@ -67,7 +67,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?78:view.fov;},exposure:1.05,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
     const light=seabridgeDaylight(state);
-    time.value=elapsed;day.value=light.level;sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.solar+.4*light.night;
+    time.value=elapsed;day.value=light.level*(1-.75*light.night);sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.solar+.4*light.night;
     horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);background.copy(light.horizon);
     skyUniforms.uGlow.value=.4+1.6*light.low;skyUniforms.uNight.value=light.night;
     skyUniforms.uDay.value=light.level*(1-light.night)*(1-.7*light.low);skyUniforms.uTime.value=elapsed;
