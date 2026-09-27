@@ -4,7 +4,7 @@ import {collectModelResources,disposeModelResources} from '../../shared/resource
 import {seaMaterial} from '../seaward/Materials.ts';
 import {seabridgeDaylight} from './Daylight.ts';
 import {createGraybox} from './Graybox.ts';
-import {GRASS_PATCHES,grassKeepOut,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
+import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
 
 // Sky dome: time-driven horizon/zenith, soft cloud banks and a low-sun glow.
@@ -36,7 +36,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0}};
   const sky=new THREE.Mesh(new THREE.SphereGeometry(650,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,
    vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:skyFragment}));
-  const grass=createGrass(GRASS_PATCHES,grassKeepOut,{sun:sunU,tint,direct});root.add(grass.group);
+  const grass=createGrass(GRASS_PATCHES,grassBlocked,{sun:sunU,tint,direct});root.add(grass.group);
   sky.name='seabridge-sky';sky.renderOrder=-100;root.add(sky);
 
   const sun=new THREE.DirectionalLight('#ffffff',2);sun.castShadow=true;

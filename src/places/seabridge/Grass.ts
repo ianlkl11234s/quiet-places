@@ -39,7 +39,7 @@ function seedHeadGeometry(random:()=>number){
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();return g;
 }
 
-export function createGrass(patches:readonly GrassPatch[],keepOut:(x:number,z:number)=>boolean,light:{sun:{value:THREE.Vector3};tint:{value:THREE.Color};direct:{value:number}}){
+export function createGrass(patches:readonly GrassPatch[],blocked:(x:number,z:number,y:number)=>boolean,light:{sun:{value:THREE.Vector3};tint:{value:THREE.Color};direct:{value:number}}){
  const group=new THREE.Group();group.name='seabridge-coastal-weeds';
  const random=seededRandom(4127);
  const uniforms={uTime:{value:0},uWindDir:{value:new THREE.Vector2(.28,1).normalize()},uSun:light.sun,uSunTint:light.tint,uDirect:light.direct};
@@ -105,21 +105,21 @@ reflectedLight.indirectDiffuse+=diffuseColor.rgb*uSunTint*back*uDirect*.9*smooth
    const ang=random()*Math.PI*2,d=Math.pow(random(),1.5)*.18*size;
    // Longer leaves arch further; short ones stay nearly upright.
    const h=patch.height*size*(.45+random()*.75);
-   if(keepOut(cx+Math.cos(ang)*d,cz+Math.sin(ang)*d))continue;
+   if(blocked(cx+Math.cos(ang)*d,cz+Math.sin(ang)*d,patch.y))continue;
    blades.push({x:cx+Math.cos(ang)*d,y:patch.y,z:cz+Math.sin(ang)*d,h,w:.014+random()*.016,
     heading:ang+Math.PI/2+(random()-.5)*.6,tilt:.12+random()*.35,lean:(.15+random()*.45)*Math.min(1,h/.45),flex:random(),tone:random()<(dry?.5:.12)?pick(straw):pick(greens)});
   }
   // Low turf between clumps so the ground reads as covered, not isolated tufts.
   for(let i=0;i<count*.45;i++){
    const ang=random()*Math.PI*2,d=.15+random()*.45*size;
-   if(keepOut(cx+Math.cos(ang)*d,cz+Math.sin(ang)*d))continue;
+   if(blocked(cx+Math.cos(ang)*d,cz+Math.sin(ang)*d,patch.y))continue;
    blades.push({x:cx+Math.cos(ang)*d,y:patch.y,z:cz+Math.sin(ang)*d,h:.08+random()*.16,w:.012+random()*.01,
     heading:random()*Math.PI*2,tilt:.2+random()*.5,lean:.05+random()*.15,flex:random(),tone:pick(greens)});
   }
   const stems=random()<.3?Math.round(1+random()*1.5*size):0;
   for(let i=0;i<stems;i++){
    const ang=random()*Math.PI*2,d=random()*.08;
-   if(keepOut(cx,cz))continue;
+   if(blocked(cx,cz,patch.y))continue;
    heads.push({x:cx+Math.cos(ang)*d,y:patch.y,z:cz+Math.sin(ang)*d,h:patch.height*size*(1.1+random()*.7),w:1,
     heading:random()*Math.PI*2,tilt:.03+random()*.12,lean:.05+random()*.2,flex:random(),tone:pick(straw)});
   }

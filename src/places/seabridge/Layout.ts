@@ -31,8 +31,17 @@ export const VIEWS={
 export type SeabridgeView=keyof typeof VIEWS;
 
 /** Weed patches (centre, ground y, spread radius, clumps, blades per clump, height m). */
-/** The walked line from the footpath up the stair stays clear of weeds. */
-export const grassKeepOut=(x:number,z:number)=>Math.abs(x)<1.25&&z>-12.4&&z<8;
+/**
+ * Where weeds may root: the footpath bank (y=0) ends at the retaining wall, the
+ * shore bench (TRACK.bedY) only beside the ballast and, left of the platform,
+ * before the coast edge. The walked line up the stair stays clear.
+ */
+export const grassBlocked=(x:number,z:number,y:number)=>{
+ if(y===0)return z<SHORE.fenceZ+.15||(Math.abs(x)<1.25&&z>-12.4&&z<8);
+ const beside=z<SHORE.fenceZ-.45&&z>TRACK.centerZ+1.6;
+ const seaSide=x<PLATFORM.xMin-.5&&z<TRACK.centerZ-1.5&&z>-19.3;
+ return !(beside||seaSide);
+};
 
 export const GRASS_PATCHES=[
  // Around the stair foot and along the paving edges, where weeds push through.
@@ -46,9 +55,10 @@ export const GRASS_PATCHES=[
  {x:-6,z:1.8,y:0,radius:2.6,clumps:60,density:26,height:.6},
  {x:6,z:1.6,y:0,radius:2.6,clumps:60,density:26,height:.6},
  {x:-7.5,z:6.5,y:0,radius:2.2,clumps:40,density:26,height:.55},
- // The bank edge above the retaining wall.
- {x:-10,z:-12.6,y:0,radius:5.5,clumps:80,density:14,height:.7},
- {x:9,z:-12.6,y:0,radius:5.5,clumps:80,density:14,height:.7},
- // Shore bench left of the platform.
- {x:-14,z:-17.5,y:TRACK.bedY,radius:6,clumps:60,density:10,height:.7},
+ // Back toward the bank edge, kept short and set back so the tips stay below the
+ // bank-edge line from the footpath and never read against the sea.
+ {x:-10,z:-9.8,y:0,radius:3,clumps:70,density:14,height:.35},
+ {x:9,z:-9.8,y:0,radius:3,clumps:70,density:14,height:.35},
+// No weeds on the lower shore bench: from the footpath its ground is hidden by
+ // the bank, so the tips read as floating on the sea (user feedback 2026-09-27).
 ] as const;
