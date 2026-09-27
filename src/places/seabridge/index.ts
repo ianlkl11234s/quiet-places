@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type {PlaceFactory} from '../../player/contracts.ts';
 import {collectModelResources,disposeModelResources} from '../../shared/resources/ModelResources.ts';
 import {createSeaMaterial} from './Sea.ts';
-import {seabridgeDaylight} from './Daylight.ts';
+import {moonDirection,seabridgeDaylight} from './Daylight.ts';
 import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
@@ -15,7 +15,7 @@ const SEABRIDGE_FULL_MOON = 1;
 // Sky dome: time-driven horizon/zenith with subtropical fair-weather cumulus
 // (Okinawa-like: deep blue zenith, pale horizon haze, white clouds low on the
 // horizon). Shares the colours the sea reflects; art-directed, not scattering.
-const skyFragment=`varying vec3 direction;uniform vec3 uHorizon,uZenith,uTint,uSun;uniform float uGlow,uNight,uDay,uTime;
+const skyFragment=`varying vec3 direction;uniform vec3 uHorizon,uZenith,uTint,uSun,uSunDisc;uniform float uGlow,uNight,uDay,uTime,uSunDiscVis;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.05+13.7;a*=.5;}return v;}
@@ -33,6 +33,11 @@ vec3 lowCloud=mix(col*.62,uHorizon*1.35*uTint,clamp(sunward*uGlow,0.,1.));
 vec3 cloudCol=mix(lowCloud,dayCloud,clamp(uDay*1.4-.2*uGlow,0.,1.));
 col=mix(col,cloudCol,c*.92);
 col+=uTint*pow(max(dot(d,uSun),0.),16.)*uGlow*.6*(1.-uNight);
+// Sun disc (~0.6°, a little larger than the real 0.53° for legibility): warmer and dimmer
+// near the horizon; the sea hides it once it sets. A true highlight, so bloom may catch it.
+float sd=dot(d,uSunDisc),core=smoothstep(cos(.0056),cos(.0046),sd),corona=pow(max(sd,0.),900.)*.35;
+float high=smoothstep(.0,.35,uSunDisc.y);
+col+=(core+corona*(1.-core))*mix(vec3(1.,.58,.32)*3.,vec3(1.,.97,.9)*9.,high)*uSunDiscVis*(1.-c*.85);
 gl_FragColor=vec4(col,1.);
 #include <tonemapping_fragment>
 #include <colorspace_fragment>
@@ -48,7 +53,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const horizon={value:new THREE.Color()},zenith={value:new THREE.Color()};
   const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1400,1000),createSeaMaterial(time,day,sunU,tint,direct,horizon,zenith));
   ocean.name='seabridge-sea';ocean.rotation.x=-Math.PI/2;ocean.position.set(0,SHORE.seaY,-520);root.add(ocean);
-  const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0},uDay:{value:1},uTime:{value:0}};
+  const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0},uDay:{value:1},uTime:{value:0},uSunDisc:{value:new THREE.Vector3(0,1,0)},uSunDiscVis:{value:0}};
   const sky=new THREE.Mesh(new THREE.SphereGeometry(650,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,
    vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:skyFragment}));
   const grass=createGrass(GRASS_PATCHES,grassBlocked,{sun:sunU,tint,direct});root.add(grass.group);
@@ -79,31 +84,35 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
    fragmentShader:'varying vec3 d;uniform vec3 uHorizon,uZenith,uGround;void main(){float e=normalize(d).y;vec3 up=mix(uHorizon,uZenith,smoothstep(0.,.6,e));vec3 down=mix(uHorizon*.35,uGround,smoothstep(0.,-.3,e));gl_FragColor=vec4(e>0.?up:down,1.);}'}));
   envScene.add(envDome);
   const pmrem=new THREE.PMREMGenerator(renderer),envKey=new THREE.Color(-1,-1,-1);let envTarget:THREE.WebGLRenderTarget|null=null,envAge=Infinity;
-  // Laid out in the user-chosen default view: rises out of the sea (hidden by the ocean's
-  // depth) into the open sky right of the covered stair. Moonlight is the authored Daylight
-  // moon turned by the moon's offset from its default ('relative', as in seaward).
+  // The moon follows its sky arc (Daylight.ts moonDirection). FullMoon still draws the disc,
+  // laid out in the default view: each frame the arc direction is projected to that view's
+  // NDC. The x/y sliders offset the whole arc; size/brightness work as in other rooms.
+  const moonView={eye:new THREE.Vector3(...VIEWS.user.position),f:new THREE.Vector3(),r:new THREE.Vector3(),u:new THREE.Vector3(),tan:Math.tan(THREE.MathUtils.degToRad(VIEWS.user.fov)/2)};
+  moonView.f.copy(new THREE.Vector3(...VIEWS.user.target)).sub(moonView.eye).normalize();moonView.r.crossVectors(moonView.f,new THREE.Vector3(0,1,0)).normalize();moonView.u.crossVectors(moonView.r,moonView.f);
+  const toNdc=(d:THREE.Vector3)=>{const z=d.dot(moonView.f);return z<=.08?null:{x:d.dot(moonView.r)/z/(moonView.tan*16/9),y:d.dot(moonView.u)/z/moonView.tan};};
+  const at23=toNdc(moonDirection(23))!;
   const moon=installFullMoon({position:[...VIEWS.user.position],target:[...VIEWS.user.target],verticalFov:VIEWS.user.fov,enabled:!!SEABRIDGE_FULL_MOON,name:'seabridge-full-moon',
-   defaults:{size:2.4,brightness:1,x:.55,y:.62},riseFrom:{x:-.08,y:-1.05}});
+   defaults:{size:2.4,brightness:1,x:at23.x,y:at23.y},riseFrom:{x:0,y:0}});
   root.add(moon.mesh);
-  const moonTurn=new THREE.Quaternion();
+  const moonUser={...moon.defaults};
   let disposed=false;
-  return {position:[...view.position],target:[...view.target],moonDefaults:moon.defaults,setMoon(settings){moon.setSettings(settings);},cameraMode:'fixed-position',yawRange:Math.PI/12,
+  return {position:[...view.position],target:[...view.target],moonDefaults:moon.defaults,setMoon(settings){Object.assign(moonUser,settings);},cameraMode:'fixed-position',yawRange:Math.PI/12,
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?78:view.fov;},exposure:1.05,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
     const light=seabridgeDaylight(state);
-    time.value=elapsed;day.value=light.level*(1-.75*light.night);sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.solar+.4*light.night;
+    time.value=elapsed;day.value=light.level*(1-.75*light.night);sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.solar+.4*light.night*light.moonUp;
     horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);background.copy(light.horizon);
     skyUniforms.uGlow.value=.4+1.6*light.low;skyUniforms.uNight.value=light.night;
     skyUniforms.uDay.value=light.level*(1-light.night)*(1-.7*light.low);skyUniforms.uTime.value=elapsed;
+    const ndc=toNdc(light.moonTrue);
+    if(ndc)moon.setSettings({size:moonUser.size,brightness:moonUser.brightness,x:ndc.x+moonUser.x-moon.defaults.x,y:ndc.y+moonUser.y-moon.defaults.y});
     moon.update(light.night,_dt);
+    if(!ndc)moon.mesh.visible=false; // behind the default view; below the horizon the sea hides it
+    skyUniforms.uSunDisc.value.copy(light.sunTrue);skyUniforms.uSunDiscVis.value=light.sunUp*(1-light.night);
     const lightDir=light.sun.clone();
-    if(moon.mesh.visible){
-     // Blend in with the moon's fade-in; a moon still low over the sea gives weaker light.
-     lightDir.lerp(light.sun.clone().applyQuaternion(moonTurn.setFromUnitVectors(moon.defaultDirection,moon.direction)),THREE.MathUtils.smoothstep(light.night,.2,1)).normalize();
-    }
     sun.position.copy(sun.target.position).addScaledVector(lightDir,45);
     sunU.value.copy(lightDir); // sea glint and grass transmission follow the moon at night
-    sun.color.copy(light.tint);sun.intensity=(2.5*light.solar*light.level+.35*light.night*(moon.mesh.visible?.45+.55*moon.risen:1))*(state.beamStrength??1);
+    sun.color.copy(light.tint);sun.intensity=(2.5*light.solar*light.level+.35*light.night*light.moonUp)*(state.beamStrength??1);
     // Soil albedo ~(.26,.23,.18) lit by the sun: the warm light bounced up into shaded undersides.
     groundBounce.value.setRGB(.26,.23,.18).multiply(light.tint).multiplyScalar(.9*light.solar*light.level+.02);
     hemi.color.copy(light.horizon).lerp(new THREE.Color(1,1,1),.45);hemi.groundColor.copy(groundBounce.value).multiplyScalar(2.2).lerp(new THREE.Color('#3a352d'),.3);
