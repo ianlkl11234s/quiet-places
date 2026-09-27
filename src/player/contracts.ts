@@ -33,6 +33,8 @@ export interface PlaceInstance {
   framingAspect?:number;
   hasSimulation:boolean; waterMode:string;
   setOceanLevel?(level:OceanLevel):void;
+  /** Night-sky moon placement; x/y are default-view NDC, size in degrees. */
+  setMoon?(settings:{size:number;brightness:number;x:number;y:number}):void;
   update(dt:number,elapsed:number,state:SceneState):void;
   disturb(u:number,v:number):void;
   resetWater():void;

@@ -7,6 +7,7 @@ import {createArcadeEnvironment,updateArcadeEnvironment,installArcadeAmbient} fr
 import {installTornCloth} from './TornCloth.ts';
 import {installCreatureAmbient} from './biology/CreatureAmbient.ts';
 import {installArcadeSea} from './Sea.ts';
+import {installArcadeMoon} from './Moon.ts';
 import {createArcadeBiology} from './biology/index.ts';
 import arcadeConfig from '../../../assets/config/last-arcade.json' with {type:'json'};
 
@@ -307,12 +308,14 @@ export async function prepareLastArcade() {
     // Broad, upward-facing patches represent sunlight reflected by the open road.
     // RectAreaLight has no occlusion; keep the emitting planes outside the arcade.
     const groundBounces=[-5,-18].map(z=>{const light=new THREE.RectAreaLight('#e8c99a',.8,3.4,12);light.name='arcade-road-bounce';light.position.set(4.8,-.10,z);light.rotation.x=-Math.PI/2;return light;});
-    scene.add(root, sky, sun, sun.target,...groundBounces); scene.background = background;
+    const position:[number,number,number]=[arcadeConfig.camera.position[0], arcadeConfig.camera.position[2], -arcadeConfig.camera.position[1]];
+    const target:[number,number,number]=[arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]];
+    const moon=installArcadeMoon(position,target,arcadeConfig.camera.verticalFov);
+    scene.add(root, sky, sun, sun.target, moon.mesh,...groundBounces); scene.background = background;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
     let disposed = false, quality: number | undefined;
     return {
-      position: [arcadeConfig.camera.position[0], arcadeConfig.camera.position[2], -arcadeConfig.camera.position[1]],
-      target: [arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]],
+      position, target,
       fov: arcadeConfig.camera.verticalFov,
       cameraMode: 'fixed-position', yawRange: Math.PI / 30, exposure: 1.08, toneMapping: THREE.AgXToneMapping,
       hasSimulation: true, waterMode: '黑潮生物在乾燥街道間巡游；遠海與藤葉隨時間流動',
@@ -354,6 +357,7 @@ export async function prepareLastArcade() {
         scene.environmentIntensity=THREE.MathUtils.lerp(.025+.50*Math.min(1,daylight),.9,night);
         scene.backgroundIntensity=THREE.MathUtils.lerp(.06+.94*Math.min(1,daylight),1,night);
         streetLamps.forEach(lamp=>lamp.update(night,!!state.lowQuality));
+        moon.update(night);
         for(const light of groundBounces){
           // Sun-on-road bounce; at night the moon's share of it is negligible.
           light.intensity=(.02+.38*Math.min(1,daylight))*(1-.85*night);
@@ -371,10 +375,11 @@ export async function prepareLastArcade() {
         if (resolution !== quality) { quality = resolution; sun.shadow.map?.dispose(); sun.shadow.map = null; sun.shadow.mapSize.set(resolution, resolution); }
         sun.shadow.needsUpdate = true;
       },
+      setMoon(settings) {moon.setSettings(settings);},
       disturb() {biology.disturb();}, resetWater() {},
       dispose() {
         if (disposed) return; disposed = true;
-        clothAmbient.dispose(); tornCloth.dispose(); streetLamps.forEach(lamp=>lamp.dispose()); facade.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
+        moon.dispose(); clothAmbient.dispose(); tornCloth.dispose(); streetLamps.forEach(lamp=>lamp.dispose()); facade.dispose(); biology.dispose(); foliage.dispose(); shopSign.dispose(); sea.dispose(); sun.shadow.map?.dispose(); sun.shadow.mapPass?.dispose(); sun.removeFromParent(); sun.target.removeFromParent(); sky.removeFromParent(); release();
         groundBounces.forEach(light=>light.removeFromParent());
         if(scene.environment===environment)scene.environment=priorAmbient.environment;
         if(scene.background===background)scene.background=priorAmbient.background;
