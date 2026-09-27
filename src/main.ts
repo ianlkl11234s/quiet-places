@@ -14,7 +14,6 @@ import afterlightStudy from '../assets/config/afterlight-study.json';
 import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences,PREFERENCES_STORAGE_KEY,LEGACY_PREFERENCES_STORAGE_KEY} from './systems/Preferences.ts';
 import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
 import {createSceneClock} from './player/SceneClock.ts';
-import {ARCADE_MOON_DEFAULTS} from './places/last-arcade/Moon.ts';
 import {chooseInitialPlace,layoutMemoryBubbles,ROOM_ENTRY_SESSION_KEY} from './ui/RoomBrowser.ts';
 import {createRoomBubbleMotionController,ROOM_BUBBLE_SEED_KEY} from './ui/RoomBubbleMotion.ts';
 import './style.css';
@@ -45,7 +44,7 @@ async function start(){
  const moonSliders=[['size','月亮大小',100,600,10],['brightness','月亮亮度',40,160,5],['x','水平位置',-95,95,1],['y','高度',20,95,1]] as const;
  moonOptions.innerHTML=moonSliders.map(([key,label,min,max,step])=>`<label for="moon-${key}">${label} <output id="moon-${key}-value"></output></label><input id="moon-${key}" type="range" min="${min}" max="${max}" step="${step}">`).join('')+'<div class="actions"><button id="moon-reset">月亮回預設</button></div>';
  snowCameraOptions.after(moonOptions);
- const moonSettings={...ARCADE_MOON_DEFAULTS};
+ const moonSettings={size:2.4,brightness:1,x:.7,y:.76};
  function syncMoon(){
   for(const [key] of moonSliders){
    const input=el<HTMLInputElement>(`moon-${key}`),value=moonSettings[key];
@@ -53,6 +52,8 @@ async function start(){
    el(`moon-${key}-value`).textContent=key==='size'?`${value.toFixed(1)}°`:key==='brightness'?`${Math.round(value*100)}%`:String(Math.round(value*100));
   }
  }
+ // Each place lays its moon out for its own view: switching rooms starts from that place's defaults.
+ function applyPlaceMoon(){if(!place.moonDefaults)return;Object.assign(moonSettings,place.moonDefaults);place.setMoon?.(moonSettings);syncMoon();}
  const persist=()=>{
   saveRoomPreferences(preferences,currentPlace,{hour,live,beamStrength,weather:preferences.weather,rainIntensity:preferences.rainIntensity,oceanLevel});
   savePreferences(preferences);
@@ -75,7 +76,7 @@ async function start(){
  Object.assign(preferences,initialRoom);
  let oceanLevel:OceanLevel=isOceanLevel(requestedSea)?requestedSea:initialRoom.oceanLevel;
  let place=(await preparePlace(currentPlace))(scene,renderer);
- place.setOceanLevel?.(oceanLevel);place.setMoon?.(moonSettings);
+ place.setOceanLevel?.(oceanLevel);applyPlaceMoon();
  renderer.toneMapping=place.toneMapping??THREE.ACESFilmicToneMapping;
  renderer.toneMappingExposure=place.exposure??1.1;
  const placeFov=(aspect=camera.aspect)=>{
@@ -217,7 +218,7 @@ async function start(){
    if(!exporting)await fadeRoom(true);
    const room=save?getRoomPreferences(preferences,id):undefined;
    if(room){hour=room.live?localHour():room.hour;live=room.live;beamStrength=room.beamStrength;oceanLevel=room.oceanLevel;preferences.weather=room.weather;preferences.rainIntensity=room.rainIntensity;}
-   place=candidate;scene=nextScene;renderPass.scene=scene;currentPlace=id;place.setOceanLevel?.(oceanLevel);place.setMoon?.(moonSettings);
+   place=candidate;scene=nextScene;renderPass.scene=scene;currentPlace=id;place.setOceanLevel?.(oceanLevel);applyPlaceMoon();
    homeCamera();sceneClock.reset();timeTravel=undefined;state=sampleTime(hour);
    const weatherProfile=getPlaceMetadata(id).weatherProfile;
    const waterRain=weatherProfile==='water'&&preferences.weather==='rain';
@@ -330,7 +331,7 @@ async function start(){
  for(const [key] of moonSliders)el<HTMLInputElement>(`moon-${key}`).addEventListener('input',event=>{
   moonSettings[key]=Number((event.target as HTMLInputElement).value)/100;place.setMoon?.(moonSettings);syncMoon();requestRender();
  });
- el('moon-reset').addEventListener('click',()=>{Object.assign(moonSettings,ARCADE_MOON_DEFAULTS);place.setMoon?.(moonSettings);syncMoon();requestRender();});
+ el('moon-reset').addEventListener('click',()=>{applyPlaceMoon();requestRender();});
  el('afterlight-camera-reset').addEventListener('click',()=>{if(placeSupports(currentPlace,'camera-distance'))resetView();});
  renderer.domElement.addEventListener('wheel',event=>{
   if(!placeSupports(currentPlace,'camera-distance')||switching||exporting||event.ctrlKey||!controls.enabled)return;

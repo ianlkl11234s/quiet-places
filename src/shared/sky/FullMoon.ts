@@ -1,11 +1,7 @@
 import * as THREE from 'three';
 
-/** Mid-Autumn candidate switch: 0 restores the confirmed moonless night sky. */
-export const ARCADE_FULL_MOON = 1;
-/** Seconds for the moon to climb from behind the opposite roofs; 0 makes it appear in place. */
-export const ARCADE_MOON_RISE_SECONDS = 12;
-/** Rise start relative to the chosen spot, in default-view NDC: lower and a little to the right. */
-const RISE_FROM = {x:.12, y:-.55};
+/** Seconds for the moon to climb into place; 0 makes it appear in place. */
+export const MOON_RISE_SECONDS = 12;
 
 /**
  * Art-directed placement in the default view: x/y are NDC of a 16:9 frame
@@ -13,7 +9,17 @@ const RISE_FROM = {x:.12, y:-.55};
  * is ~0.5°; the larger default is the scene's one permitted quiet impossibility.
  */
 export interface MoonSettings {size:number;brightness:number;x:number;y:number}
-export const ARCADE_MOON_DEFAULTS:MoonSettings = {size:2.4, brightness:1, x:.70, y:.76};
+
+export interface MoonOptions {
+  /** The place's default camera; the moon is fixed in the world, laid out in this view. */
+  position:THREE.Vector3Tuple; target:THREE.Vector3Tuple; verticalFov:number;
+  defaults:MoonSettings;
+  /** Rise start relative to the chosen spot, in default-view NDC; pick a point hidden behind scenery. */
+  riseFrom:{x:number;y:number};
+  /** Place switch constant: false keeps the moon hidden, restoring the moonless sky. */
+  enabled:boolean;
+  name:string;
+}
 
 // DISTANCE is depth along the default view axis; the slider extremes stay inside camera.far=700.
 const DISTANCE = 450, FRAME_ASPECT = 16/9, QUAD = 3; // quad spans 3 disc diameters for the halo
@@ -51,53 +57,53 @@ void main(){
 `;
 
 /** A camera-facing disc far down the default sight line; faded by the scene's own night factor. */
-export function installArcadeMoon(position:THREE.Vector3Tuple,target:THREE.Vector3Tuple,verticalFov:number){
+export function installFullMoon({position,target,verticalFov,defaults,riseFrom,enabled,name}:MoonOptions){
   const eye = new THREE.Vector3(...position);
   const material = new THREE.ShaderMaterial({
-    name:'arcade-full-moon', vertexShader, fragmentShader,
+    name, vertexShader, fragmentShader,
     uniforms:{uMoonBrightness:{value:1}, uMoonVisible:{value:0}, uMoonTint:{value:new THREE.Color(1,1,1)}},
     transparent:true, blending:THREE.AdditiveBlending, depthWrite:false,
   });
   const geometry = new THREE.PlaneGeometry(1,1);
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = 'arcade-full-moon'; mesh.frustumCulled = false; mesh.visible = false;
+  mesh.name = name; mesh.frustumCulled = false; mesh.visible = false;
   const forward = new THREE.Vector3(...target).sub(eye).normalize();
   const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0,1,0)).normalize();
   const up = new THREE.Vector3().crossVectors(right, forward);
   const tanV = Math.tan(THREE.MathUtils.degToRad(verticalFov)/2);
   mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, forward.clone().negate()));
-  const settings = {...ARCADE_MOON_DEFAULTS}, direction = new THREE.Vector3();
+  const settings = {...defaults}, direction = new THREE.Vector3();
   const lowTint = new THREE.Color(1,.80,.60), tint = material.uniforms.uMoonTint.value as THREE.Color;
-  // 0 = behind the roofs, 1 = at the chosen spot. Starts risen so a room opened
+  // 0 = at the rise start, 1 = at the chosen spot. Starts risen so a room opened
   // at night shows the moon in place; only a transition into night replays the rise.
   let rise = 1, wasVisible = true, initialized = false;
   function place(){
-    const e = rise*rise*(3-2*rise); // eases out from behind the roofs and settles into the chosen spot
+    const e = rise*rise*(3-2*rise); // eases out of the rise start and settles into the chosen spot
     direction.copy(forward)
-      .addScaledVector(right, (settings.x+RISE_FROM.x*(1-e))*tanV*FRAME_ASPECT)
-      .addScaledVector(up, (settings.y+RISE_FROM.y*(1-e))*tanV).normalize();
+      .addScaledVector(right, (settings.x+riseFrom.x*(1-e))*tanV*FRAME_ASPECT)
+      .addScaledVector(up, (settings.y+riseFrom.y*(1-e))*tanV).normalize();
     // Parallel to the default image plane, not facing the eye: a billboard this
     // far off-axis would project as a stretched ellipse in the 62° lens.
     mesh.position.copy(eye).addScaledVector(direction, DISTANCE/direction.dot(forward));
     mesh.scale.setScalar(2*DISTANCE*Math.tan(THREE.MathUtils.degToRad(settings.size)/2)*QUAD);
-    // Near the rooftops the moon is dimmer and warmer (longer air path).
+    // Low in the sky the moon is dimmer and warmer (longer air path).
     tint.copy(lowTint).lerp(new THREE.Color(1,1,1), e);
     material.uniforms.uMoonBrightness.value = settings.brightness*(.6+.4*e);
   }
   place();
-  return {mesh,
+  return {mesh, defaults,
     setSettings(next:MoonSettings){Object.assign(settings,next);place();},
     /** Unit direction from the viewer to the moon as currently shown. */
     direction,
-    /** 0 while hidden or low behind the roofs, 1 once it has risen. */
+    /** 0 while hidden or at the rise start, 1 once it has risen. */
     get risen(){return mesh.visible?rise*rise*(3-2*rise):0;},
     update(night:number,dt:number){
-      const visible = ARCADE_FULL_MOON ? THREE.MathUtils.smoothstep(night,.2,1) : 0;
+      const visible = enabled ? THREE.MathUtils.smoothstep(night,.2,1) : 0;
       if(!initialized){initialized=true;wasVisible=visible>0;rise=wasVisible?1:0;}
       if(visible>0&&!wasVisible)rise=0;
       wasVisible=visible>0;
       // A paused or reduced-motion player advances no time: show the moon in place.
-      if(visible>0&&rise<1)rise=dt>0&&ARCADE_MOON_RISE_SECONDS>0?Math.min(1,rise+dt/ARCADE_MOON_RISE_SECONDS):1;
+      if(visible>0&&rise<1)rise=dt>0&&MOON_RISE_SECONDS>0?Math.min(1,rise+dt/MOON_RISE_SECONDS):1;
       material.uniforms.uMoonVisible.value = visible;
       mesh.visible = visible > 0;
       place();

@@ -7,8 +7,10 @@ import {createArcadeEnvironment,updateArcadeEnvironment,installArcadeAmbient} fr
 import {installTornCloth} from './TornCloth.ts';
 import {installCreatureAmbient} from './biology/CreatureAmbient.ts';
 import {installArcadeSea} from './Sea.ts';
-import {installArcadeMoon} from './Moon.ts';
+import {installFullMoon} from '../../shared/sky/FullMoon.ts';
 
+/** Mid-Autumn candidate switch: 0 restores the confirmed moonless night sky. */
+const ARCADE_FULL_MOON = 1;
 /** 1: moonlight comes from the moon as shown (follows its rise and the sliders); 0: the Q2-A2 authored night direction. */
 const ARCADE_MOONLIGHT_FOLLOWS_MOON = 1;
 import {createArcadeBiology} from './biology/index.ts';
@@ -313,7 +315,9 @@ export async function prepareLastArcade() {
     const groundBounces=[-5,-18].map(z=>{const light=new THREE.RectAreaLight('#e8c99a',.8,3.4,12);light.name='arcade-road-bounce';light.position.set(4.8,-.10,z);light.rotation.x=-Math.PI/2;return light;});
     const position:[number,number,number]=[arcadeConfig.camera.position[0], arcadeConfig.camera.position[2], -arcadeConfig.camera.position[1]];
     const target:[number,number,number]=[arcadeConfig.camera.target[0], arcadeConfig.camera.target[2], -arcadeConfig.camera.target[1]];
-    const moon=installArcadeMoon(position,target,arcadeConfig.camera.verticalFov);
+    // Rises from behind the opposite roofs into the upper-right sky.
+    const moon=installFullMoon({position,target,verticalFov:arcadeConfig.camera.verticalFov,enabled:!!ARCADE_FULL_MOON,name:'arcade-full-moon',
+      defaults:{size:2.4, brightness:1, x:.70, y:.76}, riseFrom:{x:.12, y:-.55}});
     scene.add(root, sky, sun, sun.target, moon.mesh,...groundBounces); scene.background = background;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
     let disposed = false, quality: number | undefined;
@@ -383,7 +387,7 @@ export async function prepareLastArcade() {
         if (resolution !== quality) { quality = resolution; sun.shadow.map?.dispose(); sun.shadow.map = null; sun.shadow.mapSize.set(resolution, resolution); }
         sun.shadow.needsUpdate = true;
       },
-      setMoon(settings) {moon.setSettings(settings);},
+      moonDefaults: moon.defaults, setMoon(settings) {moon.setSettings(settings);},
       disturb() {biology.disturb();}, resetWater() {},
       dispose() {
         if (disposed) return; disposed = true;

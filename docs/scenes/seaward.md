@@ -136,3 +136,14 @@ check:project、方向／高度／暮色／夜間與24小時接縫 focused test�
 - 證據：`exports/quality-q2-20260927/A4-A5-A7-A8/{before,after}/seaward-*`、晨曦連拍 `sw-burst-strip.jpg`。美術近似，非魟魚運動學量測。
 
 > 2026-09-27 主 agent 修正：整圈翻滾是使用者 2026-09-09 明確要求的動作，所以預設保留（`A7_KEEP_ROLL=1`）。轉彎側傾（`A7_TURN_BANK`）和翻滾互相獨立、可以並存。要不要移除翻滾，等使用者決定。
+
+## 2026-09-27 中秋滿月（本機候選，待使用者確認）
+
+使用者確認潮風商店街的滿月後，要求向海的隧道也做一樣的設定。使用共用的 `src/shared/sky/FullMoon.ts`，細節見[潮風商店街同日段落](last-arcade.md)。分支 `claude/arcade-full-moon`。
+
+- **開關**：`index.ts` 的 `SEAWARD_FULL_MOON`（月亮）和 `SEAWARD_MOONLIGHT_FOLLOWS_MOON`（光向），設 0 分別回到原狀。
+- **位置與升起**：預設在洞口右上 `{size:2.4°, brightness:100%, x:.30, y:.29}`。切到月夜時，月亮從海平線下方（被海面的 depth 擋住）花 12 秒升到定位，起點略偏左。夜晚係數沿用 `Daylight.ts` 的 `moonlight/.5`（19–21 時漸入）。設定面板一樣有四個滑桿。
+- **光向**：洞口的光（`sun` uniform、開口 PointLight、海面高光）在夜裡轉向月亮的實際方向，並跟著升起與滑桿移動。月亮還低在海上時，月光較弱。海面因此自動出現一條朝向月亮的月光倒影。
+- **取捨**：09-09 加的月光方向在畫面外右側 (.68,.30,-1)，能在左牆打出一片斜向冷光。月亮放在洞口內看得到的位置時，方向接近正對洞內，那片左牆斜光就沒了，隧道內主要剩洞口附近地板微亮。要保留左牆斜光，把 `SEAWARD_MOONLIGHT_FOLLOWS_MOON` 設 0。
+- **已知限制**：位置以桌面 53° 視角定義。窄螢幕（寬度 < 700 會改用 90° 視角）時，月亮不會剛好在洞口右上。
+- **驗收**：`tsc`／build 通過，全套測試 209 通過、1 失敗；失敗的是 `kuroshio-encounters`，在 main 上本來就失敗。截圖在 `exports/quality-review-2026-09-27-arcade-moon/seaward-*.jpg`。
