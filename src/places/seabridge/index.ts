@@ -7,16 +7,26 @@ import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
 
-// Sky dome: time-driven horizon/zenith, soft cloud banks and a low-sun glow.
-// Shares the colours the sea reflects; art-directed, not atmospheric scattering.
-const skyFragment=`varying vec3 direction;uniform vec3 uHorizon,uZenith,uTint,uSun;uniform float uGlow,uNight;
-float cloud(vec2 p){float c=.52+.22*sin(p.x*2.4+p.y*.75)+.16*sin(p.x*5.8-p.y*1.9);c+=.09*sin(p.x*12.+p.y*4.6)+.05*sin(p.x*23.-p.y*9.);return smoothstep(.22,.86,c);}
+// Sky dome: time-driven horizon/zenith with subtropical fair-weather cumulus
+// (Okinawa-like: deep blue zenith, pale horizon haze, white clouds low on the
+// horizon). Shares the colours the sea reflects; art-directed, not scattering.
+const skyFragment=`varying vec3 direction;uniform vec3 uHorizon,uZenith,uTint,uSun;uniform float uGlow,uNight,uDay,uTime;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.05+13.7;a*=.5;}return v;}
 void main(){vec3 d=normalize(direction);float e=max(d.y,0.);
-vec3 col=mix(uHorizon,uZenith,smoothstep(0.,.6,e));
-float c=cloud(d.xz/max(.2,d.y+.3));float band=smoothstep(.02,.12,e)*(1.-smoothstep(.45,.8,e));
+vec3 col=mix(uHorizon,uZenith,pow(smoothstep(0.,.55,e),.7));
+// Cumulus on a flat cloud layer: puffy tops, flatter greyer bases, denser toward the horizon.
+vec2 p=d.xz/max(.06,d.y+.04)*.55+vec2(uTime*.004,0.);
+float shape=fbm(p*.9)+.35*fbm(p*3.1)-.08;
+float cover=mix(.59,.84,smoothstep(.0,.3,e));
+float c=smoothstep(cover,cover+.16,shape)*smoothstep(.0,.05,e)*(1.-smoothstep(.3,.55,e));
+float lit=smoothstep(cover,cover+.45,shape);
 float sunward=pow(max(dot(d,uSun),0.),6.);
-vec3 cloudCol=mix(col*.62,uHorizon*1.35*uTint,clamp(sunward*uGlow,0.,1.));
-col=mix(col,cloudCol,c*band*.9);
+vec3 dayCloud=mix(vec3(.58,.64,.74),vec3(1.,1.,1.),lit)*uDay;
+vec3 lowCloud=mix(col*.62,uHorizon*1.35*uTint,clamp(sunward*uGlow,0.,1.));
+vec3 cloudCol=mix(lowCloud,dayCloud,clamp(uDay*1.4-.2*uGlow,0.,1.));
+col=mix(col,cloudCol,c*.92);
 col+=uTint*pow(max(dot(d,uSun),0.),16.)*uGlow*.6*(1.-uNight);
 gl_FragColor=vec4(col,1.);
 #include <tonemapping_fragment>
@@ -33,7 +43,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const horizon={value:new THREE.Color()},zenith={value:new THREE.Color()};
   const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1400,1000),seaMaterial(time,day,sunU,tint,direct,horizon,zenith));
   ocean.name='seabridge-sea';ocean.rotation.x=-Math.PI/2;ocean.position.set(0,SHORE.seaY,-520);root.add(ocean);
-  const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0}};
+  const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0},uDay:{value:1},uTime:{value:0}};
   const sky=new THREE.Mesh(new THREE.SphereGeometry(650,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,
    vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:skyFragment}));
   const grass=createGrass(GRASS_PATCHES,grassBlocked,{sun:sunU,tint,direct});root.add(grass.group);
@@ -60,6 +70,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     time.value=elapsed;day.value=light.level;sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.solar+.4*light.night;
     horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);background.copy(light.horizon);
     skyUniforms.uGlow.value=.4+1.6*light.low;skyUniforms.uNight.value=light.night;
+    skyUniforms.uDay.value=light.level*(1-light.night)*(1-.7*light.low);skyUniforms.uTime.value=elapsed;
     sun.position.copy(sun.target.position).addScaledVector(light.sun,45);
     sun.color.copy(light.tint);sun.intensity=(2.5*light.solar*light.level+.35*light.night)*(state.beamStrength??1);
     hemi.color.copy(light.zenith).lerp(new THREE.Color(1,1,1),.35);hemi.intensity=.08+.5*light.level*(1-light.night*.8);

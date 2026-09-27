@@ -24,9 +24,10 @@ export function seabridgeDaylight(state:SceneState){
  const lightDir=sun.clone().lerp(moon,night).normalize();
  tint.lerp(new THREE.Color(.66,.76,.95),night);
  const level=.10+.90*THREE.MathUtils.clamp(state.intensity??1,0,1);
- // Linear sky colours; dusk gets a warmer, pinker horizon like the reference mood.
- const horizon=new THREE.Color(.50,.58,.64).lerp(new THREE.Color(.86,.56,.40),low*.8).multiplyScalar(level);
- const zenith=new THREE.Color(.27,.38,.52).lerp(new THREE.Color(.36,.36,.50),low*.65).multiplyScalar(level);
+ // Day sky is a clear subtropical blue (user reference: Okinawa / Kouri Island):
+ // deep saturated zenith, pale hazy horizon. Low sun still warms toward dusk.
+ const horizon=new THREE.Color(.50,.68,.88).lerp(new THREE.Color(.86,.56,.40),low*.8).multiplyScalar(level);
+ const zenith=new THREE.Color(.07,.24,.66).lerp(new THREE.Color(.30,.32,.52),low*.7).multiplyScalar(level);
  horizon.lerp(new THREE.Color(.04,.055,.09),night);zenith.lerp(new THREE.Color(.015,.025,.055),night);
  // Unmanned-station lighting runs on a timer: on through dusk and night.
  const lamp=Math.max(smooth(hour,16.8,17.3),1-smooth(hour,6.3,6.9));
