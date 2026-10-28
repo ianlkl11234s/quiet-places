@@ -1,15 +1,21 @@
 // Cloudflare Workers 部署設定（取代 Zeabur 靜態部署；Zeabur 2026-12 停運）
-// 網頁本體：dist/ 走 Workers 靜態資產。切正式網域步驟見 GIS 工作區 .gis-agent-system/projects/2026-10-zeabur-migration/README.md §4.7
+// 網頁本體：dist/ 走 Workers 靜態資產；stairlight.glb（超過 25MiB）由 worker/index.ts 從 R2 提供。切正式網域步驟見 GIS 工作區 .gis-agent-system/projects/2026-10-zeabur-migration/README.md §4.7
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "quiet-places",
   "compatibility_date": "2026-10-01",
+  "main": "worker/index.ts",
   "assets": {
+    "binding": "ASSETS",
     "directory": "./dist",
     // 沒有前端路由（只用 query string），不存在的路徑回 404，避免 soft-404
     "not_found_handling": "none",
     // /tools/studio 等自動對應到 /tools/studio/index.html
-    "html_handling": "auto-trailing-slash"
+    "html_handling": "auto-trailing-slash",
+    // 只有超過 25MiB 的大檔先經 Worker 從 R2 提供；其餘仍直接回靜態資產
+    "run_worker_first": ["/models/stairlight.glb"]
   },
+  // 大檔放 R2 bucket site-assets（key：<站名>/<網站路徑>），上傳見 package.json 的 r2:upload
+  "r2_buckets": [{ "binding": "BIG", "bucket_name": "site-assets" }],
   "observability": { "enabled": true }
 }
