@@ -9,3 +9,8 @@
   Cache-Control: public, max-age=14400
 /audio/*
   Cache-Control: public, max-age=14400
+# Cloudflare 預設的 text/html 不帶 charset；舊站（Caddy）有 charset=utf-8，這裡補上
+/
+  Content-Type: text/html; charset=utf-8
+/tools/*
+  Content-Type: text/html; charset=utf-8
