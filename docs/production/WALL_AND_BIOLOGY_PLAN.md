@@ -31,6 +31,10 @@
 | B5 | 鬼蝠魟拍翼頻率隨速度、尾巴延遲跟隨 | 生物動作 | `src/places/last-arcade/biology/`、`src/creatures/manta/` | `MANTA_SPEED_COUPLED_FLAP`、`MANTA_TAIL_FOLLOW` | 是 |
 | P0 | 效能基準：十景繪製耗時、每幀生物運算耗時 | 量測 | `exports/quality-review-20261118/perf/` | — | 否 |
 
+### 審閱方式
+
+網址加 `?place=<id>&bio=off` 為全部生物候選關閉（等同本分支之前的 main 行為）；不加 `bio` 參數為開啟。讀取在 `src/shared/review/candidates.ts`，由各場景組裝層把關閉值經 factory 選項傳入。相關場景 id：`waterlight`（B1a、B2）、`seabridge`（B1b、B4）、`last-arcade`（B4、B5）、`snowhall`（B3）。
+
 `pointerRay` 契約（C0，由主 agent 接線）：
 
 ```ts

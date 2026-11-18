@@ -7,6 +7,7 @@ import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
 import {createSardineSchools} from './Sardines.ts';
+import {biologyCandidatesEnabled} from '../../shared/review/candidates.ts';
 import {installFullMoon} from '../../shared/sky/FullMoon.ts';
 
 /** Full-moon switch: 0 restores the moonless night sky. */
@@ -73,7 +74,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const requested=typeof location==='undefined'?null:new URLSearchParams(location.search).get('seabridgeView');
   const view=VIEWS[(requested==='a'||requested==='b'?requested:'user') as SeabridgeView];
   // Sardines keep clear of every authored standpoint so they never fill the lens.
-  const sardines=createSardineSchools({seed:20260927,avoid:Object.values(VIEWS).map(v=>new THREE.Vector3(...v.position))});root.add(sardines.root);
+  const sardines=createSardineSchools({seed:20260927,...(biologyCandidatesEnabled()?{}:{burstCoast:false,topologicalNeighbours:0,flashBank:0,pointerResponse:0}),avoid:Object.values(VIEWS).map(v=>new THREE.Vector3(...v.position))});root.add(sardines.root);
   // Sky environment: same horizon/zenith as the dome above, warm sunlit-soil bounce below.
   // Used as the scene's weak ambient (shade was lit only by a deep-blue hemisphere and read
   // too cool) and at full strength for the sardines' silver flanks. Rebuilt only when the sky
