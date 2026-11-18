@@ -27,7 +27,8 @@ export function commitChromisMatrices(visuals:ChromisVisuals){for(const child of
  * Per-instance phase (cycles) is integrated by the fixed-step controller; speed controls BCF strength.
  * `bend` is the shared-locomotion C-bend in body lengths at the tail (+X = fish's right).
  */
-export function setChromisMotion(visuals:ChromisVisuals,index:number,phase:number,speedBL:number,bend=0){for(const child of visuals.root.children)if(child instanceof THREE.InstancedMesh){const a=child.geometry.getAttribute('aPhase') as THREE.InstancedBufferAttribute|undefined,amp=child.geometry.getAttribute('aTailAmplitude') as THREE.InstancedBufferAttribute|undefined;if(a){a.setX(index,phase);a.needsUpdate=true;}if(amp){amp.setX(index,Math.max(0,Math.min(.07,.012+Math.max(0,speedBL-.65)*.014)));amp.needsUpdate=true;}setInstanceBend(child,index,bend);}}
+/** tailScale (B4 burst-and-coast) multiplies the tail amplitude; 1 keeps the former value exactly. */
+export function setChromisMotion(visuals:ChromisVisuals,index:number,phase:number,speedBL:number,bend=0,tailScale=1){for(const child of visuals.root.children)if(child instanceof THREE.InstancedMesh){const a=child.geometry.getAttribute('aPhase') as THREE.InstancedBufferAttribute|undefined,amp=child.geometry.getAttribute('aTailAmplitude') as THREE.InstancedBufferAttribute|undefined;if(a){a.setX(index,phase);a.needsUpdate=true;}if(amp){const amplitude=Math.max(0,Math.min(.07,.012+Math.max(0,speedBL-.65)*.014));amp.setX(index,tailScale===1?amplitude:amplitude*tailScale);amp.needsUpdate=true;}setInstanceBend(child,index,bend);}}
 /** Writes the per-instance C-bend (body lengths) used by `animatedStandard`. */
 export function setInstanceBend(mesh:THREE.InstancedMesh,index:number,bend:number){const b=mesh.geometry.getAttribute('aBend') as THREE.InstancedBufferAttribute|undefined;if(b){b.setX(index,Number.isFinite(bend)?bend:0);b.needsUpdate=true;}}
 

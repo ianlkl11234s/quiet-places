@@ -128,6 +128,8 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     grass.update(elapsed);sardines.update(elapsed);
     renderer.shadowMap.enabled=true;
    },
+   // B1b: the pointer ray goes to the sardines (SARDINE_POINTER_RESPONSE in Sardines.ts; 0 = off).
+   pointerRay(ray,tap){sardines.pointerRay(ray,tap);},
    disturb(){},resetWater(){},
    dispose(){if(disposed)return;disposed=true;moon.dispose();if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}sardines.dispose();envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
   };
