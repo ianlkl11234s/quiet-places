@@ -1,33 +1,6 @@
 import * as THREE from 'three';
-import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {createChairs} from './Chairs.ts';
 import {CHAIRS,DECK,DOOR,LAMP,POCKET,POST_Z,RAIL,ROOF,STAIR} from './Layout.ts';
-
-/** Chair template, local frame: origin at the floor under the seat centre, seat faces +Z, back at -Z. Flat colours only.
- * Weave: full-width teal strips with small gaps, cream blocks over a checker of cells; both faces read the same. */
-function chairGeometries(){
- const w=CHAIRS.width,seatY=CHAIRS.seatH;
- const teal:THREE.BufferGeometry[]=[],cream:THREE.BufferGeometry[]=[],metal:THREE.BufferGeometry[]=[];
- const panel=(cols:number,rows:number,depth:number,m:THREE.Matrix4)=>{
-  const gx=w/cols,gy=depth/rows;
-  for(let j=0;j<rows;j++){
-   const y=-depth/2+gy*(j+.5);
-   const t=new THREE.BoxGeometry(w,gy*.78,.012);t.translate(0,y,0);t.applyMatrix4(m);teal.push(t);
-   for(let i=0;i<cols;i++)if((i+j)%2===0){const c=new THREE.BoxGeometry(gx*.82,gy*.9,.012);c.translate(-w/2+gx*(i+.5),y,.007);c.applyMatrix4(m);cream.push(c);const c2=c.clone();c2.translate(0,0,-.014);cream.push(c2);}
-  }
- };
- // Back: leans 10 degrees (top toward -Z). Seat: slight tilt up toward the back.
- panel(7,10,.56,new THREE.Matrix4().makeTranslation(0,seatY+.27,-.26).multiply(new THREE.Matrix4().makeRotationX(-.17)));
- panel(7,7,.5,new THREE.Matrix4().makeTranslation(0,seatY,0).multiply(new THREE.Matrix4().makeRotationX(-Math.PI/2+.06)));
- // Aluminium: armrest bar with two legs per side, plus a floor rail.
- for(const s of[-1,1]){
-  const x=s*(w/2+.02);
-  const bar=new THREE.BoxGeometry(.035,.04,.52);bar.translate(x,seatY+.22,-.02);metal.push(bar);
-  for(const z of[-.24,.22]){const leg=new THREE.BoxGeometry(.035,seatY+.22,.035);leg.translate(x,(seatY+.22)/2,z);metal.push(leg);}
-  const rail=new THREE.BoxGeometry(.035,.03,.5);rail.translate(x,.12,0);metal.push(rail);
- }
- const merge=(a:THREE.BufferGeometry[])=>{const g=mergeGeometries(a.map(x=>x.index?x.toNonIndexed():x))!;a.forEach(x=>x.dispose());return g;};
- return {teal:merge(teal),cream:merge(cream),metal:merge(metal)};
-}
 
 /**
  * S1 graybox: stern corner of a ferry's open upper deck. Flat materials only; no textures.
@@ -45,9 +18,7 @@ export function createGraybox(){
  const pipeMat=new THREE.MeshStandardMaterial({color:'#e8ebe8',roughness:.5,metalness:.1});
  const lampBody=new THREE.MeshStandardMaterial({color:'#d8dbd6',roughness:.6});
  const tubeMat=new THREE.MeshStandardMaterial({color:'#f4f1e6',emissive:new THREE.Color('#fff1d6'),emissiveIntensity:0,roughness:.4});
- const tealMat=new THREE.MeshStandardMaterial({color:'#2aa8a6',roughness:.55});
- const creamMat=new THREE.MeshStandardMaterial({color:'#d9cc98',roughness:.55});
- const alu=new THREE.MeshStandardMaterial({color:'#d4d8dc',roughness:.3,metalness:.12});
+ const chairs=createChairs(),alu=chairs.alu;
 
  const add=(name:string,g:THREE.BufferGeometry,m:THREE.Material,pos:[number,number,number],cast=true)=>{const mesh=new THREE.Mesh(g,m);mesh.name=name;mesh.position.set(...pos);mesh.castShadow=cast;mesh.receiveShadow=true;group.add(mesh);return mesh;};
  /** Box from min/max corners. */
@@ -115,19 +86,11 @@ export function createGraybox(){
  hr('stair-aft',[STAIR.xMin,STAIR.zMin],[STAIR.xMax,STAIR.zMin]);
  hr('stair-fwd',[STAIR.xMin,STAIR.zMax],[STAIR.xMax,STAIR.zMax]);
 
- // Woven chairs: shared template geometries; 4 along the open-side wall facing -X, 3 rows of 3 facing the stern.
- const ch=chairGeometries();
- const chair=(name:string,x:number,z:number,yaw:number)=>{
-  const g=new THREE.Group();g.name=name;g.position.set(x,0,z);g.rotation.y=yaw;
-  for(const [geo,m] of [[ch.teal,tealMat],[ch.cream,creamMat],[ch.metal,alu]] as const){const mesh=new THREE.Mesh(geo,m);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);}
-  group.add(g);
- };
- CHAIRS.wallRowZ.forEach((z,i)=>chair(`chair-wall-${i}`,CHAIRS.wallRowX,z,-Math.PI/2));
- CHAIRS.sternRowsZ.forEach((z,r)=>CHAIRS.sternRowsX.forEach((x,i)=>chair(`chair-stern-${r}-${i}`,x,z,Math.PI)));
+ group.add(chairs.group);
 
  const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();
  group.traverse(o=>{if(o instanceof THREE.Mesh){geometries.add(o.geometry);materials.add(o.material as THREE.Material);}});
- return {group,tubeMat,lampPosition:new THREE.Vector3(LAMP.x,LAMP.y-.12,LAMP.z),
+ return {group,tubeMat,alu,chairTriangles:chairs.triangles,lampPosition:new THREE.Vector3(LAMP.x,LAMP.y-.12,LAMP.z),
   /** Sets the tube's glow (HDR values feed bloom). */
   setLamp(emissiveIntensity:number){tubeMat.emissiveIntensity=emissiveIntensity;},
   dispose(){geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());group.removeFromParent();}};

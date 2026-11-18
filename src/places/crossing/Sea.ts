@@ -17,6 +17,13 @@ export function createCrossingSeaMaterial(time:{value:number},day:{value:number}
  float h(vec2 q){return fract(sin(dot(q,vec2(127.1,311.7)))*43758.5453);}
  float n(vec2 q){vec2 i=floor(q),f=fract(q);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
  float fbm(vec2 q){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(q);q=q*2.1+7.3;a*=.5;}return v;}
+ // One dot per active cell: random cell, offset and twinkle phase; radius about a quarter of the cell.
+ float sparkle(vec2 w,float k,float thresh,float t){
+  vec2 g=w*k,id=floor(g),f=fract(g)-.5;float r=h(id);
+  vec2 off=(vec2(h(id+3.1),h(id+7.7))-.5)*.5;
+  float on=step(thresh,r),tw=.5+.5*sin(t*(3.+6.*h(id+1.3))+6.2832*h(id+9.));
+  return on*smoothstep(.34,.0,length(f-off))*tw*tw;
+ }
  vec2 vn(vec2 q){return vec2(n(q),n(q+17.3))-.5;}
  mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
  void main(){
@@ -40,19 +47,17 @@ export function createCrossingSeaMaterial(time:{value:number},day:{value:number}
  vec3 far=mix(vec3(.012,.07,.27),vec3(.03,.13,.40),shade);
  vec3 water=mix(near,far,smoothstep(20.,400.,dist))*uDay;
  vec3 col=mix(water,sky,fresnel);
- // Glitter path toward the light. A real specular lobe cannot reach the horizon for a 45-degree sun,
- // so the path is placed by azimuth: a band along the light's bearing, wide near, thin far, filled with bright specks.
+ // Glitter: point sparkles, not a lobe. The path lies along the light's bearing (a 45-degree sun cannot reflect to the
+ // horizon from real slopes, so it is placed by azimuth): wide near, thin far. Near sparkles are big and sparse, far ones
+ // fine and dense; the density rises toward the axis and only the axis centre joins into a band. Each dot twinkles.
  vec2 toP=p.xz-cameraPosition.xz;vec2 hd=normalize(toP),sd=normalize(uSun.xz);
  float ang=acos(clamp(dot(hd,sd),-1.,1.));
- float sig=.09+1.0*view.y;
- float path=exp(-pow(ang/sig,2.));
- float wide=exp(-pow(ang/(sig*2.6),2.));
- float sp1=smoothstep(.80,.97,n(w3*2.2))*(1.-smoothstep(30.,110.,dist));
- float sp2=smoothstep(.78,.96,n(w2*.9+3.))*(1.-smoothstep(120.,320.,dist));
- float sp3=smoothstep(.74,.95,n(w1*.38+9.));
- float speck=sp1*1.2+sp2*1.0+sp3*.9;
- float sheen=pow(max(dot(normal,normalize(view+uSun)),0.),40.);
- float glint=path*(speck*9.+.5)+wide*speck*2.2+sheen*.6;
+ float sig=.11+.5*view.y;
+ float axis=exp(-pow(ang/sig,2.));
+ float wA=1.-smoothstep(25.,90.,dist),wB=smoothstep(15.,50.,dist)*(1.-smoothstep(160.,380.,dist)),wC=smoothstep(110.,260.,dist);
+ float spark=wA*sparkle(w3,3.,mix(.99,.86,axis),t)+wB*sparkle(w2,1.15,mix(.98,.80,axis),t)+wC*sparkle(w1,.38,mix(.97,.72,axis),t);
+ float band=pow(axis,3.)*smoothstep(80.,260.,dist)*.5;
+ float glint=spark*9.*(.35+.65*axis)+band;
  col+=glint*uDirect*uTint*(.5+.5*uDay);
  // Wake: dense white foam from the stern aft, widening and thinning, swirled edges, scrolling with the water.
  float d=max(-p.z+(${WAKE.startZ.toFixed(1)}),0.);
