@@ -15,9 +15,11 @@ import {loadPreferences,savePreferences,getRoomPreferences,saveRoomPreferences,P
 import {isOceanLevel,type OceanLevel} from './places/metadata.ts';
 import {createSceneClock} from './player/SceneClock.ts';
 import {SceneRenderPass,parseAntialiasing} from './player/RenderPipeline.ts';
-import {chooseInitialPlace,layoutMemoryBubbles,ROOM_ENTRY_SESSION_KEY} from './ui/RoomBrowser.ts';
-import {createRoomBubbleMotionController,ROOM_BUBBLE_SEED_KEY} from './ui/RoomBubbleMotion.ts';
+import {chooseInitialPlace,nextRoomIndex,ROOM_ENTRY_SESSION_KEY} from './ui/RoomBrowser.ts';
+import type {RoomGridKey} from './ui/RoomBrowser.ts';
 import './style.css';
+// When true, the open room wall keeps the last scene frame as its backdrop instead of rendering behind it.
+const WALL_FREEZES_SCENE=true;
 const el=<T extends HTMLElement>(id:string)=>document.getElementById(id) as T;
 const status=el('status');
 async function start(){
@@ -28,7 +30,8 @@ async function start(){
  const momentSelector=el('moment-selector');
  for(const metadata of places){
   const card=document.createElement('button');card.className=`room-card room-card--${metadata.id}`;card.dataset.place=metadata.id;
-  card.innerHTML=`<span class="room-card__glow" aria-hidden="true"></span><span class="room-card__copy"><span class="room-card__name">${metadata.name}</span><span class="room-card__subtitle">${metadata.subtitle}</span></span>`;roomCards.append(card);
+  card.style.setProperty('--i',String(roomCards.childElementCount));card.setAttribute('aria-label',`${metadata.name}：${metadata.subtitle}`);
+  card.innerHTML=`<span class="room-card__pic"><img src="/room-thumbs/${metadata.id}.webp" alt="" loading="lazy" decoding="async" width="800" height="500">${metadata.life?`<span class="room-card__life">${metadata.life}</span>`:''}</span><span class="room-card__name">${metadata.name}</span><span class="room-card__subtitle">${metadata.subtitle}</span>`;roomCards.append(card);
   const option=document.createElement('option');option.value=metadata.id;option.textContent=`${metadata.name} · ${metadata.subtitle}`;placeSelectElement.append(option);
  }
  for(const moment of moments){
@@ -153,9 +156,6 @@ async function start(){
  function applyBloom(){bloom.strength=place.bloom?.strength??.19;bloom.radius=place.bloom?.radius??.65;bloom.threshold=place.bloom?.threshold??1.05;}
  applyBloom();
  const reduce=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduce.matches,last=performance.now(),lastPresented=last,raf=0,lost=false;
- const bubbleSeed=(()=>{try{const stored=Number(sessionStorage.getItem(ROOM_BUBBLE_SEED_KEY));if(Number.isInteger(stored)&&stored>=0)return stored>>>0;const value=crypto.getRandomValues(new Uint32Array(1))[0];sessionStorage.setItem(ROOM_BUBBLE_SEED_KEY,String(value));return value;}catch{return Date.now()>>>0;}})();
- const roomButtons=Array.from(document.querySelectorAll<HTMLButtonElement>('[data-place]'));
- const bubbleMotion=createRoomBubbleMotionController(roomCards,roomButtons,bubbleSeed,reduce.matches);
  const sceneClock=createSceneClock({paused});
  let beamStrength=preferences.beamStrength;
  let hour=preferences.live?localHour():preferences.hour,live=preferences.live;let state=sampleTime(hour);
@@ -174,13 +174,10 @@ async function start(){
   document.body.dataset.place=currentPlace;
   const isWater=placeSupports(currentPlace,'water-interaction');
   const hasWeather=placeSupports(currentPlace,'weather');
-  const layout=layoutMemoryBubbles(places.map(place=>place.id),currentPlace);
   document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>{
-   const id=button.dataset.place as PlaceId,position=layout.get(id),active=id===currentPlace;
+   const id=button.dataset.place as PlaceId,active=id===currentPlace;
    button.toggleAttribute('aria-current',active);if(active)button.setAttribute('aria-current','location');
-   if(position){button.style.setProperty('--bubble-x',`${position.x}%`);button.style.setProperty('--bubble-y',`${position.y}%`);button.style.setProperty('--bubble-scale',String(position.scale));button.style.setProperty('--bubble-copy-scale',String(1/position.scale));button.style.setProperty('--bubble-delay',`${position.delay}ms`);}
   });
-  bubbleMotion.setAnchors([...layout].map(([id,position])=>({id,x:position.x,y:position.y,scale:position.scale,delay:position.delay})));
   el('water-options').hidden=!hasWeather;
   el('ocean-options').hidden=!placeSupports(currentPlace,'ocean-level');
   el('afterlight-camera-options').hidden=!placeSupports(currentPlace,'camera-distance');
@@ -257,7 +254,7 @@ async function start(){
    busyInputs.forEach(({input,disabled})=>{input.disabled=disabled;});el<HTMLButtonElement>('water-reset').disabled=exporting||!place.hasSimulation;requestRender();
   }
  }
- function chooseRoom(id:PlaceId){if(exporting||switching)return;setPanel(false);void switchPlace(id).catch(error=>console.error(error));}
+ function chooseRoom(id:PlaceId){if(exporting||switching)return;setPanel(false);if(id===currentPlace)return;void switchPlace(id).catch(error=>console.error(error));}
  placeSelect.addEventListener('change',()=>chooseRoom(placeSelect.value as PlaceId));
  document.querySelectorAll<HTMLButtonElement>('[data-place]').forEach(button=>button.addEventListener('click',()=>{if(isPlaceId(button.dataset.place))chooseRoom(button.dataset.place);}));
  document.querySelectorAll<HTMLButtonElement>('[data-ocean-level]').forEach(button=>button.addEventListener('click',()=>{
@@ -304,23 +301,17 @@ async function start(){
   const pauseLabel=paused?'繼續流動':'暫停流動';pause.setAttribute('aria-label',pauseLabel);pause.title=pauseLabel;pause.setAttribute('aria-pressed',String(paused));
  }
  const roomsPanel=el('rooms-panel');
- const exploreRooms=el<HTMLButtonElement>('explore-rooms');
- type RoomBrowserView='landing'|'choosing';
  const panels=[{panel,toggle},{panel:roomsPanel,toggle:el<HTMLButtonElement>('rooms-toggle')},{panel:el('music-panel'),toggle:el<HTMLButtonElement>('music-toggle')},{panel:el('about-panel'),toggle:el<HTMLButtonElement>('about-toggle')}];
  const roomBrowserBackground=Array.from(document.querySelectorAll<HTMLElement>('#space,header,footer,.entry-dock,#settings,#music-panel,#about-panel,#status'));
  const roomBrowserInert=(value:boolean)=>roomBrowserBackground.forEach(element=>{element.inert=value;});
  let activeToggle:HTMLButtonElement|undefined;
- function setRoomBrowserView(view:RoomBrowserView){
-  if(view==='choosing'){roomsPanel.removeAttribute('data-view');void roomCards.offsetWidth;}
-  roomsPanel.dataset.view=view;exploreRooms.setAttribute('aria-expanded',String(view==='choosing'));
-  if(view==='choosing')bubbleMotion.startArrival();else bubbleMotion.stop();
- }
- function setPanel(open:boolean,target=panel,roomView:RoomBrowserView='choosing'){
+ function setPanel(open:boolean,target=panel){
   const previous=activeToggle;
   for(const entry of panels){const visible=open&&entry.panel===target;entry.panel.hidden=!visible;entry.toggle.setAttribute('aria-expanded',String(visible));if(visible)activeToggle=entry.toggle;}
-  const roomBrowserVisible=open&&target===roomsPanel;roomBrowserInert(roomBrowserVisible);document.body.classList.toggle('room-browser-open',roomBrowserVisible);if(roomBrowserVisible)setRoomBrowserView(roomView);else{roomsPanel.removeAttribute('data-view');exploreRooms.setAttribute('aria-expanded','false');bubbleMotion.stop();}
+  const roomBrowserVisible=open&&target===roomsPanel;roomBrowserInert(roomBrowserVisible);document.body.classList.toggle('room-browser-open',roomBrowserVisible);
   document.body.classList.remove('resting');
-  if(open)(target===roomsPanel?(roomView==='landing'?el<HTMLButtonElement>('stay-room'):target.querySelector<HTMLButtonElement>('[aria-current="location"]')):target.querySelector<HTMLButtonElement>('button'))?.focus();else{activeToggle=undefined;previous?.focus();}
+  if(open)(target===roomsPanel?target.querySelector<HTMLButtonElement>('[aria-current="location"]'):target.querySelector<HTMLButtonElement>('button'))?.focus();else{activeToggle=undefined;previous?.focus();}
+  requestRender();
  }
  function syncRoomInputs(){
   liveInput.checked=live;beamInput.value=String(beamStrength*100);el('beam-value').textContent=`${Math.round(beamStrength*100)}%`;
@@ -351,10 +342,15 @@ async function start(){
   applyAfterlightCameraDistance();syncAfterlightCameraDistance();requestRender();
  },{passive:false});
  panels.filter(entry=>entry.panel!==roomsPanel).forEach(entry=>entry.toggle.addEventListener('click',()=>setPanel(entry.panel.hidden,entry.panel)));
- el<HTMLButtonElement>('rooms-toggle').addEventListener('click',()=>setPanel(roomsPanel.hidden,roomsPanel,'choosing'));
- exploreRooms.addEventListener('click',()=>{if(roomsPanel.dataset.view==='choosing')return;setRoomBrowserView('choosing');requestAnimationFrame(()=>roomsPanel.querySelector<HTMLButtonElement>('[aria-current="location"]')?.focus());});
- ['close-settings','close-rooms','close-music','close-about','stay-room'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
+ el<HTMLButtonElement>('rooms-toggle').addEventListener('click',()=>setPanel(roomsPanel.hidden,roomsPanel));
+ ['close-settings','close-rooms','close-music','close-about'].forEach(id=>el(id).addEventListener('click',()=>setPanel(false)));
  document.addEventListener('pointerdown',event=>{if(activeToggle&&event.target instanceof Node&&!panels.some(entry=>entry.panel.contains(event.target as Node)||entry.toggle.contains(event.target as Node)))setPanel(false);});
+ roomCards.addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
+  const cards=Array.from(roomCards.querySelectorAll<HTMLButtonElement>('.room-card')),index=cards.indexOf(document.activeElement as HTMLButtonElement);if(index<0)return;
+  event.preventDefault();const columns=cards.filter(card=>card.offsetTop===cards[0].offsetTop).length;
+  cards[nextRoomIndex(index,cards.length,columns,event.key as RoomGridKey)]?.focus();
+ });
  document.addEventListener('keydown',e=>{
   wake();
   if(e.key==='Escape'&&activeToggle){setPanel(false);return;}
@@ -379,7 +375,7 @@ async function start(){
  });
  liveInput.addEventListener('change',()=>{live=liveInput.checked;timeTravel=undefined;if(live)hour=localHour();else preferences.hour=hour;preferences.live=live;persist();updateLabels();requestRender();});
  pause.addEventListener('click',()=>{paused=!paused;sceneClock.setPaused(paused);updateLabels();requestRender();});
- reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);bubbleMotion.setReduced(e.matches);if(!e.matches&&!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.startArrival();updateLabels();requestRender();});
+ reduce.addEventListener('change',e=>{paused=e.matches;sceneClock.setPaused(paused);updateLabels();requestRender();});
  el('audio').addEventListener('click',async()=>{try{const on=await audio.toggle();el('audio').textContent=on?'關閉環境聲':'開啟環境聲';el('audio').setAttribute('aria-pressed',String(on));}catch{status.hidden=false;status.textContent='環境聲暫時無法開啟，仍可靜靜觀賞。';}});
  el('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{status.hidden=false;status.textContent='此瀏覽器不支援全螢幕，請使用一般視窗觀賞。';}});
  document.addEventListener('fullscreenchange',()=>{el('fullscreen').textContent=document.fullscreenElement?'離開全螢幕':'全螢幕'});
@@ -393,7 +389,7 @@ async function start(){
  function closeGallery(){gallery.hidden=true;galleryInert(false);audio.visibility(document.hidden);music.visibility(document.hidden);requestRender();el('export-series').focus();}
  el('close-gallery').addEventListener('click',closeGallery);
  document.addEventListener('keydown',event=>{if(gallery.hidden)return;if(event.key==='Escape')closeGallery();if(event.key==='Tab'){const links=Array.from(gallery.querySelectorAll<HTMLElement>('a[href],button'));const first=links[0],last=links[links.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});
- let dirtyUntil=0,rendering=false;
+ let dirtyUntil=0,rendering=false,sceneDrawn=false,wallDirty=false;
  function requestRender(){
   dirtyUntil=performance.now()+650;
   if(!raf&&!rendering&&!exporting&&gallery.hidden&&!document.hidden&&!lost){last=performance.now();lastPresented=last;raf=requestAnimationFrame(frame);}
@@ -414,11 +410,12 @@ async function start(){
   updateAntialiasing();
   camera.aspect=innerWidth/innerHeight;camera.fov=placeFov();camera.updateProjectionMatrix();updateOrbitLimits();controls.update();
   renderer.setPixelRatio(pixelRatioCap());composer.setPixelRatio(pixelRatioCap());
-  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();
+  renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);wallDirty=true;requestRender();
  }
  window.addEventListener('resize',resize);resize();
  function frame(now:number){
   raf=0;if(document.hidden||lost||exporting||!gallery.hidden)return;
+  if(WALL_FREEZES_SCENE&&sceneDrawn&&!wallDirty&&!roomsPanel.hidden&&!switching)return;
   const interval=1000/(preferences.quality==='low'?24:30);
   if(now-last<interval-.5){raf=requestAnimationFrame(frame);return;}
   rendering=true;
@@ -439,7 +436,7 @@ async function start(){
   const lighting=waterRain?{...state,intensity:state.intensity*.72,warmth:state.warmth*.45}:state;
   const sceneDt=switching?0:sceneClock.advance(dt);
   place.update(sceneDt,sceneClock.elapsed,{...lighting,beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
-  controls.enableDamping=!reduce.matches;controls.update();composer.render();rendering=false;
+  controls.enableDamping=!reduce.matches;controls.update();composer.render();rendering=false;sceneDrawn=true;wallDirty=false;
   if(!paused||timeTravel||now<dirtyUntil)raf=requestAnimationFrame(frame);
  }
  const exportButton=el<HTMLButtonElement>('export-series');
@@ -490,13 +487,12 @@ async function start(){
  });
  document.addEventListener('visibilitychange',()=>{
   cancelAnimationFrame(raf);raf=0;audio.visibility(document.hidden||!gallery.hidden);music.visibility(document.hidden||!gallery.hidden);
-  if(document.hidden)bubbleMotion.stop();else if(!roomsPanel.hidden&&roomsPanel.dataset.view==='choosing')bubbleMotion.start();
   if(!document.hidden&&!lost)requestRender();
  });
  renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;cancelAnimationFrame(raf);status.hidden=false;status.textContent='繪圖連線暫時中斷，請重新整理此頁。'});
- window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);bubbleMotion.dispose();sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
+ window.addEventListener('pagehide',(event)=>{if(event.persisted)return;cancelAnimationFrame(raf);sceneClock.dispose();void audio.dispose();music.dispose();imageUrls.forEach(url=>URL.revokeObjectURL(url));place.dispose();controls.dispose();composer.dispose();renderer.dispose()},{once:true});
  updateLabels();wake();status.hidden=true;requestRender();
  const showRoomEntry=!linkedPlace&&(()=>{try{if(sessionStorage.getItem(ROOM_ENTRY_SESSION_KEY))return false;sessionStorage.setItem(ROOM_ENTRY_SESSION_KEY,'1');return true;}catch{return !hadStoredPreference;}})();
- if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel,'landing'));
+ if(showRoomEntry)requestAnimationFrame(()=>setPanel(true,roomsPanel));
 }
 void start().catch(error=>{console.error(error);status.hidden=false;status.textContent='空間暫時無法載入，請重新整理後重試。';});

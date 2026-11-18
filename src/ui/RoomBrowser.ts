@@ -18,38 +18,17 @@ export function chooseInitialPlace({requested, preferred, places, hasStoredPrefe
   return places[Math.floor(sample * places.length)]?.id ?? preferred;
 }
 
-export interface MemoryBubblePosition {
-  x: number;
-  y: number;
-  scale: number;
-  delay: number;
-}
+export type RoomGridKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Home' | 'End';
 
-const primaryPositions: readonly Omit<MemoryBubblePosition, 'delay'>[] = [
-  {x: 66, y: 43, scale: .85},
-  {x: 66, y: 18, scale: .85},
-  {x: 87, y: 30, scale: .85},
-  {x: 87, y: 57, scale: .85},
-  {x: 66, y: 73, scale: .85},
-  {x: 45, y: 57, scale: .85},
-  {x: 45, y: 30, scale: .85},
-];
-
-/** Keeps every current-catalog bubble equally sized while the active room holds the central anchor. */
-export function layoutMemoryBubbles(ids: readonly PlaceId[], current: PlaceId): ReadonlyMap<PlaceId, MemoryBubblePosition> {
-  const ordered = [current, ...ids.filter(id => id !== current)];
-  return new Map(ordered.map((id, index) => {
-    const primary = ordered.length <= primaryPositions.length ? primaryPositions[index] : index === 0 ? primaryPositions[0] : undefined;
-    if (primary) return [id, {...primary, delay: index * 45}] as const;
-    const orbitIndex=index-1,ringIndex=Math.floor(orbitIndex/8),slot=orbitIndex%8;
-    const remaining=ordered.length-1-ringIndex*8,slots=Math.min(8,remaining);
-    const angle=-Math.PI/2+slot*Math.PI*2/slots+ringIndex*.22;
-    const radiusX=24+ringIndex*11,radiusY=22+ringIndex*10;
-    return [id, {
-      x: Math.min(94, Math.max(35, 66+Math.cos(angle)*radiusX)),
-      y: Math.min(84, Math.max(11, 43+Math.sin(angle)*radiusY)),
-      scale: .85,
-      delay: index * 45,
-    }] as const;
-  }));
+/** Moves focus inside the room grid; edges clamp rather than wrap. `columns` is measured from the live layout. */
+export function nextRoomIndex(index: number, count: number, columns: number, key: RoomGridKey): number {
+  if (count <= 0) return -1;
+  const step = Math.max(1, Math.floor(columns));
+  const target = key === 'ArrowLeft' ? index - 1
+    : key === 'ArrowRight' ? index + 1
+    : key === 'ArrowUp' ? index - step
+    : key === 'ArrowDown' ? index + step
+    : key === 'Home' ? 0
+    : count - 1;
+  return Math.min(count - 1, Math.max(0, target));
 }
