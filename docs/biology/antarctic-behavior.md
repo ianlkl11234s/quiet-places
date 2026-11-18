@@ -39,3 +39,11 @@
 ## 實體空間與資料留存決策
 
 使用者明確要求牆壁不可穿越、空間只留銀魚一個重心，建模資料留存。不得將側牆暗處視為出生／回收點；相機 collision 用 swept sphere 接觸後切向滑行，避免穿入再投影出去的跳位。所有模型資料仍在原路徑；`count=0` 只停用正式場景魷魚，試片仍可單獨近看。142 項全套測試通過，包含中段實際慢速樣本、實際繞行角度、左右與高度變化、完整幾何及 30/60/144 FPS 重現。
+
+## 候選（待使用者確認）：銀魚擺尾隨速度與轉彎側傾（B3）
+
+- 做了什麼：`AntarcticBehavior` 以固定 60 Hz 步進，依 `speedBL` 積分每隻銀魚的尾波時鐘 `wave`（秒），對外為插值後的 `waveClock`；`AntarcticLife` 傳給模型。另外轉彎時銀魚往彎內側傾（roll），經 `setRotation` 套用。
+- 擺尾：頻率倍率 = `tailBeatFrequency(speedBL, 1, {f0: .3×waveHz, k: 1/(.7×waveHz), max: 1.6×waveHz}) / waveHz`；速度 1 BL/s（校準巡航，`SILVERFISH_CRUISE_BL`）時為 1，等於原 2.35 Hz×個體倍率；靜止約 .3 倍，上限 1.6 倍。相位為積分，改速不跳。
+- 側傾：`SILVERFISH_BANK = 8`（度，0 = 關閉）；目標 = −8° × clamp(turn / 48°/s, −1, 1)（turn>0 為 +yaw、往 +X 側轉，內側較低），時間常數 .35 s 一階平滑，每步最多約 .75°。每次放出魚群時 roll 與 wave 歸零。不影響位置與路徑。
+- 開關與退回：`SILVERFISH_SPEED_PHASE`（`AntarcticModels.ts`，false 時模型忽略 `waveClock`，回到 `frequency×time`）、`SILVERFISH_BANK`（`AntarcticBehavior.ts`，0 = roll 恆為 0，四元數與舊式相同）。`AntarcticBehaviorOptions.bankDegrees` 僅供測試覆寫。
+- 性質：美術近似，不是經驗證的生物力學；數值未經畫面確認。狀態：候選待使用者確認。測試：`tests/antarctic-motion-candidates.test.ts`。

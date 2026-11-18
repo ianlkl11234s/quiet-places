@@ -25,7 +25,7 @@ export function createAntarcticLife(parent:THREE.Group,layout:SnowhallDraft,seed
    model.root.visible=pose.visible;
    if(!pose.visible)return;
    model.root.position.copy(pose.position);model.root.quaternion.copy(pose.quaternion);model.root.scale.setScalar(pose.scale);
-   model.update(elapsed,pose.speedBL,pose.turn,1);
+   model.update(elapsed,pose.speedBL,pose.turn,1,pose.waveClock);
   });
  },dispose(){
   if(disposed)return;disposed=true;

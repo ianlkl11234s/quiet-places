@@ -41,3 +41,7 @@
 最短復用步驟：先選本體 factory → 由新景 adapter 設定 root 尺度／位置／四元數 → 每幀以同一 elapsed 呼叫 `update(time,speedBL,turn,light)` → 保留前向軸、完整 radius 與資源 ownership → 以新景碰撞體做 test/browser 驗收。玻璃魷魚可在驗收頁切「魷魚形態近看」重新檢視；不得因此改動正式數量。
 
 原始需求在 `docs/biology/references/antarctic/`；可重建幾何權威是 TypeScript，無需下載外部模型或 Blender 才能重建本輪本體。
+
+## 候選（待使用者確認）：銀魚尾波時鐘（B3）
+
+`AntarcticCreature.update(time, speedBL, turn, light, waveClock?)` 新增選用第五參數：行為層積分出的尾波時鐘（秒）。`SILVERFISH_SPEED_PHASE = true` 且參數有限時，銀魚體、頭、尾鰭的 `TAU×frequency×time` 改用 `waveClock`；省略、非有限數或旗標為 false 時用 `time`，輸出與舊版逐位相同（測試涵蓋）。胸鰭仍用 elapsed。公式 `silverfishWaveRate(speedBL)`：.3 倍（靜止）→ 1 倍（1 BL/s）→ 上限 1.6 倍，沿用 `locomotion/Propulsion.ts` 的 `tailBeatFrequency`。美術近似，非經驗證的生物力學。狀態：候選待使用者確認；行為與側傾見 `antarctic-behavior.md`。
