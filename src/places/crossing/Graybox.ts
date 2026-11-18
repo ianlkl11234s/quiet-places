@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {createChairs} from './Chairs.ts';
+import {patchSurface} from './Materials.ts';
 import {CHAIRS,DECK,DOOR,LAMP,POCKET,POST_Z,RAIL,ROOF,STAIR} from './Layout.ts';
 
 /**
@@ -8,14 +9,14 @@ import {CHAIRS,DECK,DOOR,LAMP,POCKET,POST_Z,RAIL,ROOF,STAIR} from './Layout.ts';
  */
 export function createGraybox(){
  const group=new THREE.Group();group.name='crossing-graybox';
- const paint=new THREE.MeshStandardMaterial({color:'#e4e8e4',roughness:.72,metalness:.05});
- const roofMat=new THREE.MeshStandardMaterial({color:'#dfe3df',roughness:.8,side:THREE.DoubleSide});
- const deckMat=new THREE.MeshStandardMaterial({color:'#2b5c45',roughness:.5});
+ const paint=patchSurface(new THREE.MeshStandardMaterial({color:'#e4e8e4',roughness:.72,metalness:.05}),'paint');
+ const roofMat=patchSurface(new THREE.MeshStandardMaterial({color:'#dfe3df',roughness:.8,side:THREE.DoubleSide}),'paint');
+ const deckMat=patchSurface(new THREE.MeshStandardMaterial({color:'#2b5c45',roughness:.55}),'deck');
  const doorMat=new THREE.MeshStandardMaterial({color:'#3d7fd2',roughness:.5});
- const canvas=new THREE.MeshStandardMaterial({color:'#e6dcc0',roughness:.9});
+ const canvas=patchSurface(new THREE.MeshStandardMaterial({color:'#e6dcc0',roughness:.92}),'canvas');
  const strap=new THREE.MeshStandardMaterial({color:'#121212',roughness:.7});
  const signMat=new THREE.MeshStandardMaterial({color:'#f2f2ee',roughness:.6});
- const pipeMat=new THREE.MeshStandardMaterial({color:'#e8ebe8',roughness:.5,metalness:.1});
+ const pipeMat=patchSurface(new THREE.MeshStandardMaterial({color:'#e8ebe8',roughness:.5,metalness:.1}),'paint');
  const lampBody=new THREE.MeshStandardMaterial({color:'#d8dbd6',roughness:.6});
  const tubeMat=new THREE.MeshStandardMaterial({color:'#f4f1e6',emissive:new THREE.Color('#fff1d6'),emissiveIntensity:0,roughness:.4});
  const chairs=createChairs(),alu=chairs.alu;
@@ -35,18 +36,18 @@ export function createGraybox(){
  slab('deck-west-aft',deckMat,xMin,0,fl,0,pocketFrontZ,STAIR.zMin,false);
  slab('deck-stair-lip',deckMat,STAIR.xMax,0,fl,0,STAIR.zMin,STAIR.zMax,false);
  slab('deck-west-fwd',deckMat,xMin,0,fl,0,STAIR.zMax,zMax,false);
- // Lower deck under the opening: enclosed shaft, six steps descending toward the bow, floor at -2.7.
- {const lo=-2.7;
-  slab('shaft-floor',deckMat,STAIR.xMin,STAIR.xMax,lo-.1,lo,STAIR.zMin,STAIR.zMax,false);
-  slab('shaft-east',paint,STAIR.xMax,STAIR.xMax+.1,lo,0,STAIR.zMin,STAIR.zMax);
-  slab('shaft-aft',paint,STAIR.xMin,STAIR.xMax,lo,0,STAIR.zMin-.1,STAIR.zMin);
-  slab('shaft-fwd',paint,STAIR.xMin,STAIR.xMax,lo,0,STAIR.zMax,STAIR.zMax+.1);
-  for(let i=0;i<6;i++)slab(`stair-step-${i}`,deckMat,STAIR.xMin,STAIR.xMax-.1,lo,-.4-i*.4,STAIR.zMin+i*.3,STAIR.zMin+(i+1)*.3,false);}
-
+ // Lower deck under the opening: a fully enclosed box (floor + four walls). Walls sit inside the opening and run into the deck
+ // slabs and the west wall (no gap to the sea, no coplanar faces); steps are nested boxes that end inside the walls.
+ {const lo=-2.7,x0=STAIR.xMin,x1=STAIR.xMax,z0=STAIR.zMin,z1=STAIR.zMax,top=-.03;
+  slab('shaft-floor',deckMat,x0-.15,x1+.15,lo-.15,lo,z0-.15,z1+.15,false);
+  slab('shaft-east',paint,x1-.15,x1+.05,lo-.05,top,z0-.15,z1+.15);
+  slab('shaft-aft',paint,x0-.15,x1+.05,lo-.05,top,z0-.05,z0+.1);
+  slab('shaft-fwd',paint,x0-.15,x1+.05,lo-.05,top,z1-.1,z1+.15);
+  for(let i=0;i<6;i++)slab(`stair-step-${i}`,deckMat,x0-.1,x1-.1,lo-.03,-.4-i*.4,z0+.05,z0+.1+(i+1)*.3,false);}
  // Cabin: bulkhead with the blue door, its front wall at the pocket mouth, the west wall.
  slab('bulkhead',paint,-.15,0,0,Y,zMin,pocketFrontZ);
  slab('cabin-front',paint,xMin,0,0,Y,pocketFrontZ-.15,pocketFrontZ);
- slab('west-wall',paint,xMin-.15,xMin,0,Y,pocketFrontZ-.15,zMax);
+ slab('west-wall',paint,xMin-.15,xMin,-2.9,Y,pocketFrontZ-.15,zMax);
  slab('door',doorMat,0,.04,0,DOOR.h,DOOR.z-DOOR.w/2,DOOR.z+DOOR.w/2).position.x=.02;
  add('door-handle',new THREE.BoxGeometry(.04,.03,.12),alu,[.06,1.0,DOOR.z+.3]);
 

@@ -20,7 +20,7 @@ const v3=(x:number,y:number,z:number)=>new THREE.Vector3(x,y,z);
 function chairParts(){
  const teal:THREE.BufferGeometry[]=[],cream:THREE.BufferGeometry[]=[],frame:THREE.BufferGeometry[]=[];
  const backM=new THREE.Matrix4().makeTranslation(0,SEAT_Y,-.2).multiply(new THREE.Matrix4().makeRotationX(LEAN));
- const L=.58; // back frame length along its lean
+ const L=.43; // back frame length along its lean
  // Weave over/under: cell (i,j) puts the vertical strap in front when (i+j) is even, else behind (2.5 mm).
  const weave=(cols:number,rows:number,origin:THREE.Vector2,m:THREE.Matrix4)=>{
   for(let i=0;i<cols;i++)for(let j=0;j<rows;j++){
@@ -29,7 +29,7 @@ function chairParts(){
    const hor=new THREE.PlaneGeometry(PITCH,STRAP);hor.translate(cx,cy,-front);hor.applyMatrix4(m);teal.push(flat(hor));
   }
  };
- weave(10,12,new THREE.Vector2(0,.035),backM);
+ weave(10,9,new THREE.Vector2(0,.02),backM);
  // Seat weave lies flat at seat height: local plane XY -> XZ.
  weave(10,10,new THREE.Vector2(0,-.23),new THREE.Matrix4().makeTranslation(0,SEAT_Y,0).multiply(new THREE.Matrix4().makeRotationX(-Math.PI/2)));
  // Back frame: two uprights, rounded top corners (radius .08, 4 segments), top bar. Points in back-local (x, v along the lean).
@@ -74,7 +74,7 @@ export function createChairs(){
  const group=new THREE.Group();group.name='crossing-chairs';
  const tealMat=new THREE.MeshStandardMaterial({color:'#3caaaf',roughness:.55,side:THREE.DoubleSide});
  const creamMat=new THREE.MeshStandardMaterial({color:'#decd96',roughness:.55,side:THREE.DoubleSide});
- const alu=new THREE.MeshStandardMaterial({color:'#d8dce0',metalness:.9,roughness:.35,side:THREE.DoubleSide});
+ const alu=new THREE.MeshStandardMaterial({color:'#d6d6d3',metalness:.9,roughness:.45,envMapIntensity:.3,side:THREE.DoubleSide});
  const parts=chairParts(),bases=new Map<number,THREE.BufferGeometry>();
  let tris=0;
  const count=(g:THREE.BufferGeometry)=>(g.index?g.index.count:g.attributes.position.count)/3;

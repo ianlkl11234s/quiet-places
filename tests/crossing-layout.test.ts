@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {crossingDaylight,crossingMoonDirection,crossingSunDirection} from '../src/places/crossing/Daylight.ts';
-import {DECK,inDeck,inStairHole,ROOF,VIEWS} from '../src/places/crossing/Layout.ts';
+import {DECK,inDeck,inStairHole,ROOF,SOLIDS,VIEWS} from '../src/places/crossing/Layout.ts';
+import {createChairs} from '../src/places/crossing/Chairs.ts';
+import * as THREE from 'three';
 import {sampleTime} from '../src/systems/TimeOfDay.ts';
 
 const alt=(v:{y:number})=>Math.asin(v.y)*180/Math.PI;
@@ -48,4 +50,17 @@ test('the light path is continuous over the whole day',()=>{
   assert.ok(angle(crossingMoonDirection(h),crossingMoonDirection(h+.1))<4,`moon ${h}`);
   assert.ok(Math.abs(a.direct-b.direct)<.2,`hour ${h.toFixed(1)}: strength jumps`);
  }
+});
+
+test('no chair part (leaning back, arms, legs) touches a wall, bulkhead or post: at least 3 cm clear',()=>{
+ const chairs=createChairs();chairs.group.updateMatrixWorld(true);
+ const solids=SOLIDS.map(s=>({name:s.name,box:new THREE.Box3(new THREE.Vector3(s.box[0],s.box[2],s.box[4]),new THREE.Vector3(s.box[1],s.box[3],s.box[5]))}));
+ for(const row of chairs.group.children){
+  const box=new THREE.Box3().setFromObject(row).expandByScalar(.03);
+  for(const s of solids)assert.ok(!box.intersectsBox(s.box),`${row.name} within 3 cm of ${s.name}`);
+  assert.ok(box.min.x>DECK.xMin&&box.max.x<DECK.xMax&&box.min.z>DECK.zMin&&box.max.z<DECK.zMax,`${row.name} inside the deck`);
+ }
+ const wall=new THREE.Box3().setFromObject(chairs.group.children[0]);
+ assert.ok(wall.max.y>.82&&wall.max.y<.92,`wall-row chair back top ${wall.max.y}`);
+ assert.ok(chairs.triangles<60000);
 });

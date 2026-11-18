@@ -4,6 +4,8 @@ import {collectModelResources,disposeModelResources} from '../../shared/resource
 import {createCrossingSeaMaterial} from './Sea.ts';
 import {crossingDaylight} from './Daylight.ts';
 import {createGraybox} from './Graybox.ts';
+import {createCrossingLife} from './Life.ts';
+import {biologyCandidatesEnabled} from '../../shared/review/candidates.ts';
 import {SEA_Y,VIEWS,type CrossingView} from './Layout.ts';
 
 // Sky dome for open water: clean deep-blue zenith, fair-weather cumulus packed into a band hugging
@@ -69,7 +71,7 @@ export async function prepareCrossing():Promise<PlaceFactory>{
 
   // Shadow camera wraps the deck only (about 4.6 x 8 m).
   const sun=new THREE.DirectionalLight('#ffffff',2);sun.castShadow=true;
-  sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-.0004;sun.shadow.normalBias=.012;
+  sun.shadow.mapSize.set(4096,4096);sun.shadow.bias=-.0004;sun.shadow.normalBias=.012;
   Object.assign(sun.shadow.camera,{left:-6.5,right:6.5,top:6.5,bottom:-6.5,near:1,far:60});
   sun.target.position.set(.1,1,1);root.add(sun,sun.target);
   const hemi=new THREE.HemisphereLight('#bcd0e6','#5d6e68',.4);root.add(hemi);
@@ -90,6 +92,8 @@ export async function prepareCrossing():Promise<PlaceFactory>{
   const pmrem=new THREE.PMREMGenerator(renderer),envKey=new THREE.Color(-1,-1,-1);let envTarget:THREE.WebGLRenderTarget|null=null,envAge=Infinity;
   const tmp=new THREE.Color(1,1,1);
   let disposed=false;
+  // Sardines over the deck and two young whale sharks off the open side; ?bio=off disables the pointer response only.
+  const life=createCrossingLife(biologyCandidatesEnabled()?{}:{pointerResponse:0});root.add(life.group);
   return {position:[...view.position],target:[...view.target],cameraMode:'fixed-position',yawRange:Math.PI/10,
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?view.fov+14:view.fov;},exposure:1,msaaSamples:2,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
@@ -102,7 +106,7 @@ export async function prepareCrossing():Promise<PlaceFactory>{
     sun.position.copy(sun.target.position).addScaledVector(light.sun,30);
     sun.color.copy(light.tint);sun.intensity=3.4*light.direct*(state.beamStrength??1);
     const lvl=light.level*(1-light.night*.85);
-    hemi.color.setRGB(.62,.72,.96).lerp(light.horizon,.25).lerp(tmp,.15);hemi.groundColor.setRGB(.42,.58,.82).lerp(light.tint,.2).multiplyScalar(lvl);hemi.intensity=.12+1.1*lvl;
+    hemi.color.setRGB(.62,.72,.96).lerp(light.horizon,.25).lerp(tmp,.15).lerp(light.tint,light.low*.3);hemi.groundColor.setRGB(.42,.58,.82).lerp(light.tint,.2).multiplyScalar(lvl);hemi.intensity=.12+1.1*lvl;
     bounce.intensity=.6*lvl;
     graybox.setLamp(1.5*light.lamp);lamp.intensity=2.2*light.lamp;
     // Hull roll: two incommensurate periods (8.2 s and 5.1 s), under 0.5 degree each way; the world turns, the camera does not.
@@ -110,12 +114,14 @@ export async function prepareCrossing():Promise<PlaceFactory>{
     groundBounce.value.setRGB(.2,.35,.6).lerp(light.tint,.25).multiplyScalar(lvl);
     envAge+=Math.max(0,_dt);
     if(envAge>=.2&&Math.abs(envKey.r-light.horizon.r)+Math.abs(envKey.g-light.horizon.g)+Math.abs(envKey.b-light.horizon.b)>.01){
-     const next=pmrem.fromScene(envScene,0,.1,10);envTarget?.dispose();envTarget=next;envKey.copy(light.horizon);envAge=0;graybox.alu.envMap=next.texture;graybox.alu.needsUpdate=true;
+     const next=pmrem.fromScene(envScene,0,.1,10);envTarget?.dispose();envTarget=next;envKey.copy(light.horizon);envAge=0;graybox.alu.envMap=next.texture;graybox.alu.needsUpdate=true;life.setEnvironment(next.texture,.5);
     }
+    life.update(Math.max(0,_dt),elapsed,{hour:state.hour,intensity:1});
     renderer.shadowMap.enabled=true;
    },
+   pointerRay(ray,tap){life.pointerRay(ray,tap);},
    disturb(){},resetWater(){},
-   dispose(){if(disposed)return;disposed=true;envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();graybox.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
+   dispose(){if(disposed)return;disposed=true;life.setEnvironment(null,0);life.dispose();life.group.removeFromParent();envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();graybox.dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
   };
  };
  return factory;

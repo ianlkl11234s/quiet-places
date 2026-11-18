@@ -52,11 +52,11 @@ export function createCrossingSeaMaterial(time:{value:number},day:{value:number}
  // fine and dense; the density rises toward the axis and only the axis centre joins into a band. Each dot twinkles.
  vec2 toP=p.xz-cameraPosition.xz;vec2 hd=normalize(toP),sd=normalize(uSun.xz);
  float ang=acos(clamp(dot(hd,sd),-1.,1.));
- float sig=.11+.5*view.y;
+ float sig=.17+.6*view.y;
  float axis=exp(-pow(ang/sig,2.));
- float wA=1.-smoothstep(25.,90.,dist),wB=smoothstep(15.,50.,dist)*(1.-smoothstep(160.,380.,dist)),wC=smoothstep(110.,260.,dist);
- float spark=wA*sparkle(w3,3.,mix(.99,.86,axis),t)+wB*sparkle(w2,1.15,mix(.98,.80,axis),t)+wC*sparkle(w1,.38,mix(.97,.72,axis),t);
- float band=pow(axis,3.)*smoothstep(80.,260.,dist)*.5;
+ float wA=1.-smoothstep(25.,90.,dist),wB=smoothstep(15.,50.,dist)*(1.-smoothstep(160.,380.,dist)),wC=smoothstep(50.,170.,dist);
+ float spark=wA*sparkle(w3,3.,mix(.99,.86,axis),t)+wB*sparkle(w2,1.15,mix(.975,.72,axis),t)+wC*sparkle(w1,.38,mix(.96,.62,axis),t);
+ float band=pow(axis,2.)*smoothstep(30.,200.,dist)*1.1;
  float glint=spark*9.*(.35+.65*axis)+band;
  col+=glint*uDirect*uTint*(.5+.5*uDay);
  // Wake: dense white foam from the stern aft, widening and thinning, swirled edges, scrolling with the water.
