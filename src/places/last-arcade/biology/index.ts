@@ -16,7 +16,7 @@ export function createArcadeBiology(){
  const debug=()=>({...motion.debug(),schools:schools.getDebug()});root.userData.getDebug=debug;
  return {root,getDebug:debug,update(dt:number,elapsed:number){
   if(disposed)return;if(elapsed<last-1e-6){motion=new ArcadeAnimalMotion(false);encounters=new ArcadeAnimalMotion(false);ambient.dispose();schools.root.removeFromParent();schools.dispose();schools=makeSchools();root.add(schools.root);ambient=installCreatureAmbient(root);}
-  last=elapsed;const poses=motion.sample(elapsed);poses.forEach((s,i)=>{const model=models[i];model.root.position.copy(s.position);model.root.quaternion.copy(s.quaternion);model.update({phase:s.phase,amplitude:1,glide:s.glide,asymmetry:s.asymmetry});});
+  last=elapsed;const poses=motion.sample(elapsed);poses.forEach((s,i)=>{const model=models[i];model.root.position.copy(s.position);model.root.quaternion.copy(s.quaternion);model.update({phase:s.phase,amplitude:s.amplitude,glide:s.glide,asymmetry:s.asymmetry,tailYaw:s.tailYaw,tailPitch:s.tailPitch});});
   schools.setRareEventsEnabled(motion.noticeableEvents<1);schools.update(dt,elapsed);ambient.update(elapsed);
  },disturb(){schools.disturb();},dispose(){if(disposed)return;disposed=true;ambient.dispose();models.forEach(m=>m.dispose());schools.dispose();root.removeFromParent();root.clear();}};
 }
