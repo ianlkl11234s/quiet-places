@@ -136,10 +136,15 @@ async function start(){
  renderer.domElement.addEventListener('pointerdown',e=>{if(e.isPrimary&&e.button===0)waterDown={x:e.clientX,y:e.clientY,id:e.pointerId};});
  renderer.domElement.addEventListener('pointercancel',()=>{waterDown=undefined;});
  renderer.domElement.addEventListener('pointerup',e=>{
-  const start=waterDown;waterDown=undefined;if(switching||exporting||!placeSupports(currentPlace,'water-interaction'))return;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
+  const start=waterDown;waterDown=undefined;if(switching||exporting)return;if(!start||start.id!==e.pointerId||Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)return;
   const rect=renderer.domElement.getBoundingClientRect();raycaster.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);
-  if(raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)place.disturb(u,v);}
+  place.pointerRay?.(raycaster.ray,true);
+  if(placeSupports(currentPlace,'water-interaction')&&raycaster.ray.intersectPlane(waterPlane,hit)){const u=hit.x/3.6+.5,v=.5-(hit.z+.2)/3.6;if(u>0&&u<1&&v>0&&v<1)place.disturb(u,v);}
  });
+ // Creature awareness: the latest pointer position is turned into one world ray per rendered frame.
+ const pointerNdc=new THREE.Vector2();let pointerInside=false;
+ renderer.domElement.addEventListener('pointermove',e=>{const rect=renderer.domElement.getBoundingClientRect();pointerNdc.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);pointerInside=true;});
+ renderer.domElement.addEventListener('pointerleave',()=>{pointerInside=false;if(!switching)place.pointerRay?.(undefined,false);});
  const composer=new EffectComposer(renderer);
  const renderPass=new SceneRenderPass(scene,camera);composer.addPass(renderPass);
  const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.19,.65,1.05);composer.addPass(bloom);composer.addPass(new OutputPass());
@@ -435,6 +440,7 @@ async function start(){
   const sceneRain=weatherProfile==='water'?preferences.weather==='rain':weatherProfile==='afterlight'&&(preferences.weather==='rain'||afterlightHeavyRain);
   const lighting=waterRain?{...state,intensity:state.intensity*.72,warmth:state.warmth*.45}:state;
   const sceneDt=switching?0:sceneClock.advance(dt);
+  if(pointerInside&&!switching&&place.pointerRay){raycaster.setFromCamera(pointerNdc,camera);place.pointerRay(raycaster.ray,false);}
   place.update(sceneDt,sceneClock.elapsed,{...lighting,beamStrength,rain:sceneRain?preferences.rainIntensity:0,heavyRain:afterlightHeavyRain,lowQuality:preferences.quality==='low'});
   controls.enableDamping=!reduce.matches;controls.update();composer.render();rendering=false;sceneDrawn=true;wallDirty=false;
   if(!paused||timeTravel||now<dirtyUntil)raf=requestAnimationFrame(frame);
