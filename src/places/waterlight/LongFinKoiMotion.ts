@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {seededRandom} from '../../shared/math/seededRandom.ts';
-import {constrainTravelToHeading, createHeadingState, headingQuaternion, stepHeading, type HeadingParams, type HeadingState, type SlipParams} from '../../shared/biology/locomotion/index.ts';
+import {constrainTravelToHeading, createHeadingState, headingQuaternion, stepHeading, tailBeatFrequency, type TailBeatParams, type HeadingParams, type HeadingState, type SlipParams} from '../../shared/biology/locomotion/index.ts';
 import {WATER_ROOM} from './Room.ts';
 import {shallowSeaSunDirection} from './ShallowSea.ts';
 
@@ -27,15 +27,44 @@ export type LongFinKoiPose = {
   bank: number;
   /** Normalised actual turn strength, -1..1, positive = left; drives TURN_* clips. */
   turn: number;
+  /** Smoothed C-bend from the shared steering, body lengths at the tail tip (negative = tail toward fish-left). */
+  bend: number;
 };
+
+/**
+ * B2-2 candidate (art calibration): drive the animation clock from the shared tail-beat
+ * relation f = f0 + U/(k*BL) so small fish beat faster than large ones. f0 = .65 and
+ * k are chosen so that the school-average clock rate at any common speed equals the
+ * former `.65 + 6.5*U` (k uses the harmonic-mean body length of the 16 fish).
+ * Revert = set false (the former clock is kept verbatim).
+ */
+export const KOI_BODY_LENGTH_FREQUENCY = true;
+const HARMONIC_LENGTH = LONG_FIN_KOI_LENGTHS.length / LONG_FIN_KOI_LENGTHS.reduce((sum, length) => sum + 1 / length, 0);
+export const LONG_FIN_KOI_TAIL_BEAT: TailBeatParams = {f0: .65, k: 1 / (6.5 * HARMONIC_LENGTH), maxFrequency: 4};
+
+/**
+ * B1a candidate (art calibration): the pointer ray makes nearby fish notice a shadow.
+ * 0 = off (no state is touched, output unchanged), 1 = full strength; default .5.
+ * Moving: fish within 2.5 body lengths of the ray steer away by up to .03 m/s of
+ * desired velocity (x response), fading to nothing 2 s after the pointer stops.
+ * Tap: up to two fish within 3 body lengths take one existing burst, 6 s cooldown;
+ * every fish within 4 body lengths is alerted (radius and push enlarged for 3 s).
+ * The push is added before the beam/wall return forces, so activity bounds hold.
+ */
+export const KOI_POINTER_RESPONSE = .5;
+export const KOI_POINTER = {hoverRadius: 2.5, tapRadius: 3, alertRadius: 4, push: .03, burstPush: .05, holdTime: .5, idleTime: 2, cooldown: 6, alertTime: 3, burstDuration: 4} as const;
+
+export type LongFinKoiOptions = {bodyLengthFrequency?: boolean; pointerResponse?: number};
 
 export type LongFinKoiSchool = {
+  /** Borrowed ray: values are copied. `undefined` = pointer left. */
+  pointerRay: (ray: THREE.Ray | undefined, tap: boolean) => void;
   update: (dt: number, lighting?: {angle?: number; activity?: number; reducedMotion?: boolean}) => void;
   poses: () => readonly LongFinKoiPose[];
-  inspect: () => {steps: number; finite: boolean; maxSpeed: number; maxBeamRadius: number; minSpacing: number};
+  inspect: () => {steps: number; finite: boolean; maxSpeed: number; maxBeamRadius: number; minSpacing: number; pointerAlert: number};
 };
 
-type Fish = LongFinKoiPose & {heading: HeadingState; preferredHeight: number; preferredSpeed: number; nextChange: number; phase: number; nextBurst: number; burstStart: number; burstDuration: number};
+type Fish = LongFinKoiPose & {heading: HeadingState; preferredHeight: number; preferredSpeed: number; nextChange: number; phase: number; nextBurst: number; burstStart: number; burstDuration: number; startled: boolean};
 
 const UP = new THREE.Vector3(0, 1, 0);
 const DEG = Math.PI / 180;
@@ -94,7 +123,9 @@ function chooseBehavior(random: () => number, previous: LongFinKoiBehavior) {
  * A deterministic fixed-step loose shoal. Callers own its clock: `dt === 0`
  * deliberately changes neither steering state nor fin/action phase.
  */
-export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
+export function createLongFinKoiSchool(seed = 0x1f2e3d4c, options: LongFinKoiOptions = {}): LongFinKoiSchool {
+  const lengthFrequency = options.bodyLengthFrequency ?? KOI_BODY_LENGTH_FREQUENCY;
+  const response = THREE.MathUtils.clamp(clampFinite(options.pointerResponse, KOI_POINTER_RESPONSE), 0, 1);
   const random = seededRandom(seed);
   const fish: Fish[] = LONG_FIN_KOI_LENGTHS.map((length, index) => {
     const height = 2.45 + index / (LONG_FIN_KOI_COUNT - 1) * 1.86 + (random() - .5) * .10;
@@ -105,17 +136,26 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
     const velocity = new THREE.Vector3(Math.cos(heading), (random() - .5) * .06, Math.sin(heading)).multiplyScalar(.048 + random() * .012);
     const bodyHeading = createHeadingState(velocity, LONG_FIN_KOI_HEADING.maxPitch);
     const quaternion = headingQuaternion(bodyHeading);
-    return {index, length, position, velocity, quaternion, heading: bodyHeading, yawRate: 0, bank: 0, turn: 0, behavior: index % 3 === 0 ? 'hover' : 'slow', actionClock: random() * 8, motionPhase: random() * Math.PI * 2,
+    return {index, length, position, velocity, quaternion, heading: bodyHeading, yawRate: 0, bank: 0, turn: 0, bend: 0, startled: false, behavior: index % 3 === 0 ? 'hover' : 'slow', actionClock: random() * 8, motionPhase: random() * Math.PI * 2,
       burst: 0, nextBurst: 4 + index * 2.1 + random() * 8, burstStart: -10, burstDuration: 0,
       preferredHeight: height, preferredSpeed: .044 + random() * .022, nextChange: 4 + random() * 8, phase: random() * Math.PI * 2};
   });
   let accumulator = 0, simulationTime = 0, steps = 0, lastAngle = 0;
   const center = new THREE.Vector3(), desired = new THREE.Vector3(), separation = new THREE.Vector3(), alignment = new THREE.Vector3();
   const excursion = new THREE.Vector3();
+  // Pointer awareness state (only touched when response > 0).
+  const pointerOrigin = new THREE.Vector3(), pointerDirection = new THREE.Vector3(0, 0, -1), closest = new THREE.Vector3(), away = new THREE.Vector3();
+  let pointerActive = false, pointerIdle = Infinity, tapAlert = 0, lastTapBurst = -Infinity, lastReduced = false;
   const toOther = new THREE.Vector3(), beam = new THREE.Vector3(), horizontal = new THREE.Vector3();
 
   function step(angle: number, activity: number, reducedMotion: boolean) {
     simulationTime += LONG_FIN_KOI_STEP;
+    lastReduced = reducedMotion;
+    let alert = 0;
+    if (response > 0) {
+      pointerIdle += LONG_FIN_KOI_STEP; tapAlert = Math.max(0, tapAlert - LONG_FIN_KOI_STEP / KOI_POINTER.alertTime);
+      alert = Math.max(tapAlert, 1 - THREE.MathUtils.smoothstep(pointerIdle, KOI_POINTER.holdTime, KOI_POINTER.idleTime));
+    }
     // All boid forces read one time-slice. This removes an index-order bias
     // where early fish had otherwise influenced later fish within one step.
     const positions = fish.map(item => item.position.clone());
@@ -165,6 +205,7 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
       desired.addScaledVector(separation, .52);
       const wanderAngle = simulationTime * (.16 + (current.index % 3) * .017) + current.phase;
       desired.add(new THREE.Vector3(Math.cos(wanderAngle), Math.sin(wanderAngle * .7) * .10, Math.sin(wanderAngle)).multiplyScalar(.016));
+      if (response > 0 && pointerActive) pointerPush(current, desired, alert, reducedMotion);
       if (current.behavior === 'left' || current.behavior === 'right') {
         horizontal.copy(current.velocity).setY(0);
         if (horizontal.lengthSq() > 1e-7) desired.addScaledVector(horizontal.normalize().cross(UP), current.behavior === 'left' ? .026 : -.026);
@@ -193,14 +234,35 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
       // Shared heading controller: hold at low speed, capped yaw/pitch, bank from actual yaw rate.
       current.heading = stepHeading(current.heading, current.velocity, current.velocity.length(), LONG_FIN_KOI_STEP, LONG_FIN_KOI_HEADING);
       headingQuaternion(current.heading, current.quaternion);
-      current.yawRate = current.heading.yawRate; current.bank = current.heading.bank;
+      current.yawRate = current.heading.yawRate; current.bank = current.heading.bank; current.bend = current.heading.bend;
       current.turn = LONG_FIN_KOI_HEADING.maxBank > 0 ? current.heading.bank / LONG_FIN_KOI_HEADING.maxBank : 0;
       constrainTravelToHeading(current.velocity, current.heading, LONG_FIN_KOI_HEADING);
       current.position.addScaledVector(current.velocity, LONG_FIN_KOI_STEP);
-      current.actionClock += LONG_FIN_KOI_STEP * (current.behavior === 'pause' && current.burst === 0 ? 1.05 : .65 + current.velocity.length() * 6.5);
+      current.actionClock += LONG_FIN_KOI_STEP * (current.behavior === 'pause' && current.burst === 0 ? 1.05
+        : lengthFrequency ? tailBeatFrequency(current.velocity.length(), current.length, LONG_FIN_KOI_TAIL_BEAT) : .65 + current.velocity.length() * 6.5);
       current.motionPhase += LONG_FIN_KOI_STEP * (.65 + current.index * .027);
+      if (current.startled && current.burst === 0) current.startled = false;
     }
     steps++;
+  }
+
+  /** Distance from `point` to the pointer ray (forward half-line); fills `closest`. */
+  function rayDistance(point: THREE.Vector3) {
+    const t = Math.max(0, toOther.copy(point).sub(pointerOrigin).dot(pointerDirection));
+    closest.copy(pointerOrigin).addScaledVector(pointerDirection, t);
+    return point.distanceTo(closest);
+  }
+  function pointerPush(current: Fish, desired: THREE.Vector3, alert: number, reducedMotion: boolean) {
+    const radius = current.length * (KOI_POINTER.hoverRadius + (KOI_POINTER.alertRadius - KOI_POINTER.hoverRadius) * tapAlert);
+    const distance = rayDistance(current.position);
+    const startle = current.startled ? current.burst : 0;
+    if ((alert <= 0 && startle <= 0) || distance >= radius) return;
+    away.copy(current.position).sub(closest);
+    if (away.lengthSq() < 1e-10) away.set(-pointerDirection.z, 0, pointerDirection.x);
+    away.y *= .3; away.normalize();
+    const near = 1 - distance / radius;
+    const strength = response * (KOI_POINTER.push * alert * near * near + KOI_POINTER.burstPush * startle) * (reducedMotion ? .34 : 1);
+    desired.addScaledVector(away, strength);
   }
 
   return {
@@ -213,6 +275,28 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
       const activity = THREE.MathUtils.clamp(clampFinite(lighting.activity, .5), 0, 1);
       while (accumulator + 1e-10 >= LONG_FIN_KOI_STEP) { step(angle, activity, Boolean(lighting.reducedMotion)); accumulator -= LONG_FIN_KOI_STEP; }
     },
+    pointerRay(ray, tap) {
+      if (!(response > 0)) return;
+      if (!ray || !Number.isFinite(ray.origin.x + ray.origin.y + ray.origin.z + ray.direction.x + ray.direction.y + ray.direction.z) || ray.direction.lengthSq() < 1e-12) { pointerActive = false; return; }
+      const moved = !pointerActive || pointerOrigin.distanceToSquared(ray.origin) > 1e-8 || pointerDirection.distanceToSquared(ray.direction) > 1e-10;
+      pointerOrigin.copy(ray.origin); pointerDirection.copy(ray.direction).normalize();
+      pointerActive = true;
+      if (moved || tap) pointerIdle = 0;
+      if (!tap) return;
+      tapAlert = 1;
+      if (simulationTime - lastTapBurst < KOI_POINTER.cooldown || lastReduced) return;
+      // Existing burst state, at most two fish at once (the school-wide cap), nearest to the ray first.
+      let active = fish.filter(item => simulationTime < item.burstStart + item.burstDuration).length;
+      const candidates = fish.filter(item => !(simulationTime < item.burstStart + item.burstDuration) && rayDistance(item.position) < item.length * KOI_POINTER.tapRadius)
+        .map(item => ({item, distance: rayDistance(item.position)})).sort((a, b) => a.distance - b.distance);
+      let started = false;
+      for (const {item} of candidates) {
+        if (active >= 2) break;
+        item.burstStart = simulationTime; item.burstDuration = KOI_POINTER.burstDuration; item.startled = true;
+        item.nextBurst = Math.max(item.nextBurst, simulationTime + 30); item.burst = 0; active++; started = true;
+      }
+      if (started) lastTapBurst = simulationTime;
+    },
     poses() { return fish; },
     inspect() {
       let finite = true, maxSpeed = 0, maxBeamRadius = 0, minSpacing = Infinity;
@@ -221,7 +305,8 @@ export function createLongFinKoiSchool(seed = 0x1f2e3d4c): LongFinKoiSchool {
         maxSpeed = Math.max(maxSpeed, item.velocity.length()); maxBeamRadius = Math.max(maxBeamRadius, beamRadius(item.position, lastAngle));
         for (let j = i + 1; j < fish.length; j++) minSpacing = Math.min(minSpacing, item.position.distanceTo(fish[j].position));
       }
-      return {steps, finite, maxSpeed, maxBeamRadius, minSpacing};
+      const pointerAlert = response > 0 && pointerActive ? Math.max(tapAlert, 1 - THREE.MathUtils.smoothstep(pointerIdle, KOI_POINTER.holdTime, KOI_POINTER.idleTime)) : 0;
+      return {steps, finite, maxSpeed, maxBeamRadius, minSpacing, pointerAlert};
     },
   };
 }
