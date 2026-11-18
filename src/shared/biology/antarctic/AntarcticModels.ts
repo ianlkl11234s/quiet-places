@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {tailBeatFrequency,type TailBeatParams} from '../locomotion/Propulsion.ts';
 
 const TAU=Math.PI*2;
 const clamp=THREE.MathUtils.clamp;
@@ -7,14 +8,27 @@ export interface AntarcticCreature {
   root:THREE.Group;
   /** Conservative local-space sphere radius for the room behaviour's clearance checks. */
   safeRadius:number;
-  update(time:number,speedBL:number,turn:number,light:number):void;
+  /** `waveClock` (s, optional) is the behaviour-integrated tail clock (see SILVERFISH_SPEED_PHASE); absent = elapsed `time`. */
+  update(time:number,speedBL:number,turn:number,light:number,waveClock?:number):void;
   dispose():void;
 }
+
+/**
+ * B3 candidate (art approximation, not verified biomechanics). true: the silverfish tail clock is
+ * integrated by the behaviour layer from speed, so beat frequency rises with speed (f = f0 + U/k,
+ * Propulsion.tailBeatFrequency) instead of `waveHz * elapsed`. false: legacy fixed-frequency clock.
+ */
+export const SILVERFISH_SPEED_PHASE=true;
+/** Calibrated cruise speed (body lengths/s) at which the beat frequency equals `fish.waveHz`. */
+export const SILVERFISH_CRUISE_BL=1;
+/** Beat-frequency multiplier vs. the calibrated frequency: 1 at cruise, .3 at rest, capped at 1.6. */
+export function silverfishWaveRate(speedBL:number):number{return tailBeatFrequency(speedBL/SILVERFISH_CRUISE_BL,1,SILVERFISH_WAVE_PARAMS)/ANTARCTIC_MODEL_CALIBRATION.fish.waveHz;}
 
 export const GLASS_SQUID_SAFE_RADIUS=1.70;
 export const SILVERFISH_SAFE_RADIUS=.74;
 /** [C] local rendering calibration, deliberately separate from room behaviour. */
 export const ANTARCTIC_MODEL_CALIBRATION={squid:{mantleLength:1,armLength:.58,tentacleLength:.90,finHz:.42},fish:{bodyLength:1,waveHz:2.35,tailAmplitude:.052}} as const;
+const SILVERFISH_WAVE_PARAMS:TailBeatParams={f0:.3*ANTARCTIC_MODEL_CALIBRATION.fish.waveHz,k:1/(.7*ANTARCTIC_MODEL_CALIBRATION.fish.waveHz),maxFrequency:1.6*ANTARCTIC_MODEL_CALIBRATION.fish.waveHz};
 
 function random(seed:number){
   let state=(seed>>>0)||1;
@@ -173,14 +187,14 @@ export function createSilverfish(seed:number):AntarcticCreature {
     surface.onBeforeCompile=shader=>{shader.uniforms.uAntarcticReveal=lightReveal;shader.fragmentShader='uniform float uAntarcticReveal;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>','outgoingLight *= uAntarcticReveal;\n#include <opaque_fragment>');};
   }
   let disposed=false;
-  const render=(time:number,speed:number,turn:number,light:number)=>{
+  const render=(time:number,speed:number,turn:number,light:number,waveClock:number)=>{
     lightReveal.value=Math.pow(clamp(light,0,1),1.3);
     const frequency=ANTARCTIC_MODEL_CALIBRATION.fish.waveHz*frequencyMultiplier,amplitude=.48+.52*clamp(speed,0,1.7),position=body.geometry.getAttribute('position') as THREE.BufferAttribute;
     let colors=body.geometry.getAttribute('color') as THREE.BufferAttribute|undefined;
     if(!colors){colors=new THREE.BufferAttribute(new Float32Array(position.count*3),3);body.geometry.setAttribute('color',colors);}
     for(let ring=0;ring<=body.rings;ring++){
       const s=ring/body.rings,z=.48-s*.96,depth=.105*Math.pow(Math.sin(Math.PI*s),.68)*(1-.16*s)*(1-.58*THREE.MathUtils.smoothstep(.73,1,s))+.028*s**7;
-      const wave=(.006+.052*s**1.62)*amplitude*Math.sin(TAU*frequency*time-TAU*.92*s+phase)+turn*.045*s**1.7;
+      const wave=(.006+.052*s**1.62)*amplitude*Math.sin(TAU*frequency*waveClock-TAU*.92*s+phase)+turn*.045*s**1.7;
       for(let side=0;side<body.sides;side++){const a=TAU*side/body.sides,vertical=depth*Math.sin(a),lateral=depth*.58*Math.cos(a)+wave,index=ring*body.sides+side;
         position.setXYZ(index,lateral,vertical,z);
         // Dorsal darkens, belly brightens; the restrained lateral modulation is
@@ -190,14 +204,14 @@ export function createSilverfish(seed:number):AntarcticCreature {
       }
     }
     position.needsUpdate=true;colors.needsUpdate=true;body.geometry.computeVertexNormals();body.geometry.computeBoundingSphere();
-    const headS=.156,headWave=(.006+.052*headS**1.62)*amplitude*Math.sin(TAU*frequency*time-TAU*.92*headS+phase)+turn*.045*headS**1.7;
+    const headS=.156,headWave=(.006+.052*headS**1.62)*amplitude*Math.sin(TAU*frequency*waveClock-TAU*.92*headS+phase)+turn*.045*headS**1.7;
     eyes.forEach(({mesh:eye,sign})=>eye.position.set(sign*.059+headWave,.018,.33));
     const tailPosition=tail.geometry.getAttribute('position') as THREE.BufferAttribute;
-    const tailWave=(s:number)=>(.006+.052*s**1.62)*amplitude*Math.sin(TAU*frequency*time-TAU*.92*s+phase)+turn*.045*s**1.7;
+    const tailWave=(s:number)=>(.006+.052*s**1.62)*amplitude*Math.sin(TAU*frequency*waveClock-TAU*.92*s+phase)+turn*.045*s**1.7;
     const rootX=tailWave(1),tipX=tailWave(1.14),zRoot=-.48,zTip=-.665,zNotch=-.595;
     tailPosition.setXYZ(0,rootX,0,zRoot);tailPosition.setXYZ(1,tipX,.15,zTip);tailPosition.setXYZ(2,tipX,0,zNotch);tailPosition.setXYZ(3,tipX,-.15,zTip);tailPosition.needsUpdate=true;tail.geometry.computeVertexNormals();tail.geometry.computeBoundingSphere();
     fins.forEach((fin,index)=>{const p=.20*Math.sin(TAU*(frequency*.47)*time+phase+index*1.7);if(index>=2)fin.rotation.z=(index===2?1:-1)*(.28+p*.35);});
     material.envMapIntensity=.12+.60*light;finMaterial.opacity=.28+.5*light;
   };
-  return {root,safeRadius:SILVERFISH_SAFE_RADIUS,update(time,speedBL,turn,light){if(disposed)return;render(Math.max(0,Number.isFinite(time)?time:0),clamp(Number.isFinite(speedBL)?speedBL:0,0,2.5),clamp(Number.isFinite(turn)?turn:0,-1,1),clamp(Number.isFinite(light)?light:0,0,1));},dispose(){if(disposed)return;disposed=true;dispose(root);}};
+  return {root,safeRadius:SILVERFISH_SAFE_RADIUS,update(time,speedBL,turn,light,waveClock){if(disposed)return;const t=Math.max(0,Number.isFinite(time)?time:0);render(t,clamp(Number.isFinite(speedBL)?speedBL:0,0,2.5),clamp(Number.isFinite(turn)?turn:0,-1,1),clamp(Number.isFinite(light)?light:0,0,1),SILVERFISH_SPEED_PHASE&&waveClock!==undefined&&Number.isFinite(waveClock)?Math.max(0,waveClock):t);},dispose(){if(disposed)return;disposed=true;dispose(root);}};
 }

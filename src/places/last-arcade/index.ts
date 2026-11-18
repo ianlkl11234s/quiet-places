@@ -388,6 +388,7 @@ export async function prepareLastArcade() {
         sun.shadow.needsUpdate = true;
       },
       moonDefaults: moon.defaults, setMoon(settings) {moon.setSettings(settings);},
+      pointerRay(ray, tap) {biology.pointerRay(ray, tap);},
       disturb() {biology.disturb();}, resetWater() {},
       dispose() {
         if (disposed) return; disposed = true;

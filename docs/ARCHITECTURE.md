@@ -1,6 +1,6 @@
 # Quiet Places／靜隅：現行程式結構
 
-六個場景共用一個播放器，場景的構圖、材質與動態各自維護。本頁描述目前程式；hash router 與完整 SceneHost 的舊規劃保留在 [歷史設計](plans/SCENE_HOST_DESIGN.md)，不代表已實作。
+十個場景共用一個播放器，場景的構圖、材質與動態各自維護。本頁描述目前程式；hash router 與完整 SceneHost 的舊規劃保留在 [歷史設計](plans/SCENE_HOST_DESIGN.md)，不代表已實作。
 
 ## 從哪裡開始
 
@@ -16,7 +16,11 @@
 | 雨後天井 | `src/places/afterlight/` |
 | 階光之間 | `src/places/stairlight/` |
 | 向海的隧道 | `src/places/seaward/` |
-| 房間進場與泡泡布局 | `src/ui/RoomBrowser.ts` |
+| 雪落海窗 | `src/places/snowwindow/` |
+| 雪光長廊 | `src/places/snowhall/` |
+| 潮風商店街 | `src/places/last-arcade/` |
+| 海邊小站 | `src/places/seabridge/` |
+| 房間進場與窗景牆 | `src/ui/RoomBrowser.ts` |
 | 製作流程與能力索引 | [production](production/README.md) |
 | 可跨場景使用的元素 | `src/shared/` |
 | 音訊、偏好、時間曲線、GPU 波動系統 | `src/systems/` |
@@ -100,3 +104,12 @@ npm run dev
 ## 製作室與資產契約（2026-09-09）
 
 `src/studio/` 為獨立 authoring 入口，共用 Afterlight factory、Medaka 本體、DrainGeometry、SceneClock 和 MusicPlayer。`assets/config/` 保存幾何與已採用 study；`scripts/asset-pipeline.py` 在新目錄重建兩條 pilot；`scripts/study.mjs` 保存候選與可回退的非幾何採用。詳見 [製作入口](production/README.md) 與 [驗收](production/P0_P6_ACCEPTANCE.md)。一般觀賞 UI 不承擔模型製作與實驗紀錄。
+
+## 2026-11-18：窗景牆取代記憶泡泡
+
+- **做了什麼**：`#rooms-panel` 改為全螢幕窗景牆，每個房間一格（4:3 縮圖、生物標籤、房名與副標），目前房間以象牙金邊框與「此刻」標示。進場併成一步，面板一開就是牆；每個 tab 第一次進入仍自動開牆（`ROOM_ENTRY_SESSION_KEY`）。關閉方式：關閉鈕、Escape、點目前房間。方向鍵在格線內移動（`nextRoomIndex`，欄數由排版量出），Home／End 到首尾。
+- **移除**：`RoomBubbleMotion`、`layoutMemoryBubbles`、泡泡專用樣式與兩段式 `data-view`。上方 2026-09-10 的泡泡段落保留為歷史。
+- **資料**：卡片全由 `src/places/metadata.ts` 的 `places` 產生；選填欄位 `life` 是縮圖左下的生物標籤。
+- **縮圖**：`public/room-thumbs/<id>.webp`（800x500）。場景外觀改動後要重新產生對應縮圖，否則牆上的圖會與實際房間不符。
+- **`WALL_FREEZES_SCENE`**（`src/main.ts` 頂端常數）：為 true 時，牆開著且不在切換房間期間，`frame()` 不呼叫 `place.update` 與 `composer.render`，保留最後一幀當背景；視窗縮放時補畫一幀。關牆或開始切換即恢復繪製。設為 false 則與舊行為相同。
+- **驗收範圍**：只做技術檢查（tsc、單元測試、build、check:project）；瀏覽器中的視覺與互動驗收另行進行。

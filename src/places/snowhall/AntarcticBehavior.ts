@@ -1,7 +1,14 @@
 import * as THREE from 'three';
 import config from '../../../assets/config/snowhall-biology.json' with {type:'json'};
+import {silverfishWaveRate} from '../../shared/biology/antarctic/AntarcticModels.ts';
 import {seededRandom} from '../../shared/math/seededRandom.ts';
 
+/**
+ * B3 candidate (art approximation). Peak roll into a turn, degrees; 0 disables it (legacy upright).
+ * Applied to silverfish only; smoothed with SILVERFISH_BANK_SECONDS so it never snaps.
+ */
+export const SILVERFISH_BANK=8;
+const SILVERFISH_BANK_SECONDS=.35;
 const STEP=config.simulation.fixedStepSeconds,FORWARD=new THREE.Vector3(0,0,1);
 const clamp=THREE.MathUtils.clamp,smooth=THREE.MathUtils.smoothstep;
 type Random=()=>number;
@@ -9,9 +16,9 @@ export type SquidState='IDLE_HOVER'|'SLOW_CRUISE'|'GENTLE_TURN'|'DEPTH_ADJUST'|'
 export type BioEventType='SQUID_APPROACH_LIGHT'|'SQUID_CROSS_CORRIDOR'|'SQUID_SILVERFISH_NEAR_PASS'|'SILVERFISH_SMALL_TRANSIT'|'SILVERFISH_MAIN_TRANSIT'|'SILVERFISH_SPLIT_AROUND_SQUID'|'LONG_EMPTY_PHASE'|'MICRO_JET_REPOSITION';
 export type FishRouteMode='MEANDER'|'MID_HOVER'|'CIRCLE';
 export type AntarcticEvent={type:BioEventType;start:number;end?:number;duration?:number;lightPeak:number;count?:number;agent?:number;routeSeed?:number;routeMode?:FishRouteMode;entrySide?:number;entryHeight?:number;routeCenter?:[number,number,number];state:'ACTIVE'|'DONE'};
-export type AntarcticAgent={position:THREE.Vector3;quaternion:THREE.Quaternion;speedBL:number;turn:number;scale:number;visible:boolean;target:THREE.Vector3;avoidance:THREE.Vector3;state:SquidState|'TRANSIT'|'DORMANT'};
-export type AntarcticBehaviorOptions={width?:number;height?:number;windowX?:number;windowY?:number;windowWidth?:number;windowHeight?:number;cameraPosition?:[number,number,number];cameraTarget?:[number,number,number]};
-type Body=AntarcticAgent&{p:THREE.Vector3;previous:THREE.Vector3;q:THREE.Quaternion;previousQ:THREE.Quaternion;velocity:THREE.Vector3;random:Random;radius:number;yaw:number;pitch:number;phase:number};
+export type AntarcticAgent={position:THREE.Vector3;quaternion:THREE.Quaternion;speedBL:number;turn:number;/** Silverfish tail clock (s), integrated from speed; see SILVERFISH_SPEED_PHASE. */waveClock:number;scale:number;visible:boolean;target:THREE.Vector3;avoidance:THREE.Vector3;state:SquidState|'TRANSIT'|'DORMANT'};
+export type AntarcticBehaviorOptions={bankDegrees?:number;width?:number;height?:number;windowX?:number;windowY?:number;windowWidth?:number;windowHeight?:number;cameraPosition?:[number,number,number];cameraTarget?:[number,number,number]};
+type Body=AntarcticAgent&{p:THREE.Vector3;previous:THREE.Vector3;q:THREE.Quaternion;previousQ:THREE.Quaternion;velocity:THREE.Vector3;random:Random;radius:number;yaw:number;pitch:number;roll:number;previousWave:number;wave:number;phase:number};
 type Squid=Body&{nextTarget:number;nextJet:number;jetStart:number;stateUntil:number;restState:SquidState;cruise:number};
 type Fish=Body&{route:THREE.Curve<THREE.Vector3>;travelDuration:number;holdSeconds:number;routeMode:FishRouteMode;start:THREE.Vector3;control:THREE.Vector3;finish:THREE.Vector3;launch:number;duration:number;launched:boolean;finished:boolean;cruise:number};
 const mix=(seed:number,stream:number)=>(Math.imul(seed^Math.imul(stream+1,0x9e3779b9),0x85ebca6b)>>>0);
@@ -26,7 +33,7 @@ export class AntarcticBehavior {
  readonly events:AntarcticEvent[]=[];readonly eventLog:AntarcticEvent[]=[];
  readonly navBounds:{min:THREE.Vector3;max:THREE.Vector3};
  schoolCentroid:THREE.Vector3|null=null;time=0;
- private readonly seed:number;private readonly options:Required<AntarcticBehaviorOptions>;private readonly camera:THREE.Vector3;private readonly cameraForward:THREE.Vector3;
+ private readonly seed:number;private readonly options:Required<AntarcticBehaviorOptions>;private readonly bank:number;private readonly camera:THREE.Vector3;private readonly cameraForward:THREE.Vector3;
  private eventRandom:Random=()=>0;private schoolRandom:Random=()=>0;
  private tick=0;private lastElapsed=0;private alpha=0;
  private nextFish=0;private nextApproach=0;private nextCross=0;private nextEmpty=0;private majorCooldown=0;private nextInteraction=0;
@@ -35,13 +42,13 @@ export class AntarcticBehavior {
  private samples=0;private quietSamples=0;private majorSamples=0;private brightSamples=0;private fishCountSamples=0;private fishCountSum=0;
  constructor(seed:number,options:AntarcticBehaviorOptions={}){
   this.seed=Number.isFinite(seed)?seed>>>0:0;
-  this.options={width:options.width??2.8,height:options.height??3.2,windowX:options.windowX??0,windowY:options.windowY??1.76,windowWidth:options.windowWidth??1.76,windowHeight:options.windowHeight??2.05,cameraPosition:options.cameraPosition??[.34,1.03,-.07],cameraTarget:options.cameraTarget??[0,1.31,-10.85]};
-  this.camera=new THREE.Vector3(...this.options.cameraPosition);this.cameraForward=new THREE.Vector3(...this.options.cameraTarget).sub(this.camera).normalize();
+  this.options={bankDegrees:options.bankDegrees??SILVERFISH_BANK,width:options.width??2.8,height:options.height??3.2,windowX:options.windowX??0,windowY:options.windowY??1.76,windowWidth:options.windowWidth??1.76,windowHeight:options.windowHeight??2.05,cameraPosition:options.cameraPosition??[.34,1.03,-.07],cameraTarget:options.cameraTarget??[0,1.31,-10.85]};
+  this.bank=THREE.MathUtils.degToRad(Number.isFinite(this.options.bankDegrees)?clamp(this.options.bankDegrees,0,25):0);this.camera=new THREE.Vector3(...this.options.cameraPosition);this.cameraForward=new THREE.Vector3(...this.options.cameraTarget).sub(this.camera).normalize();
   this.navBounds={min:new THREE.Vector3(-this.options.width/2+.025,.08,-11.3),max:new THREE.Vector3(this.options.width/2-.025,this.options.height-.08,6.9)};
   this.reset();
  }
  private body(index:number,scale:number,radius:number,stream:number):Body{
-  const random=seededRandom(mix(this.seed,stream+index));return {position:new THREE.Vector3(),quaternion:new THREE.Quaternion(),p:new THREE.Vector3(),previous:new THREE.Vector3(),q:new THREE.Quaternion(),previousQ:new THREE.Quaternion(),velocity:new THREE.Vector3(),target:new THREE.Vector3(),avoidance:new THREE.Vector3(),speedBL:0,turn:0,scale,radius,visible:false,state:'DORMANT',random,yaw:0,pitch:0,phase:random()*Math.PI*2};
+  const random=seededRandom(mix(this.seed,stream+index));return {position:new THREE.Vector3(),quaternion:new THREE.Quaternion(),p:new THREE.Vector3(),previous:new THREE.Vector3(),q:new THREE.Quaternion(),previousQ:new THREE.Quaternion(),velocity:new THREE.Vector3(),target:new THREE.Vector3(),avoidance:new THREE.Vector3(),speedBL:0,turn:0,waveClock:0,roll:0,previousWave:0,wave:0,scale,radius,visible:false,state:'DORMANT',random,yaw:0,pitch:0,phase:random()*Math.PI*2};
  }
  reset(){
   this.tick=0;this.time=0;this.lastElapsed=0;this.alpha=0;this.squids.length=0;this.fish.length=0;this.events.length=0;this.eventLog.length=0;
@@ -66,7 +73,7 @@ export class AntarcticBehavior {
   const target=Math.max(0,Number.isFinite(elapsed)?elapsed:0);if(target+1e-9<this.lastElapsed)this.reset();
   const ticks=Math.floor(target/STEP+1e-8);while(this.tick<ticks)this.step();
   this.alpha=clamp((target-this.time)/STEP,0,1);this.lastElapsed=target;
-  for(const a of [...this.squids,...this.fish]){a.position.lerpVectors(a.previous,a.p,this.alpha);a.quaternion.slerpQuaternions(a.previousQ,a.q,this.alpha);}
+  for(const a of [...this.squids,...this.fish]){a.position.lerpVectors(a.previous,a.p,this.alpha);a.quaternion.slerpQuaternions(a.previousQ,a.q,this.alpha);a.waveClock=a.previousWave+(a.wave-a.previousWave)*this.alpha;}
  }
  sampleLight(p:THREE.Vector3){
   const dx=p.x-this.options.windowX,dy=p.y-this.options.windowY,dz=p.z+11.5;if(dz<=0)return 0;
@@ -130,13 +137,13 @@ export class AntarcticBehavior {
    f.route=new THREE.CatmullRomCurve3(points,false,'centripetal');f.control.copy(points[Math.floor(points.length/2)]);f.routeMode=routeMode;f.holdSeconds=holdSeconds;
    f.cruise=config.fish.schoolSpeedMetresPerSecond/f.scale;f.travelDuration=f.route.getLength()/config.fish.schoolSpeedMetresPerSecond;
    f.launch=this.time+i*config.fish.launchStaggerSeconds+between(random,[0,.15]);f.duration=f.travelDuration+holdSeconds;f.p.copy(f.start);f.target.copy(f.start);this.constrain(f);f.previous.copy(f.p);f.position.copy(f.p);
-   f.velocity.copy(f.route.getTangentAt(0)).multiplyScalar(f.scale*f.cruise);f.yaw=Math.atan2(f.velocity.x,f.velocity.z);f.pitch=0;this.setRotation(f);f.previousQ.copy(f.q);f.quaternion.copy(f.q);f.visible=false;f.launched=false;f.finished=false;f.state='DORMANT';f.avoidance.set(0,0,0);end=Math.max(end,f.launch+f.duration);
+   f.velocity.copy(f.route.getTangentAt(0)).multiplyScalar(f.scale*f.cruise);f.yaw=Math.atan2(f.velocity.x,f.velocity.z);f.pitch=0;f.roll=0;f.wave=0;f.previousWave=0;f.waveClock=0;this.setRotation(f);f.previousQ.copy(f.q);f.quaternion.copy(f.q);f.visible=false;f.launched=false;f.finished=false;f.state='DORMANT';f.avoidance.set(0,0,0);end=Math.max(end,f.launch+f.duration);
   }
   this.activeFish=this.startEvent(main?'SILVERFISH_MAIN_TRANSIT':'SILVERFISH_SMALL_TRANSIT',end-this.time,{count:this.schoolCount,routeSeed,routeMode,entrySide:side,entryHeight,routeCenter:[0,centerY,centerZ]});
  }
  private step(){
   this.tick++;this.time=this.tick*STEP;
-  for(const a of [...this.squids,...this.fish]){a.previous.copy(a.p);a.previousQ.copy(a.q);}
+  for(const a of [...this.squids,...this.fish]){a.previous.copy(a.p);a.previousQ.copy(a.q);a.previousWave=a.wave;}
   this.schedule();this.stepSquids();this.stepFish();
   this.samples++;const visibleFish=this.fish.filter(f=>f.visible&&this.sampleLight(f.p)>.1).length;
   const subtleApproach=this.squids.some(s=>this.sampleLight(s.p)>.60&&s.speedBL>.1);
@@ -200,7 +207,10 @@ export class AntarcticBehavior {
    }
    if(this.interaction)this.interaction.lightPeak=Math.max(this.interaction.lightPeak,light);if(this.splitEvent)this.splitEvent.lightPeak=Math.max(this.splitEvent.lightPeak,light);
    this.wallForce(f,force);this.cameraForce(f,force);force.clampLength(0,f.scale*config.fish.maxSpeedBL);
-   f.velocity.lerp(force,1-Math.exp(-STEP/config.fish.speedResponseSeconds));this.move(f);this.heading(f,f.velocity,config.fish.yawMaxDegreesPerSecond,30);f.speedBL=f.velocity.length()/f.scale;
+   f.velocity.lerp(force,1-Math.exp(-STEP/config.fish.speedResponseSeconds));this.move(f);
+   // Roll into the turn: positive yaw (+X side, the fish's left) leans left, i.e. negative rotation about +Z.
+   f.roll+=(-this.bank*clamp(f.turn/THREE.MathUtils.degToRad(config.fish.yawMaxDegreesPerSecond),-1,1)-f.roll)*(1-Math.exp(-STEP/SILVERFISH_BANK_SECONDS));
+   this.heading(f,f.velocity,config.fish.yawMaxDegreesPerSecond,30);f.speedBL=f.velocity.length()/f.scale;f.wave+=silverfishWaveRate(f.speedBL)*STEP;
    this.activeFish.lightPeak=Math.max(this.activeFish.lightPeak,light);
    // Recycle only after the whole body has passed behind the camera.
    // Darkness and proximity to a wall never trigger disappearance.
@@ -232,7 +242,7 @@ export class AntarcticBehavior {
    if(a.p.distanceTo(this.camera)<radius){const z=this.camera.z-radius>=b.min.z?this.camera.z-radius:this.camera.z+radius;a.p.z=clamp(z,b.min.z,b.max.z);}
   }
  }
- private setRotation(a:Body){a.q.setFromEuler(new THREE.Euler(-a.pitch,a.yaw,0,'YXZ'));}
+ private setRotation(a:Body){a.q.setFromEuler(new THREE.Euler(-a.pitch,a.yaw,a.roll,'YXZ'));}
  private heading(a:Body,direction:THREE.Vector3,yawDegrees:number,pitchDegrees:number){
   if(direction.lengthSq()<1e-10)return;const yaw=Math.atan2(direction.x,direction.z),pitch=Math.atan2(direction.y,Math.hypot(direction.x,direction.z)),error=wrap(yaw-a.yaw);
   const rate=clamp(error/1.8,-THREE.MathUtils.degToRad(yawDegrees),THREE.MathUtils.degToRad(yawDegrees));a.yaw=wrap(a.yaw+rate*STEP);a.pitch+=clamp((pitch-a.pitch)/2.1,-THREE.MathUtils.degToRad(pitchDegrees),THREE.MathUtils.degToRad(pitchDegrees))*STEP;a.turn=rate;this.setRotation(a);

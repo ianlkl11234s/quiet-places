@@ -205,12 +205,27 @@ const volumeFragment = /* glsl */ `
     if(finish<=begin) discard;
     vec3 sun=normalize(vec3(-.45+sin(uAngle)*.14,-1.,-.30+sin(uAngle*.7)*.10));
     float sum=0.;
+    // Exact skip: aperture is 0 unless the roof point lies within Chebyshev 2.80 of the
+    // opening centre (1.80 + max softness .52 + max wave shift .48). Samples outside that
+    // slanted prism add exactly 0, so only the march indices inside it are evaluated;
+    // rays that never enter it contribute nothing and are discarded.
+    vec2 skipK=sun.xz/sun.y;
+    vec2 skipA=ro.xz-skipK*(ro.y-7.)-vec2(0.,-.2),skipB=rd.xz-skipK*rd.y;
+    float skipT0=begin,skipT1=finish;
+    for(int c=0;c<2;c++){
+      float a=c==0?skipA.x:skipA.y,b=c==0?skipB.x:skipB.y;
+      if(abs(b)<1e-6){if(abs(a)>=2.85)skipT1=-1.;}
+      else{float ta=(-2.85-a)/b,tb=(2.85-a)/b;skipT0=max(skipT0,min(ta,tb));skipT1=min(skipT1,max(ta,tb));}
+    }
+    if(skipT1<=skipT0) discard;
     const int STEPS=48;
     float count=uLowQuality>.5?24.:48.;
     float stepSize=(finish-begin)/count;
+    float jitter=hash(gl_FragCoord.xy);
+    int firstStep=max(int(floor((skipT0-begin)/stepSize-jitter))-1,0),lastStep=int(ceil((skipT1-begin)/stepSize-jitter))+1;
     for(int i=0;i<STEPS;i++){
-      if(float(i)>=count)break;
-      float jitter=hash(gl_FragCoord.xy);
+      if(float(i)>=count||i>lastStep)break;
+      if(i<firstStep)continue;
       vec3 p=ro+rd*(begin+(float(i)+jitter)*stepSize);
       vec2 roof=p.xz-sun.xz/sun.y*(p.y-7.);
       // One bounded inverse projection from the shared surface normal. This

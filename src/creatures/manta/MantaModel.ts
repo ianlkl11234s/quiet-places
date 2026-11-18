@@ -10,7 +10,17 @@ export interface MantaPose {
   asymmetry: number;
   /** [0, 1]; suppresses the stroke while retaining a small tip dihedral. */
   glide: number;
+  /**
+   * Optional tail lag relative to the body, radians (B5 MANTA_TAIL_FOLLOW; art approximation).
+   * tailYaw < 0 swings the tail tip toward local -X (it trails a turn toward +X); tailPitch < 0 drops it
+   * toward local -Y. Omitted/0 leaves the original static tail untouched. Clamped to +-TAIL_FOLLOW_LIMIT.
+   */
+  tailYaw?: number;
+  tailPitch?: number;
 }
+
+/** Hard cap of the tail-follow swing angle at the tip, radians (about 17 degrees; the motion layer stays well below it). */
+export const TAIL_FOLLOW_LIMIT = .3;
 
 export interface MantaModel {
   root: THREE.Group;
@@ -204,7 +214,10 @@ function createTail(span: number, seed: number) {
   const position = mesh.geometry.getAttribute('position') as THREE.BufferAttribute, ringSize = 7, segments = (mesh.geometry as THREE.TubeGeometry).parameters.tubularSegments;
   for (let ring = 0; ring <= segments; ring++) { const first = ring * ringSize, centre = new THREE.Vector3(); for (let i = 0; i < ringSize - 1; i++) centre.add(new THREE.Vector3(position.getX(first + i), position.getY(first + i), position.getZ(first + i))); centre.multiplyScalar(1 / (ringSize - 1)); const t = ring / segments, scale = Math.min(1, Math.pow(1 - t, 1.45) + .1); for (let i = 0; i < ringSize; i++) { const v = new THREE.Vector3(position.getX(first + i), position.getY(first + i), position.getZ(first + i)).sub(centre).multiplyScalar(scale).add(centre); position.setXYZ(first + i, v.x, v.y, v.z); } }
   position.needsUpdate = true; mesh.geometry.computeVertexNormals();
-  return {root, mesh, points, start, random};
+  // Rest pose and normalised distance along the tail (0 root .. 1 tip) for the optional lag deformation.
+  const base = (position.array as Float32Array).slice(), along = new Float32Array(position.count);
+  for (let i = 0; i < position.count; i++) along[i] = clamp((start.z - base[i * 3 + 2]) / (MANTA.tailLength * span), 0, 1);
+  return {root, mesh, points, start, random, base, along};
 }
 
 /** Original procedural Mobula birostris anatomy proxy. Local +Z is swimming forward and +Y is dorsal. */
@@ -231,7 +244,8 @@ export function createMantaModel(span: number, seed: number): MantaModel {
   // Odd lateral counts retain an explicit x=0 centreline for the station loft.
   addLevel(48, 81, 0, true); addLevel(28, 41, 18, false); addLevel(16, 25, 40, false);
   const tail = createTail(safeSpan, seed); root.add(tail.root);
-  let disposed = false;
+  let disposed = false, tailYaw = 0, tailPitch = 0;
+  const tailLength = MANTA.tailLength * safeSpan, tailPosition = tail.mesh.geometry.getAttribute('position') as THREE.BufferAttribute;
   const deformY = (s: number, r: number, phase: number, amplitude: number, asymmetry: number, glide: number) => {
     const side = r >= 0 ? 1 : -1, wing = clamp((Math.abs(r) - .23) / .77, 0, 1), wingScale = 1 + side * asymmetry;
     // Chord stations meet at one tip; their lag must converge as well,
@@ -258,8 +272,16 @@ export function createMantaModel(span: number, seed: number): MantaModel {
     for (const detail of nearDetails) {
       const point = pointOnBody(safeSpan, detail.s, detail.r, detail.dorsal); point.y += deformY(detail.s, detail.r, phase, amplitude, asymmetry, glide) + (detail.dorsal ? safeSpan * .003 : -safeSpan * .003); detail.object.position.copy(point).add(detail.offset);
     }
-    // The thin tail is intentionally restrained in cruise. Its static curved
-    // tube avoids turning the animal into a stingray-like tail-driven swimmer.
+    // The thin tail is intentionally restrained in cruise: no oscillation, so it never becomes a
+    // stingray-like tail-driven swimmer. Optional lag only trails the body's turn/pitch (cantilever
+    // offset ~ t^2, root fixed) and returns to the rest pose when both angles are 0.
+    const yaw = clamp(Number.isFinite(input.tailYaw) ? input.tailYaw! : 0, -TAIL_FOLLOW_LIMIT, TAIL_FOLLOW_LIMIT), pitch = clamp(Number.isFinite(input.tailPitch) ? input.tailPitch! : 0, -TAIL_FOLLOW_LIMIT, TAIL_FOLLOW_LIMIT);
+    if (yaw !== tailYaw || pitch !== tailPitch) {
+      tailYaw = yaw; tailPitch = pitch;
+      const dx = Math.sin(yaw) * tailLength, dy = Math.sin(pitch) * tailLength;
+      for (let i = 0; i < tailPosition.count; i++) { const t2 = tail.along[i] * tail.along[i]; tailPosition.setXYZ(i, tail.base[i * 3] + dx * t2, tail.base[i * 3 + 1] + dy * t2, tail.base[i * 3 + 2]); }
+      tailPosition.needsUpdate = true; tail.mesh.geometry.computeVertexNormals(); tail.mesh.geometry.computeBoundingSphere();
+    }
   };
   update({phase: 0, amplitude: 1, asymmetry: 0, glide: 0});
   return {root, update, dispose() { if (disposed) return; disposed = true; const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>(); root.traverse(object => { if (!(object instanceof THREE.Mesh)) return; geometries.add(object.geometry); for (const item of Array.isArray(object.material) ? object.material : [object.material]) materials.add(item); }); geometries.forEach(value => value.dispose()); materials.forEach(value => value.dispose()); root.removeFromParent(); root.clear(); }};

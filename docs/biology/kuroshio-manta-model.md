@@ -46,3 +46,11 @@
 ### 2026-09-17 場景避讓
 
 場景控制器新增提早降速與生物間保守球體掃掠保護；模型本體未改。24組變形姿態全部LOD頂點均位於指定安全球內，900秒路徑測試未相交。實作權威 `src/places/last-arcade/biology/Motion.ts`；完整更新見 last-arcade 場景頁。
+
+## 候選（待使用者確認）：拍翼隨速度與尾巴延遲跟隨（B5）
+
+- 做了什麼（只對三隻鬼蝠魟，鯨鯊不受影響，已與原檔逐位比對）：
+  - `MANTA_SPEED_COUPLED_FLAP = true`（`Motion.ts`）：拍翼目標頻率 = `profile.frequency × clamp(speed/profile.speed, .55, 1.25)`，仍受既有 .23–.36 Hz 連續性夾限，故實際低端約 .8 倍；讓路（`clearancePace < 1`）時振幅以 1.2 s 時間常數降到 `1 − .22×(1−clearancePace)`（最低 .78）。巡航速度且未讓路時頻率目標與振幅等於舊值（振幅恰為 1）。`index.ts` 改傳 `s.amplitude`。900 s 觀測：頻率比中位數約 .93–1.01，因此平均拍速比舊版略慢約 0–7%。
+  - `MANTA_TAIL_FOLLOW = true`：`Motion.ts` 每固定步（20 Hz）以 `lag ← (lag − Δ朝向) × exp(−dt/1 s)` 計算偏航與俯仰落後量，輸出 `tailYaw`（上限 ±.2 rad）、`tailPitch`（±.12 rad）；`MantaModel.update` 的選用欄位 `tailYaw/tailPitch` 以 cantilever 位移（尾根固定，偏移 ∝ 距離²，尖端橫移 = sin(角度)×尾長）改寫既有尾管頂點（預存 rest 位置，無每幀配置，僅角度改變時重算法線）。模型另夾限 ±.3 rad。900 s 觀測：偏航落後中位 .05 rad、p95 約 .16 rad，會回正。
+- 開關與退回：兩個常數改為 false，或建構 `ArcadeAnimalMotion(false,{speedCoupledFlap:false,tailFollow:false})`；關閉時 `amplitude=1`、`tailYaw=tailPitch=0`、尾管維持原靜態幾何（測試逐位比對）。路徑與姿態在開關開／關間完全相同。
+- 性質：美術近似，不是經驗證的生物力學；數值未經畫面確認。狀態：候選待使用者確認。測試：`tests/kuroshio-manta-candidates.test.ts`。
