@@ -172,7 +172,8 @@ export function createCrossingLife(options:CrossingLifeOptions={}):CrossingLife{
 
  // --- whale sharks ---------------------------------------------------------------------------------------------
  const [bigLength,smallLength]=CROSSING_WHALE_SHARK_LENGTHS,sharkSeeds=[(seed^0x7ac1)>>>0,(seed^0x91d3)>>>0];
- const sharkModels=[createWhaleSharkModel(bigLength,sharkSeeds[0]),createWhaleSharkModel(smallLength,sharkSeeds[1])];
+ // Revision 2: morphometric whale shark (flat truncated head, ridges, rear first dorsal, unequal caudal, generated checkerboard); its LOD0 reaches 60 m, past the whole route.
+ const sharkModels=[createWhaleSharkModel(bigLength,sharkSeeds[0],{revision:2}),createWhaleSharkModel(smallLength,sharkSeeds[1],{revision:2})];
  sharkModels[0].root.name='crossing-whale-shark-large';sharkModels[1].root.name='crossing-whale-shark-small';
  sharkModels.forEach(m=>group.add(m.root));
  for(let k=0;k<7;k++)random();   // the sardine random sequence predates the track and is kept as it was
