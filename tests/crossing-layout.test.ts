@@ -64,3 +64,11 @@ test('no chair part (leaning back, arms, legs) touches a wall, bulkhead or post:
  assert.ok(wall.max.y>.82&&wall.max.y<.92,`wall-row chair back top ${wall.max.y}`);
  assert.ok(chairs.triangles<60000);
 });
+
+test('graybox builds without a DOM (textures optional) and stays inside the triangle budget',async()=>{
+ const {createGraybox}=await import('../src/places/crossing/Graybox.ts');
+ const g=createGraybox();let tris=0;
+ g.group.traverse(o=>{const m=o as THREE.Mesh;if(m.isMesh)tris+=(m.geometry.index?m.geometry.index.count:m.geometry.attributes.position.count)/3;});
+ assert.ok(tris>20000&&tris<60000,`triangles ${tris}`);
+ g.dispose();
+});

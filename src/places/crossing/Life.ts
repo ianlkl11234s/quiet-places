@@ -10,18 +10,78 @@ import {CHAIRS,DECK,POCKET,POST_Z,RAIL,ROOF,STAIR,VIEWS} from './Layout.ts';
  * Crossing life: the scene's one impossible thing. Two sardine schools (Sardinella look: no flank spots,
  * yellowish fins, 10-20 cm) swim through the air of the stern deck, between the posts, over the chair backs
  * and out through the openings (open side above the 1.0 m gunwale, stern opening, past the bow end behind the
- * camera) and back; a big and a small whale shark drift in the air just above the sea off the open side,
- * keeping station with the ship. Boids + roaming goals, fixed 12 Hz step driven only by `elapsed` (seeded,
+ * camera) and back; a big and a small whale shark cruise slowly through the air far off the open side and astern
+ * (22-45 m out, 2-4.5 m up, above the 1.0 m gunwale line of sight), turning along a long closed loop that crosses station a's
+ * view and swings round to station c, heading always along their path. Boids + roaming goals, fixed 12 Hz step driven only by `elapsed` (seeded,
  * reproducible, pause-safe). Speeds and timing are art calibration. Units: m, s; website Y-up.
  */
 
 /** Pointer awareness of the sardines, 0..1; 0 = off. */
 export const CROSSING_SARDINE_POINTER_RESPONSE=.5;
-/** Horizontal distance (m) from station a to the big whale shark. Real whale sharks are ~6.5 m: 35 m is the near end of the brief's 35-70 m. */
-export const CROSSING_WHALE_SHARK_DISTANCE=28;
-/** Whale shark bearing from station a, degrees from +X toward -Z (glitter axis is ~41 deg; both stations see 39-73 deg). */
-export const CROSSING_WHALE_SHARK_BEARING=58;
+/**
+ * Whale shark loop, in polar form about the ship centre: bearing (degrees from +X toward -Z) swings -20..104 (station a sees about
+ * -20..64, station c 36..109), centre distance 23-45 m, one lap about 2 min. Heights are art calibration for the 1.0 m gunwale and
+ * the 2.25 m roof edge: both stations look out through the opening, so the sharks fly 2-4.5 m up, a few degrees above the horizon.
+ */
+const SHIP_CENTRE=[(DECK.xMin+DECK.xMax)/2,(DECK.zMin+DECK.zMax)/2] as const;
+const SHARK_LOOP={bearing:42,distance:36,along:25,across:13,squareness:2.4,height:{centre:3.4,swing:1.0,second:.3},period:120,speedWave:{amount:.18,period:41},wavelength:2.4};
 export const CROSSING_WHALE_SHARK_LENGTHS=[6.5,4.0] as const;
+export interface CrossingSharkTrack {p:[number,number,number];v:[number,number,number];speed:number;yaw:number;yawRate:number;pitch:number;roll:number;}
+const D2R=Math.PI/180;
+const wrapAngle=(a:number)=>Math.atan2(Math.sin(a),Math.cos(a));
+/** Closed ground track (u 0..1 once round): a rounded rectangle (superellipse) in polar coordinates about the ship centre, `along` m of sweep each way and `across` m in and out. Tabulated by arc length so speed is set directly. */
+const LOOP_N=8192;let loopTable:{x:Float64Array;z:Float64Array;length:number}|null=null;
+const rounded=(c:number,n:number)=>Math.sign(c)*Math.abs(c)**(2/n);
+function loopAt(u:number,out:number[]){
+ const L=SHARK_LOOP,f=Math.PI*2*u;
+ const th=(L.bearing)*D2R+rounded(Math.cos(f),L.squareness)*L.along/L.distance,r=L.distance+rounded(Math.sin(f),L.squareness)*L.across;
+ out[0]=SHIP_CENTRE[0]+r*Math.cos(th);out[2]=SHIP_CENTRE[1]-r*Math.sin(th);return out;
+}
+function loop(){
+ if(loopTable)return loopTable;
+ const x=new Float64Array(LOOP_N+1),z=new Float64Array(LOOP_N+1),tmp=[0,0,0],fx=new Float64Array(4*LOOP_N+1),fz=new Float64Array(4*LOOP_N+1);
+ for(let i=0;i<=4*LOOP_N;i++){loopAt(i/(4*LOOP_N),tmp);fx[i]=tmp[0];fz[i]=tmp[2];}
+ let len=0;const fs=new Float64Array(4*LOOP_N+1);
+ for(let i=1;i<=4*LOOP_N;i++){len+=Math.hypot(fx[i]-fx[i-1],fz[i]-fz[i-1]);fs[i]=len;}
+ // resample at equal arc length
+ let j=0;for(let k=0;k<=LOOP_N;k++){const target=len*k/LOOP_N;while(j<4*LOOP_N-1&&fs[j+1]<target)j++;const w=(target-fs[j])/Math.max(fs[j+1]-fs[j],1e-12);x[k]=fx[j]+(fx[j+1]-fx[j])*w;z[k]=fz[j]+(fz[j+1]-fz[j])*w;}
+ return loopTable={x,z,length:len};
+}
+/** Distance swum by the big shark at time t: constant mean speed with a slow +-18 % swell, one lap in about `period` s. */
+function swum(t:number){
+ const {length}=loop(),{amount,period}=SHARK_LOOP.speedWave,v0=length/SHARK_LOOP.period,k=Math.PI*2/period;
+ return v0*(t+amount*(Math.cos(.7)-Math.cos(k*t+.7))/k);
+}
+function onLoop(s:number,out:number[]){
+ const {x,z,length}=loop(),q=((s/length)%1+1)%1*LOOP_N,i=Math.min(Math.floor(q),LOOP_N-1),w=q-i;
+ out[0]=x[i]+(x[i+1]-x[i])*w;out[2]=z[i]+(z[i+1]-z[i])*w;return out;
+}
+const bigHeight=(t:number)=>SHARK_LOOP.height.centre+SHARK_LOOP.height.swing*Math.sin(.061*t+1.1)+SHARK_LOOP.height.second*Math.sin(.137*t+.4);
+const scratchRad=[0,0,0];
+/** Position of shark 0 (big) or 1 (small: the big one's track 9.5-16.5 m behind along the loop, 3.5 m inboard to 2.5 m outboard, a little lower; it drops back and closes up). */
+function sharkPosition(index:number,t:number,out:number[]){
+ if(index===0){onLoop(swum(t),out);out[1]=bigHeight(t);return out;}
+ const gap=13+3.5*Math.sin(.045*t+.9),off=-.5+3*Math.sin(.061*t+1.3);
+ onLoop(swum(t)-gap,out);
+ const dx=out[0]-SHIP_CENTRE[0],dz=out[2]-SHIP_CENTRE[1],d=Math.hypot(dx,dz)||1;scratchRad[0]=dx/d;scratchRad[2]=dz/d;
+ out[0]+=scratchRad[0]*off;out[2]+=scratchRad[2]*off;out[1]=bigHeight(t)-.4+.5*Math.sin(.09*t+2.2);return out;
+}
+const pa=[0,0,0],pb=[0,0,0];
+function sharkVelocity(index:number,t:number,out:[number,number,number]){
+ const h=.2;sharkPosition(index,t+h,pa);sharkPosition(index,t-h,pb);
+ out[0]=(pa[0]-pb[0])/(2*h);out[1]=(pa[1]-pb[1])/(2*h);out[2]=(pa[2]-pb[2])/(2*h);return out;
+}
+const MAX_BANK=12*D2R,MAX_PITCH=8*D2R;
+/** Analytic track and pose of a crossing whale shark at time t (s), no state: yaw follows the path tangent (local +Z is the mouth), bank from yaw rate, pitch from vertical speed. */
+export function crossingWhaleSharkTrack(index:0|1,t:number):CrossingSharkTrack{
+ const p:[number,number,number]=[0,0,0],v:[number,number,number]=[0,0,0],v1:[number,number,number]=[0,0,0],v2:[number,number,number]=[0,0,0];
+ sharkPosition(index,t,p);sharkVelocity(index,t,v);
+ const horizontal=Math.hypot(v[0],v[2]),yaw=Math.atan2(v[0],v[2]),g=.4;
+ sharkVelocity(index,t+g,v1);sharkVelocity(index,t-g,v2);
+ const yawRate=wrapAngle(Math.atan2(v1[0],v1[2])-Math.atan2(v2[0],v2[2]))/(2*g);
+ return {p,v,speed:Math.hypot(v[0],v[1],v[2]),yaw,yawRate,pitch:THREE.MathUtils.clamp(Math.atan2(v[1],Math.max(horizontal,.2)),-MAX_PITCH,MAX_PITCH),
+  roll:-THREE.MathUtils.clamp(yawRate*1.0,-MAX_BANK,MAX_BANK)};
+}
 export const CROSSING_FISH_BOUNDS={min:new THREE.Vector3(-1.9,.45,-9),max:new THREE.Vector3(9,1.95,8)};
 export const CROSSING_FISH_COUNT=210;
 
@@ -36,7 +96,7 @@ export interface CrossingLife {group:THREE.Group;update(dt:number,elapsed:number
  /** Optional sky reflection for the silver sardine flanks (no environment leaves them dark). */
  setEnvironment(texture:THREE.Texture|null,intensity:number):void;
  getDebug():CrossingLifeDebug;dispose():void;}
-export interface CrossingLifeDebug {time:number;penetrations:number;startles:number;fish:{p:number[];speed:number;length:number}[];sharks:{p:number[];length:number;pitch:number;yaw:number;frequency:number}[];}
+export interface CrossingLifeDebug {time:number;penetrations:number;startles:number;fish:{p:number[];speed:number;length:number}[];sharks:{p:number[];length:number;pitch:number;yaw:number;roll:number;speed:number;frequency:number}[];}
 
 const STEP=1/12,DEG=Math.PI/180,FORWARD=new THREE.Vector3(0,0,-1);
 const HEADING:HeadingParams={maxYawRate:110*DEG,yawTau:.35,maxPitch:25*DEG,maxPitchRate:40*DEG,pitchTau:.5,holdSpeed:0,trackSpeed:0,maxBank:8*DEG,maxBend:.06,yawRateScale:60*DEG,bankTau:.25};
@@ -115,33 +175,15 @@ export function createCrossingLife(options:CrossingLifeOptions={}):CrossingLife{
  const sharkModels=[createWhaleSharkModel(bigLength,sharkSeeds[0]),createWhaleSharkModel(smallLength,sharkSeeds[1])];
  sharkModels[0].root.name='crossing-whale-shark-large';sharkModels[1].root.name='crossing-whale-shark-small';
  sharkModels.forEach(m=>group.add(m.root));
- const shP=[random()*6.28,random()*6.28,random()*6.28,random()*6.28,random()*6.28,random()*6.28,random()*6.28];
- let bearing0=CROSSING_WHALE_SHARK_BEARING*DEG;
- if(options.sun){const s=options.sun.value,az=Math.atan2(-s.z,s.x);if(Number.isFinite(az)&&az>20*DEG&&az<70*DEG)bearing0=Math.max(bearing0,az+17*DEG);}
- const A=VIEWS.a.position,sharkPhase=[random(),random()],sharkState=sharkModels.map(()=>({p:new THREE.Vector3(),pitch:0,yaw:0,roll:0,frequency:.4,phase:0,poseAt:-1}));
- const bigAt=(t:number,out:THREE.Vector3)=>{
-  const d=CROSSING_WHALE_SHARK_DISTANCE+2.5*Math.sin(.031*t+shP[0])+1.2*Math.sin(.083*t+shP[1]),th=bearing0+3*DEG*Math.sin(.027*t+shP[2]);
-  return out.set(A[0]+d*Math.cos(th),-2.7+.3*Math.sin(.21*t+shP[3])+.12*Math.sin(.47*t+shP[4]),A[2]-d*Math.sin(th)+1.8*Math.sin(.05*t+shP[5]));
- };
- const tmpA=new THREE.Vector3(),tmpB=new THREE.Vector3();
- const sharkAt=(index:number,t:number,out:THREE.Vector3)=>{
-  if(index===0)return bigAt(t,out);
-  // Small one: the big one's track 6 s late, 1-1.5 big lengths astern and a little outboard; its own slower drift.
-  bigAt(t-6,out);
-  return out.set(out.x+2.8+1.6*Math.sin(.045*t+shP[6]),out.y+.3+.2*Math.sin(.17*t+shP[2]),out.z-bigLength*(1.25+.25*Math.sin(.07*t+shP[4])));
- };
- /** Pose from the analytic track: heading follows the ship (+Z) with a slight outboard yaw; pitch from vertical speed, capped at 8 deg. */
+ for(let k=0;k<7;k++)random();   // the sardine random sequence predates the track and is kept as it was
+ const sharkPhase=[random(),random()],sharkState=sharkModels.map(()=>({p:new THREE.Vector3(),pitch:0,yaw:0,roll:0,speed:0,frequency:.4,phase:0,poseAt:-1}));
+ /** Pose from the analytic track. Tail phase integrates swum distance (one beat per `wavelength` metres), so it never runs on a fixed clock. */
  function sharkPose(index:number,t:number,dt:number){
-  const s=sharkState[index],h=.5,ahead=sharkAt(index,t+h,tmpA),behind=sharkAt(index,t-h,tmpB),vx=(ahead.x-behind.x)/(2*h),vy=(ahead.y-behind.y)/(2*h),vz=(ahead.z-behind.z)/(2*h);
-  sharkAt(index,t,s.p);
-  const horizontal=Math.hypot(vx,vz),water=.6+vz*.8;                       // swim speed relative to the water, m/s
-  s.pitch=THREE.MathUtils.clamp(Math.atan2(vy,.6+horizontal)*1.2+2*DEG*Math.sin(.19*t+shP[index]),-7.5*DEG,7.5*DEG);
-  s.yaw=(index?14:9)*DEG+4*DEG*Math.sin(.09*t+shP[3+index]);s.roll=2.5*DEG*Math.sin(.13*t+shP[2+index]);
-  // Slow cadence from the low end of the 0.35-0.65 Hz field range, tied to the relative water speed; the small one beats a little faster.
-  s.frequency=THREE.MathUtils.clamp((.38+.25*(water-.6))*(index?1.12:1),.35,.5);
-  s.phase+=Math.PI*2*s.frequency*dt;
+  const s=sharkState[index],k=crossingWhaleSharkTrack(index as 0|1,t);
+  s.p.set(k.p[0],k.p[1],k.p[2]);s.pitch=k.pitch;s.yaw=k.yaw;s.roll=k.roll;s.speed=k.speed;
+  s.frequency=k.speed/SHARK_LOOP.wavelength;s.phase+=Math.PI*2*k.speed*dt/SHARK_LOOP.wavelength;
   const model=sharkModels[index];model.root.position.copy(s.p);model.root.rotation.order='YXZ';model.root.rotation.set(-s.pitch,s.yaw,s.roll);
-  if(Math.abs(s.phase-s.poseAt)>.12){s.poseAt=s.phase;model.update({phase:s.phase+sharkPhase[index]*6.28,amplitude:.95,glide:.15+.15*Math.sin(.11*t+shP[index])});}
+  if(Math.abs(s.phase-s.poseAt)>.12){s.poseAt=s.phase;model.update({phase:s.phase+sharkPhase[index]*6.28,amplitude:.95,glide:.25+.1*Math.sin(.11*t+index)});}
  }
 
  // --- simulation -----------------------------------------------------------------------------------------------
@@ -265,9 +307,13 @@ export function createCrossingLife(options:CrossingLifeOptions={}):CrossingLife{
    sharkModels.forEach((_m,i)=>sharkPose(i,safe,delta));render(accumulator/STEP);
   },
   pointerRay(ray,tap){if(disposed||C.pointerResponse<=0)return;notePointer(pointer,ray,tap,simTime);},
-  setEnvironment(texture,intensity){setSardineEnvironment(visuals,texture,intensity);},
+  setEnvironment(texture,intensity){
+   setSardineEnvironment(visuals,texture,intensity);
+   // The sharks fly in sky light only, so give them the same reflection (no emissive); never below 0.6 so they do not go dull.
+   for(const m of sharkModels)m.root.traverse(o=>{const mat=(o as THREE.Mesh).material;for(const x of Array.isArray(mat)?mat:mat?[mat]:[])if(x instanceof THREE.MeshStandardMaterial){x.envMap=texture;x.envMapIntensity=texture?Math.max(.6,intensity):1;x.needsUpdate=true;}});
+  },
   getDebug(){return {time:simTime,penetrations,startles:pointer.startles,fish:fish.map(f=>({p:f.p.toArray(),speed:f.v.length(),length:f.length})),
-   sharks:sharkState.map((s,i)=>({p:s.p.toArray(),length:CROSSING_WHALE_SHARK_LENGTHS[i],pitch:s.pitch,yaw:s.yaw,frequency:s.frequency}))};},
+   sharks:sharkState.map((s,i)=>({p:s.p.toArray(),length:CROSSING_WHALE_SHARK_LENGTHS[i],pitch:s.pitch,yaw:s.yaw,roll:s.roll,speed:s.speed,frequency:s.frequency}))};},
   dispose(){if(disposed)return;disposed=true;visuals.dispose();sharkModels.forEach(m=>m.dispose());group.clear();}};
 }
 

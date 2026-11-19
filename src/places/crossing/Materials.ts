@@ -1,46 +1,55 @@
 import * as THREE from 'three';
+import {SURFACE_STRENGTH,canvasTextures,deckTextures,doorTexture,paintTextures,wetDecalTexture,type Pbr} from './Textures.ts';
 
 /**
- * Restrained procedural surface variation for MeshStandardMaterial (no texture files): world-space value noise nudges
- * colour and roughness. paint: faint plate seams, dirt at the foot and under the roof, sparse rust specks near seams;
- * deck: worn lighter/rougher patches and low-roughness (never mirror) damp patches; canvas: faint roll-wrap bands.
+ * Materials for the crossing deck. Surface detail comes from load-time textures (Textures.ts) on world-metric UVs; the only shader
+ * addition is a noise-free height gradient (dirt at the wall foot and under the roof), so the fragment cost stays flat.
  */
-export type SurfaceKind='paint'|'deck'|'canvas';
-const NOISE=`varying vec3 vWPos;
-float hs(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
-float ns(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
- return mix(mix(mix(hs(i),hs(i+vec3(1,0,0)),f.x),mix(hs(i+vec3(0,1,0)),hs(i+vec3(1,1,0)),f.x),f.y),mix(mix(hs(i+vec3(0,0,1)),hs(i+vec3(1,0,1)),f.x),mix(hs(i+vec3(0,1,1)),hs(i+vec3(1,1,1)),f.x),f.y),f.z);}
-`;
-const COLOR:Record<SurfaceKind,string>={
- paint:`float lf=ns(vWPos*1.7)*.5+ns(vWPos*6.)*.5;
-  vec3 sq=abs(fract(vWPos/1.2+.5)-.5)*1.2;float seam=1.-smoothstep(0.,.012,min(min(sq.x,sq.y),sq.z));
-  float near=1.-smoothstep(0.,.18,min(min(sq.x,sq.y),sq.z));
-  float dirt=clamp(seam*.9+smoothstep(.28,0.,vWPos.y)*.6+smoothstep(2.0,2.25,vWPos.y)*.35+ns(vWPos*3.)*.18,0.,1.);
-  float rust=step(.965,ns(vWPos*38.))*near*step(.4,ns(vWPos*2.3));
-  diffuseColor.rgb*=.975+.05*lf;diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.82,.80,.76),dirt*.35);
-  diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.42,.22,.12),rust*.4);`,
- deck:`float lf=ns(vWPos*1.7)*.5+ns(vWPos*6.)*.5;
-  float wear=smoothstep(.58,.78,ns(vWPos*vec3(1.5,0.,1.5))*.65+ns(vWPos*vec3(5.,0.,5.))*.35);
-  float damp=smoothstep(.64,.74,ns(vWPos*vec3(.9,0.,.9)+7.));
-  diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.20,.36,.29),wear*.55);diffuseColor.rgb*=1.-damp*.28;diffuseColor.rgb*=.96+.08*lf;`,
- canvas:`float lf=ns(vWPos*3.)*.5+ns(vWPos*14.)*.5;
-  float wrap=sin(vWPos.y*260.+ns(vWPos*2.)*4.)*.5+.5;
-  diffuseColor.rgb*=.95+.05*lf;diffuseColor.rgb*=.975+.045*wrap;`,
-};
-const ROUGH:Record<SurfaceKind,string>={
- paint:`roughnessFactor=clamp(roughnessFactor+(lf-.5)*.14+dirt*.16,.25,1.);`,
- deck:`roughnessFactor=clamp(roughnessFactor+wear*.4-damp*.28+(lf-.5)*.1,.2,.95);`,
- canvas:`roughnessFactor=clamp(roughnessFactor+(lf-.5)*.08,.7,1.);`,
+function grime<T extends THREE.MeshStandardMaterial>(mat:T,key:string):T{
+ mat.onBeforeCompile=shader=>{
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying float vWY;')
+   .replace('#include <begin_vertex>','#include <begin_vertex>\nvWY=(modelMatrix*vec4(transformed,1.)).y;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying float vWY;')
+   .replace('#include <color_fragment>','#include <color_fragment>\nfloat gr=clamp(smoothstep(.3,0.,vWY)*.75+smoothstep(2.02,2.26,vWY)*.45,0.,1.);diffuseColor.rgb*=mix(vec3(1.),vec3(.82,.79,.73),gr*'+(.5*SURFACE_STRENGTH).toFixed(3)+');');
+ };
+ mat.customProgramCacheKey=()=>`crossing-grime-${key}`;
+ return mat;
+}
+const apply=(mat:THREE.MeshStandardMaterial,t:Pbr|null,normalScale:number)=>{
+ if(!t)return mat;
+ mat.map=t.map;mat.normalMap=t.normalMap;mat.normalScale.set(normalScale,normalScale);
+ if(t.roughnessMap){mat.roughnessMap=t.roughnessMap;mat.roughness=1;}
+ return mat;
 };
 
-export function patchSurface<T extends THREE.MeshStandardMaterial>(mat:T,kind:SurfaceKind):T{
- mat.onBeforeCompile=shader=>{
-  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWPos;')
-   .replace('#include <begin_vertex>','#include <begin_vertex>\nvWPos=(modelMatrix*vec4(transformed,1.)).xyz;');
-  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\n'+NOISE)
-   .replace('#include <color_fragment>','#include <color_fragment>\n'+COLOR[kind])
-   .replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\n'+ROUGH[kind]);
- };
- mat.customProgramCacheKey=()=>`crossing-${kind}`;
- return mat;
+export function createMaterials(){
+ const paintTex=paintTextures(),deckTex=deckTextures(),canvasTex=canvasTextures(),door=doorTexture(),wet=wetDecalTexture();
+ const std=(p:THREE.MeshStandardMaterialParameters)=>new THREE.MeshStandardMaterial(p);
+ const paint=grime(apply(std({color:'#ebeeea',roughness:.7}),paintTex,.4),'paint');
+ const roof=grime(apply(std({color:'#e6e9e4',roughness:.8,side:THREE.DoubleSide}),paintTex,.25),'roof');
+ const deck=apply(std({color:'#ffffff',roughness:.55}),deckTex,1.25);
+ const canvas=apply(std({color:'#ffffff',roughness:.95,side:THREE.DoubleSide}),canvasTex,1.4);
+ const pipe=grime(std({color:'#eceeea',roughness:.5,metalness:.05}),'pipe');
+ const doorMat=std({color:'#ffffff',roughness:.5,map:door});
+ const frameBlue=std({color:'#2f67b0',roughness:.55});
+ const strap=std({color:'#141414',roughness:.65});
+ const buckle=std({color:'#b9bbb9',roughness:.45,metalness:.55,envMapIntensity:.3});
+ const darkMetal=std({color:'#2a2c2e',roughness:.6,metalness:.3});
+ const rubber=std({color:'#1b1b1c',roughness:.92});
+ const signMat=std({color:'#f2f2ee',roughness:.6});
+ const redMat=std({color:'#c42b2b',roughness:.5});
+ const lampBody=std({color:'#d6d9d4',roughness:.55,metalness:.1});
+ const lens=std({color:'#e9efe9',roughness:.3,transparent:true,opacity:.3,depthWrite:false});
+ const glass=std({color:'#233845',roughness:.12,metalness:.1});
+ const orange=std({color:'#e0561c',roughness:.55});
+ const bagPlastic=std({color:'#ff6a2a',roughness:.35});
+ const wetMat=std({color:'#0b1f17',roughness:.06,transparent:true,opacity:.55,depthWrite:false,map:wet,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+ return {paint,roof,deck,canvas,pipe,doorMat,frameBlue,strap,buckle,darkMetal,rubber,signMat,redMat,lampBody,lens,glass,orange,bagPlastic,wetMat};
+}
+export type CrossingMaterials=ReturnType<typeof createMaterials>;
+
+/** Frees every texture a material holds (materials themselves are disposed by the caller). */
+export function disposeMaterialTextures(m:THREE.Material){
+ const x=m as THREE.MeshStandardMaterial;
+ for(const t of[x.map,x.normalMap,x.roughnessMap])t?.dispose();
 }

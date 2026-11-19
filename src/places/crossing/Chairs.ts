@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {CHAIRS} from './Layout.ts';
+import {strapTextures} from './Textures.ts';
 
 /**
  * Woven ferry chairs, procedural. Chair frame (local, seat faces +Z, floor at y=0): 2.2 cm tube back frame leaning 15 degrees
@@ -60,35 +61,41 @@ function chairParts(){
 
 /** Row base: continuous front and back seat rails plus slim leg pairs between chairs (n chairs, pitch .6, local x along the row). */
 function rowBase(n:number){
- const g:THREE.BufferGeometry[]=[],half=n*PITCH_ROW/2;
+ const g:THREE.BufferGeometry[]=[],pads:THREE.BufferGeometry[]=[],half=n*PITCH_ROW/2;
  g.push(tube(v3(-half,SEAT_Y,.25),v3(half,SEAT_Y,.25)),tube(v3(-half,SEAT_Y,-.21),v3(half,SEAT_Y,-.21)));
  for(let k=0;k<=n;k++){
   const x=-half+k*PITCH_ROW;
-  for(const z of[.25,-.21])g.push(tube(v3(x,0,z),v3(x,SEAT_Y,z)));
+  for(const z of[.25,-.21]){g.push(tube(v3(x,.02,z),v3(x,SEAT_Y,z)));const p=new THREE.CylinderGeometry(.019,.021,.02,8);p.translate(x,.01,z);pads.push(flat(p));} // rubber foot
   g.push(tube(v3(x,.12,.25),v3(x,.12,-.21)),tube(v3(x,SEAT_Y,.25),v3(x,SEAT_Y,-.21)));
  }
- const m=mergeGeometries(g)!;g.forEach(x=>x.dispose());return m;
+ const m=mergeGeometries(g)!,p=mergeGeometries(pads)!;g.forEach(x=>x.dispose());pads.forEach(x=>x.dispose());return {frame:m,pads:p};
 }
 
 export function createChairs(){
  const group=new THREE.Group();group.name='crossing-chairs';
- const tealMat=new THREE.MeshStandardMaterial({color:'#3caaaf',roughness:.55,side:THREE.DoubleSide});
- const creamMat=new THREE.MeshStandardMaterial({color:'#decd96',roughness:.55,side:THREE.DoubleSide});
- const alu=new THREE.MeshStandardMaterial({color:'#d6d6d3',metalness:.9,roughness:.45,envMapIntensity:.3,side:THREE.DoubleSide});
- const parts=chairParts(),bases=new Map<number,THREE.BufferGeometry>();
+ // Strap albedo/normal are baked per colour (vertical cream, horizontal teal); material colour stays white.
+ const strapMat=(rgb:[number,number,number],alongV:boolean)=>{
+  const t=strapTextures(rgb,alongV),m=new THREE.MeshStandardMaterial({color:t?'#ffffff':new THREE.Color(...rgb).getHex(),roughness:.42,side:THREE.DoubleSide});
+  if(t){m.map=t.map;m.normalMap=t.normalMap;m.normalScale.set(1.3,1.3);}return m;
+ };
+ const tealMat=strapMat([.17,.62,.64],false),creamMat=strapMat([.80,.73,.46],true);
+ // Matt anodised aluminium: low metalness so the blue sky environment does not tint it violet; light warm grey.
+ const alu=new THREE.MeshStandardMaterial({color:'#d9dad6',metalness:.3,roughness:.5,envMapIntensity:.25,side:THREE.DoubleSide});
+ const parts=chairParts(),bases=new Map<number,{frame:THREE.BufferGeometry;pads:THREE.BufferGeometry}>();
+ const rubber=new THREE.MeshStandardMaterial({color:'#1b1b1c',roughness:.92});
  let tris=0;
  const count=(g:THREE.BufferGeometry)=>(g.index?g.index.count:g.attributes.position.count)/3;
  const row=(name:string,n:number,x:number,z:number,yaw:number)=>{
   if(!bases.has(n))bases.set(n,rowBase(n));
   const r=new THREE.Group();r.name=name;r.position.set(x,0,z);r.rotation.y=yaw;
   const mk=(geo:THREE.BufferGeometry,m:THREE.Material,px=0)=>{const mesh=new THREE.Mesh(geo,m);mesh.position.x=px;mesh.castShadow=true;mesh.receiveShadow=true;r.add(mesh);tris+=count(geo);};
-  mk(bases.get(n)!,alu);
+  mk(bases.get(n)!.frame,alu);mk(bases.get(n)!.pads,rubber);
   for(let i=0;i<n;i++){const px=(i+.5-n/2)*PITCH_ROW;mk(parts.teal,tealMat,px);mk(parts.cream,creamMat,px);mk(parts.frame,alu,px);}
   group.add(r);
  };
- // Wall row: local x runs along +Z with yaw -90 degrees; the stern rows run along -X with yaw 180.
+ // Wall row: local x runs along +Z with yaw -90 degrees; the other rows face the bow (+Z, yaw 0; user 2026-11-19).
  row('chairs-wall',CHAIRS.wallRowZ.length,CHAIRS.wallRowX,(CHAIRS.wallRowZ[0]+CHAIRS.wallRowZ[CHAIRS.wallRowZ.length-1])/2,-Math.PI/2);
  const sx=(CHAIRS.sternRowsX[0]+CHAIRS.sternRowsX[CHAIRS.sternRowsX.length-1])/2;
- CHAIRS.sternRowsZ.forEach((z,i)=>row(`chairs-stern-${i}`,CHAIRS.sternRowsX.length,sx,z,Math.PI));
- return {group,alu,triangles:tris,geometries:[...Object.values(parts),...bases.values()],materials:[tealMat,creamMat,alu]};
+ CHAIRS.sternRowsZ.forEach((z,i)=>row(`chairs-stern-${i}`,CHAIRS.sternRowsX.length,sx,z,0));
+ return {group,alu,triangles:tris,geometries:[...Object.values(parts),...[...bases.values()].flatMap(b=>[b.frame,b.pads])],materials:[tealMat,creamMat,alu,rubber]};
 }

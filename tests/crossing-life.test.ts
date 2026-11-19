@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
-import {createCrossingLife,CROSSING_SARDINE_POINTER_RESPONSE,CROSSING_WHALE_SHARK_LENGTHS} from '../src/places/crossing/Life.ts';
-import {DECK,POCKET,RAIL,ROOF,VIEWS,inDeck} from '../src/places/crossing/Layout.ts';
+import {createCrossingLife,crossingWhaleSharkTrack,CROSSING_SARDINE_POINTER_RESPONSE,CROSSING_WHALE_SHARK_LENGTHS} from '../src/places/crossing/Life.ts';
+import {DECK,POCKET,RAIL,ROOF,SOLIDS,VIEWS,inDeck} from '../src/places/crossing/Layout.ts';
 
 const STATE={intensity:1},DT=1/30;
 const run=(seconds:number,options:Parameters<typeof createCrossingLife>[0]={},ray?:(t:number)=>{ray:THREE.Ray|undefined;tap:boolean}|undefined)=>{
@@ -49,18 +49,81 @@ test('120 s: fish finite, out of every solid and the camera zones, speeds sensib
  life.dispose();
 });
 
-test('whale sharks: pitch within 8 deg, apart, small one stays astern within 2.5 big lengths, cadence slow, in the open-side quadrant',()=>{
- const {life,samples}=run(120),[big,small]=CROSSING_WHALE_SHARK_LENGTHS;
+test('whale sharks in the life object: pose follows the analytic track, pitch/bank capped, tail beats with swum distance',()=>{
+ const {life,samples}=run(90),[big,small]=CROSSING_WHALE_SHARK_LENGTHS;
+ assert.ok(samples.length>100);
  for(const d of samples){
-  const [b,s]=d.sharks;
-  for(const sh of d.sharks){assert.ok(sh.p.every(Number.isFinite));assert.ok(Math.abs(sh.pitch)<=8*Math.PI/180+1e-9);assert.ok(sh.p[1]>=-3.5&&sh.p[1]<=-1.5,`y ${sh.p[1]}`);assert.ok(sh.frequency>=.35&&sh.frequency<=.5);assert.ok(sh.p[0]>DECK.xMax+8,'off the open side');}
-  const dist=Math.hypot(b.p[0]-s.p[0],b.p[1]-s.p[1],b.p[2]-s.p[2]);
-  assert.ok(dist>(big+small)*.4,`too close ${dist}`);assert.ok(dist<big*2.5,`too far ${dist}`);
-  assert.ok(s.p[2]<b.p[2],'small one astern');
-  // Both inside the stations' view cones (bearing 39-73 deg from +X toward -Z, seen from station a), clear of the glitter axis (~41 deg).
-  for(const sh of d.sharks){const az=Math.atan2(-(sh.p[2]-VIEWS.a.position[2]),sh.p[0]-VIEWS.a.position[0])*180/Math.PI;assert.ok(az>46&&az<73,`bearing ${az}`);}
+  d.sharks.forEach((sh,i)=>{
+   assert.ok(sh.p.every(Number.isFinite));assert.ok(Math.abs(sh.pitch)<=8*DEG+1e-9);assert.ok(Math.abs(sh.roll)<=12*DEG+1e-9);
+   assert.ok(sh.p[1]>=.5&&sh.p[1]<=5.5,`y ${sh.p[1]}`);assert.ok(sh.speed>=.5&&sh.speed<=1.65,`speed ${sh.speed}`);
+   assert.ok(Math.abs(sh.frequency-sh.speed/2.4)<1e-9&&sh.frequency>.2&&sh.frequency<.7);
+  });
+  assert.equal(d.sharks[0].length,big);assert.equal(d.sharks[1].length,small);
  }
+ // The debug pose is the pure track at the elapsed time of the last update (90 s).
+ const last=life.getDebug();[0,1].forEach(i=>{const k=crossingWhaleSharkTrack(i as 0|1,90);last.sharks[i].p.forEach((v,j)=>assert.ok(Math.abs(v-k.p[j])<1e-6));assert.ok(Math.abs(last.sharks[i].yaw-k.yaw)<1e-6);});
  life.dispose();
+});
+
+// --- whale shark route, 0-600 s every 0.5 s (pure track; numbers replace looking at renders) ---
+const DEG=Math.PI/180,LENGTHS=CROSSING_WHALE_SHARK_LENGTHS,ASPECT=16/9;
+const HULL:[number,number,number,number,number,number]=[DECK.xMin,DECK.xMax,-6,0,DECK.zMin,DECK.zMax];
+const ROOF_SLAB:[number,number,number,number,number,number]=[DECK.xMin,DECK.xMax,ROOF.underY,ROOF.underY+.1,DECK.zMin,DECK.zMax];
+const BLOCKERS=[...SOLIDS.map(s=>s.box),ROOF_SLAB,HULL];
+const segmentHitsBox=(a:readonly number[],b:readonly number[],box:readonly number[])=>{
+ let t0=0,t1=1;
+ for(let i=0;i<3;i++){const d=b[i]-a[i],lo=box[i*2],hi=box[i*2+1];
+  if(Math.abs(d)<1e-12){if(a[i]<lo||a[i]>hi)return false;continue;}
+  let u=(lo-a[i])/d,v=(hi-a[i])/d;if(u>v)[u,v]=[v,u];t0=Math.max(t0,u);t1=Math.min(t1,v);if(t0>t1)return false;}
+ return true;
+};
+/** Eye-to-centre line clear of walls, posts, roof and hull and the centre inside the 16:9 frustum; also returns the apparent length in 1080p pixels. */
+const look=(view:'a'|'c',p:readonly number[],yaw:number,length:number)=>{
+ const eye=VIEWS[view].position as readonly number[],target=VIEWS[view].target as readonly number[];
+ if(BLOCKERS.some(b=>segmentHitsBox(eye,p,b)))return {visible:false,px:0};
+ let f=[target[0]-eye[0],target[1]-eye[1],target[2]-eye[2]];const fl=Math.hypot(f[0],f[1],f[2]);f=f.map(x=>x/fl);
+ const rl=Math.hypot(f[0],f[2]),r=[f[2]/rl,0,-f[0]/rl],u=[r[1]*f[2]-r[2]*f[1],r[2]*f[0]-r[0]*f[2],r[0]*f[1]-r[1]*f[0]];
+ const v=[p[0]-eye[0],p[1]-eye[1],p[2]-eye[2]],z=v[0]*f[0]+v[1]*f[1]+v[2]*f[2];if(z<=0)return {visible:false,px:0};
+ const th=Math.tan(VIEWS[view].fov*DEG/2),x=(v[0]*r[0]+v[1]*r[1]+v[2]*r[2])/z/(th*ASPECT),y=(v[0]*u[0]+v[1]*u[1]+v[2]*u[2])/z/th;
+ if(Math.abs(x)>1||Math.abs(y)>1)return {visible:false,px:0};
+ // Body axis (yaw, level) seen across the line of sight: projected length = length * |sin(angle between axis and view ray)|.
+ const dist=Math.hypot(v[0],v[1],v[2]),axis=[Math.sin(yaw),0,Math.cos(yaw)],cos=(axis[0]*v[0]+axis[2]*v[2])/dist,sin=Math.sqrt(Math.max(0,1-cos*cos));
+ return {visible:true,px:length*sin/dist/(2*th)*1080};
+};
+const times=Array.from({length:1201},(_,k)=>k*.5);
+const tracks=[times.map(t=>crossingWhaleSharkTrack(0,t)),times.map(t=>crossingWhaleSharkTrack(1,t))];
+const boxDistance=(p:readonly number[])=>Math.hypot(Math.max(DECK.xMin-p[0],0,p[0]-DECK.xMax),Math.max(DECK.zMin-p[2],0,p[2]-DECK.zMax));
+
+test('whale shark route 0-600 s: 2-5.5 m up, 12 m of clear water past the hull for the whole body, 22+ m centre-to-ship, up to 50 m, small one never on top of the big one',()=>{
+ for(const [i,list] of tracks.entries())list.forEach((k,n)=>{
+  assert.ok(k.p.every(Number.isFinite));assert.ok(k.p[1]>=.5&&k.p[1]<=5.5,`shark ${i} y ${k.p[1]} at ${times[n]}`);
+  const d=boxDistance(k.p);assert.ok(d-LENGTHS[i]/2>=12&&d<=50,`shark ${i} ${d.toFixed(1)} m from the hull box at ${times[n]} s`);
+ });
+ tracks[0].forEach((k,n)=>{const o=tracks[1][n].p,sep=Math.hypot(k.p[0]-o[0],k.p[1]-o[1],k.p[2]-o[2]);assert.ok(sep>=5,`centres ${sep.toFixed(1)} m apart at ${times[n]} s`);assert.ok(sep<=40,`small one strayed ${sep.toFixed(1)} m`);});
+});
+
+test('whale shark motion: 0.5-1.6 m/s, yaw follows the path (no sliding backwards), yaw change <= 6 deg per 0.5 s, bank <= 12 deg, pitch <= 8 deg',()=>{
+ for(const [i,list] of tracks.entries())list.forEach((k,n)=>{
+  assert.ok(k.speed>=.5&&k.speed<=1.6,`shark ${i} speed ${k.speed.toFixed(2)} at ${times[n]}`);
+  const heading=Math.atan2(k.v[0],k.v[2]),off=Math.abs(Math.atan2(Math.sin(heading-k.yaw),Math.cos(heading-k.yaw)));assert.ok(off<=25*DEG,`velocity off the nose by ${off/DEG}`);
+  assert.ok(Math.abs(k.roll)<=12*DEG+1e-9&&Math.abs(k.pitch)<=8*DEG+1e-9);
+  if(n+1<list.length){const dyaw=Math.abs(Math.atan2(Math.sin(list[n+1].yaw-k.yaw),Math.cos(list[n+1].yaw-k.yaw)));assert.ok(dyaw<=6*DEG,`shark ${i} yaw jumps ${(dyaw/DEG).toFixed(2)} deg at ${times[n]} s`);}
+ });
+});
+
+test('whale shark visibility: big one seen 35% of the time from a and 20% from c, neither shark gone for more than 60 s (a) / 90 s (c), big one at least 90 px long in the middle',()=>{
+ const need={a:{share:.35,gap:60},c:{share:.2,gap:90}};
+ for(const view of ['a','c'] as const){
+  let seen=0,gone=0,longest=0;const px:number[]=[];
+  times.forEach((_t,n)=>{
+   const lookBig=look(view,tracks[0][n].p,tracks[0][n].yaw,LENGTHS[0]),lookSmall=look(view,tracks[1][n].p,tracks[1][n].yaw,LENGTHS[1]);
+   if(lookBig.visible){seen++;px.push(lookBig.px);}
+   if(lookBig.visible||lookSmall.visible)gone=0;else{gone+=.5;longest=Math.max(longest,gone);}
+  });
+  px.sort((x,y)=>x-y);const median=px[Math.floor(px.length/2)];
+  console.log(`view ${view}: big visible ${(seen/times.length*100).toFixed(1)} %, longest both-hidden ${longest} s, median length ${median.toFixed(0)} px`);
+  assert.ok(seen/times.length>=need[view].share,`${view} share ${seen/times.length}`);assert.ok(longest<=need[view].gap,`${view} gap ${longest}`);assert.ok(median>=90,`${view} median ${median}`);
+ }
 });
 
 test('pointer response 0: pointerRay and tap leave the trajectories bit-identical',()=>{

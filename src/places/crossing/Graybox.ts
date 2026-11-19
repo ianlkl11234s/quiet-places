@@ -1,29 +1,26 @@
 import * as THREE from 'three';
 import {createChairs} from './Chairs.ts';
-import {patchSurface} from './Materials.ts';
-import {CHAIRS,DECK,DOOR,LAMP,POCKET,POST_Z,RAIL,ROOF,STAIR} from './Layout.ts';
+import {createMaterials,disposeMaterialTextures} from './Materials.ts';
+import {createFittings,worldUV} from './Fittings.ts';
+import {DECK,DOOR,LAMP,POCKET,POST_Z,RAIL,ROOF,STAIR} from './Layout.ts';
 
 /**
- * S1 graybox: stern corner of a ferry's open upper deck. Flat materials only; no textures.
+ * Stern corner of a ferry's open upper deck: structure here, small fittings in Fittings.ts, textures in Textures.ts.
  * Returns the group, the fluorescent tube material (set emissiveIntensity from outside) and its position.
  */
 export function createGraybox(){
  const group=new THREE.Group();group.name='crossing-graybox';
- const paint=patchSurface(new THREE.MeshStandardMaterial({color:'#e4e8e4',roughness:.72,metalness:.05}),'paint');
- const roofMat=patchSurface(new THREE.MeshStandardMaterial({color:'#dfe3df',roughness:.8,side:THREE.DoubleSide}),'paint');
- const deckMat=patchSurface(new THREE.MeshStandardMaterial({color:'#2b5c45',roughness:.55}),'deck');
- const doorMat=new THREE.MeshStandardMaterial({color:'#3d7fd2',roughness:.5});
- const canvas=patchSurface(new THREE.MeshStandardMaterial({color:'#e6dcc0',roughness:.92}),'canvas');
- const strap=new THREE.MeshStandardMaterial({color:'#121212',roughness:.7});
- const signMat=new THREE.MeshStandardMaterial({color:'#f2f2ee',roughness:.6});
- const pipeMat=patchSurface(new THREE.MeshStandardMaterial({color:'#e8ebe8',roughness:.5,metalness:.1}),'paint');
- const lampBody=new THREE.MeshStandardMaterial({color:'#d8dbd6',roughness:.6});
+ const m=createMaterials();
+ const {paint,roof:roofMat,deck:deckMat,doorMat,pipe:pipeMat,lampBody}=m;
  const tubeMat=new THREE.MeshStandardMaterial({color:'#f4f1e6',emissive:new THREE.Color('#fff1d6'),emissiveIntensity:0,roughness:.4});
  const chairs=createChairs(),alu=chairs.alu;
 
  const add=(name:string,g:THREE.BufferGeometry,m:THREE.Material,pos:[number,number,number],cast=true)=>{const mesh=new THREE.Mesh(g,m);mesh.name=name;mesh.position.set(...pos);mesh.castShadow=cast;mesh.receiveShadow=true;group.add(mesh);return mesh;};
  /** Box from min/max corners. */
- const slab=(name:string,m:THREE.Material,x0:number,x1:number,y0:number,y1:number,z0:number,z1:number,cast=true)=>add(name,new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0),m,[(x0+x1)/2,(y0+y1)/2,(z0+z1)/2],cast);
+ const slab=(name:string,mat:THREE.Material,x0:number,x1:number,y0:number,y1:number,z0:number,z1:number,cast=true)=>{
+  const g=new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0),c:[number,number,number]=[(x0+x1)/2,(y0+y1)/2,(z0+z1)/2];
+  if(mat!==doorMat&&mat!==pipeMat)worldUV(g,...c);return add(name,g,mat,c,cast);
+ };
  const pipe=(name:string,a:THREE.Vector3,b:THREE.Vector3,r:number,m:THREE.Material=pipeMat)=>{
   const mesh=add(name,new THREE.CylinderGeometry(r,r,a.distanceTo(b),10),m,[0,0,0]);
   mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());return mesh;
@@ -61,20 +58,20 @@ export function createGraybox(){
  slab('roof',roofMat,xMin,xMax+ROOF.margin,Y,Y+ROOF.t,zMin-ROOF.margin,zMax+ROOF.margin);
  for(const z of[-2.4,-.8,.8,2.4,4.0])slab(`beam-${z}`,paint,xMin,xMax,Y-ROOF.beamH,Y,z-.04,z+.04);
  slab('beam-long',paint,1.5-.05,1.5+.05,Y-ROOF.beamH,Y,zMin,zMax);
- for(const z of[-2.4,-.8,.8,2.4,4.0])add(`sign-${z}`,new THREE.BoxGeometry(.02,.08,.12),signMat,[1.5-.08,Y-.1,z+.4]);
 
- // Canvas blinds rolled up at the roof edge, black ties.
- const roll=(name:string,len:number,pos:[number,number,number],alongZ:boolean)=>{
-  const m=add(name,new THREE.CylinderGeometry(.065,.065,len,16),canvas,pos);if(alongZ)m.rotation.x=Math.PI/2;else m.rotation.z=Math.PI/2;return m;
- };
- roll('blind-open',zMax-zMin,[xMax-.1,Y-.09,(zMin+zMax)/2],true);
- roll('blind-stern',xMax,[xMax/2,Y-.09,zMin+.1],false);
- for(const z of[-2.2,-.3,1.6,3.5]){const s=add(`tie-open-${z}`,new THREE.CylinderGeometry(.072,.072,.05,16),strap,[xMax-.1,Y-.09,z]);s.rotation.x=Math.PI/2;}
- for(const x of[.6,1.8]){const s=add(`tie-stern-${x}`,new THREE.CylinderGeometry(.072,.072,.05,16),strap,[x,Y-.09,zMin+.1]);s.rotation.z=Math.PI/2;}
+ // Fluorescent fixture hung below the beams on two rods: trough, end caps, diffuser, tube.
+ {const lx=LAMP.x,lz=LAMP.z,hl=LAMP.len/2+.05;
+  slab('lamp-trough-top',lampBody,lx-.075,lx+.075,2.05,2.07,lz-hl,lz+hl,false);
+  for(const e of[-1,1])slab(`lamp-trough-side-${e}`,lampBody,lx+e*.068-.007,lx+e*.068+.007,2.0,2.07,lz-hl,lz+hl,false);
+  for(const e of[-1,1])slab(`lamp-cap-${e}`,lampBody,lx-.08,lx+.08,1.995,2.075,lz+e*hl-(e>0?0:.012),lz+e*hl+(e>0?.012:0),false);
+  slab('lamp-lens',m.lens,lx-.058,lx+.058,1.992,1.998,lz-hl+.01,lz+hl-.01,false);
+  add('lamp-tube',new THREE.BoxGeometry(.04,.022,LAMP.len),tubeMat,[lx,2.013,lz],false);
+  for(const z of[-.8,-1.6])slab(`lamp-rod-${z}`,lampBody,lx-.012,lx+.012,2.07,z===-.8?2.09:Y,z-.012,z+.012,false);}
 
- // Fluorescent fixture under the roof.
- add('lamp-body',new THREE.BoxGeometry(.12,.05,LAMP.len+.1),lampBody,[LAMP.x,LAMP.y+.02,LAMP.z],false);
- add('lamp-tube',new THREE.BoxGeometry(.07,.035,LAMP.len),tubeMat,[LAMP.x,LAMP.y-.02,LAMP.z],false);
+ // Damp patches along the wall feet (low roughness, dark, soft edge).
+ {const wet=(name:string,len:number,wd:number,x:number,z:number,rotY:number)=>{
+   const g=new THREE.PlaneGeometry(len,wd);g.rotateX(-Math.PI/2);const mesh=add(name,g,m.wetMat,[x,.004,z],false);mesh.rotation.y=rotY;mesh.renderOrder=2;};
+  wet('wet-stern',2.0,.22,1.2,zMin+.11,Math.PI);wet('wet-open',7.0,.18,xMax-t-.09,.9,Math.PI/2);wet('wet-pool',.8,.35,.9,-1.9,Math.PI*.8);}
 
  // Stair opening: pipe handrail on the three sides that face the deck, posts every 1.0 m.
  const hr=(name:string,a:[number,number],b:[number,number])=>{
@@ -88,11 +85,13 @@ export function createGraybox(){
  hr('stair-fwd',[STAIR.xMin,STAIR.zMax],[STAIR.xMax,STAIR.zMax]);
 
  group.add(chairs.group);
+ group.add(createFittings(m));
 
  const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();
  group.traverse(o=>{if(o instanceof THREE.Mesh){geometries.add(o.geometry);materials.add(o.material as THREE.Material);}});
+ Object.values(m).forEach(x=>materials.add(x));
  return {group,tubeMat,alu,chairTriangles:chairs.triangles,lampPosition:new THREE.Vector3(LAMP.x,LAMP.y-.12,LAMP.z),
   /** Sets the tube's glow (HDR values feed bloom). */
   setLamp(emissiveIntensity:number){tubeMat.emissiveIntensity=emissiveIntensity;},
-  dispose(){geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());group.removeFromParent();}};
+  dispose(){geometries.forEach(g=>g.dispose());materials.forEach(x=>{disposeMaterialTextures(x);x.dispose();});group.removeFromParent();}};
 }
