@@ -1,0 +1,112 @@
+import * as THREE from 'three';
+import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {CHAIRS} from './Layout.ts';
+import {strapTextures} from './Textures.ts';
+
+/**
+ * Woven ferry chairs, procedural. Chair frame (local, seat faces +Z, floor at y=0): 2.2 cm tube back frame leaning 15 degrees
+ * with rounded top corners, a wide curved aluminium armrest band per side; weave of 3.7 cm flat straps on a 4.6 cm pitch
+ * (vertical cream, horizontal teal) as continuous ribbons that pass over and under each crossing, with ~9 mm gaps. Rows share one base
+ * (rails + slim legs) and all chairs share the same merged geometry. Straps are double-sided ribbons (light passes the gaps).
+ */
+const R=.011,PITCH=.046,STRAP=.037,PITCH_ROW=.6,SEAT_Y=CHAIRS.seatH,LEAN=-.26,HALF_W=.27;
+const flat=(g:THREE.BufferGeometry)=>g.index?g.toNonIndexed():g;
+const tube=(a:THREE.Vector3,b:THREE.Vector3,r=R)=>{
+ const g=new THREE.CylinderGeometry(r,r,a.distanceTo(b),6,1,true);
+ g.applyMatrix4(new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(.5),new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize()),new THREE.Vector3(1,1,1)));
+ return flat(g);
+};
+const v3=(x:number,y:number,z:number)=>new THREE.Vector3(x,y,z);
+
+function chairParts(){
+ const teal:THREE.BufferGeometry[]=[],cream:THREE.BufferGeometry[]=[],frame:THREE.BufferGeometry[]=[];
+ const backM=new THREE.Matrix4().makeTranslation(0,SEAT_Y,-.2).multiply(new THREE.Matrix4().makeRotationX(LEAN));
+ const L=.43; // back frame length along its lean
+ // Plain weave of continuous ribbons: each strap runs the full length of the seat/back and goes over, then under, each crossing
+ // (+-A in depth). Two segments per cell (centre of the crossing, then the gap between), 8 mm gaps between straps, vertex colour
+ // darkens the stretch that is pressed under a crossing strap. UV: u across the strap, v along it (one texture period = 2 cells).
+ const A=.0028;
+ const ribbon=(into:THREE.BufferGeometry[],n:number,at:(s:number,w:number)=>[number,number],depth:(k:number)=>number,m:THREE.Matrix4)=>{
+  const pos:number[]=[],uv:number[]=[],col:number[]=[],idx:number[]=[];
+  for(let k=0;k<=2*n;k++){
+   const z=k%2===0?0:depth((k-1)/2),sh=k%2===0?.86:z>0?1:.68;
+   for(const w of[-1,1]){const [x,y]=at(k/2,w*STRAP/2);pos.push(x,y,z);uv.push(w<0?0:1,k/4);col.push(sh,sh,sh);}
+   if(k>0){const b=(k-1)*2;idx.push(b,b+1,b+2,b+1,b+3,b+2);}
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();g.applyMatrix4(m);into.push(g);
+ };
+ const weave=(cols:number,rows:number,origin:THREE.Vector2,m:THREE.Matrix4)=>{
+  const x0=-cols/2*PITCH;
+  for(let i=0;i<cols;i++){const cx=(i-(cols-1)/2)*PITCH;ribbon(cream,rows,(s,w)=>[cx+w,origin.y+s*PITCH],j=>(i+j)%2===0?A:-A,m);}
+  for(let j=0;j<rows;j++){const cy=origin.y+(j+.5)*PITCH;ribbon(teal,cols,(s,w)=>[x0+s*PITCH,cy+w],i=>(i+j)%2===0?-A:A,m);}
+ };
+ weave(10,9,new THREE.Vector2(0,.02),backM);
+ // Seat weave lies flat at seat height: local plane XY -> XZ.
+ weave(10,10,new THREE.Vector2(0,-.23),new THREE.Matrix4().makeTranslation(0,SEAT_Y,0).multiply(new THREE.Matrix4().makeRotationX(-Math.PI/2)));
+ // Back frame: two uprights, rounded top corners (radius .08, 4 segments), top bar. Points in back-local (x, v along the lean).
+ const toWorld=(x:number,v:number)=>v3(x,v,0).applyMatrix4(backM);
+ for(const s of[-1,1])frame.push(tube(toWorld(s*HALF_W,0),toWorld(s*HALF_W,L-.08)));
+ // Rounded top as an explicit arc: centre (x=±(HALF_W-rc), v=top-rc).
+ for(const s of[-1,1]){
+  const rc=.08,cx=s*(HALF_W-rc),cv=L-rc;let prev=toWorld(s*HALF_W,cv);
+  for(let k=1;k<=4;k++){const a=k/4*Math.PI/2,p=toWorld(cx+s*rc*Math.cos(a),cv+rc*Math.sin(a));frame.push(tube(prev,p));prev=p;}
+ }
+ frame.push(tube(toWorld(-(HALF_W-.08),L),toWorld(HALF_W-.08,L)));
+ frame.push(tube(toWorld(-HALF_W,.02),toWorld(HALF_W,.02))); // lower back cross tube
+ // Armrest: wide band (4 cm, bright aluminium), a quadratic arc from the back frame sideways-up to the seat front edge.
+ for(const s of[-1,1]){
+  const p0=toWorld(0,.3),p2=v3(0,SEAT_Y+.07,.26),p1=v3(0,p0.y+.07,.14);
+  let prev=p0.clone();
+  for(let k=1;k<=8;k++){
+   const t=k/8,u=1-t,p=v3(0,u*u*p0.y+2*u*t*p1.y+t*t*p2.y,u*u*p0.z+2*u*t*p1.z+t*t*p2.z),d=p.clone().sub(prev),len=d.length();d.normalize();
+   const seg=new THREE.PlaneGeometry(.04,len+.004);
+   seg.applyMatrix4(new THREE.Matrix4().makeBasis(v3(1,0,0),d,v3(1,0,0).cross(d)).setPosition(prev.clone().add(p).multiplyScalar(.5).setX(s*(HALF_W+.012))));
+   frame.push(flat(seg));prev=p;
+  }
+  frame.push(tube(v3(s*HALF_W,SEAT_Y,.26),v3(s*HALF_W,SEAT_Y+.07,.26))); // armrest end post
+ }
+ const merge=(a:THREE.BufferGeometry[])=>{const g=mergeGeometries(a)!;a.forEach(x=>x.dispose());return g;};
+ return {teal:merge(teal),cream:merge(cream),frame:merge(frame)};
+}
+
+/** Row base: continuous front and back seat rails plus slim leg pairs between chairs (n chairs, pitch .6, local x along the row). */
+function rowBase(n:number){
+ const g:THREE.BufferGeometry[]=[],pads:THREE.BufferGeometry[]=[],half=n*PITCH_ROW/2;
+ g.push(tube(v3(-half,SEAT_Y,.25),v3(half,SEAT_Y,.25)),tube(v3(-half,SEAT_Y,-.21),v3(half,SEAT_Y,-.21)));
+ for(let k=0;k<=n;k++){
+  const x=-half+k*PITCH_ROW;
+  for(const z of[.25,-.21]){g.push(tube(v3(x,.02,z),v3(x,SEAT_Y,z)));const p=new THREE.CylinderGeometry(.019,.021,.02,8);p.translate(x,.01,z);pads.push(flat(p));} // rubber foot
+  g.push(tube(v3(x,.12,.25),v3(x,.12,-.21)),tube(v3(x,SEAT_Y,.25),v3(x,SEAT_Y,-.21)));
+ }
+ const m=mergeGeometries(g)!,p=mergeGeometries(pads)!;g.forEach(x=>x.dispose());pads.forEach(x=>x.dispose());return {frame:m,pads:p};
+}
+
+export function createChairs(){
+ const group=new THREE.Group();group.name='crossing-chairs';
+ // Strap albedo/normal are baked per colour (vertical cream, horizontal teal); material colour stays white.
+ const strapMat=(rgb:[number,number,number])=>{
+  const t=strapTextures(rgb),m=new THREE.MeshStandardMaterial({color:t?'#ffffff':new THREE.Color(...rgb).getHex(),roughness:.42,side:THREE.DoubleSide,vertexColors:true});
+  if(t){m.map=t.map;m.normalMap=t.normalMap;m.normalScale.set(1.3,1.3);}return m;
+ };
+ const tealMat=strapMat([.17,.62,.64]),creamMat=strapMat([.80,.73,.46]);
+ // Matt anodised aluminium: low metalness so the blue sky environment does not tint it violet; light warm grey.
+ const alu=new THREE.MeshStandardMaterial({color:'#d9dad6',metalness:.3,roughness:.5,envMapIntensity:.25,side:THREE.DoubleSide});
+ const parts=chairParts(),bases=new Map<number,{frame:THREE.BufferGeometry;pads:THREE.BufferGeometry}>();
+ const rubber=new THREE.MeshStandardMaterial({color:'#1b1b1c',roughness:.92});
+ let tris=0;
+ const count=(g:THREE.BufferGeometry)=>(g.index?g.index.count:g.attributes.position.count)/3;
+ const row=(name:string,n:number,x:number,z:number,yaw:number)=>{
+  if(!bases.has(n))bases.set(n,rowBase(n));
+  const r=new THREE.Group();r.name=name;r.position.set(x,0,z);r.rotation.y=yaw;
+  const mk=(geo:THREE.BufferGeometry,m:THREE.Material,px=0)=>{const mesh=new THREE.Mesh(geo,m);mesh.position.x=px;mesh.castShadow=true;mesh.receiveShadow=true;r.add(mesh);tris+=count(geo);};
+  mk(bases.get(n)!.frame,alu);mk(bases.get(n)!.pads,rubber);
+  for(let i=0;i<n;i++){const px=(i+.5-n/2)*PITCH_ROW;mk(parts.teal,tealMat,px);mk(parts.cream,creamMat,px);mk(parts.frame,alu,px);}
+  group.add(r);
+ };
+ // Wall row: local x runs along +Z with yaw -90 degrees; the other rows face the bow (+Z, yaw 0; user 2026-11-19).
+ row('chairs-wall',CHAIRS.wallRowZ.length,CHAIRS.wallRowX,(CHAIRS.wallRowZ[0]+CHAIRS.wallRowZ[CHAIRS.wallRowZ.length-1])/2,-Math.PI/2);
+ const sx=(CHAIRS.sternRowsX[0]+CHAIRS.sternRowsX[CHAIRS.sternRowsX.length-1])/2;
+ CHAIRS.sternRowsZ.forEach((z,i)=>row(`chairs-stern-${i}`,CHAIRS.sternRowsX.length,sx,z,0));
+ return {group,alu,triangles:tris,geometries:[...Object.values(parts),...[...bases.values()].flatMap(b=>[b.frame,b.pads])],materials:[tealMat,creamMat,alu,rubber]};
+}

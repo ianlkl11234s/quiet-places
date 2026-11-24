@@ -1,7 +1,10 @@
 import * as THREE from 'three';
+import {createWhaleSharkModelV2} from './revision2.ts';
 
 export interface WhaleSharkPose { phase:number; amplitude:number; glide:number; }
 export interface WhaleSharkModel { root:THREE.Group; update(pose:WhaleSharkPose):void; dispose():void; }
+/** revision 2 = morphometric rebuild (flat truncated head, ridges, falcate pectorals, rear first dorsal, tall unequal caudal, generated checkerboard texture). Omitted = revision 1, unchanged. */
+export interface WhaleSharkOptions { revision?:1|2; lodDistances?:readonly [number,number]; }
 
 const TAU=Math.PI*2;
 const clamp=THREE.MathUtils.clamp;
@@ -127,7 +130,8 @@ function gillTraceMesh(material:THREE.MeshStandardMaterial,name:string){
  * Original procedural Rhincodon proxy. Local +Z is the broad terminal mouth,
  * +Y dorsal, and +X transverse. The root is centred on the body length.
  */
-export function createWhaleSharkModel(length:number,seed:number):WhaleSharkModel {
+export function createWhaleSharkModel(length:number,seed:number,options?:WhaleSharkOptions):WhaleSharkModel {
+  if(options?.revision===2)return createWhaleSharkModelV2(clamp(Number.isFinite(length)?length:8.5,2,20),seed,options.lodDistances??[60,130]);
   const safeLength=clamp(Number.isFinite(length)?length:8.5,2,20),root=new THREE.Group();
   root.name='procedural-whale-shark';root.userData={length:safeLength,forward:'+Z',dorsal:'+Y',transverse:'+X',lodDistances:[28,60]};
   const skin=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.5,metalness:0,side:THREE.DoubleSide});
