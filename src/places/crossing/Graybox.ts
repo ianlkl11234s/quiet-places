@@ -56,8 +56,8 @@ export function createGraybox(){
 
  // Roof: slab, cross beams, one long beam along the open side carrying blank number plates.
  slab('roof',roofMat,xMin,xMax+ROOF.margin,Y,Y+ROOF.t,zMin-ROOF.margin,zMax+ROOF.margin);
- for(const z of[-2.4,-.8,.8,2.4,4.0])slab(`beam-${z}`,paint,xMin,xMax,Y-ROOF.beamH,Y,z-.04,z+.04);
- slab('beam-long',paint,1.5-.05,1.5+.05,Y-ROOF.beamH,Y,zMin,zMax);
+ for(const z of[-2.4,-.8,.8,2.4,4.0])slab(`beam-${z}`,m.beam,xMin,xMax,Y-ROOF.beamH,Y,z-.04,z+.04);
+ slab('beam-long',m.beam,1.5-.05,1.5+.05,Y-ROOF.beamH,Y,zMin,zMax);
 
  // Fluorescent fixture hung below the beams on two rods: trough, end caps, diffuser, tube.
  {const lx=LAMP.x,lz=LAMP.z,hl=LAMP.len/2+.05;

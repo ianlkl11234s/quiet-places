@@ -159,17 +159,17 @@ export function canvasTextures():Pbr|null{
  return {map:toTexture(N,N,rgbaFromFloats(A,N,N),true),normalMap:toTexture(N,N,heightToNormal(H,N,N,3.2*S),false)};
 }
 
-/** One woven strap (3.7 x 4.6 cm quad, own UV 0..1): crowned cross-section, lengthwise fibres, bulge over the crossing strap, darker ends. */
-export function strapTextures(rgb:[number,number,number],alongV:boolean):Pbr|null{
+/** One woven strap ribbon (UV: u across, v along; one tile = two cells): rounded cross-section, lengthwise fibres, no per-cell breaks. */
+export function strapTextures(rgb:[number,number,number]):Pbr|null{
  if(!hasDom())return null;
- const N=128,nz=makeNoise(alongV?71:73),H=new Float32Array(N*N),A=new Float32Array(N*N*3);
+ const N=128,nz=makeNoise(rgb[1]>.5?71:73),H=new Float32Array(N*N),A=new Float32Array(N*N*3);
  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-  const u=x/N,v=1-y/N,c=alongV?u:v,l=alongV?v:u,i=y*N+x;
-  const crown=Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,c))),.55),bulge=.5-.5*Math.cos(2*Math.PI*l);
+  const c=x/(N-1),l=y/N,i=y*N+x;
+  const crown=Math.pow(Math.sin(Math.PI*Math.min(.999,Math.max(.001,c))),.7);
   const fib=Math.sin(c*Math.PI*22+nz.fbm(l,c,6,1)*6)*.5+.5;
-  H[i]=crown*(.55+.45*bulge)+fib*.05;
-  const edge=1-.28*Math.pow(1-crown,1.5),end=1-.38*(1-sstep(0,.2,l))-.38*(1-sstep(0,.2,1-l)),sp=.95+.1*fib+(nz.fbm(l,c,24,1)-.5)*.08;
-  for(let ch=0;ch<3;ch++)A[i*3+ch]=rgb[ch]*edge*end*sp;
+  H[i]=crown+fib*.05;
+  const edge=1-.22*Math.pow(1-crown,1.5),sp=.96+.08*fib+(nz.fbm(l,c,24,1)-.5)*.06;
+  for(let ch=0;ch<3;ch++)A[i*3+ch]=rgb[ch]*edge*sp;
  }
  return {map:toTexture(N,N,rgbaFromFloats(A,N,N),true),normalMap:toTexture(N,N,heightToNormal(H,N,N,5*S),false)};
 }

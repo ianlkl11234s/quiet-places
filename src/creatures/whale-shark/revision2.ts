@@ -15,15 +15,17 @@ const DEG=Math.PI/180;
 
 /** Body loft ends at the caudal peduncle; the caudal lobes carry on to s = 1. */
 const BODY_END=.80;
-/** Snout rounding depth: the front is truncated, not pointed. */
+/** Snout rounding depth: the front is cut off almost flat (a short, near-vertical face), not pointed. */
 const NOSE=.028;
+/** Exponent of the snout rounding: high = squarer; the front edge stays nearly straight in plan and only the corners are rounded. */
+const NOSE_POWER=7;
 // [s, half width, dorsal height, ventral depth, top exponent, bottom exponent] in TL.
 // Width 0.19-0.20 TL at the eyes and gill region (interorbital 19.6% TL); girth at the pectoral base ~0.50 TL;
 // deepest ahead of the first dorsal; peduncle least height ~0.028 TL. Flat, wide head; flatter belly.
 const PROFILE:readonly (readonly [number,number,number,number,number,number])[]=[
- [0,   .064,.030,.026,2.7,3.2],
- [.03, .078,.038,.031,2.8,3.4],
- [.06, .090,.046,.035,2.8,3.4],
+ [0,   .066,.031,.027,3.0,3.5],
+ [.03, .082,.037,.032,3.0,3.5],
+ [.06, .092,.045,.036,2.9,3.4],
  [.10, .097,.053,.040,2.7,3.3],
  [.16, .100,.061,.046,2.55,3.2],
  [.24, .098,.070,.051,2.4,3.0],
@@ -39,8 +41,8 @@ const PROFILE:readonly (readonly [number,number,number,number,number,number])[]=
 type Section={s:number;hw:number;up:number;dn:number;nt:number;nb:number;ridges:{theta:number;amp:number;sigma:number}[]};
 
 function catmull(a:number,b:number,c:number,d:number,t:number){return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t);}
-/** Squared-off (superellipse p = 3.5) rounding, so the snout reads truncated rather than bullet-shaped. */
-function noseScale(s:number){if(s>=NOSE)return 1;const t=1-s/NOSE;return Math.max(.035,Math.pow(Math.max(0,1-Math.pow(t,3.5)),1/3.5));}
+/** Squared-off (superellipse, high exponent) rounding: nearly full width and height right up to a short flat front face. */
+function noseScale(s:number){if(s>=NOSE)return 1;const t=1-s/NOSE;return Math.max(.035,Math.pow(Math.max(0,1-Math.pow(t,NOSE_POWER)),1/NOSE_POWER));}
 
 /** Three lateral ridges a side (they start above and behind the head); the lowest becomes the caudal keel. */
 function ridgesAt(s:number){
@@ -78,14 +80,16 @@ function surfaceNormal(s:number,theta:number,out:THREE.Vector3){
 }
 
 /** Body texture u runs in meridional surface distance (so the rounded snout gets as many texels per metre as the flank). */
-let meridianTable:Float32Array|undefined;const MERIDIAN_N=2048;
+/** Tabulated with stations bunched towards the snout (s ~ w^3), so the nearly flat front face is resolved too. */
+let meridianTable:{s:Float64Array;u:Float64Array;total:number}|undefined;const MERIDIAN_N=4096;
 function meridian(){
- if(meridianTable)return meridianTable;const t=new Float32Array(MERIDIAN_N+1);let prev=0;
- for(let i=0;i<=MERIDIAN_N;i++){const sec=whaleSectionAt(i/MERIDIAN_N*BODY_END),r=(sec.hw+sec.up)*.5;t[i]=i?t[i-1]+Math.hypot(BODY_END/MERIDIAN_N,r-prev):0;prev=r;}
- return meridianTable=t;
+ if(meridianTable)return meridianTable;const s=new Float64Array(MERIDIAN_N+1),u=new Float64Array(MERIDIAN_N+1);let prev=0;
+ for(let i=0;i<=MERIDIAN_N;i++){s[i]=BODY_END*Math.pow(i/MERIDIAN_N,3);const sec=whaleSectionAt(s[i]),r=(sec.hw+sec.up)*.5;u[i]=i?u[i-1]+Math.hypot(s[i]-s[i-1],r-prev):0;prev=r;}
+ return meridianTable={s,u,total:u[MERIDIAN_N]};
 }
-function uOfS(s:number){const t=meridian(),f=clamp(s/BODY_END,0,1)*MERIDIAN_N,i=Math.min(MERIDIAN_N-1,Math.floor(f));return (t[i]+(t[i+1]-t[i])*(f-i))/t[MERIDIAN_N];}
-function sOfU(u:number){const t=meridian(),target=clamp(u,0,1)*t[MERIDIAN_N];let lo=0,hi=MERIDIAN_N;while(hi-lo>1){const m=(lo+hi)>>1;if(t[m]<target)lo=m;else hi=m;}return (lo+(target-t[lo])/Math.max(1e-9,t[hi]-t[lo]))/MERIDIAN_N*BODY_END;}
+function bracket(a:Float64Array,x:number){let lo=0,hi=MERIDIAN_N;while(hi-lo>1){const m=(lo+hi)>>1;if(a[m]<=x)lo=m;else hi=m;}return lo;}
+function uOfS(s:number){const t=meridian(),x=clamp(s,0,BODY_END),i=bracket(t.s,x);return (t.u[i]+(t.u[i+1]-t.u[i])*(x-t.s[i])/Math.max(1e-12,t.s[i+1]-t.s[i]))/t.total;}
+function sOfU(u:number){const t=meridian(),target=clamp(u,0,1)*t.total,i=bracket(t.u,target);return t.s[i]+(t.s[i+1]-t.s[i])*(target-t.u[i])/Math.max(1e-12,t.u[i+1]-t.u[i]);}
 
 // --- deformation -----------------------------------------------------------------------------------------------
 type Deformable={geometry:THREE.BufferGeometry;rest:Float32Array;restNormal:Float32Array;s:Float32Array};
@@ -177,9 +181,22 @@ function finSpecs(){
 function hash(a:number,b:number,seed:number){let h=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(seed|0,2246822519);h=Math.imul(h^(h>>>13),1274126177);h^=h>>>16;return (h>>>0)/4294967296;}
 const fract=(x:number)=>x-Math.floor(x);
 const rgb=(hex:string)=>{const v=parseInt(hex.slice(1),16);return [(v>>16)&255,(v>>8)&255,v&255] as const;};
-const DORSAL=rgb('#38566a'),FLANK=rgb('#46677a'),SPOT=rgb('#eef0e8'),BAR=rgb('#cfd8d4'),BELLY=rgb('#e2e5df'),GILL=rgb('#22313a'),MOUTH=rgb('#151c20');
+const DORSAL=rgb('#38566a'),FLANK=rgb('#46677a'),SPOT=rgb('#eef0e8'),BAR=rgb('#cfd8d4'),BELLY=rgb('#e2e5df'),GILL=rgb('#36525f'),MOUTH=rgb('#151c20');
 export const WHALE_TEXTURE_SIZE=[1024,512] as const;
-const GILLS=[.196,.216,.236,.256,.276];
+/**
+ * Five gill slits a side, front to back: station of the slit, tilt (station shift per radian away from the back line, they lean
+ * backwards towards the belly), bow (rearward bulge of the middle), and the angular extent from the dorsal midline (phi, rad).
+ * Spacing is uneven and the slits get shorter towards the back; the posterior three sit over the pectoral base.
+ */
+const GILLS=[
+ {s:.194,tilt:.0072,bow:.0024,top:.74,bottom:2.20},
+ {s:.2145,tilt:.0066,bow:.0017,top:.78,bottom:2.14},
+ {s:.2365,tilt:.0056,bow:.0021,top:.83,bottom:1.95},
+ {s:.2555,tilt:.0047,bow:.0013,top:.88,bottom:1.84},
+ {s:.2745,tilt:.0038,bow:.0010,top:.96,bottom:1.72},
+] as const;
+/** Station of gill g at angle phi from the dorsal midline (shared by the texture and the ribbon geometry). */
+const gillStation=(g:number,phi:number)=>{const k=GILLS[g],x=clamp((phi-k.top)/(k.bottom-k.top),0,1);return k.s+k.tilt*(phi-1.5)+k.bow*Math.sin(Math.PI*x);};
 function dataTexture(data:Uint8Array,w:number,h:number,wrapS:THREE.Wrapping){
  const t=new THREE.DataTexture(data,w,h,THREE.RGBAFormat,THREE.UnsignedByteType);
  t.wrapS=wrapS;t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=8;t.colorSpace=THREE.SRGBColorSpace;t.needsUpdate=true;return t;
@@ -205,7 +222,7 @@ function bodyTexture(seed:number){
  const thetas=new Float32Array(H),phis=new Float32Array(H);
  for(let j=0;j<H;j++){const theta=-Math.PI/2+TAU*(j+.5)/H;thetas[j]=theta;phis[j]=Math.abs(Math.atan2(Math.sin(theta-Math.PI/2),Math.cos(theta-Math.PI/2)));}
  // columns are uniform in meridional distance X (TL); X is aligned with s at s = 0.3 so the anatomy positions below stay in s
- const total=meridian()[MERIDIAN_N],offset=uOfS(.3)*total-.3;
+ const total=meridian().total,offset=uOfS(.3)*total-.3;
  for(let i=0;i<W;i++){
   const u=(i+.5)/W,st=sOfU(u),s=u*total-offset,sec=whaleSectionAt(st);
   // arc length around the section from the belly, sampled coarsely and interpolated
@@ -221,7 +238,7 @@ function bodyTexture(seed:number){
    if(head>0&&belly<1){
     // the rounded snout face is a disc: spots there are laid out in the front plane (x, y), blending into the
     // cylindrical (meridional, around) layout behind it, so they stay round instead of bending into arcs
-    const planar=1-smooth(.018,.04,st);
+    const planar=1-smooth(.0015,.007,st);
     headMark=planar<1?headField(s,Y,s,seed,1):0;
     if(planar>0){whalePointOn(sec,theta,P);headMark=headMark*(1-planar)+headField(P.x+1,P.y+1,s,seed+101,.78)*planar;}
    }
@@ -236,14 +253,16 @@ function bodyTexture(seed:number){
     for(const r of columnRidges)for(let side=0;side<2;side++){const centre=side?Math.PI-r.theta:r.theta,d=Math.abs(Math.atan2(Math.sin(theta-centre),Math.cos(theta-centre)))*radius;trunk=Math.max(trunk,.58*(1-smooth(.001,.0024,d)));}
    }
    let mark=Math.max(headMark*head,trunk*(1-head))*(1-belly);
-   // gill slits: long, slightly curved, from the upper flank down towards the belly
-   let gill=0;for(let g=0;g<GILLS.length;g++){const lo=g>=2?1.0:.86,hi=g>=2?1.9:2.06,x=GILLS[g]+.006*(phi-1.5),d=Math.abs(s-x);gill=Math.max(gill,(1-smooth(.0015,.0027,d))*smooth(lo,lo+.12,phi)*(1-smooth(hi-.12,hi,phi)));}
-   const mouth=st<NOSE+.004&&whalePointOn(sec,theta,P).z>.5-NOSE*.9&&Math.abs(P.x)<.063&&P.y<-.0035&&P.y>-.0105?1:0;
+   // gill slits: long, slightly curved and tilted, soft-edged, from the upper flank down towards the belly
+   let gill=0;for(let g=0;g<GILLS.length;g++){const k=GILLS[g],d=Math.abs(s-gillStation(g,phi));gill=Math.max(gill,(1-smooth(.0010,.0040,d))*smooth(k.top,k.top+.22,phi)*(1-smooth(k.bottom-.3,k.bottom,phi)));}
+   // mouth: a dark band across the very front of the flat snout, edges feathered so the lip line is not stepped
+   whalePointOn(sec,theta,P);
+   const mouth=(1-smooth(.85*NOSE,NOSE,st))*(1-smooth(.054,.062,Math.abs(P.x)))*smooth(-.0112,-.0098,P.y)*(1-smooth(-.0042,-.0028,P.y));
    const noise=.94+.12*hash(i>>2,j>>2,seed+5),flank=smooth(.5,1.5,phi),o=(j*W+i)*4;
    for(let c=0;c<3;c++){
     let v=(DORSAL[c]+(FLANK[c]-DORSAL[c])*flank)*noise;
     const spot=trunk>.75||headMark>.5?SPOT[c]:BAR[c];v+=(spot-v)*mark;v+=(BELLY[c]-v)*belly;
-    v+=(GILL[c]-v)*gill*.92;v+=(MOUTH[c]-v)*mouth;data[o+c]=clamp(Math.round(v),0,255);
+    v+=(GILL[c]-v)*gill*.75;v+=(MOUTH[c]-v)*mouth;data[o+c]=clamp(Math.round(v),0,255);
    }
    data[o+3]=255;
   }
@@ -270,7 +289,6 @@ export function createWhaleSharkModelV2(length:number,seed:number,lodDistances:r
  const bodyMap=bodyTexture(seed),finMap=finTexture(seed);
  const skin=new THREE.MeshStandardMaterial({map:bodyMap,roughness:.55,metalness:0,side:THREE.DoubleSide});
  const finSkin=new THREE.MeshStandardMaterial({map:finMap,roughness:.55,metalness:0,side:THREE.DoubleSide});
- const dark=new THREE.MeshStandardMaterial({color:'#33454f',roughness:.6,metalness:0,side:THREE.DoubleSide});
  const eyeMaterial=new THREE.MeshStandardMaterial({color:'#0d1113',roughness:.35,metalness:0});
  const lod=new THREE.LOD();lod.name='whale-shark-lod';root.add(lod);
  const levels=[new THREE.Group(),new THREE.Group(),new THREE.Group()];
@@ -284,15 +302,18 @@ export function createWhaleSharkModelV2(length:number,seed:number,lodDistances:r
   const f=finGeometry(spec,L,hash(finIndex++,3,seed));deformables.push(deformable(f.geometry,f.s));
   levels.forEach((g,i)=>g.add(meshOf(f.geometry,finSkin,`whale-shark-${name}-lod${i}`)));
  }
- // Close level: five long gill slits a side (posterior three over the pectoral base) and small lateral eyes at the front corners.
- const p=new THREE.Vector3(),n=new THREE.Vector3();
- for(const sign of [-1,1])GILLS.forEach((sg,g)=>{
-  const positions:number[]=[],sv:number[]=[],indices:number[]=[],steps=8,lo=g>=2?-.33:-.55,hi=.78;
-  for(let i=0;i<=steps;i++){const t=lo+(hi-lo)*i/steps,theta=sign>0?t:Math.PI-t,phi=Math.abs(Math.PI/2-t);
-   for(const ds of [-.0006,.0006]){const s=sg+.006*(phi-1.5)+ds;whalePointOn(whaleSectionAt(s),theta,p);surfaceNormal(s,theta,n);p.addScaledVector(n,.0012);positions.push(p.x*L,p.y*L,p.z*L);sv.push(sg);}}
-  for(let i=0;i<steps;i++){const a=i*2;indices.push(a,a+2,a+1,a+1,a+2,a+3);}
-  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setIndex(indices);geometry.computeVertexNormals();
-  deformables.push(deformable(geometry,Float32Array.from(sv)));levels[0].add(meshOf(geometry,dark,`whale-shark-gill-${sign<0?'left':'right'}-${g+1}`));
+ // Close level: five soft gill slits a side (posterior three over the pectoral base) and small lateral eyes at the front corners.
+ // Each slit is a ribbon three vertices wide whose vertex alpha fades out sideways and at both ends, so it reads as a shadowed fold, not a cut.
+ const p=new THREE.Vector3(),n=new THREE.Vector3(),gillColor=new THREE.Color('#36525f');
+ const gillSkin=new THREE.MeshStandardMaterial({vertexColors:true,transparent:true,depthWrite:false,roughness:.7,metalness:0,side:THREE.DoubleSide});
+ for(const sign of [-1,1])GILLS.forEach((k,g)=>{
+  const positions:number[]=[],colors:number[]=[],sv:number[]=[],indices:number[]=[],steps=12;
+  for(let i=0;i<=steps;i++){const x=i/steps,phi=k.top+(k.bottom-k.top)*x,theta=sign>0?Math.PI/2-phi:Math.PI/2+phi,fade=smooth(0,.16,x)*(1-smooth(.78,1,x));
+   for(const [ds,alpha] of [[-.0016,0],[0,.5*fade],[.0016,0]] as const){const s=gillStation(g,phi)+ds;whalePointOn(whaleSectionAt(s),theta,p);surfaceNormal(s,theta,n);p.addScaledVector(n,.0012);
+    positions.push(p.x*L,p.y*L,p.z*L);colors.push(gillColor.r,gillColor.g,gillColor.b,alpha);sv.push(k.s);}}
+  for(let i=0;i<steps;i++)for(let j=0;j<2;j++){const a=i*3+j,b=a+1,c=a+3,d=c+1;indices.push(a,c,b,b,c,d);}
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,4));geometry.setIndex(indices);geometry.computeVertexNormals();
+  deformables.push(deformable(geometry,Float32Array.from(sv)));const mesh=meshOf(geometry,gillSkin,`whale-shark-gill-${sign<0?'left':'right'}-${g+1}`);mesh.castShadow=false;mesh.renderOrder=1;levels[0].add(mesh);
  });
  for(const sign of [-1,1]){
   const theta=sign>0?.12:Math.PI-.12,s=.094;whalePointOn(whaleSectionAt(s),theta,p);surfaceNormal(s,theta,n);p.addScaledVector(n,.0012);

@@ -11,12 +11,12 @@ import {SEA_Y,VIEWS,type CrossingView} from './Layout.ts';
 // Sky dome for open water: clean deep-blue zenith, fair-weather cumulus packed into a band hugging
 // the horizon, and a low hazy island ridge above the horizon on the open-side-to-stern half only.
 // Shares horizon/zenith with the sea's reflection; art-directed, not scattering.
-const skyFragment=`varying vec3 direction;uniform vec3 uHorizon,uZenith,uTint,uSun,uSunDisc;uniform float uGlow,uNight,uDay,uTime,uSunDiscVis;
+const skyFragment=`varying vec3 direction;uniform vec3 uHorizon,uZenith,uTint,uSun,uSunDisc;uniform float uGlow,uNight,uDay,uTime,uSunDiscVis,uDawn;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
 float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.05+13.7;a*=.5;}return v;}
 void main(){vec3 d=normalize(direction);float e=max(d.y,0.);
-vec3 col=mix(uHorizon,uZenith,pow(smoothstep(0.,.45,e),.75));
+vec3 col=mix(uHorizon,uZenith,pow(smoothstep(0.,mix(.45,.26,uDawn),e),mix(.75,.6,uDawn)));
 // Cumulus bank on the horizon: flat bases, billowing tops, gaps between clumps. Seam-free (noise on the unit circle).
 vec2 u=normalize(d.xz+1e-5);
 float clump=fbm(u*3.2+4.);
@@ -64,7 +64,7 @@ export async function prepareCrossing():Promise<PlaceFactory>{
   const horizon={value:new THREE.Color()},zenith={value:new THREE.Color()};
   const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1400,1400),createCrossingSeaMaterial(time,day,sunU,tint,direct,horizon,zenith));
   ocean.name='crossing-sea';ocean.rotation.x=-Math.PI/2;ocean.position.set(0,SEA_Y,0);world.add(ocean);
-  const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0},uDay:{value:1},uTime:{value:0},uSunDisc:{value:new THREE.Vector3(0,1,0)},uSunDiscVis:{value:0}};
+  const skyUniforms={uHorizon:horizon,uZenith:zenith,uTint:tint,uSun:sunU,uGlow:{value:0},uNight:{value:0},uDay:{value:1},uTime:{value:0},uSunDisc:{value:new THREE.Vector3(0,1,0)},uSunDiscVis:{value:0},uDawn:{value:0}};
   const sky=new THREE.Mesh(new THREE.SphereGeometry(650,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:skyUniforms,
    vertexShader:'varying vec3 direction;void main(){direction=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:skyFragment}));
   sky.name='crossing-sky';sky.renderOrder=-100;world.add(sky);
@@ -98,16 +98,16 @@ export async function prepareCrossing():Promise<PlaceFactory>{
    get fov(){return typeof window!=='undefined'&&window.innerWidth<700?view.fov+14:view.fov;},exposure:1,msaaSamples:2,hasSimulation:false,waterMode:'',
    update(_dt,elapsed,state){
     const light=crossingDaylight(state);
-    time.value=elapsed;day.value=light.level*(1-.75*light.night);sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.direct;
+    time.value=elapsed;day.value=light.level*(1-.75*light.night);sunU.value.copy(light.sun);tint.value.copy(light.tint);direct.value=light.direct*(1+.5*light.dawn);
     horizon.value.copy(light.horizon);zenith.value.copy(light.zenith);background.copy(light.horizon);
-    skyUniforms.uGlow.value=.15+2.4*light.low;skyUniforms.uNight.value=light.night;
+    skyUniforms.uGlow.value=.15+2.4*light.low*(1-.5*light.dawn);skyUniforms.uDawn.value=light.dawn;skyUniforms.uNight.value=light.night;
     skyUniforms.uDay.value=light.level*(1-light.night)*(1-.35*light.low);skyUniforms.uTime.value=elapsed;
     skyUniforms.uSunDisc.value.copy(light.sunTrue);skyUniforms.uSunDiscVis.value=light.sunUp*(1-light.night);
     sun.position.copy(sun.target.position).addScaledVector(light.sun,30);
-    sun.color.copy(light.tint);sun.intensity=3.4*light.direct*(state.beamStrength??1);
+    sun.color.copy(light.tint);sun.intensity=3.4*light.direct*(1+.45*light.dawn)*(state.beamStrength??1);
     const lvl=light.level*(1-light.night*.85);
-    hemi.color.setRGB(.62,.72,.96).lerp(light.horizon,.25).lerp(tmp,.15).lerp(light.tint,light.low*.3);hemi.groundColor.setRGB(.42,.58,.82).lerp(light.tint,.2).multiplyScalar(lvl);hemi.intensity=.12+1.1*lvl;
-    bounce.intensity=.6*lvl;
+    hemi.color.setRGB(.62,.72,.96).lerp(light.horizon,.25).lerp(tmp,.15).lerp(light.tint,light.low*.3+light.dawn*.6);hemi.groundColor.setRGB(.42,.58,.82).lerp(light.tint,.2+.45*light.dawn).multiplyScalar(lvl);hemi.intensity=.12+1.1*lvl;
+    bounce.intensity=.6*lvl;bounce.color.set('#a9c8f5').lerp(light.tint,light.dawn*.7);
     graybox.setLamp(1.5*light.lamp);lamp.intensity=2.2*light.lamp;
     // Hull roll: two incommensurate periods (8.2 s and 5.1 s), under 0.5 degree each way; the world turns, the camera does not.
     world.rotation.z=.0060*Math.sin(elapsed*2*Math.PI/8.2)+.0027*Math.sin(elapsed*2*Math.PI/5.1+1);

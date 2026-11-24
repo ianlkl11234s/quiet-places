@@ -8,7 +8,7 @@ const smooth=THREE.MathUtils.smoothstep,DEG=Math.PI/180;
  * azimuth is atan2(z,x) in the deck frame (0 = +X open side, -90 = stern -Z, +90 = bow +Z).
  * Noon is the reference photo: sun on the open side, behind the stern, ~45° up.
  */
-const SUN_KEYS=[[0,-70,-30],[5.5,32,-1],[6.5,22,12],[9,10,30],[12,-48,45],[14.5,-54,36],[17.5,-60,8],[18.3,-63,3],[19.2,-67,-1.5],[24,-70,-30]] as const;
+const SUN_KEYS=[[0,-70,-30],[5.5,32,-1],[6.5,16,8],[9,10,30],[12,-48,45],[14.5,-54,36],[17.5,-60,8],[18.3,-63,3],[19.2,-67,-1.5],[24,-70,-30]] as const;
 /** Moon (hour+24 before noon): rises astern where the sun set, crosses over the open side, sets toward the bow where the sun rises, so the night-to-day handover never swings the light. At 23:00 a full moon over the open side, slightly astern and lower than the noon sun so night light reads differently. */
 const MOON_KEYS=[[12,40,-40],[18,-66,-2],[20,-50,15],[23,-15,30],[26,10,25],[29.5,40,0],[33,40,-35],[36,40,-40]] as const;
 
@@ -59,11 +59,13 @@ export function crossingDaylight(state:{hour?:number;intensity?:number}|SceneSta
  const skyLevel=THREE.MathUtils.lerp(.55,1,level);
  // Day blue (reference photo): clean deep zenith, paler horizon. Low sun turns the horizon gold and the zenith blue-violet;
  // the sky shader adds the gold glow toward the sun itself.
- const horizon=new THREE.Color(.46,.70,.97).lerp(new THREE.Color(1,.56,.30).lerp(new THREE.Color(1,.64,.42),am),Math.min(1,low*1.35)).multiplyScalar(skyLevel);
- const zenith=new THREE.Color(.03,.20,.78).lerp(new THREE.Color(.16,.16,.60).lerp(new THREE.Color(.55,.50,.78),am),Math.min(1,low*(.9-.3*am))).multiplyScalar(skyLevel);
+ const horizon=new THREE.Color(.46,.70,.97).lerp(new THREE.Color(1,.56,.30).lerp(new THREE.Color(1,.52,.32),am),Math.min(1,low*1.35)).multiplyScalar(skyLevel);
+ const zenith=new THREE.Color(.03,.20,.78).lerp(new THREE.Color(.16,.16,.60).lerp(new THREE.Color(.10,.30,.82),am),Math.min(1,low*(.9-.3*am))).multiplyScalar(skyLevel);
  horizon.lerp(new THREE.Color(.04,.055,.10),night);zenith.lerp(new THREE.Color(.015,.025,.06),night);
  const lamp=Math.max(smooth(hour,18.3,19.5),1-smooth(hour,5,6));
  const direct=solar*level+.14*night*moonUp;
- return {sun:lightDir,sunTrue,moonTrue,sunUp,moonUp,solar,night,low,tint,horizon,zenith,lamp,level,direct};
+ // Morning only (am = 0 from 13:00, so dusk and noon are untouched): how far the light is a low, clear gold-pink one.
+ const dawn=low*am;
+ return {dawn,sun:lightDir,sunTrue,moonTrue,sunUp,moonUp,solar,night,low,tint,horizon,zenith,lamp,level,direct};
 }
 export type CrossingLight=ReturnType<typeof crossingDaylight>;

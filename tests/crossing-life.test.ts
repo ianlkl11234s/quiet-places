@@ -95,12 +95,12 @@ const times=Array.from({length:1201},(_,k)=>k*.5);
 const tracks=[times.map(t=>crossingWhaleSharkTrack(0,t)),times.map(t=>crossingWhaleSharkTrack(1,t))];
 const boxDistance=(p:readonly number[])=>Math.hypot(Math.max(DECK.xMin-p[0],0,p[0]-DECK.xMax),Math.max(DECK.zMin-p[2],0,p[2]-DECK.zMax));
 
-test('whale shark route 0-600 s: 2-5.5 m up, 12 m of clear water past the hull for the whole body, 22+ m centre-to-ship, up to 50 m, small one never on top of the big one',()=>{
+test('whale shark route 0-600 s: 0.5-5.5 m up, whole body 10+ m clear of the hull box, centre 14-32 m from it, small one never on top of the big one',()=>{
  for(const [i,list] of tracks.entries())list.forEach((k,n)=>{
   assert.ok(k.p.every(Number.isFinite));assert.ok(k.p[1]>=.5&&k.p[1]<=5.5,`shark ${i} y ${k.p[1]} at ${times[n]}`);
-  const d=boxDistance(k.p);assert.ok(d-LENGTHS[i]/2>=12&&d<=50,`shark ${i} ${d.toFixed(1)} m from the hull box at ${times[n]} s`);
+  const d=boxDistance(k.p);assert.ok(d-LENGTHS[i]/2>=10&&d>=14&&d<=36,`shark ${i} ${d.toFixed(1)} m from the hull box at ${times[n]} s`);
  });
- tracks[0].forEach((k,n)=>{const o=tracks[1][n].p,sep=Math.hypot(k.p[0]-o[0],k.p[1]-o[1],k.p[2]-o[2]);assert.ok(sep>=5,`centres ${sep.toFixed(1)} m apart at ${times[n]} s`);assert.ok(sep<=40,`small one strayed ${sep.toFixed(1)} m`);});
+ tracks[0].forEach((k,n)=>{const o=tracks[1][n].p,sep=Math.hypot(k.p[0]-o[0],k.p[1]-o[1],k.p[2]-o[2]);assert.ok(sep>=5,`centres ${sep.toFixed(1)} m apart at ${times[n]} s`);assert.ok(sep<=30,`small one strayed ${sep.toFixed(1)} m`);});
 });
 
 test('whale shark motion: 0.5-1.6 m/s, yaw follows the path (no sliding backwards), yaw change <= 6 deg per 0.5 s, bank <= 12 deg, pitch <= 8 deg',()=>{
@@ -112,19 +112,25 @@ test('whale shark motion: 0.5-1.6 m/s, yaw follows the path (no sliding backward
  });
 });
 
-test('whale shark visibility: big one seen 35% of the time from a and 20% from c, neither shark gone for more than 60 s (a) / 90 s (c), big one at least 90 px long in the middle',()=>{
- const need={a:{share:.35,gap:60},c:{share:.2,gap:90}};
+test('whale shark visibility: big one seen 45% of the time from a and 30% from c, neither shark gone for more than 45 s (a) / 75 s (c), big one at least 170 px long in the middle',()=>{
+ const need={a:{share:.45,gap:45},c:{share:.3,gap:75}};
+ const results:(()=>void)[]=[];
  for(const view of ['a','c'] as const){
-  let seen=0,gone=0,longest=0;const px:number[]=[];
+  let seen=0,gone=0,longest=0,clipped=0;const px:number[]=[];
   times.forEach((_t,n)=>{
    const lookBig=look(view,tracks[0][n].p,tracks[0][n].yaw,LENGTHS[0]),lookSmall=look(view,tracks[1][n].p,tracks[1][n].yaw,LENGTHS[1]);
-   if(lookBig.visible){seen++;px.push(lookBig.px);}
+   if(lookBig.visible){seen++;px.push(lookBig.px);
+    // the dorsal fin (+0.7 m), and the drooping pectorals / lower caudal lobe (-0.9 m) must not be cut off by the wall top or the roof
+    const q=tracks[0][n].p;
+    const parts=[[q[0],q[1]+.7,q[2]],[q[0],q[1]-.9,q[2]]];
+    if(parts.some(pt=>!look(view,pt,0,1).visible))clipped++;}
    if(lookBig.visible||lookSmall.visible)gone=0;else{gone+=.5;longest=Math.max(longest,gone);}
   });
   px.sort((x,y)=>x-y);const median=px[Math.floor(px.length/2)];
-  console.log(`view ${view}: big visible ${(seen/times.length*100).toFixed(1)} %, longest both-hidden ${longest} s, median length ${median.toFixed(0)} px`);
-  assert.ok(seen/times.length>=need[view].share,`${view} share ${seen/times.length}`);assert.ok(longest<=need[view].gap,`${view} gap ${longest}`);assert.ok(median>=90,`${view} median ${median}`);
+  console.log(`view ${view}: body clipped ${(clipped/Math.max(1,seen)*100).toFixed(0)} %, big visible ${(seen/times.length*100).toFixed(1)} %, longest both-hidden ${longest} s, median length ${median.toFixed(0)} px`);
+  results.push(()=>{assert.ok(clipped<=seen*.2,`${view}: body parts cut by wall/roof/frame in ${(clipped/seen*100).toFixed(0)} % of visible samples`);assert.ok(seen/times.length>=need[view].share,`${view} share ${seen/times.length}`);assert.ok(longest<=need[view].gap,`${view} gap ${longest}`);assert.ok(median>=170,`${view} median ${median}`);});
  }
+ results.forEach(check=>check());
 });
 
 test('pointer response 0: pointerRay and tap leave the trajectories bit-identical',()=>{

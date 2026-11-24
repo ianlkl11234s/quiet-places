@@ -74,8 +74,8 @@ export function createFittings(m:CrossingMaterials){
   for(const dz of[-.04,.04])for(const y of[H+.04,Y-.014])b.sphere(m.buckle,v3(xMax-.04,y+(y>H+.1?-.002:.002),z+dz),.009,1,.6,1,6);
  }
  // Roof: flat-bar flanges under the cross beams and the long beam.
- for(const z of[-2.4,-.8,.8,2.4,4.0])b.box(m.paint,xMin,xMax,Y-ROOF.beamH-.012,Y-ROOF.beamH,z-.07,z+.07,true);
- b.box(m.paint,1.5-.08,1.5+.08,Y-ROOF.beamH-.012,Y-ROOF.beamH,zMin,zMax,true);
+ for(const z of[-2.4,-.8,.8,2.4,4.0])b.box(m.beam,xMin,xMax,Y-ROOF.beamH-.012,Y-ROOF.beamH,z-.07,z+.07,true);
+ b.box(m.beam,1.5-.08,1.5+.08,Y-ROOF.beamH-.012,Y-ROOF.beamH,zMin,zMax,true);
  // Blank number plates with a red dot (no text) on the long beam.
  for(const z of[-2.4,-.8,.8,2.4,4.0]){
   b.box(m.signMat,1.44,1.452,Y-.14,Y-.06,z+.34,z+.46);

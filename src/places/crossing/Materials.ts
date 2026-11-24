@@ -27,6 +27,9 @@ export function createMaterials(){
  const std=(p:THREE.MeshStandardMaterialParameters)=>new THREE.MeshStandardMaterial(p);
  const paint=grime(apply(std({color:'#ebeeea',roughness:.7}),paintTex,.4),'paint');
  const roof=grime(apply(std({color:'#e6e9e4',roughness:.8,side:THREE.DoubleSide}),paintTex,.25),'roof');
+ // Beams are 8-10 cm strips: the plate texture's rivet domes, bolts and seam grooves land on them as bright specks under a grazing lamp,
+ // and its roughness map adds glints. Smooth white paint: albedo only, near-flat relief, constant roughness.
+ const beam=grime(apply(std({color:'#ebeeea',roughness:.75}),paintTex&&{map:paintTex.map,normalMap:paintTex.normalMap},.08),'beam');
  const deck=apply(std({color:'#ffffff',roughness:.55}),deckTex,1.25);
  const canvas=apply(std({color:'#ffffff',roughness:.95,side:THREE.DoubleSide}),canvasTex,1.4);
  const pipe=grime(std({color:'#eceeea',roughness:.5,metalness:.05}),'pipe');
@@ -44,7 +47,7 @@ export function createMaterials(){
  const orange=std({color:'#e0561c',roughness:.55});
  const bagPlastic=std({color:'#ff6a2a',roughness:.35});
  const wetMat=std({color:'#0b1f17',roughness:.06,transparent:true,opacity:.55,depthWrite:false,map:wet,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
- return {paint,roof,deck,canvas,pipe,doorMat,frameBlue,strap,buckle,darkMetal,rubber,signMat,redMat,lampBody,lens,glass,orange,bagPlastic,wetMat};
+ return {paint,beam,roof,deck,canvas,pipe,doorMat,frameBlue,strap,buckle,darkMetal,rubber,signMat,redMat,lampBody,lens,glass,orange,bagPlastic,wetMat};
 }
 export type CrossingMaterials=ReturnType<typeof createMaterials>;
 

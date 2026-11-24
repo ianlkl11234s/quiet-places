@@ -11,7 +11,7 @@ import {CHAIRS,DECK,POCKET,POST_Z,RAIL,ROOF,STAIR,VIEWS} from './Layout.ts';
  * yellowish fins, 10-20 cm) swim through the air of the stern deck, between the posts, over the chair backs
  * and out through the openings (open side above the 1.0 m gunwale, stern opening, past the bow end behind the
  * camera) and back; a big and a small whale shark cruise slowly through the air far off the open side and astern
- * (22-45 m out, 2-4.5 m up, above the 1.0 m gunwale line of sight), turning along a long closed loop that crosses station a's
+ * (14-30 m from the hull, 2-4.7 m up, above the 1.0 m gunwale line of sight), turning along a long closed loop that crosses station a's
  * view and swings round to station c, heading always along their path. Boids + roaming goals, fixed 12 Hz step driven only by `elapsed` (seeded,
  * reproducible, pause-safe). Speeds and timing are art calibration. Units: m, s; website Y-up.
  */
@@ -19,12 +19,13 @@ import {CHAIRS,DECK,POCKET,POST_Z,RAIL,ROOF,STAIR,VIEWS} from './Layout.ts';
 /** Pointer awareness of the sardines, 0..1; 0 = off. */
 export const CROSSING_SARDINE_POINTER_RESPONSE=.5;
 /**
- * Whale shark loop, in polar form about the ship centre: bearing (degrees from +X toward -Z) swings -20..104 (station a sees about
- * -20..64, station c 36..109), centre distance 23-45 m, one lap about 2 min. Heights are art calibration for the 1.0 m gunwale and
- * the 2.25 m roof edge: both stations look out through the opening, so the sharks fly 2-4.5 m up, a few degrees above the horizon.
+ * Whale shark loop: a racetrack (two straights joined by half circles of radius `radius`) centred `distance` m from the ship centre at
+ * `bearing` degrees (from +X toward -Z); the near straight runs bow-to-stern roughly parallel to the hull, 14+ m off the hull box,
+ * the far one reaches about 30 m. One lap about 100-110 s. Heights are art calibration for the 1.0 m gunwale and the 2.25 m roof edge:
+ * both stations look out through the opening, so the sharks fly 2-4.7 m up, a few degrees above the horizon.
  */
 const SHIP_CENTRE=[(DECK.xMin+DECK.xMax)/2,(DECK.zMin+DECK.zMax)/2] as const;
-const SHARK_LOOP={bearing:42,distance:36,along:25,across:13,squareness:2.4,height:{centre:3.4,swing:1.0,second:.3},period:120,speedWave:{amount:.18,period:41},wavelength:2.4};
+const SHARK_LOOP={bearing:42,distance:23.5,straight:13,radius:5,height:{centre:3.4,swing:1.0,second:.3},period:100,speedWave:{amount:.12,period:41},wavelength:2.4};
 export const CROSSING_WHALE_SHARK_LENGTHS=[6.5,4.0] as const;
 export interface CrossingSharkTrack {p:[number,number,number];v:[number,number,number];speed:number;yaw:number;yawRate:number;pitch:number;roll:number;}
 const D2R=Math.PI/180;
@@ -33,9 +34,16 @@ const wrapAngle=(a:number)=>Math.atan2(Math.sin(a),Math.cos(a));
 const LOOP_N=8192;let loopTable:{x:Float64Array;z:Float64Array;length:number}|null=null;
 const rounded=(c:number,n:number)=>Math.sign(c)*Math.abs(c)**(2/n);
 function loopAt(u:number,out:number[]){
- const L=SHARK_LOOP,f=Math.PI*2*u;
- const th=(L.bearing)*D2R+rounded(Math.cos(f),L.squareness)*L.along/L.distance,r=L.distance+rounded(Math.sin(f),L.squareness)*L.across;
- out[0]=SHIP_CENTRE[0]+r*Math.cos(th);out[2]=SHIP_CENTRE[1]-r*Math.sin(th);return out;
+ const L=SHARK_LOOP,{straight:H,radius:R}=L,bearing=L.bearing*D2R,semi=Math.PI*R,total=4*H+2*semi;
+ let q=((u%1)+1)%1*total,x:number,y:number;
+ // local frame: x along the bearing circle toward the stern (+bearing), y radially outward; starts at the stern end and runs the far side bow-ward first
+ if(q<semi/2){const a=q/R;x=H+R*Math.cos(a);y=R*Math.sin(a);}                         // stern end, first quarter turn
+ else if((q-=semi/2)<2*H){x=H-q;y=R;}                                                          // far side, toward the bow
+ else if((q-=2*H)<semi){const a=Math.PI/2+q/R;x=-H+R*Math.cos(a);y=R*Math.sin(a);}             // bow end
+ else if((q-=semi)<2*H){x=-H+q;y=-R;}                                                          // near side, toward the stern
+ else{q-=2*H;const a=-Math.PI/2+q/R;x=H+R*Math.cos(a);y=R*Math.sin(a);}                        // stern end, last quarter turn
+ const cx=Math.cos(bearing),sz=Math.sin(bearing);
+ out[0]=SHIP_CENTRE[0]+L.distance*cx-x*sz+y*cx;out[2]=SHIP_CENTRE[1]-L.distance*sz-x*cx-y*sz;return out;
 }
 function loop(){
  if(loopTable)return loopTable;
@@ -58,10 +66,10 @@ function onLoop(s:number,out:number[]){
 }
 const bigHeight=(t:number)=>SHARK_LOOP.height.centre+SHARK_LOOP.height.swing*Math.sin(.061*t+1.1)+SHARK_LOOP.height.second*Math.sin(.137*t+.4);
 const scratchRad=[0,0,0];
-/** Position of shark 0 (big) or 1 (small: the big one's track 9.5-16.5 m behind along the loop, 3.5 m inboard to 2.5 m outboard, a little lower; it drops back and closes up). */
+/** Position of shark 0 (big) or 1 (small: the big one's track 11.5-14.5 m behind along the loop, 1-2 m outboard, a little lower; it drops back and closes up). */
 function sharkPosition(index:number,t:number,out:number[]){
  if(index===0){onLoop(swum(t),out);out[1]=bigHeight(t);return out;}
- const gap=13+3.5*Math.sin(.045*t+.9),off=-.5+3*Math.sin(.061*t+1.3);
+ const gap=13+1.5*Math.sin(.045*t+.9),off=1.5+.5*Math.sin(.061*t+1.3);
  onLoop(swum(t)-gap,out);
  const dx=out[0]-SHIP_CENTRE[0],dz=out[2]-SHIP_CENTRE[1],d=Math.hypot(dx,dz)||1;scratchRad[0]=dx/d;scratchRad[2]=dz/d;
  out[0]+=scratchRad[0]*off;out[2]+=scratchRad[2]*off;out[1]=bigHeight(t)-.4+.5*Math.sin(.09*t+2.2);return out;
