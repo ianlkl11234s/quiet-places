@@ -1,0 +1,27 @@
+diff --git a/src/places/stairlight/WindowTransport.ts b/src/places/stairlight/WindowTransport.ts
+index 0e5a9ff..d45cd6f 100644
+--- a/src/places/stairlight/WindowTransport.ts
++++ b/src/places/stairlight/WindowTransport.ts
+@@ -38,12 +38,16 @@ for(int k=0;k<12;k++){
+  if(k>=transportSteps)break;
+  float d=(float(k)+.5)*transportLength/float(transportSteps);
+  vec3 p=transportWorld-transportDirection*d;
+- if(p.x< -1.67||p.x>1.24||p.y< -5.49||p.y>4.99||p.z< -1.09||p.z>4.09)continue;
+- float ds=transportLength/float(transportSteps);transportAir+=ds;
+- vec4 q=transportShadowMatrix*vec4(p,1.);q.xyz/=q.w;
+- if(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z<0.||q.z>1.)continue;
+- float depth=unpackRGBAToDepth(texture2D(directionalShadowMap[0],q.xy));
+- transportLit+=step(q.z-.00002,depth)*ds*exp(-.012*(transportLength-d));
++ // Nested ifs instead of continue: same samples and sums, but the early-continue form
++ // cost ~10 ms per frame at 2400x1350 (MSAA 2x) on Apple M3 / ANGLE-Metal.
++ if(!(p.x< -1.67||p.x>1.24||p.y< -5.49||p.y>4.99||p.z< -1.09||p.z>4.09)){
++  float ds=transportLength/float(transportSteps);transportAir+=ds;
++  vec4 q=transportShadowMatrix*vec4(p,1.);q.xyz/=q.w;
++  if(!(q.x<0.||q.x>1.||q.y<0.||q.y>1.||q.z<0.||q.z>1.)){
++   float depth=unpackRGBAToDepth(texture2D(directionalShadowMap[0],q.xy));
++   transportLit+=step(q.z-.00002,depth)*ds*exp(-.012*(transportLength-d));
++  }
++ }
+ }
+ gl_FragColor.rgb=gl_FragColor.rgb*exp(-.012*transportAir)+transportSun*(.008/(4.*PI))*transportLit;
+ #endif`);

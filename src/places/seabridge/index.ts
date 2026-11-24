@@ -7,6 +7,7 @@ import {createGraybox} from './Graybox.ts';
 import {GRASS_PATCHES,grassBlocked,SHORE,VIEWS,type SeabridgeView} from './Layout.ts';
 import {createGrass} from './Grass.ts';
 import {createSardineSchools} from './Sardines.ts';
+import {biologyCandidatesEnabled} from '../../shared/review/candidates.ts';
 import {installFullMoon} from '../../shared/sky/FullMoon.ts';
 
 /** Full-moon switch: 0 restores the moonless night sky. */
@@ -73,7 +74,7 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
   const requested=typeof location==='undefined'?null:new URLSearchParams(location.search).get('seabridgeView');
   const view=VIEWS[(requested==='a'||requested==='b'?requested:'user') as SeabridgeView];
   // Sardines keep clear of every authored standpoint so they never fill the lens.
-  const sardines=createSardineSchools({seed:20260927,avoid:Object.values(VIEWS).map(v=>new THREE.Vector3(...v.position))});root.add(sardines.root);
+  const sardines=createSardineSchools({seed:20260927,...(biologyCandidatesEnabled()?{}:{burstCoast:false,topologicalNeighbours:0,flashBank:0,pointerResponse:0}),avoid:Object.values(VIEWS).map(v=>new THREE.Vector3(...v.position))});root.add(sardines.root);
   // Sky environment: same horizon/zenith as the dome above, warm sunlit-soil bounce below.
   // Used as the scene's weak ambient (shade was lit only by a deep-blue hemisphere and read
   // too cool) and at full strength for the sardines' silver flanks. Rebuilt only when the sky
@@ -128,6 +129,8 @@ export async function prepareSeabridge():Promise<PlaceFactory>{
     grass.update(elapsed);sardines.update(elapsed);
     renderer.shadowMap.enabled=true;
    },
+   // B1b: the pointer ray goes to the sardines (SARDINE_POINTER_RESPONSE in Sardines.ts; 0 = off).
+   pointerRay(ray,tap){sardines.pointerRay(ray,tap);},
    disturb(){},resetWater(){},
    dispose(){if(disposed)return;disposed=true;moon.dispose();if(envTarget&&scene.environment===envTarget.texture){scene.environment=oldEnvironment.map;scene.environmentIntensity=oldEnvironment.intensity;}sardines.dispose();envTarget?.dispose();pmrem.dispose();envDome.geometry.dispose();(envDome.material as THREE.Material).dispose();disposeModelResources(collectModelResources(root),['geometries','materials','textures']);sun.shadow.map?.dispose();root.removeFromParent();renderer.shadowMap.enabled=oldShadow.enabled;renderer.shadowMap.type=oldShadow.type;if(scene.background===background)scene.background=null;},
   };

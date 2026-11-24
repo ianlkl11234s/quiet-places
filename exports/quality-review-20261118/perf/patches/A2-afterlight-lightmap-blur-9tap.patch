@@ -1,0 +1,27 @@
+diff --git a/src/places/afterlight/SurfaceMaterials.ts b/src/places/afterlight/SurfaceMaterials.ts
+index 346457d..4edf4d1 100644
+--- a/src/places/afterlight/SurfaceMaterials.ts
++++ b/src/places/afterlight/SurfaceMaterials.ts
+@@ -100,10 +100,19 @@ normal = normalize(mix(normal, normalize((viewMatrix * vec4(vAfterlightSurfaceNo
+ // mottling at 0.5–3 m. On the right wall only, move 85 % toward a 5×5 box
+ // average (±2 texels). Energy is preserved; other surfaces are unchanged.
+ if (afterlightRightWallSoft > .001) {
+-  vec2 afterlightLmTexel = 1. / vec2(textureSize(lightMap, 0));
++  vec2 afterlightLmSize = vec2(textureSize(lightMap, 0)), afterlightLmTexel = 1. / afterlightLmSize;
++  // The 5x5 bilinear taps weight 6 texels per axis as (1-f,1,1,1,1,f); fetching each
++  // adjacent pair with one filtered tap gives the same box average from 3x3 taps.
++  vec2 afterlightLmF = fract(vLightMapUv * afterlightLmSize - .5);
++  vec2 afterlightLmBase = (floor(vLightMapUv * afterlightLmSize - .5) + .5) * afterlightLmTexel;
++  vec2 afterlightLmW0 = 2. - afterlightLmF, afterlightLmW2 = 1. + afterlightLmF;
++  vec2 afterlightLmO0 = -2. + 1. / afterlightLmW0, afterlightLmO2 = 2. + afterlightLmF / afterlightLmW2;
+   vec3 afterlightLmBlur = vec3(0.);
+-  for (int i = -2; i <= 2; i++) for (int j = -2; j <= 2; j++)
+-    afterlightLmBlur += texture2D(lightMap, vLightMapUv + vec2(float(i), float(j)) * afterlightLmTexel).rgb;
++  for (int i = 0; i < 3; i++) for (int j = 0; j < 3; j++) {
++    vec2 o = vec2(i == 0 ? afterlightLmO0.x : i == 1 ? .5 : afterlightLmO2.x, j == 0 ? afterlightLmO0.y : j == 1 ? .5 : afterlightLmO2.y);
++    vec2 w = vec2(i == 0 ? afterlightLmW0.x : i == 1 ? 2. : afterlightLmW2.x, j == 0 ? afterlightLmW0.y : j == 1 ? 2. : afterlightLmW2.y);
++    afterlightLmBlur += texture2D(lightMap, afterlightLmBase + o * afterlightLmTexel).rgb * (w.x * w.y);
++  }
+   afterlightLmBlur /= 25.;
+   irradiance += (afterlightLmBlur - texture2D(lightMap, vLightMapUv).rgb) * lightMapIntensity * afterlightRightWallSoft * .85;
+ }

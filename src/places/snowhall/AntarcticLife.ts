@@ -3,10 +3,13 @@ import {createGlassSquid,createSilverfish} from '../../shared/biology/antarctic/
 import {AntarcticBehavior} from './AntarcticBehavior.ts';
 import type {SnowhallDraft} from './Layout.ts';
 
+/** Review switch: `speedPhase:false` withholds the silverfish tail clock, `bankDegrees:0` removes banking (the former behaviour). */
+export type AntarcticLifeCandidates={speedPhase?:boolean;bankDegrees?:number};
+
 /** Room adapter: the original window lights the models; no creature light sources. */
-export function createAntarcticLife(parent:THREE.Group,layout:SnowhallDraft,seed:number){
+export function createAntarcticLife(parent:THREE.Group,layout:SnowhallDraft,seed:number,candidates:AntarcticLifeCandidates={}){
  const root=new THREE.Group();root.name='snowhall-antarctic-life';parent.add(root);
- const simulation=new AntarcticBehavior(seed,{width:layout.corridorWidth,height:3.2,
+ const simulation=new AntarcticBehavior(seed,{...(candidates.bankDegrees===undefined?{}:{bankDegrees:candidates.bankDegrees}),width:layout.corridorWidth,height:3.2,
   cameraPosition:layout.camera.position,cameraTarget:layout.camera.target,windowX:layout.window.x,windowY:layout.window.y,windowWidth:layout.window.width,windowHeight:layout.window.height});
  const squids=simulation.squids.map((_,i)=>{const model=createGlassSquid((seed+i*7919)>>>0);root.add(model.root);return model;});
  const fish=new Map<number,ReturnType<typeof createSilverfish>>();
@@ -25,7 +28,7 @@ export function createAntarcticLife(parent:THREE.Group,layout:SnowhallDraft,seed
    model.root.visible=pose.visible;
    if(!pose.visible)return;
    model.root.position.copy(pose.position);model.root.quaternion.copy(pose.quaternion);model.root.scale.setScalar(pose.scale);
-   model.update(elapsed,pose.speedBL,pose.turn,1);
+   model.update(elapsed,pose.speedBL,pose.turn,1,candidates.speedPhase===false?undefined:pose.waveClock);
   });
  },dispose(){
   if(disposed)return;disposed=true;

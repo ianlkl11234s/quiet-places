@@ -1,0 +1,3194 @@
+{
+ "waterlight": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 213,
+   "fps": 14.173354094313952,
+   "frameMs": {
+    "p50": 70.80000001192093,
+    "p95": 76.40000000596046,
+    "max": 95.19999998807907
+   },
+   "composerCpuMs": {
+    "p50": 1.5,
+    "p95": 4.300000011920929
+   },
+   "triangles": 309266,
+   "drawCalls": 157,
+   "textures": 40,
+   "geometries": 66,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "waterlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 213,
+     "fps": 14.226271180797498,
+     "frameMs": {
+      "p50": 70.59999999403954,
+      "p95": 76,
+      "max": 90.7000000178814
+     },
+     "composerCpuMs": {
+      "p50": 1.7000000178813934,
+      "p95": 4.0999999940395355
+     },
+     "update": {
+      "n": 214,
+      "mean": 1.2532710289565203,
+      "p50": 1.0999999940395355,
+      "p95": 2.199999988079071,
+      "max": 4.300000011920929,
+      "sub": {}
+     }
+    },
+    "triangles": 309266,
+    "drawCalls": 157,
+    "textures": 40,
+    "geometries": 66,
+    "median": {
+     "drawMs": 72.15499999970197,
+     "updateMean": 0.35333333363135655,
+     "updateP95": 0.5,
+     "fullMs": 72.11500000059604
+    },
+    "rounds": [
+     {
+      "drawMs": 71.75,
+      "update": {
+       "n": 60,
+       "mean": 0.33166666676600776,
+       "p50": 0.30000001192092896,
+       "p95": 0.5,
+       "max": 1.0999999940395355,
+       "sub": {}
+      },
+      "fullMs": 72.11500000059604
+     },
+     {
+      "drawMs": 72.35,
+      "update": {
+       "n": 60,
+       "mean": 0.36666666666666664,
+       "p50": 0.3999999761581421,
+       "p95": 0.5,
+       "max": 0.9000000059604645,
+       "sub": {}
+      },
+      "fullMs": 72.1
+     },
+     {
+      "drawMs": 72.15499999970197,
+      "update": {
+       "n": 60,
+       "mean": 0.35333333363135655,
+       "p50": 0.30000001192092896,
+       "p95": 0.5999999940395355,
+       "max": 0.7000000178813934,
+       "sub": {}
+      },
+      "fullMs": 72.27999999970197
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "waterlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 207,
+     "fps": 13.826454616488562,
+     "frameMs": {
+      "p50": 72.90000000596046,
+      "p95": 79.40000000596046,
+      "max": 96.80000001192093
+     },
+     "composerCpuMs": {
+      "p50": 1.699999988079071,
+      "p95": 4.200000017881393
+     },
+     "update": {
+      "n": 208,
+      "mean": 1.1817307707208853,
+      "p50": 1.100000023841858,
+      "p95": 2,
+      "max": 3.300000011920929,
+      "sub": {}
+     }
+    },
+    "triangles": 309266,
+    "drawCalls": 157,
+    "textures": 40,
+    "geometries": 66,
+    "median": {
+     "drawMs": 71.84000000059605,
+     "updateMean": 0.3399999996026357,
+     "updateP95": 0.5,
+     "fullMs": 72.11000000089408
+    },
+    "rounds": [
+     {
+      "drawMs": 71.84000000059605,
+      "update": {
+       "n": 60,
+       "mean": 0.3399999996026357,
+       "p50": 0.30000001192092896,
+       "p95": 0.5,
+       "max": 1,
+       "sub": {}
+      },
+      "fullMs": 72.11000000089408
+     },
+     {
+      "drawMs": 71.67999999970198,
+      "update": {
+       "n": 60,
+       "mean": 0.3150000000993411,
+       "p50": 0.30000001192092896,
+       "p95": 0.4000000059604645,
+       "max": 0.7000000178813934,
+       "sub": {}
+      },
+      "fullMs": 71.97999999970197
+     },
+     {
+      "drawMs": 72.20999999940395,
+      "update": {
+       "n": 60,
+       "mean": 0.3883333330353101,
+       "p50": 0.4000000059604645,
+       "p95": 0.5999999940395355,
+       "max": 0.699999988079071,
+       "sub": {}
+      },
+      "fullMs": 72.57999999970198
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "waterlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 212,
+     "fps": 14.171122994652407,
+     "frameMs": {
+      "p50": 70.7999999821186,
+      "p95": 75,
+      "max": 93.30000001192093
+     },
+     "composerCpuMs": {
+      "p50": 1.0999999940395355,
+      "p95": 3.699999988079071
+     },
+     "update": {
+      "n": 213,
+      "mean": 0.8788732398004039,
+      "p50": 0.7000000178813934,
+      "p95": 1.800000011920929,
+      "max": 3,
+      "sub": {}
+     }
+    },
+    "triangles": 309266,
+    "drawCalls": 157,
+    "textures": 40,
+    "geometries": 66,
+    "median": {
+     "drawMs": 73.92000000029802,
+     "updateMean": 0.36999999980131787,
+     "updateP95": 0.699999988079071,
+     "fullMs": 73.30499999970198
+    },
+    "rounds": [
+     {
+      "drawMs": 74.5,
+      "update": {
+       "n": 60,
+       "mean": 0.5433333332339922,
+       "p50": 0.4000000059604645,
+       "p95": 1.199999988079071,
+       "max": 1.9000000059604645,
+       "sub": {}
+      },
+      "fullMs": 74.25500000119209
+     },
+     {
+      "drawMs": 73.3550000011921,
+      "update": {
+       "n": 60,
+       "mean": 0.36999999980131787,
+       "p50": 0.30000001192092896,
+       "p95": 0.699999988079071,
+       "max": 0.8999999761581421,
+       "sub": {}
+      },
+      "fullMs": 73.30499999970198
+     },
+     {
+      "drawMs": 73.92000000029802,
+      "update": {
+       "n": 60,
+       "mean": 0.32666666656732557,
+       "p50": 0.30000001192092896,
+       "p95": 0.4000000059604645,
+       "max": 0.9000000059604645,
+       "sub": {}
+      },
+      "fullMs": 73.06500000059604
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 72.15499999970197,
+   "updateMean": 0.35333333363135655,
+   "updateP95": 0.5,
+   "fullMs": 72.11500000059604,
+   "passiveUpdateMean": 1.1817307707208853,
+   "passiveUpdateP95": 2,
+   "drawCalls": 157,
+   "triangles": 309266,
+   "drawMsPerRun": [
+    72.15499999970197,
+    71.84000000059605,
+    73.92000000029802
+   ],
+   "sub": {}
+  }
+ },
+ "leaflight": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 450,
+   "fps": 29.99860006535413,
+   "frameMs": {
+    "p50": 33.30000001192093,
+    "p95": 37.5,
+    "max": 42.900000005960464
+   },
+   "composerCpuMs": {
+    "p50": 1.800000011920929,
+    "p95": 4.5
+   },
+   "triangles": 302154,
+   "drawCalls": 196,
+   "textures": 102,
+   "geometries": 39,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "leaflight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.000200001321417,
+     "frameMs": {
+      "p50": 33.900000005960464,
+      "p95": 37.900000005960464,
+      "max": 45.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 1.899999976158142,
+      "p95": 5.0999999940395355
+     },
+     "update": {
+      "n": 451,
+      "mean": 0.13525498858312282,
+      "p50": 0.09999999403953552,
+      "p95": 0.29999998211860657,
+      "max": 2.699999988079071,
+      "sub": {}
+     }
+    },
+    "triangles": 302154,
+    "drawCalls": 196,
+    "textures": 102,
+    "geometries": 39,
+    "median": {
+     "drawMs": 18.309999999403953,
+     "updateMean": 0.01833333323399226,
+     "updateP95": 0.09999999403953552,
+     "fullMs": 17.765000000596046
+    },
+    "rounds": [
+     {
+      "drawMs": 21.829999999701975,
+      "update": {
+       "n": 60,
+       "mean": 0.020000000298023225,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 19.494999998807906
+     },
+     {
+      "drawMs": 18.309999999403953,
+      "update": {
+       "n": 60,
+       "mean": 0.016666666666666666,
+       "p50": 0,
+       "p95": 0.09999999403953552,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 17.765000000596046
+     },
+     {
+      "drawMs": 17.495000000298024,
+      "update": {
+       "n": 60,
+       "mean": 0.01833333323399226,
+       "p50": 0,
+       "p95": 0.09999999403953552,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 17.765000000596046
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "leaflight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 451,
+     "fps": 30.00964833483049,
+     "frameMs": {
+      "p50": 33.400000005960464,
+      "p95": 37.69999998807907,
+      "max": 42.099999994039536
+     },
+     "composerCpuMs": {
+      "p50": 1.4000000059604645,
+      "p95": 2.800000011920929
+     },
+     "update": {
+      "n": 452,
+      "mean": 0.09159292016936614,
+      "p50": 0.09999999403953552,
+      "p95": 0.19999998807907104,
+      "max": 3.199999988079071,
+      "sub": {}
+     }
+    },
+    "triangles": 302154,
+    "drawCalls": 196,
+    "textures": 102,
+    "geometries": 39,
+    "median": {
+     "drawMs": 18.7,
+     "updateMean": 0.020000000298023225,
+     "updateP95": 0.10000002384185791,
+     "fullMs": 18.354999999701977
+    },
+    "rounds": [
+     {
+      "drawMs": 20.120000000298024,
+      "update": {
+       "n": 60,
+       "mean": 0.03333333333333333,
+       "p50": 0,
+       "p95": 0.19999998807907104,
+       "max": 0.20000001788139343,
+       "sub": {}
+      },
+      "fullMs": 18.354999999701977
+     },
+     {
+      "drawMs": 18.559999999403953,
+      "update": {
+       "n": 60,
+       "mean": 0.020000000298023225,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 17.959999999403955
+     },
+     {
+      "drawMs": 18.7,
+      "update": {
+       "n": 60,
+       "mean": 0.020000000298023225,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 18.86499999910593
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "leaflight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.01120418288302,
+     "frameMs": {
+      "p50": 33.39999997615814,
+      "p95": 37.400000005960464,
+      "max": 54.30000001192093
+     },
+     "composerCpuMs": {
+      "p50": 1.5,
+      "p95": 2
+     },
+     "update": {
+      "n": 451,
+      "mean": 0.11042128585923273,
+      "p50": 0.09999999403953552,
+      "p95": 0.20000001788139343,
+      "max": 4.399999976158142,
+      "sub": {}
+     }
+    },
+    "triangles": 302154,
+    "drawCalls": 196,
+    "textures": 102,
+    "geometries": 39,
+    "median": {
+     "drawMs": 17.43500000089407,
+     "updateMean": 0.01999999980131785,
+     "updateP95": 0.09999999403953552,
+     "fullMs": 18.070000000298023
+    },
+    "rounds": [
+     {
+      "drawMs": 20.940000000596047,
+      "update": {
+       "n": 60,
+       "mean": 0.01999999980131785,
+       "p50": 0,
+       "p95": 0.09999999403953552,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 18.090000000596046
+     },
+     {
+      "drawMs": 17.43500000089407,
+      "update": {
+       "n": 60,
+       "mean": 0.01833333323399226,
+       "p50": 0,
+       "p95": 0.09999999403953552,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 17.395000000298023
+     },
+     {
+      "drawMs": 17.190000000596047,
+      "update": {
+       "n": 60,
+       "mean": 0.01999999980131785,
+       "p50": 0,
+       "p95": 0.09999999403953552,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 18.070000000298023
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 18.309999999403953,
+   "updateMean": 0.01999999980131785,
+   "updateP95": 0.09999999403953552,
+   "fullMs": 18.070000000298023,
+   "passiveUpdateMean": 0.11042128585923273,
+   "passiveUpdateP95": 0.20000001788139343,
+   "drawCalls": 196,
+   "triangles": 302154,
+   "drawMsPerRun": [
+    18.309999999403953,
+    18.7,
+    17.43500000089407
+   ],
+   "sub": {}
+  }
+ },
+ "oceanlight": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 449,
+   "fps": 29.937524586763583,
+   "frameMs": {
+    "p50": 33.599999994039536,
+    "p95": 42.89999997615814,
+    "max": 91.40000000596046
+   },
+   "composerCpuMs": {
+    "p50": 0.699999988079071,
+    "p95": 1
+   },
+   "triangles": 142490,
+   "drawCalls": 80,
+   "textures": 74,
+   "geometries": 50,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "oceanlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.002400192051127,
+     "frameMs": {
+      "p50": 33.5,
+      "p95": 44.30000001192093,
+      "max": 67
+     },
+     "composerCpuMs": {
+      "p50": 0.7999999821186066,
+      "p95": 1.699999988079071
+     },
+     "update": {
+      "n": 451,
+      "mean": 4.315742794135193,
+      "p50": 6.800000011920929,
+      "p95": 10.099999994039536,
+      "max": 32.099999994039536,
+      "sub": {}
+     }
+    },
+    "triangles": 142490,
+    "drawCalls": 80,
+    "textures": 74,
+    "geometries": 50,
+    "median": {
+     "drawMs": 16.155000001192093,
+     "updateMean": 3.7916666666666665,
+     "updateP95": 8,
+     "fullMs": 14.270000000298023
+    },
+    "rounds": [
+     {
+      "drawMs": 19.21000000089407,
+      "update": {
+       "n": 60,
+       "mean": 3.751666667064031,
+       "p50": 6.9000000059604645,
+       "p95": 7.800000011920929,
+       "max": 8.199999988079071,
+       "sub": {}
+      },
+      "fullMs": 21.9
+     },
+     {
+      "drawMs": 16.155000001192093,
+      "update": {
+       "n": 60,
+       "mean": 3.7916666666666665,
+       "p50": 7,
+       "p95": 8,
+       "max": 8.400000005960464,
+       "sub": {}
+      },
+      "fullMs": 14.270000000298023
+     },
+     {
+      "drawMs": 13.109999999403954,
+      "update": {
+       "n": 60,
+       "mean": 4.309999999900659,
+       "p50": 7.299999982118607,
+       "p95": 9.400000005960464,
+       "max": 11.099999994039536,
+       "sub": {}
+      },
+      "fullMs": 13.990000000596046
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "oceanlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.004600705465347,
+     "frameMs": {
+      "p50": 33.5,
+      "p95": 44.20000001788139,
+      "max": 68.60000002384186
+     },
+     "composerCpuMs": {
+      "p50": 0.7000000178813934,
+      "p95": 1.7999999821186066
+     },
+     "update": {
+      "n": 451,
+      "mean": 4.52705099742587,
+      "p50": 4.200000017881393,
+      "p95": 11.400000005960464,
+      "max": 26.19999998807907,
+      "sub": {}
+     }
+    },
+    "triangles": 142490,
+    "drawCalls": 80,
+    "textures": 74,
+    "geometries": 50,
+    "median": {
+     "drawMs": 13.704999999701977,
+     "updateMean": 4.88833333303531,
+     "updateP95": 11.799999982118607,
+     "fullMs": 14.065000000596047
+    },
+    "rounds": [
+     {
+      "drawMs": 13.134999999403954,
+      "update": {
+       "n": 60,
+       "mean": 4.88833333303531,
+       "p50": 7.5,
+       "p95": 11.799999982118607,
+       "max": 12.600000023841858,
+       "sub": {}
+      },
+      "fullMs": 14.4
+     },
+     {
+      "drawMs": 13.704999999701977,
+      "update": {
+       "n": 60,
+       "mean": 3.8383333335320153,
+       "p50": 7.0999999940395355,
+       "p95": 7.799999982118607,
+       "max": 9.099999994039536,
+       "sub": {}
+      },
+      "fullMs": 13.589999999105931
+     },
+     {
+      "drawMs": 14.125,
+      "update": {
+       "n": 60,
+       "mean": 5.288333333532015,
+       "p50": 7.0999999940395355,
+       "p95": 14.599999994039536,
+       "max": 15.700000017881393,
+       "sub": {}
+      },
+      "fullMs": 14.065000000596047
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "oceanlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.008202241934203,
+     "frameMs": {
+      "p50": 33.099999994039536,
+      "p95": 44.80000001192093,
+      "max": 80
+     },
+     "composerCpuMs": {
+      "p50": 0.699999988079071,
+      "p95": 0.9000000059604645
+     },
+     "update": {
+      "n": 451,
+      "mean": 3.963636363424906,
+      "p50": 6.699999988079071,
+      "p95": 7.5,
+      "max": 60.60000002384186,
+      "sub": {}
+     }
+    },
+    "triangles": 142490,
+    "drawCalls": 80,
+    "textures": 74,
+    "geometries": 50,
+    "median": {
+     "drawMs": 12.095000000298024,
+     "updateMean": 4.058333332836628,
+     "updateP95": 9.5,
+     "fullMs": 12.480000001192092
+    },
+    "rounds": [
+     {
+      "drawMs": 16.025,
+      "update": {
+       "n": 60,
+       "mean": 4.058333332836628,
+       "p50": 6.699999988079071,
+       "p95": 11.099999994039536,
+       "max": 18.5,
+       "sub": {}
+      },
+      "fullMs": 12.480000001192092
+     },
+     {
+      "drawMs": 12.095000000298024,
+      "update": {
+       "n": 60,
+       "mean": 4.1033333331346515,
+       "p50": 6.699999988079071,
+       "p95": 9.5,
+       "max": 21.30000001192093,
+       "sub": {}
+      },
+      "fullMs": 12.465000000596046
+     },
+     {
+      "drawMs": 12.004999999701976,
+      "update": {
+       "n": 60,
+       "mean": 3.5900000000993413,
+       "p50": 6.799999982118607,
+       "p95": 7.100000023841858,
+       "max": 7.300000011920929,
+       "sub": {}
+      },
+      "fullMs": 13.190000000596047
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 13.704999999701977,
+   "updateMean": 4.058333332836628,
+   "updateP95": 9.5,
+   "fullMs": 14.065000000596047,
+   "passiveUpdateMean": 4.315742794135193,
+   "passiveUpdateP95": 10.099999994039536,
+   "drawCalls": 80,
+   "triangles": 142490,
+   "drawMsPerRun": [
+    16.155000001192093,
+    13.704999999701977,
+    12.095000000298024
+   ],
+   "sub": {}
+  }
+ },
+ "afterlight": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 326,
+   "fps": 21.74449550767666,
+   "frameMs": {
+    "p50": 45.900000005960464,
+    "p95": 48,
+    "max": 49.80000001192093
+   },
+   "composerCpuMs": {
+    "p50": 3.2000000178813934,
+    "p95": 3.699999988079071
+   },
+   "triangles": 115720,
+   "drawCalls": 747,
+   "textures": 100,
+   "geometries": 191,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "afterlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 331,
+     "fps": 22.057990523718573,
+     "frameMs": {
+      "p50": 45.30000001192093,
+      "p95": 47.79999998211861,
+      "max": 50.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 3.4000000059604645,
+      "p95": 5
+     },
+     "update": {
+      "n": 332,
+      "mean": 1.0683734941195293,
+      "p50": 1,
+      "p95": 1.600000023841858,
+      "max": 2.0999999940395355,
+      "sub": {}
+     }
+    },
+    "triangles": 115720,
+    "drawCalls": 747,
+    "textures": 100,
+    "geometries": 191,
+    "median": {
+     "drawMs": 46.59000000059605,
+     "updateMean": 1.034999999900659,
+     "updateP95": 2.5999999940395355,
+     "fullMs": 46.4
+    },
+    "rounds": [
+     {
+      "drawMs": 46.59000000059605,
+      "update": {
+       "n": 60,
+       "mean": 1.034999999900659,
+       "p50": 0.9000000059604645,
+       "p95": 2,
+       "max": 2.4000000059604645,
+       "sub": {}
+      },
+      "fullMs": 46.4
+     },
+     {
+      "drawMs": 46.56999999880791,
+      "update": {
+       "n": 60,
+       "mean": 0.9516666670640309,
+       "p50": 0.7000000178813934,
+       "p95": 2.5999999940395355,
+       "max": 5.700000017881393,
+       "sub": {}
+      },
+      "fullMs": 46.61499999910593
+     },
+     {
+      "drawMs": 46.91499999910593,
+      "update": {
+       "n": 60,
+       "mean": 1.2166666671633721,
+       "p50": 0.9000000059604645,
+       "p95": 2.699999988079071,
+       "max": 9.099999994039536,
+       "sub": {}
+      },
+      "fullMs": 45.96500000059605
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "afterlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 327,
+     "fps": 21.77894701788271,
+     "frameMs": {
+      "p50": 46,
+      "p95": 48.099999994039536,
+      "max": 77.7000000178814
+     },
+     "composerCpuMs": {
+      "p50": 3.300000011920929,
+      "p95": 4.699999988079071
+     },
+     "update": {
+      "n": 328,
+      "mean": 1.0536585359311685,
+      "p50": 1,
+      "p95": 1.4000000059604645,
+      "max": 4.9000000059604645,
+      "sub": {}
+     }
+    },
+    "triangles": 115720,
+    "drawCalls": 747,
+    "textures": 100,
+    "geometries": 191,
+    "median": {
+     "drawMs": 46.75499999970198,
+     "updateMean": 0.6033333336313565,
+     "updateP95": 0.8999999761581421,
+     "fullMs": 46.15499999970198
+    },
+    "rounds": [
+     {
+      "drawMs": 46.75499999970198,
+      "update": {
+       "n": 60,
+       "mean": 0.6400000000993411,
+       "p50": 0.5999999940395355,
+       "p95": 0.8999999761581421,
+       "max": 1,
+       "sub": {}
+      },
+      "fullMs": 45.325
+     },
+     {
+      "drawMs": 46.809999999403956,
+      "update": {
+       "n": 60,
+       "mean": 0.6033333336313565,
+       "p50": 0.5999999940395355,
+       "p95": 0.9000000059604645,
+       "max": 1.0999999940395355,
+       "sub": {}
+      },
+      "fullMs": 46.15499999970198
+     },
+     {
+      "drawMs": 45.825,
+      "update": {
+       "n": 60,
+       "mean": 0.6033333331346512,
+       "p50": 0.5999999940395355,
+       "p95": 0.7000000178813934,
+       "max": 0.9000000059604645,
+       "sub": {}
+      },
+      "fullMs": 46.43500000089407
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "afterlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 328,
+     "fps": 21.875416833400028,
+     "frameMs": {
+      "p50": 45.69999998807907,
+      "p95": 47.900000005960464,
+      "max": 52.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 3.300000011920929,
+      "p95": 4.5
+     },
+     "update": {
+      "n": 329,
+      "mean": 1.0142857147024034,
+      "p50": 1,
+      "p95": 1.399999976158142,
+      "max": 2.2999999821186066,
+      "sub": {}
+     }
+    },
+    "triangles": 115720,
+    "drawCalls": 747,
+    "textures": 100,
+    "geometries": 191,
+    "median": {
+     "drawMs": 45.209999999403955,
+     "updateMean": 0.6166666666666667,
+     "updateP95": 0.7999999821186066,
+     "fullMs": 44.834999999403955
+    },
+    "rounds": [
+     {
+      "drawMs": 46.045000000298025,
+      "update": {
+       "n": 60,
+       "mean": 0.6166666666666667,
+       "p50": 0.5999999940395355,
+       "p95": 0.7999999821186066,
+       "max": 1.2999999821186066,
+       "sub": {}
+      },
+      "fullMs": 44.834999999403955
+     },
+     {
+      "drawMs": 45.05,
+      "update": {
+       "n": 60,
+       "mean": 0.5783333336313565,
+       "p50": 0.5999999940395355,
+       "p95": 0.7000000178813934,
+       "max": 0.800000011920929,
+       "sub": {}
+      },
+      "fullMs": 44.829999999701975
+     },
+     {
+      "drawMs": 45.209999999403955,
+      "update": {
+       "n": 60,
+       "mean": 0.626666667064031,
+       "p50": 0.5999999940395355,
+       "p95": 0.9000000059604645,
+       "max": 1,
+       "sub": {}
+      },
+      "fullMs": 46.494999998807906
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 46.59000000059605,
+   "updateMean": 0.6166666666666667,
+   "updateP95": 0.8999999761581421,
+   "fullMs": 46.15499999970198,
+   "passiveUpdateMean": 1.0536585359311685,
+   "passiveUpdateP95": 1.4000000059604645,
+   "drawCalls": 747,
+   "triangles": 115720,
+   "drawMsPerRun": [
+    46.59000000059605,
+    46.75499999970198,
+    45.209999999403955
+   ],
+   "sub": {}
+  }
+ },
+ "seaward": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 450,
+   "fps": 29.99180224073278,
+   "frameMs": {
+    "p50": 33.30000001192093,
+    "p95": 35.29999998211861,
+    "max": 39.39999997615814
+   },
+   "composerCpuMs": {
+    "p50": 0.9000000059604645,
+    "p95": 2.2999999821186066
+   },
+   "triangles": 17212,
+   "drawCalls": 206,
+   "textures": 42,
+   "geometries": 204,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "seaward",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.00140006537215,
+     "frameMs": {
+      "p50": 33.29999998211861,
+      "p95": 39.69999998807907,
+      "max": 44.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 0.9000000059604645,
+      "p95": 3.0999999940395355
+     },
+     "update": {
+      "n": 451,
+      "mean": 0.660975608817754,
+      "p50": 0.5,
+      "p95": 1.5,
+      "max": 4.5999999940395355,
+      "sub": {}
+     }
+    },
+    "triangles": 17212,
+    "drawCalls": 206,
+    "textures": 42,
+    "geometries": 204,
+    "median": {
+     "drawMs": 9.545000000298023,
+     "updateMean": 0.4350000003973643,
+     "updateP95": 1,
+     "fullMs": 10.429999999701977
+    },
+    "rounds": [
+     {
+      "drawMs": 12.9,
+      "update": {
+       "n": 60,
+       "mean": 0.4350000003973643,
+       "p50": 0.4000000059604645,
+       "p95": 0.699999988079071,
+       "max": 0.9000000059604645,
+       "sub": {}
+      },
+      "fullMs": 11.714999999105931
+     },
+     {
+      "drawMs": 9.545000000298023,
+      "update": {
+       "n": 60,
+       "mean": 0.5283333331346511,
+       "p50": 0.4000000059604645,
+       "p95": 1.2999999821186066,
+       "max": 1.4000000059604645,
+       "sub": {}
+      },
+      "fullMs": 10.429999999701977
+     },
+     {
+      "drawMs": 8.654999999701976,
+      "update": {
+       "n": 60,
+       "mean": 0.40666666676600777,
+       "p50": 0.4000000059604645,
+       "p95": 1,
+       "max": 1.0999999940395355,
+       "sub": {}
+      },
+      "fullMs": 8.884999999403954
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "seaward",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.007802028539345,
+     "frameMs": {
+      "p50": 33.29999998211861,
+      "p95": 37.900000005960464,
+      "max": 92.7999999821186
+     },
+     "composerCpuMs": {
+      "p50": 1,
+      "p95": 2.9000000059604645
+     },
+     "update": {
+      "n": 451,
+      "mean": 0.6895787141011189,
+      "p50": 0.5,
+      "p95": 1.399999976158142,
+      "max": 5.5,
+      "sub": {}
+     }
+    },
+    "triangles": 17212,
+    "drawCalls": 206,
+    "textures": 42,
+    "geometries": 204,
+    "median": {
+     "drawMs": 9.575,
+     "updateMean": 0.48833333353201547,
+     "updateP95": 1.0999999940395355,
+     "fullMs": 9.715000000596046
+    },
+    "rounds": [
+     {
+      "drawMs": 12.85,
+      "update": {
+       "n": 60,
+       "mean": 0.6650000000993411,
+       "p50": 0.6000000238418579,
+       "p95": 1.0999999940395355,
+       "max": 1.5,
+       "sub": {}
+      },
+      "fullMs": 11.929999999701977
+     },
+     {
+      "drawMs": 9.575,
+      "update": {
+       "n": 60,
+       "mean": 0.48833333353201547,
+       "p50": 0.5,
+       "p95": 0.800000011920929,
+       "max": 1.300000011920929,
+       "sub": {}
+      },
+      "fullMs": 9.715000000596046
+     },
+     {
+      "drawMs": 8.290000000596047,
+      "update": {
+       "n": 60,
+       "mean": 0.46500000009934106,
+       "p50": 0.30000001192092896,
+       "p95": 1.2999999821186066,
+       "max": 1.5,
+       "sub": {}
+      },
+      "fullMs": 9.079999999701977
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "seaward",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 29.992401924881452,
+     "frameMs": {
+      "p50": 33.30000001192093,
+      "p95": 40.69999998807907,
+      "max": 42.400000005960464
+     },
+     "composerCpuMs": {
+      "p50": 0.800000011920929,
+      "p95": 2.4000000059604645
+     },
+     "update": {
+      "n": 451,
+      "mean": 0.5929046565307482,
+      "p50": 0.5,
+      "p95": 1.300000011920929,
+      "max": 4.799999982118607,
+      "sub": {}
+     }
+    },
+    "triangles": 17212,
+    "drawCalls": 206,
+    "textures": 42,
+    "geometries": 204,
+    "median": {
+     "drawMs": 9.479999999701977,
+     "updateMean": 0.35333333363135655,
+     "updateP95": 0.6000000238418579,
+     "fullMs": 10.504999999701976
+    },
+    "rounds": [
+     {
+      "drawMs": 13.025,
+      "update": {
+       "n": 60,
+       "mean": 0.351666667064031,
+       "p50": 0.30000001192092896,
+       "p95": 0.5999999940395355,
+       "max": 0.800000011920929,
+       "sub": {}
+      },
+      "fullMs": 10.669999998807906
+     },
+     {
+      "drawMs": 9.479999999701977,
+      "update": {
+       "n": 60,
+       "mean": 0.3983333334326744,
+       "p50": 0.4000000059604645,
+       "p95": 0.800000011920929,
+       "max": 1,
+       "sub": {}
+      },
+      "fullMs": 10.504999999701976
+     },
+     {
+      "drawMs": 9.4,
+      "update": {
+       "n": 60,
+       "mean": 0.35333333363135655,
+       "p50": 0.30000001192092896,
+       "p95": 0.6000000238418579,
+       "max": 0.699999988079071,
+       "sub": {}
+      },
+      "fullMs": 9.129999999701976
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 9.545000000298023,
+   "updateMean": 0.4350000003973643,
+   "updateP95": 1,
+   "fullMs": 10.429999999701977,
+   "passiveUpdateMean": 0.660975608817754,
+   "passiveUpdateP95": 1.399999976158142,
+   "drawCalls": 206,
+   "triangles": 17212,
+   "drawMsPerRun": [
+    9.545000000298023,
+    9.575,
+    9.479999999701977
+   ],
+   "sub": {}
+  }
+ },
+ "stairlight": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 342,
+   "fps": 22.805017103735636,
+   "frameMs": {
+    "p50": 43.79999998211861,
+    "p95": 46.10000002384186,
+    "max": 57
+   },
+   "composerCpuMs": {
+    "p50": 0.5,
+    "p95": 1
+   },
+   "triangles": 516638,
+   "drawCalls": 72,
+   "textures": 25,
+   "geometries": 14,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "stairlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 342,
+     "fps": 22.80425679457447,
+     "frameMs": {
+      "p50": 43.900000005960464,
+      "p95": 46.60000002384186,
+      "max": 59
+     },
+     "composerCpuMs": {
+      "p50": 0.5,
+      "p95": 1.0999999940395355
+     },
+     "update": {
+      "n": 343,
+      "mean": 0.16676384836174657,
+      "p50": 0.19999998807907104,
+      "p95": 0.30000001192092896,
+      "max": 1,
+      "sub": {}
+     }
+    },
+    "triangles": 516638,
+    "drawCalls": 72,
+    "textures": 25,
+    "geometries": 14,
+    "median": {
+     "drawMs": 44.66499999910593,
+     "updateMean": 0.05333333313465118,
+     "updateP95": 0.10000002384185791,
+     "fullMs": 43.325
+    },
+    "rounds": [
+     {
+      "drawMs": 44.66499999910593,
+      "update": {
+       "n": 60,
+       "mean": 0.075,
+       "p50": 0.09999999403953552,
+       "p95": 0.4000000059604645,
+       "max": 0.5,
+       "sub": {}
+      },
+      "fullMs": 44.57000000029802
+     },
+     {
+      "drawMs": 44.69500000029802,
+      "update": {
+       "n": 60,
+       "mean": 0.05333333313465118,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.5,
+       "sub": {}
+      },
+      "fullMs": 43.325
+     },
+     {
+      "drawMs": 40.459999999403955,
+      "update": {
+       "n": 60,
+       "mean": 0.038333333532015484,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.10000002384185791,
+       "sub": {}
+      },
+      "fullMs": 42.625
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "stairlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 346,
+     "fps": 23.111039863222423,
+     "frameMs": {
+      "p50": 43.20000001788139,
+      "p95": 46.29999998211861,
+      "max": 48
+     },
+     "composerCpuMs": {
+      "p50": 0.5,
+      "p95": 1.0999999940395355
+     },
+     "update": {
+      "n": 347,
+      "mean": 0.14870316846569953,
+      "p50": 0.10000002384185791,
+      "p95": 0.29999998211860657,
+      "max": 0.5,
+      "sub": {}
+     }
+    },
+    "triangles": 516638,
+    "drawCalls": 72,
+    "textures": 25,
+    "geometries": 14,
+    "median": {
+     "drawMs": 43.37999999970198,
+     "updateMean": 0.038333333532015484,
+     "updateP95": 0.10000002384185791,
+     "fullMs": 45.25
+    },
+    "rounds": [
+     {
+      "drawMs": 43.37999999970198,
+      "update": {
+       "n": 60,
+       "mean": 0.053333333631356554,
+       "p50": 0,
+       "p95": 0.19999998807907104,
+       "max": 0.30000001192092896,
+       "sub": {}
+      },
+      "fullMs": 42.604999999701974
+     },
+     {
+      "drawMs": 39.88999999910593,
+      "update": {
+       "n": 60,
+       "mean": 0.038333333532015484,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.20000001788139343,
+       "sub": {}
+      },
+      "fullMs": 45.25
+     },
+     {
+      "drawMs": 45.829999999701975,
+      "update": {
+       "n": 60,
+       "mean": 0.038333333532015484,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.20000001788139343,
+       "sub": {}
+      },
+      "fullMs": 52.204999999701975
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "stairlight",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 341,
+     "fps": 22.723789341791722,
+     "frameMs": {
+      "p50": 42.80000001192093,
+      "p95": 53,
+      "max": 116.59999999403954
+     },
+     "composerCpuMs": {
+      "p50": 0.4000000059604645,
+      "p95": 1
+     },
+     "update": {
+      "n": 342,
+      "mean": 0.1695906432748538,
+      "p50": 0.10000002384185791,
+      "p95": 0.30000001192092896,
+      "max": 1.7000000178813934,
+      "sub": {}
+     }
+    },
+    "triangles": 516638,
+    "drawCalls": 72,
+    "textures": 25,
+    "geometries": 14,
+    "median": {
+     "drawMs": 41.98999999910593,
+     "updateMean": 0.08166666626930237,
+     "updateP95": 0.20000001788139343,
+     "fullMs": 42.81000000089407
+    },
+    "rounds": [
+     {
+      "drawMs": 42.175,
+      "update": {
+       "n": 60,
+       "mean": 0.08166666626930237,
+       "p50": 0.09999999403953552,
+       "p95": 0.20000001788139343,
+       "max": 0.29999998211860657,
+       "sub": {}
+      },
+      "fullMs": 42.81000000089407
+     },
+     {
+      "drawMs": 40.940000000596044,
+      "update": {
+       "n": 60,
+       "mean": 0.0350000003973643,
+       "p50": 0,
+       "p95": 0.10000002384185791,
+       "max": 0.19999998807907104,
+       "sub": {}
+      },
+      "fullMs": 47.00499999970198
+     },
+     {
+      "drawMs": 41.98999999910593,
+      "update": {
+       "n": 60,
+       "mean": 0.14166666666666666,
+       "p50": 0.09999999403953552,
+       "p95": 0.29999998211860657,
+       "max": 1.2000000178813934,
+       "sub": {}
+      },
+      "fullMs": 41.040000000596045
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 43.37999999970198,
+   "updateMean": 0.05333333313465118,
+   "updateP95": 0.10000002384185791,
+   "fullMs": 43.325,
+   "passiveUpdateMean": 0.16676384836174657,
+   "passiveUpdateP95": 0.30000001192092896,
+   "drawCalls": 72,
+   "triangles": 516638,
+   "drawMsPerRun": [
+    44.66499999910593,
+    43.37999999970198,
+    41.98999999910593
+   ],
+   "sub": {}
+  }
+ },
+ "snowwindow": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 450,
+   "fps": 30.015407909369625,
+   "frameMs": {
+    "p50": 33.80000001192093,
+    "p95": 40,
+    "max": 58.900000005960464
+   },
+   "composerCpuMs": {
+    "p50": 1.600000023841858,
+    "p95": 2.0999999940395355
+   },
+   "triangles": 228556,
+   "drawCalls": 191,
+   "textures": 27,
+   "geometries": 118,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "snowwindow",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.01180464311192,
+     "frameMs": {
+      "p50": 33.30000001192093,
+      "p95": 38.400000005960464,
+      "max": 45
+     },
+     "composerCpuMs": {
+      "p50": 1.5999999940395355,
+      "p95": 1.7999999821186066
+     },
+     "update": {
+      "n": 451,
+      "mean": 9.619733924678053,
+      "p50": 9.5,
+      "p95": 10.699999988079071,
+      "max": 13.300000011920929,
+      "sub": {
+       "creatures": {
+        "mean": 6.518847006585804,
+        "p95": 7.0999999940395355
+       }
+      }
+     }
+    },
+    "triangles": 228556,
+    "drawCalls": 191,
+    "textures": 27,
+    "geometries": 118,
+    "median": {
+     "drawMs": 18.734999999403954,
+     "updateMean": 9.431666667262713,
+     "updateP95": 11.699999988079071,
+     "fullMs": 19.634999999403952
+    },
+    "rounds": [
+     {
+      "drawMs": 19.86499999910593,
+      "update": {
+       "n": 60,
+       "mean": 9.174999999503294,
+       "p50": 8.800000011920929,
+       "p95": 11.699999988079071,
+       "max": 19,
+       "sub": {
+        "creatures": {
+         "mean": 6.218333332240581,
+         "p95": 7.699999988079071
+        }
+       }
+      },
+      "fullMs": 19.620000000298024
+     },
+     {
+      "drawMs": 18.61499999910593,
+      "update": {
+       "n": 60,
+       "mean": 9.505000000198683,
+       "p50": 9.099999994039536,
+       "p95": 11.699999988079071,
+       "max": 21.30000001192093,
+       "sub": {
+        "creatures": {
+         "mean": 6.391666666666667,
+         "p95": 7.9000000059604645
+        }
+       }
+      },
+      "fullMs": 19.770000000298023
+     },
+     {
+      "drawMs": 18.734999999403954,
+      "update": {
+       "n": 60,
+       "mean": 9.431666667262713,
+       "p50": 9,
+       "p95": 13.5,
+       "max": 18.5,
+       "sub": {
+        "creatures": {
+         "mean": 6.391666666169962,
+         "p95": 9
+        }
+       }
+      },
+      "fullMs": 19.634999999403952
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "snowwindow",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.01020346922724,
+     "frameMs": {
+      "p50": 33.29999998211861,
+      "p95": 39.19999998807907,
+      "max": 84.59999999403954
+     },
+     "composerCpuMs": {
+      "p50": 1.699999988079071,
+      "p95": 2
+     },
+     "update": {
+      "n": 451,
+      "mean": 9.838580931171345,
+      "p50": 9.5,
+      "p95": 10.800000011920929,
+      "max": 53.19999998807907,
+      "sub": {
+       "creatures": {
+        "mean": 6.651441240852529,
+        "p95": 7.200000017881393
+       }
+      }
+     }
+    },
+    "triangles": 228556,
+    "drawCalls": 191,
+    "textures": 27,
+    "geometries": 118,
+    "median": {
+     "drawMs": 15.56499999910593,
+     "updateMean": 9.09000000009934,
+     "updateP95": 11.599999994039536,
+     "fullMs": 16.804999999701977
+    },
+    "rounds": [
+     {
+      "drawMs": 20.23999999910593,
+      "update": {
+       "n": 60,
+       "mean": 9.09000000009934,
+       "p50": 8.700000017881393,
+       "p95": 12.400000005960464,
+       "max": 17.099999994039536,
+       "sub": {
+        "creatures": {
+         "mean": 6.1516666660706205,
+         "p95": 8.5
+        }
+       }
+      },
+      "fullMs": 16.804999999701977
+     },
+     {
+      "drawMs": 15.530000001192093,
+      "update": {
+       "n": 60,
+       "mean": 9.250000000496705,
+       "p50": 9,
+       "p95": 11.599999994039536,
+       "max": 14.199999988079071,
+       "sub": {
+        "creatures": {
+         "mean": 6.223333335916201,
+         "p95": 7.699999988079071
+        }
+       }
+      },
+      "fullMs": 16.844999998807907
+     },
+     {
+      "drawMs": 15.56499999910593,
+      "update": {
+       "n": 60,
+       "mean": 8.844999999801319,
+       "p50": 8.800000011920929,
+       "p95": 9.100000023841858,
+       "max": 9.300000011920929,
+       "sub": {
+        "creatures": {
+         "mean": 5.978333331147829,
+         "p95": 6.199999988079071
+        }
+       }
+      },
+      "fullMs": 16.379999999701976
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "snowwindow",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 29.99760019200848,
+     "frameMs": {
+      "p50": 33.39999997615814,
+      "p95": 38.400000005960464,
+      "max": 47.5
+     },
+     "composerCpuMs": {
+      "p50": 1.699999988079071,
+      "p95": 2
+     },
+     "update": {
+      "n": 451,
+      "mean": 9.732372505173187,
+      "p50": 9.5,
+      "p95": 10.599999994039536,
+      "max": 23.600000023841858,
+      "sub": {
+       "creatures": {
+        "mean": 6.552993348392838,
+        "p95": 7.200000017881393
+       }
+      }
+     }
+    },
+    "triangles": 228556,
+    "drawCalls": 191,
+    "textures": 27,
+    "geometries": 118,
+    "median": {
+     "drawMs": 18.165000000596045,
+     "updateMean": 9.676666665573915,
+     "updateP95": 10.5,
+     "fullMs": 18.934999999403953
+    },
+    "rounds": [
+     {
+      "drawMs": 18.165000000596045,
+      "update": {
+       "n": 60,
+       "mean": 9.341666666666667,
+       "p50": 9,
+       "p95": 11.099999994039536,
+       "max": 23.099999994039536,
+       "sub": {
+        "creatures": {
+         "mean": 6.320000000298023,
+         "p95": 7.800000011920929
+        }
+       }
+      },
+      "fullMs": 18.934999999403953
+     },
+     {
+      "drawMs": 17.629999999701976,
+      "update": {
+       "n": 60,
+       "mean": 9.676666665573915,
+       "p50": 9.599999994039536,
+       "p95": 10.099999994039536,
+       "max": 11.199999988079071,
+       "sub": {
+        "creatures": {
+         "mean": 6.511666663487753,
+         "p95": 7.0999999940395355
+        }
+       }
+      },
+      "fullMs": 18.725
+     },
+     {
+      "drawMs": 18.270000000298023,
+      "update": {
+       "n": 60,
+       "mean": 10.119999999801317,
+       "p50": 10.099999994039536,
+       "p95": 10.5,
+       "max": 11.599999994039536,
+       "sub": {
+        "creatures": {
+         "mean": 6.828333334624768,
+         "p95": 7
+        }
+       }
+      },
+      "fullMs": 19.040000000596045
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 18.165000000596045,
+   "updateMean": 9.431666667262713,
+   "updateP95": 11.599999994039536,
+   "fullMs": 18.934999999403953,
+   "passiveUpdateMean": 9.732372505173187,
+   "passiveUpdateP95": 10.699999988079071,
+   "drawCalls": 191,
+   "triangles": 228556,
+   "drawMsPerRun": [
+    18.734999999403954,
+    15.56499999910593,
+    18.165000000596045
+   ],
+   "sub": {
+    "creatures": {
+     "mean": 6.320000000298023,
+     "p95": 7.699999988079071
+    }
+   }
+  }
+ },
+ "snowhall": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 451,
+   "fps": 30.01044709578582,
+   "frameMs": {
+    "p50": 33.5,
+    "p95": 37.099999994039536,
+    "max": 54.099999994039536
+   },
+   "composerCpuMs": {
+    "p50": 0.4000000059604645,
+    "p95": 0.9000000059604645
+   },
+   "triangles": 8954,
+   "drawCalls": 152,
+   "textures": 21,
+   "geometries": 71,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "snowhall",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 29.999999999999996,
+     "frameMs": {
+      "p50": 33.400000005960464,
+      "p95": 35.5,
+      "max": 82.60000002384186
+     },
+     "composerCpuMs": {
+      "p50": 0.7999999821186066,
+      "p95": 2.300000011920929
+     },
+     "update": {
+      "n": 451,
+      "mean": 1.904656319224385,
+      "p50": 1.800000011920929,
+      "p95": 3.300000011920929,
+      "max": 18.599999994039536,
+      "sub": {
+       "antarctic_life": {
+        "mean": 1.8223946779107307,
+        "p95": 3.199999988079071
+       }
+      }
+     }
+    },
+    "triangles": 8786,
+    "drawCalls": 146,
+    "textures": 21,
+    "geometries": 175,
+    "median": {
+     "drawMs": 14.359999999403954,
+     "updateMean": 0.8599999999006589,
+     "updateP95": 1.5,
+     "fullMs": 14.379999999701976
+    },
+    "rounds": [
+     {
+      "drawMs": 14.359999999403954,
+      "update": {
+       "n": 60,
+       "mean": 0.8599999999006589,
+       "p50": 0.800000011920929,
+       "p95": 1.5,
+       "max": 2.300000011920929,
+       "sub": {
+        "antarctic_life": {
+         "mean": 0.829999998708566,
+         "p95": 1.5
+        }
+       }
+      },
+      "fullMs": 13.535000000894069
+     },
+     {
+      "drawMs": 12.980000001192092,
+      "update": {
+       "n": 60,
+       "mean": 0.7483333334326744,
+       "p50": 0.7000000178813934,
+       "p95": 0.9000000059604645,
+       "max": 0.9000000059604645,
+       "sub": {
+        "antarctic_life": {
+         "mean": 0.7166666661699613,
+         "p95": 0.9000000059604645
+        }
+       }
+      },
+      "fullMs": 16.784999999403954
+     },
+     {
+      "drawMs": 14.940000000596047,
+      "update": {
+       "n": 60,
+       "mean": 1.0816666667660078,
+       "p50": 0.9000000059604645,
+       "p95": 1.9000000059604645,
+       "max": 2.199999988079071,
+       "sub": {
+        "antarctic_life": {
+         "mean": 1.0433333352208138,
+         "p95": 1.800000011920929
+        }
+       }
+      },
+      "fullMs": 14.379999999701976
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "snowhall",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.00400053340445,
+     "frameMs": {
+      "p50": 33.39999997615814,
+      "p95": 35.099999994039536,
+      "max": 53.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 0.8999999761581421,
+      "p95": 2.0999999940395355
+     },
+     "update": {
+      "n": 451,
+      "mean": 1.881374723631104,
+      "p50": 1.800000011920929,
+      "p95": 3.100000023841858,
+      "max": 11.199999988079071,
+      "sub": {
+       "antarctic_life": {
+        "mean": 1.7671840357410407,
+        "p95": 3
+       }
+      }
+     }
+    },
+    "triangles": 6854,
+    "drawCalls": 136,
+    "textures": 21,
+    "geometries": 175,
+    "median": {
+     "drawMs": 13.084999999403953,
+     "updateMean": 0.9116666664679846,
+     "updateP95": 1.300000011920929,
+     "fullMs": 13.320000000298023
+    },
+    "rounds": [
+     {
+      "drawMs": 14.995000000298024,
+      "update": {
+       "n": 60,
+       "mean": 1.0599999994039535,
+       "p50": 1,
+       "p95": 1.9000000059604645,
+       "max": 2.2999999821186066,
+       "sub": {
+        "antarctic_life": {
+         "mean": 1.0266666665673256,
+         "p95": 1.7999999821186066
+        }
+       }
+      },
+      "fullMs": 13.965000000596046
+     },
+     {
+      "drawMs": 13.084999999403953,
+      "update": {
+       "n": 60,
+       "mean": 0.7166666666666667,
+       "p50": 0.7000000178813934,
+       "p95": 0.800000011920929,
+       "max": 0.8999999761581421,
+       "sub": {
+        "antarctic_life": {
+         "mean": 0.698333332935969,
+         "p95": 0.800000011920929
+        }
+       }
+      },
+      "fullMs": 13.320000000298023
+     },
+     {
+      "drawMs": 12.984999999403954,
+      "update": {
+       "n": 60,
+       "mean": 0.9116666664679846,
+       "p50": 0.9000000059604645,
+       "p95": 1.300000011920929,
+       "max": 1.5999999940395355,
+       "sub": {
+        "antarctic_life": {
+         "mean": 0.8916666666666667,
+         "p95": 1.2999999821186066
+        }
+       }
+      },
+      "fullMs": 12.845000000298024
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "snowhall",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 29.99180224073278,
+     "frameMs": {
+      "p50": 33.400000005960464,
+      "p95": 35.400000005960464,
+      "max": 38.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 0.9000000059604645,
+      "p95": 2.0999999940395355
+     },
+     "update": {
+      "n": 451,
+      "mean": 2.052106429956969,
+      "p50": 2,
+      "p95": 3.5,
+      "max": 5.5,
+      "sub": {
+       "antarctic_life": {
+        "mean": 1.969623059100428,
+        "p95": 3.4000000059604645
+       }
+      }
+     }
+    },
+    "triangles": 8954,
+    "drawCalls": 152,
+    "textures": 21,
+    "geometries": 175,
+    "median": {
+     "drawMs": 14.35,
+     "updateMean": 0.9816666667660078,
+     "updateP95": 1.5,
+     "fullMs": 14.75
+    },
+    "rounds": [
+     {
+      "drawMs": 18.234999999403954,
+      "update": {
+       "n": 60,
+       "mean": 1.140000000099341,
+       "p50": 1,
+       "p95": 2.300000011920929,
+       "max": 6.800000011920929,
+       "sub": {
+        "antarctic_life": {
+         "mean": 1.109999999900659,
+         "p95": 2.0999999940395355
+        }
+       }
+      },
+      "fullMs": 17.195000000298023
+     },
+     {
+      "drawMs": 14.35,
+      "update": {
+       "n": 60,
+       "mean": 0.9816666667660078,
+       "p50": 0.9000000059604645,
+       "p95": 1.5,
+       "max": 1.800000011920929,
+       "sub": {
+        "antarctic_life": {
+         "mean": 0.9550000006953875,
+         "p95": 1.4000000059604645
+        }
+       }
+      },
+      "fullMs": 14.75
+     },
+     {
+      "drawMs": 12.85,
+      "update": {
+       "n": 60,
+       "mean": 0.7383333330353101,
+       "p50": 0.7000000178813934,
+       "p95": 0.9000000059604645,
+       "max": 0.9000000059604645,
+       "sub": {
+        "antarctic_life": {
+         "mean": 0.7116666669646899,
+         "p95": 0.800000011920929
+        }
+       }
+      },
+      "fullMs": 13.13500000089407
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 14.35,
+   "updateMean": 0.9116666664679846,
+   "updateP95": 1.5,
+   "fullMs": 14.379999999701976,
+   "passiveUpdateMean": 1.904656319224385,
+   "passiveUpdateP95": 3.300000011920929,
+   "drawCalls": 146,
+   "triangles": 8786,
+   "drawMsPerRun": [
+    14.359999999403954,
+    13.084999999403953,
+    14.35
+   ],
+   "sub": {
+    "antarctic_life": {
+     "mean": 0.8916666666666667,
+     "p95": 1.4000000059604645
+    }
+   }
+  }
+ },
+ "last-arcade": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 450,
+   "fps": 30.005200901477668,
+   "frameMs": {
+    "p50": 33.10000002384186,
+    "p95": 38.69999998807907,
+    "max": 51.099999994039536
+   },
+   "composerCpuMs": {
+    "p50": 0.9000000059604645,
+    "p95": 1.0999999940395355
+   },
+   "triangles": 563726,
+   "drawCalls": 242,
+   "textures": 80,
+   "geometries": 184,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "last-arcade",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 445,
+     "fps": 29.71936901437368,
+     "frameMs": {
+      "p50": 33.29999998211861,
+      "p95": 36.80000001192093,
+      "max": 110.40000000596046
+     },
+     "composerCpuMs": {
+      "p50": 1,
+      "p95": 2.9000000059604645
+     },
+     "update": {
+      "n": 446,
+      "mean": 8.079147981889045,
+      "p50": 6.699999988079071,
+      "p95": 14.300000011920929,
+      "max": 66.40000000596046,
+      "sub": {
+       "schools": {
+        "mean": 0.46659192830457813,
+        "p95": 1.300000011920929
+       },
+       "biology_total": {
+        "mean": 7.959865471774153,
+        "p95": 14.100000023841858
+       }
+      }
+     }
+    },
+    "triangles": 563726,
+    "drawCalls": 242,
+    "textures": 80,
+    "geometries": 184,
+    "median": {
+     "drawMs": 13.029999999701976,
+     "updateMean": 6.508333334326744,
+     "updateP95": 9.099999994039536,
+     "fullMs": 16.615000000596048
+    },
+    "rounds": [
+     {
+      "drawMs": 12.654999999701976,
+      "update": {
+       "n": 60,
+       "mean": 6.050000000496706,
+       "p50": 6,
+       "p95": 7.9000000059604645,
+       "max": 8.200000017881393,
+       "sub": {
+        "schools": {
+         "mean": 0.34000000009934106,
+         "p95": 0.9000000059604645
+        },
+        "biology_total": {
+         "mean": 5.9733333339293795,
+         "p95": 7.699999988079071
+        }
+       }
+      },
+      "fullMs": 16.125
+     },
+     {
+      "drawMs": 13.279999999701976,
+      "update": {
+       "n": 60,
+       "mean": 6.508333334326744,
+       "p50": 6.300000011920929,
+       "p95": 9.099999994039536,
+       "max": 10.900000005960464,
+       "sub": {
+        "schools": {
+         "mean": 0.39666666785875954,
+         "p95": 1
+        },
+        "biology_total": {
+         "mean": 6.418333332737287,
+         "p95": 8.900000005960464
+        }
+       }
+      },
+      "fullMs": 16.645000000298023
+     },
+     {
+      "drawMs": 13.029999999701976,
+      "update": {
+       "n": 60,
+       "mean": 7.561666667461395,
+       "p50": 7,
+       "p95": 11.099999994039536,
+       "max": 11.699999988079071,
+       "sub": {
+        "schools": {
+         "mean": 0.38333333283662796,
+         "p95": 1
+        },
+        "biology_total": {
+         "mean": 7.461666667461396,
+         "p95": 11
+        }
+       }
+      },
+      "fullMs": 16.615000000596048
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "last-arcade",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 447,
+     "fps": 29.74249783751414,
+     "frameMs": {
+      "p50": 33.20000001788139,
+      "p95": 36.19999998807907,
+      "max": 131.69999998807907
+     },
+     "composerCpuMs": {
+      "p50": 1.0999999940395355,
+      "p95": 2.5999999940395355
+     },
+     "update": {
+      "n": 448,
+      "mean": 7.51607142987528,
+      "p50": 6.5,
+      "p95": 12.5,
+      "max": 96.40000000596046,
+      "sub": {
+       "schools": {
+        "mean": 0.5031249999467816,
+        "p95": 1.0999999940395355
+       },
+       "biology_total": {
+        "mean": 7.368526785967073,
+        "p95": 12.400000005960464
+       }
+      }
+     }
+    },
+    "triangles": 563726,
+    "drawCalls": 242,
+    "textures": 80,
+    "geometries": 184,
+    "median": {
+     "drawMs": 13.645000000298023,
+     "updateMean": 6.2316666667660074,
+     "updateP95": 7,
+     "fullMs": 17.140000000596046
+    },
+    "rounds": [
+     {
+      "drawMs": 14.520000000298023,
+      "update": {
+       "n": 60,
+       "mean": 6.341666666169961,
+       "p50": 6.199999988079071,
+       "p95": 7.5,
+       "max": 18.200000017881393,
+       "sub": {
+        "schools": {
+         "mean": 0.3966666668653488,
+         "p95": 1.2000000178813934
+        },
+        "biology_total": {
+         "mean": 6.256666665772597,
+         "p95": 7.200000017881393
+        }
+       }
+      },
+      "fullMs": 17.140000000596046
+     },
+     {
+      "drawMs": 13.645000000298023,
+      "update": {
+       "n": 60,
+       "mean": 6.2316666667660074,
+       "p50": 6.300000011920929,
+       "p95": 7,
+       "max": 7.5999999940395355,
+       "sub": {
+        "schools": {
+         "mean": 0.36999999930461247,
+         "p95": 1
+        },
+        "biology_total": {
+         "mean": 6.13833333303531,
+         "p95": 7
+        }
+       }
+      },
+      "fullMs": 15.895000000298023
+     },
+     {
+      "drawMs": 12.525,
+      "update": {
+       "n": 60,
+       "mean": 5.883333333830039,
+       "p50": 5.800000011920929,
+       "p95": 6.5,
+       "max": 12,
+       "sub": {
+        "schools": {
+         "mean": 0.32999999870856606,
+         "p95": 0.800000011920929
+        },
+        "biology_total": {
+         "mean": 5.804999999205271,
+         "p95": 6.4000000059604645
+        }
+       }
+      },
+      "fullMs": 18.51499999910593
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "last-arcade",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 446,
+     "fps": 29.737893143638992,
+     "frameMs": {
+      "p50": 33.29999998211861,
+      "p95": 37.400000005960464,
+      "max": 132.59999999403954
+     },
+     "composerCpuMs": {
+      "p50": 1.0999999940395355,
+      "p95": 3
+     },
+     "update": {
+      "n": 447,
+      "mean": 7.741610738588393,
+      "p50": 6.5,
+      "p95": 14.599999994039536,
+      "max": 42.19999998807907,
+      "sub": {
+       "schools": {
+        "mean": 0.4639821032549711,
+        "p95": 1.199999988079071
+       },
+       "biology_total": {
+        "mean": 7.60111856807265,
+        "p95": 14.400000005960464
+       }
+      }
+     }
+    },
+    "triangles": 563726,
+    "drawCalls": 242,
+    "textures": 80,
+    "geometries": 184,
+    "median": {
+     "drawMs": 12.234999999403954,
+     "updateMean": 6.313333333532015,
+     "updateP95": 8.099999994039536,
+     "fullMs": 15.529999999701976
+    },
+    "rounds": [
+     {
+      "drawMs": 12.470000000298024,
+      "update": {
+       "n": 60,
+       "mean": 6.465000000099341,
+       "p50": 6.199999988079071,
+       "p95": 10.299999982118607,
+       "max": 14,
+       "sub": {
+        "schools": {
+         "mean": 0.3450000007947286,
+         "p95": 1
+        },
+        "biology_total": {
+         "mean": 6.388333334525426,
+         "p95": 10.199999988079071
+        }
+       }
+      },
+      "fullMs": 15.9
+     },
+     {
+      "drawMs": 12.234999999403954,
+      "update": {
+       "n": 60,
+       "mean": 6.175,
+       "p50": 6.0999999940395355,
+       "p95": 7.700000017881393,
+       "max": 9.300000011920929,
+       "sub": {
+        "schools": {
+         "mean": 0.33333333184321723,
+         "p95": 0.9000000059604645
+        },
+        "biology_total": {
+         "mean": 6.116666665673256,
+         "p95": 7.600000023841858
+        }
+       }
+      },
+      "fullMs": 15.529999999701976
+     },
+     {
+      "drawMs": 11.964999999105931,
+      "update": {
+       "n": 60,
+       "mean": 6.313333333532015,
+       "p50": 6.0999999940395355,
+       "p95": 8.099999994039536,
+       "max": 13.899999976158142,
+       "sub": {
+        "schools": {
+         "mean": 0.3549999992052714,
+         "p95": 1
+        },
+        "biology_total": {
+         "mean": 6.238333332538605,
+         "p95": 8
+        }
+       }
+      },
+      "fullMs": 15.48500000089407
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 13.029999999701976,
+   "updateMean": 6.313333333532015,
+   "updateP95": 8.099999994039536,
+   "fullMs": 16.615000000596048,
+   "passiveUpdateMean": 7.741610738588393,
+   "passiveUpdateP95": 14.300000011920929,
+   "drawCalls": 242,
+   "triangles": 563726,
+   "drawMsPerRun": [
+    13.029999999701976,
+    13.645000000298023,
+    12.234999999403954
+   ],
+   "sub": {
+    "biology_total": {
+     "mean": 6.238333332538605,
+     "p95": 7.699999988079071
+    },
+    "schools": {
+     "mean": 0.3549999992052714,
+     "p95": 1
+    }
+   }
+  }
+ },
+ "seabridge": {
+  "existingPage": {
+   "done": true,
+   "viewport": [
+    2400,
+    1350
+   ],
+   "dpr": 1,
+   "quality": "standard",
+   "frames": 450,
+   "fps": 29.99640043198392,
+   "frameMs": {
+    "p50": 33.89999997615814,
+    "p95": 38.80000001192093,
+    "max": 43.400000005960464
+   },
+   "composerCpuMs": {
+    "p50": 1.2999999821186066,
+    "p95": 1.9000000059604645
+   },
+   "triangles": 571160,
+   "drawCalls": 577,
+   "textures": 18,
+   "geometries": 224,
+   "note": "Actual app/composer; CPU submission is not GPU timing. Foreground tab, 5s warmup + 15s sample."
+  },
+  "runs": [
+   {
+    "done": true,
+    "place": "seabridge",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 29.999200021380446,
+     "frameMs": {
+      "p50": 33.599999994039536,
+      "p95": 40.80000001192093,
+      "max": 46.599999994039536
+     },
+     "composerCpuMs": {
+      "p50": 1.7999999821186066,
+      "p95": 4.700000017881393
+     },
+     "update": {
+      "n": 451,
+      "mean": 1.332150776674372,
+      "p50": 0.4000000059604645,
+      "p95": 4.800000011920929,
+      "max": 11.599999994039536,
+      "sub": {
+       "sardines": {
+        "mean": 1.2760532156062496,
+        "p95": 4.700000017881393
+       }
+      }
+     }
+    },
+    "triangles": 571160,
+    "drawCalls": 577,
+    "textures": 18,
+    "geometries": 224,
+    "median": {
+     "drawMs": 27.709999999403955,
+     "updateMean": 0.8350000003973643,
+     "updateP95": 2.0999999940395355,
+     "fullMs": 27.720000000298022
+    },
+    "rounds": [
+     {
+      "drawMs": 27.395000000298023,
+      "update": {
+       "n": 60,
+       "mean": 0.7316666667660078,
+       "p50": 0.19999998807907104,
+       "p95": 1.800000011920929,
+       "max": 2.0999999940395355,
+       "sub": {
+        "sardines": {
+         "mean": 0.7299999997019768,
+         "p95": 1.800000011920929
+        }
+       }
+      },
+      "fullMs": 28.03999999910593
+     },
+     {
+      "drawMs": 27.86499999910593,
+      "update": {
+       "n": 60,
+       "mean": 0.8350000003973643,
+       "p50": 0.10000002384185791,
+       "p95": 2.0999999940395355,
+       "max": 2.4000000059604645,
+       "sub": {
+        "sardines": {
+         "mean": 0.8316666662693024,
+         "p95": 2.0999999940395355
+        }
+       }
+      },
+      "fullMs": 27.720000000298022
+     },
+     {
+      "drawMs": 27.709999999403955,
+      "update": {
+       "n": 60,
+       "mean": 1.3433333332339923,
+       "p50": 0.19999998807907104,
+       "p95": 4.299999982118607,
+       "max": 6.4000000059604645,
+       "sub": {
+        "sardines": {
+         "mean": 1.3399999996026357,
+         "p95": 4.299999982118607
+        }
+       }
+      },
+      "fullMs": 27.270000000298023
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "seabridge",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 30.007601925785426,
+     "frameMs": {
+      "p50": 33.5,
+      "p95": 41.29999998211861,
+      "max": 78.90000000596046
+     },
+     "composerCpuMs": {
+      "p50": 2.399999976158142,
+      "p95": 4
+     },
+     "update": {
+      "n": 451,
+      "mean": 1.4303769396572579,
+      "p50": 0.30000001192092896,
+      "p95": 3.899999976158142,
+      "max": 13.599999994039536,
+      "sub": {
+       "sardines": {
+        "mean": 1.3607538800414016,
+        "p95": 3.699999988079071
+       }
+      }
+     }
+    },
+    "triangles": 571160,
+    "drawCalls": 577,
+    "textures": 18,
+    "geometries": 224,
+    "median": {
+     "drawMs": 27.875,
+     "updateMean": 1.3050000006953875,
+     "updateP95": 4.299999982118607,
+     "fullMs": 28.225
+    },
+    "rounds": [
+     {
+      "drawMs": 27.41499999910593,
+      "update": {
+       "n": 60,
+       "mean": 1.0583333338300387,
+       "p50": 0.19999998807907104,
+       "p95": 2.9000000059604645,
+       "max": 3.100000023841858,
+       "sub": {
+        "sardines": {
+         "mean": 1.0466666673620542,
+         "p95": 2.7999999821186066
+        }
+       }
+      },
+      "fullMs": 28.169999998807906
+     },
+     {
+      "drawMs": 27.875,
+      "update": {
+       "n": 60,
+       "mean": 1.3050000006953875,
+       "p50": 0.20000001788139343,
+       "p95": 4.299999982118607,
+       "max": 5,
+       "sub": {
+        "sardines": {
+         "mean": 1.2916666666666667,
+         "p95": 4.299999982118607
+        }
+       }
+      },
+      "fullMs": 28.334999999403955
+     },
+     {
+      "drawMs": 28.175,
+      "update": {
+       "n": 60,
+       "mean": 1.5599999999006589,
+       "p50": 0.20000001788139343,
+       "p95": 5.199999988079071,
+       "max": 7,
+       "sub": {
+        "sardines": {
+         "mean": 1.5366666669646898,
+         "p95": 5.199999988079071
+        }
+       }
+      },
+      "fullMs": 28.225
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   },
+   {
+    "done": true,
+    "place": "seabridge",
+    "viewport": [
+     2400,
+     1350
+    ],
+    "dpr": 1,
+    "quality": "standard",
+    "localHour": 16,
+    "passive": {
+     "frames": 450,
+     "fps": 29.995400705201362,
+     "frameMs": {
+      "p50": 33.5,
+      "p95": 41.10000002384186,
+      "max": 49.900000005960464
+     },
+     "composerCpuMs": {
+      "p50": 2.2000000178813934,
+      "p95": 4.5
+     },
+     "update": {
+      "n": 451,
+      "mean": 1.5053215080380704,
+      "p50": 0.30000001192092896,
+      "p95": 5.5999999940395355,
+      "max": 8.699999988079071,
+      "sub": {
+       "sardines": {
+        "mean": 1.4560975616760634,
+        "p95": 5.5
+       }
+      }
+     }
+    },
+    "triangles": 571160,
+    "drawCalls": 577,
+    "textures": 18,
+    "geometries": 224,
+    "median": {
+     "drawMs": 25.61499999910593,
+     "updateMean": 0.8566666667660078,
+     "updateP95": 2.4000000059604645,
+     "fullMs": 25.695000000298023
+    },
+    "rounds": [
+     {
+      "drawMs": 25.815000000596047,
+      "update": {
+       "n": 60,
+       "mean": 0.8566666667660078,
+       "p50": 0.19999998807907104,
+       "p95": 2.4000000059604645,
+       "max": 6.0999999940395355,
+       "sub": {
+        "sardines": {
+         "mean": 0.8533333336313565,
+         "p95": 2.4000000059604645
+        }
+       }
+      },
+      "fullMs": 25.58999999910593
+     },
+     {
+      "drawMs": 25.61499999910593,
+      "update": {
+       "n": 60,
+       "mean": 0.6816666662693024,
+       "p50": 0.10000002384185791,
+       "p95": 1.7999999821186066,
+       "max": 1.9000000059604645,
+       "sub": {
+        "sardines": {
+         "mean": 0.6799999997019768,
+         "p95": 1.7999999821186066
+        }
+       }
+      },
+      "fullMs": 25.695000000298023
+     },
+     {
+      "drawMs": 25.584999999403955,
+      "update": {
+       "n": 60,
+       "mean": 1.384999999900659,
+       "p50": 0.20000001788139343,
+       "p95": 5.5,
+       "max": 8.200000017881393,
+       "sub": {
+        "sardines": {
+         "mean": 1.375,
+         "p95": 5.5
+        }
+       }
+      },
+      "fullMs": 25.820000000298023
+     }
+    ],
+    "note": "drawMs = composer.render x20 + readPixels / 20 (state frozen). update from synchronous loop of 60 calls. fullMs = update+render x20 + readPixels / 20."
+   }
+  ],
+  "summary": {
+   "drawMs": 27.709999999403955,
+   "updateMean": 0.8566666667660078,
+   "updateP95": 2.4000000059604645,
+   "fullMs": 27.720000000298022,
+   "passiveUpdateMean": 1.4303769396572579,
+   "passiveUpdateP95": 4.800000011920929,
+   "drawCalls": 577,
+   "triangles": 571160,
+   "drawMsPerRun": [
+    27.709999999403955,
+    27.875,
+    25.61499999910593
+   ],
+   "sub": {
+    "sardines": {
+     "mean": 1.0466666673620542,
+     "p95": 2.7999999821186066
+    }
+   }
+  }
+ }
+}

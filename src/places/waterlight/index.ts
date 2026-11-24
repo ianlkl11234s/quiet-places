@@ -1,9 +1,10 @@
 import type {PlaceFactory} from '../../player/contracts.ts';
 import {createEnvironment} from './Environment.ts';
 import {prepareLongFinKoiSchool} from './FishSchool.ts';
+import {biologyCandidatesEnabled} from '../../shared/review/candidates.ts';
 
 export async function prepareWaterlight():Promise<PlaceFactory> {
-  const prepareFish=await prepareLongFinKoiSchool();
+  const prepareFish=await prepareLongFinKoiSchool(biologyCandidatesEnabled()?{}:{turnBend:0,bodyLengthFrequency:false,pointerResponse:0});
   const factory:PlaceFactory=(scene,renderer)=>{
     const env=createEnvironment(scene,renderer);
     let fish:ReturnType<typeof prepareFish>;
@@ -16,6 +17,7 @@ export async function prepareWaterlight():Promise<PlaceFactory> {
       get hasSimulation(){return env.hasSimulation;},
       get waterMode(){return env.waterMode;},
       update(dt,elapsed,state){env.update(elapsed,state,dt);fish.update(dt,elapsed,state);},
+      pointerRay(ray,tap){fish.pointerRay(ray,tap);},
       disturb:env.disturb,resetWater:env.resetWater,
       dispose(){fish.dispose();env.dispose();},
     };

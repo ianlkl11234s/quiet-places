@@ -38,6 +38,8 @@ export interface PlaceInstance {
   moonDefaults?:MoonSettings;
   setMoon?(settings:MoonSettings):void;
   update(dt:number,elapsed:number,state:SceneState):void;
+  /** Optional creature awareness. World-space ray under the pointer (borrowed: copy it, do not keep the reference); undefined when the pointer leaves. tap is true for a click without drag. Called at most once per frame for movement. */
+  pointerRay?(ray:THREE.Ray|undefined,tap:boolean):void;
   disturb(u:number,v:number):void;
   resetWater():void;
   dispose():void;

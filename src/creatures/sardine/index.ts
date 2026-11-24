@@ -44,11 +44,13 @@ export function setSardineEnvironment(v:SardineVisuals,texture:THREE.Texture|nul
 }
 export function setSardineMatrix(v:SardineVisuals,i:number,m:THREE.Matrix4){for(const c of v.root.children)if(c instanceof THREE.InstancedMesh)c.setMatrixAt(i,m);}
 export function commitSardineMatrices(v:SardineVisuals){for(const c of v.root.children)if(c instanceof THREE.InstancedMesh)c.instanceMatrix.needsUpdate=true;}
-/** Tail amplitude grows with speed (body lengths/s); bend is the shared-locomotion C-bend. */
-export function setSardineMotion(v:SardineVisuals,i:number,phase:number,speedBL:number,bend=0){
+/** Tail amplitude grows with speed (body lengths/s); bend is the shared-locomotion C-bend.
+ * tailScale (B4 burst-and-coast) multiplies the amplitude; 1 keeps the former value exactly. */
+export function setSardineMotion(v:SardineVisuals,i:number,phase:number,speedBL:number,bend=0,tailScale=1){
  for(const c of v.root.children)if(c instanceof THREE.InstancedMesh){
   const p=c.geometry.getAttribute('aPhase') as THREE.InstancedBufferAttribute,a=c.geometry.getAttribute('aTailAmplitude') as THREE.InstancedBufferAttribute;
-  p.setX(i,phase);a.setX(i,Math.min(.07,.012+Math.max(0,speedBL)*.012));p.needsUpdate=true;a.needsUpdate=true;setInstanceBend(c,i,bend);
+  const amplitude=Math.min(.07,.012+Math.max(0,speedBL)*.012);
+  p.setX(i,phase);a.setX(i,tailScale===1?amplitude:amplitude*tailScale);p.needsUpdate=true;a.needsUpdate=true;setInstanceBend(c,i,bend);
  }
 }
 

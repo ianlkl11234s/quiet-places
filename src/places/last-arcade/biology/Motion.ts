@@ -3,7 +3,22 @@ import {seededRandom} from '../../../shared/math/seededRandom.ts';
 import {sampleVirtualFlow} from '../../../systems/virtual-flow/index.ts';
 import {envelopeClear} from './Obstacles.ts';
 export const animalClearanceRadii=[4.5,4.2,4.0,5.2] as const;
-const TAU=Math.PI*2,STEP=1/20,UP=new THREE.Vector3(0,1,0),FORWARD=new THREE.Vector3(0,0,1);
+/**
+ * B5 candidate (art approximation, not verified biomechanics); applies to the manta profiles only, never the whale shark.
+ * MANTA_SPEED_COUPLED_FLAP: target flap frequency = profile.frequency * clamp(speed/profile.speed, .55, 1.25), still inside the existing
+ *   .23-.36 Hz stroke-continuity clamp (so the effective low end is ~.8x),
+ *   and wing amplitude eases down to 1-MANTA_YIELD_AMPLITUDE_DROP while yielding (clearancePace<1). At
+ *   cruise speed and clearancePace=1 both equal the legacy values. false = legacy fixed-mean frequency, amplitude 1.
+ * MANTA_TAIL_FOLLOW: the tail trails heading changes. lag = relaxed heading error (time constant
+ *   MANTA_TAIL_LAG_SECONDS), swung out as a tail-tip angle capped at MANTA_TAIL_MAX_RAD. false = static tail.
+ */
+export const MANTA_SPEED_COUPLED_FLAP=true;
+export const MANTA_TAIL_FOLLOW=true;
+export const MANTA_FLAP_RATIO_RANGE=[.55,1.25] as const;
+export const MANTA_YIELD_AMPLITUDE_DROP=.22;
+export const MANTA_TAIL_LAG_SECONDS=1;
+export const MANTA_TAIL_MAX_RAD=.2;
+const TAU=Math.PI*2,SCRATCH=new THREE.Vector3(),wrapAngle=(a:number)=>Math.atan2(Math.sin(a),Math.cos(a)),STEP=1/20,UP=new THREE.Vector3(0,1,0),FORWARD=new THREE.Vector3(0,0,1);
 const clamp=THREE.MathUtils.clamp;
 export const profiles=[
  {id:'manta-a',species:'Mobula birostris',size:5.8,seed:9101,height:8.8,speed:1.02,frequency:.288,tau:1.1},
@@ -11,7 +26,7 @@ export const profiles=[
  {id:'manta-c',species:'Mobula birostris',size:5.1,seed:9103,height:10.6,speed:.97,frequency:.294,tau:1.3},
  {id:'whale-shark',species:'Rhincodon typus',size:8.5,seed:9140,height:3.0,speed:.68,frequency:.38,tau:2.4},
 ] as const;
-export type AnimalState={id:string,position:THREE.Vector3,quaternion:THREE.Quaternion,velocity:THREE.Vector3,speed:number,frequency:number,phase:number,bank:number,curvature:number,glide:number,asymmetry:number,state:string,distance:number};
+export type AnimalState={id:string,position:THREE.Vector3,quaternion:THREE.Quaternion,velocity:THREE.Vector3,speed:number,frequency:number,phase:number,bank:number,curvature:number,glide:number,asymmetry:number,state:string,distance:number,amplitude:number,tailYaw:number,tailPitch:number};
 type Route={curve:THREE.CatmullRomCurve3,length:number,closed:boolean};
 function route(points:THREE.Vector3[],closed=true):Route{const curve=new THREE.CatmullRomCurve3(points,closed,'centripetal');curve.arcLengthDivisions=8192;curve.updateArcLengths();return {curve,length:curve.getLength(),closed};}
 function loop(i:number,variation=0):Route{
@@ -26,10 +41,12 @@ export class ArcadeAnimalMotion {
  private routes=profiles.map((_,i)=>loop(i));private distances=[.12,.43,.76,.98].map((u,i)=>u*this.routes[i].length);
  private glideUntil=[0,0,0,0];private nextGlide=[0,0,0,45];private frequencies=profiles.map(p=>Number(p.frequency));
  private nextPair=45;private pairUntil=0;private nextLow=70;private nextSwitch=60;private lowIndex=-1;private returnDistance=0;
- private lowPending=false;
+ private lowPending=false;private tailReady=[false,false,false,false];private headYaw=[0,0,0,0];private headPitch=[0,0,0,0];private lagYaw=[0,0,0,0];private lagPitch=[0,0,0,0];
  private routeOffset=profiles.map(()=>new THREE.Vector3());private pairWeight=0;
- constructor(includeWhale=true){
-  this.states=profiles.slice(0,includeWhale?4:3).map((p,i)=>{const r=this.routes[i],position=r.curve.getPointAt(this.distances[i]/r.length),dir=r.curve.getTangentAt(this.distances[i]/r.length);return {id:p.id,position,quaternion:poseFor(dir,0),velocity:dir.multiplyScalar(p.speed),speed:p.speed,frequency:p.frequency,phase:i*1.71,bank:0,curvature:0,glide:0,asymmetry:0,state:'CRUISE',distance:0};});this.previous=this.states.map(cloneState);
+ private readonly flap:boolean;private readonly tailFollow:boolean;
+ constructor(includeWhale=true,options:{speedCoupledFlap?:boolean,tailFollow?:boolean}={}){
+  this.flap=options.speedCoupledFlap??MANTA_SPEED_COUPLED_FLAP;this.tailFollow=options.tailFollow??MANTA_TAIL_FOLLOW;
+  this.states=profiles.slice(0,includeWhale?4:3).map((p,i)=>{const r=this.routes[i],position=r.curve.getPointAt(this.distances[i]/r.length),dir=r.curve.getTangentAt(this.distances[i]/r.length);return {id:p.id,position,quaternion:poseFor(dir,0),velocity:dir.multiplyScalar(p.speed),speed:p.speed,frequency:p.frequency,phase:i*1.71,bank:0,curvature:0,glide:0,asymmetry:0,state:'CRUISE',distance:0,amplitude:1,tailYaw:0,tailPitch:0};});this.previous=this.states.map(cloneState);
  }
  private gaussian(random:()=>number){return Math.sqrt(-2*Math.log(Math.max(1e-9,random())))*Math.cos(TAU*random());}
  private log(type:string,i:number){this.events.push({time:this.time,type,id:profiles[i].id});if(this.events.length>200)this.events.shift();}
@@ -81,7 +98,9 @@ export class ArcadeAnimalMotion {
   for(let j=0;j<this.states.length;j++)if(j!==i){const delta=this.previous[j].position.clone().sub(s.position),distance=delta.length(),closing=s.velocity.dot(delta)/Math.max(distance,.001);if(closing>0){const gap=distance-animalClearanceRadii[i]-animalClearanceRadii[j]-.5;clearancePace=Math.min(clearancePace,THREE.MathUtils.smoothstep(gap,0,5));}}
   targetSpeed*=clearancePace;
   s.speed=clamp(s.speed+(targetSpeed-s.speed)*(whale?.18:.25)*STEP+(whale?.025:.05)*Math.sqrt(STEP)*noise,clearancePace<.99?0:(whale?.55:.8),whale?.8:1.3);
-  this.frequencies[i]=clamp(this.frequencies[i]+.15*(p.frequency-this.frequencies[i])*STEP+.015*Math.sqrt(STEP)*this.gaussian(random),whale?.32:.23,whale?.48:.36);
+  const coupled=this.flap&&!whale,flapTarget=coupled?p.frequency*clamp(s.speed/p.speed,MANTA_FLAP_RATIO_RANGE[0],MANTA_FLAP_RATIO_RANGE[1]):p.frequency;
+  this.frequencies[i]=clamp(this.frequencies[i]+.15*(flapTarget-this.frequencies[i])*STEP+.015*Math.sqrt(STEP)*this.gaussian(random),whale?.32:.23,whale?.48:.36);
+  if(coupled)s.amplitude+=(1-MANTA_YIELD_AMPLITUDE_DROP*(1-clearancePace)-s.amplitude)*(1-Math.exp(-STEP/1.2));
   if(whale&&this.time>this.nextGlide[i]&&random()<1-Math.exp(-STEP/45)){this.glideUntil[i]=this.time+4+random()*10;this.nextGlide[i]=this.glideUntil[i]+30;this.log('GLIDE',i);}
   // Mantas keep a continuous stroke; short random phase holds read as animation stalls.
   const glideTarget=whale&&this.time<this.glideUntil[i]?1:0;s.glide=THREE.MathUtils.lerp(s.glide,glideTarget,1-Math.exp(-STEP/(whale?1.1:.22)));
@@ -117,9 +136,16 @@ export class ArcadeAnimalMotion {
   s.position.copy(proposed);s.velocity.copy(s.position).sub(this.previous[i].position).divideScalar(STEP);
   const actualDirection=s.velocity.lengthSq()>1e-8?s.velocity.clone().normalize():direction;
   s.quaternion.slerp(poseFor(actualDirection,s.bank),1-Math.exp(-STEP/p.tau));
+  if(this.tailFollow&&!whale){
+   // Lag is the heading error relaxed with a time constant: L <- (L - dHeading) * exp(-dt/tau). Steady turn rate w gives L = -w*tau.
+   const f=SCRATCH.copy(FORWARD).applyQuaternion(s.quaternion),yaw=Math.atan2(f.x,f.z),pitch=Math.asin(clamp(f.y,-1,1)),decay=Math.exp(-STEP/MANTA_TAIL_LAG_SECONDS);
+   if(this.tailReady[i]){this.lagYaw[i]=(this.lagYaw[i]-wrapAngle(yaw-this.headYaw[i]))*decay;this.lagPitch[i]=(this.lagPitch[i]-(pitch-this.headPitch[i]))*decay;}
+   this.tailReady[i]=true;this.headYaw[i]=yaw;this.headPitch[i]=pitch;
+   s.tailYaw=clamp(this.lagYaw[i],-MANTA_TAIL_MAX_RAD,MANTA_TAIL_MAX_RAD);s.tailPitch=clamp(this.lagPitch[i],-MANTA_TAIL_MAX_RAD*.6,MANTA_TAIL_MAX_RAD*.6);
+  }
   s.state=low?(s.position.y<3.2?'LOW_PASS':s.velocity.y<0?'LOW_DESCENT':'ASCEND'):i<2&&this.pairWeight>.15?(this.pairUntil>this.time?'PAIR_SYNC':'PAIR_RELEASE'):s.glide>.5?'GLIDE':whale&&Math.abs(this.routeOffset[i].y-this.whaleAltitudeTarget)>.2?'ROUTE_SWITCH':Math.abs(s.bank)>.1?'BANK_TURN':'CRUISE';
  }
  advance(elapsed:number){const target=Math.max(0,Number.isFinite(elapsed)?elapsed:0);if(target+1e-8<this.time){throw new Error('Recreate ArcadeAnimalMotion before seeking backwards');}while(this.time+STEP<=target+1e-8)this.step();}
- sample(elapsed:number){this.advance(elapsed);const alpha=clamp((elapsed-this.time)/STEP,0,1);return this.states.map((s,i)=>{const a=this.previous[i];return {...s,position:a.position.clone().lerp(s.position,alpha),quaternion:a.quaternion.clone().slerp(s.quaternion,alpha),phase:THREE.MathUtils.lerp(a.phase,s.phase,alpha),glide:THREE.MathUtils.lerp(a.glide,s.glide,alpha),asymmetry:THREE.MathUtils.lerp(a.asymmetry,s.asymmetry,alpha)};});}
- debug(){return {time:this.time,events:this.events,activeEvents:this.noticeableEvents,animals:this.states.map(s=>({id:s.id,state:s.state,position:s.position.toArray(),speed:s.velocity.length(),targetSpeed:s.speed,frequency:s.frequency,curvature:s.curvature,radius:1/Math.max(1e-8,Math.abs(s.curvature)),bank:s.bank*180/Math.PI,phase:s.phase,glide:s.glide}))};}
+ sample(elapsed:number){this.advance(elapsed);const alpha=clamp((elapsed-this.time)/STEP,0,1);return this.states.map((s,i)=>{const a=this.previous[i];return {...s,position:a.position.clone().lerp(s.position,alpha),quaternion:a.quaternion.clone().slerp(s.quaternion,alpha),phase:THREE.MathUtils.lerp(a.phase,s.phase,alpha),glide:THREE.MathUtils.lerp(a.glide,s.glide,alpha),asymmetry:THREE.MathUtils.lerp(a.asymmetry,s.asymmetry,alpha),amplitude:THREE.MathUtils.lerp(a.amplitude,s.amplitude,alpha),tailYaw:THREE.MathUtils.lerp(a.tailYaw,s.tailYaw,alpha),tailPitch:THREE.MathUtils.lerp(a.tailPitch,s.tailPitch,alpha)};});}
+ debug(){return {time:this.time,events:this.events,activeEvents:this.noticeableEvents,animals:this.states.map(s=>({id:s.id,state:s.state,position:s.position.toArray(),speed:s.velocity.length(),targetSpeed:s.speed,frequency:s.frequency,curvature:s.curvature,radius:1/Math.max(1e-8,Math.abs(s.curvature)),bank:s.bank*180/Math.PI,phase:s.phase,glide:s.glide,amplitude:s.amplitude,tailYaw:s.tailYaw,tailPitch:s.tailPitch}))};}
 }

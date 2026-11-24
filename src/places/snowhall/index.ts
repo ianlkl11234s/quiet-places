@@ -6,6 +6,7 @@ import {snowHallDaylight} from './Daylight.ts';
 import {createHallMaterials} from './Materials.ts';
 import {createSnowHallField} from './Snow.ts';
 import {createAntarcticLife} from './AntarcticLife.ts';
+import {biologyCandidatesEnabled} from '../../shared/review/candidates.ts';
 import {applySnowhallLayout,SNOW_HALL_BASELINE,SNOW_HALL_DOORS,validateSnowhallDraft,type SnowhallDraft} from './Layout.ts';
 
 export async function prepareSnowhall(options?:{layout?:SnowhallDraft;sceneSeed?:number}):Promise<PlaceFactory>{
@@ -53,11 +54,12 @@ export async function prepareSnowhall(options?:{layout?:SnowhallDraft;sceneSeed?
   const fill=new THREE.HemisphereLight('#aebbc2','#222425',.04);root.add(fill);
   const background=new THREE.Color('#aebbc2'),fog=new THREE.FogExp2(background,.017);scene.background=background;scene.fog=fog;
   applySnowhallLayout(root,layout);
-  let life=createAntarcticLife(root,layout,sceneSeed),biologyLayout=layout;
+  const lifeCandidates=biologyCandidatesEnabled()?{}:{speedPhase:false,bankDegrees:0};
+  let life=createAntarcticLife(root,layout,sceneSeed,lifeCandidates),biologyLayout=layout;
   root.userData.biology=life.simulation;
   root.userData.onSnowhallLayoutChange=(next:SnowhallDraft)=>{
    if(next.corridorWidth===biologyLayout.corridorWidth&&JSON.stringify(next.window)===JSON.stringify(biologyLayout.window)&&JSON.stringify(next.camera.position)===JSON.stringify(biologyLayout.camera.position)&&JSON.stringify(next.camera.target)===JSON.stringify(biologyLayout.camera.target))return;
-   life.dispose();life=createAntarcticLife(root,next,sceneSeed);biologyLayout=next;root.userData.biology=life.simulation;
+   life.dispose();life=createAntarcticLife(root,next,sceneSeed,lifeCandidates);biologyLayout=next;root.userData.biology=life.simulation;
   };
   let disposed=false;
   return {
